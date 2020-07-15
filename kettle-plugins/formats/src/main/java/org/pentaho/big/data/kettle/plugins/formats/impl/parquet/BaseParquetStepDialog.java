@@ -62,34 +62,54 @@ import org.pentaho.di.ui.trans.step.BaseStepDialog;
 
 public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInterface> extends BaseStepDialog
   implements StepDialogInterface {
-  protected final Class<?> PKG = getClass();
-  protected static final Class<?> BPKG = BaseParquetStepDialog.class;
-
-  protected T meta;
-  protected ModifyListener lsMod;
-
   public static final int MARGIN = 15;
   public static final int FIELDS_SEP = 10;
   public static final int FIELD_LABEL_SEP = 5;
-
   public static final int FIELD_TINY = 100;
   public static final int FIELD_SMALL = 150;
   public static final int FIELD_MEDIUM = 250;
   public static final int FIELD_LARGE = 350;
-
-  private static final String ELLIPSIS = "...";
-  private static final int TABLE_ITEM_MARGIN = 2;
-  private static final int TOOLTIP_SHOW_DELAY = 350;
-  private static final int TOOLTIP_HIDE_DELAY = 2000;
+  public static final int TABLE_ITEM_MARGIN = 2;
+  public static final int TOOLTIP_SHOW_DELAY = 350;
+  public static final int TOOLTIP_HIDE_DELAY = 2000;
   // width of the icon in a varfield
-  protected static final int VAR_EXTRA_WIDTH = GUIResource.getInstance().getImageVariable().getBounds().width;
-
+  public static final int VAR_EXTRA_WIDTH = GUIResource.getInstance().getImageVariable().getBounds().width;
+  protected static final Class<?> BPKG = BaseParquetStepDialog.class;
+  private static final String ELLIPSIS = "...";
+  protected final Class<?> parquetStepDialogClass = getClass();
+  protected T meta;
+  protected ModifyListener lsMod;
   protected TextVar wPath;
   protected Button wbBrowse;
 
   public BaseParquetStepDialog( Shell parent, T in, TransMeta transMeta, String sname ) {
     super( parent, (BaseStepMeta) in, transMeta, sname );
     meta = in;
+  }
+
+  public static String shortenText( GC gc, String text, final int targetWidth ) {
+    if ( Utils.isEmpty( text ) ) {
+      return "";
+    }
+    int textWidth = gc.textExtent( text ).x;
+    int extra = gc.textExtent( ELLIPSIS ).x + 2 * TABLE_ITEM_MARGIN;
+    if ( targetWidth <= extra || textWidth <= targetWidth ) {
+      return text;
+    }
+    int len = text.length();
+    for ( int chomp = 1; chomp < len && textWidth + extra >= targetWidth; chomp++ ) {
+      text = text.substring( 0, text.length() - 1 );
+      textWidth = gc.textExtent( text ).x;
+    }
+    return text + ELLIPSIS;
+  }
+
+  public static void setIntegerOnly( TextVar textVar ) {
+    textVar.getTextWidget().addVerifyListener( e -> {
+      if ( !StringUtil.isEmpty( e.text ) && !StringUtil.isVariable( e.text ) && !StringUtil.IsInteger( e.text ) ) {
+        e.doit = false;
+      }
+    } );
   }
 
   @Override
@@ -172,7 +192,6 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
 
   protected abstract String getStepTitle();
 
-
   /**
    * Read the data from the meta object and show it in this dialog.
    *
@@ -184,9 +203,8 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
    * Fill meta object from UI options.
    *
    * @param meta    meta object
-   * @param preview flag for preview or real options should be used. Currently, only one option is differ for preview
-   *               - EOL
-   *                chars. It uses as "mixed" for be able to preview any file.
+   * @param preview flag for preview or real options should be used. Currently, only one option is differ for preview -
+   *                EOL chars. It uses as "mixed" for be able to preview any file.
    */
   protected abstract void getInfo( T meta, boolean preview );
 
@@ -237,7 +255,7 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
     Label wicon = new Label( shell, SWT.RIGHT );
     String stepId = meta.getParentStepMeta().getStepID();
     wicon.setImage( GUIResource.getInstance().getImagesSteps().get( stepId ).getAsBitmapForSize( shell.getDisplay(),
-        ConstUI.LARGE_ICON_SIZE, ConstUI.LARGE_ICON_SIZE ) );
+      ConstUI.LARGE_ICON_SIZE, ConstUI.LARGE_ICON_SIZE ) );
     FormData fdlicon = new FormData();
     fdlicon.top = new FormAttachment( 0, 0 );
     fdlicon.right = new FormAttachment( 100, 0 );
@@ -280,84 +298,7 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
   }
 
   protected String getMsg( String key ) {
-    return BaseMessages.getString( PKG, key );
-  }
-
-  /**
-   * Class for apply layout settings to SWT controls.
-   */
-  protected class FD {
-    private final Control control;
-    private final FormData fd;
-
-    public FD( Control control ) {
-      this.control = control;
-      props.setLook( control );
-      fd = new FormData();
-    }
-
-    public FD width( int width ) {
-      fd.width = width;
-      return this;
-    }
-
-    public FD height( int height ) {
-      fd.height = height;
-      return this;
-    }
-
-    public FD top( int numerator, int offset ) {
-      fd.top = new FormAttachment( numerator, offset );
-      return this;
-    }
-
-    public FD top( Control control, int offset ) {
-      fd.top = new FormAttachment( control, offset );
-      return this;
-    }
-
-    public FD bottom( int numerator, int offset ) {
-      fd.bottom = new FormAttachment( numerator, offset );
-      return this;
-    }
-
-    public FD bottom( Control control, int offset ) {
-      fd.bottom = new FormAttachment( control, offset );
-      return this;
-    }
-
-    public FD left( int numerator, int offset ) {
-      fd.left = new FormAttachment( numerator, offset );
-      return this;
-    }
-
-    public FD left( int numerator ) {
-      return left( numerator, 0 );
-    }
-
-    public FD left( Control control, int offset ) {
-      fd.left = new FormAttachment( control, offset );
-      return this;
-    }
-
-    public FD right( int numerator, int offset ) {
-      fd.right = new FormAttachment( numerator, offset );
-      return this;
-    }
-
-    public FD rright() {
-      fd.right = new FormAttachment( 100, -getControlOffset( control, fd.width ) );
-      return this;
-    }
-
-    public FD right( Control control, int offset ) {
-      fd.right = new FormAttachment( control, offset );
-      return this;
-    }
-
-    public void apply() {
-      control.setLayoutData( fd );
-    }
+    return BaseMessages.getString( parquetStepDialogClass, key );
   }
 
   protected int getMinHeight( Composite comp, int minWidth ) {
@@ -390,7 +331,6 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
     } );
   }
 
-
   protected void addColumnTooltip( Table table, int columnIndex ) {
     final DefaultToolTip toolTip = new DefaultToolTip( table, ToolTip.RECREATE, true );
     toolTip.setRespectMonitorBounds( true );
@@ -422,46 +362,98 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
     } );
   }
 
-  protected String shortenText( GC gc, String text, final int targetWidth ) {
-    if ( Utils.isEmpty( text ) ) {
-      return "";
-    }
-    int textWidth = gc.textExtent( text ).x;
-    int extra = gc.textExtent( ELLIPSIS ).x + 2 * TABLE_ITEM_MARGIN;
-    if ( targetWidth <= extra || textWidth <= targetWidth ) {
-      return text;
-    }
-    int len = text.length();
-    for ( int chomp = 1; chomp < len && textWidth + extra >= targetWidth; chomp++ ) {
-      text = text.substring( 0, text.length() - 1 );
-      textWidth = gc.textExtent( text ).x;
-    }
-    return text + ELLIPSIS;
-  }
+  /**
+   * Class for apply layout settings to SWT controls.
+   */
+  protected class FD {
+    private final Control control;
+    private final FormData formData;
 
-  private int getControlOffset( Control control, int controlWidth ) {
-    // remaining space for min size match
-    return getWidth() - getMarginWidths( control ) - controlWidth;
-  }
+    public FD( Control control ) {
+      this.control = control;
+      props.setLook( control );
+      formData = new FormData();
+    }
 
-  private int getMarginWidths( Control control ) {
-    // get the width added by container margins and (wm-specific) decorations
-    int extraWidth = 0;
-    for ( Composite parent = control.getParent(); !parent.equals( getParent() ); parent = parent.getParent() ) {
-      extraWidth += parent.computeTrim( 0, 0, 0, 0 ).width;
-      if ( parent.getLayout() instanceof FormLayout ) {
-        extraWidth += 2 * ( (FormLayout) parent.getLayout() ).marginWidth;
+    private int getControlOffset( Control control, int controlWidth ) {
+      // remaining space for min size match
+      return getWidth() - getMarginWidths( control ) - controlWidth;
+    }
+
+    private int getMarginWidths( Control control ) {
+      // get the width added by container margins and (wm-specific) decorations
+      int extraWidth = 0;
+      for ( Composite parent = control.getParent(); !parent.equals( getParent() ); parent = parent.getParent() ) {
+        extraWidth += parent.computeTrim( 0, 0, 0, 0 ).width;
+        if ( parent.getLayout() instanceof FormLayout ) {
+          extraWidth += 2 * ( (FormLayout) parent.getLayout() ).marginWidth;
+        }
       }
+      return extraWidth;
     }
-    return extraWidth;
-  }
 
-  protected void setIntegerOnly( TextVar textVar ) {
-    textVar.getTextWidget().addVerifyListener( e -> {
-      if ( !StringUtil.isEmpty( e.text ) && !StringUtil.isVariable( e.text ) && !StringUtil.IsInteger( e.text ) ) {
-        e.doit = false;
-      }
-    } );
+    public FD width( int width ) {
+      formData.width = width;
+      return this;
+    }
+
+    public FD height( int height ) {
+      formData.height = height;
+      return this;
+    }
+
+    public FD top( int numerator, int offset ) {
+      formData.top = new FormAttachment( numerator, offset );
+      return this;
+    }
+
+    public FD top( Control control, int offset ) {
+      formData.top = new FormAttachment( control, offset );
+      return this;
+    }
+
+    public FD bottom( int numerator, int offset ) {
+      formData.bottom = new FormAttachment( numerator, offset );
+      return this;
+    }
+
+    public FD bottom( Control control, int offset ) {
+      formData.bottom = new FormAttachment( control, offset );
+      return this;
+    }
+
+    public FD left( int numerator, int offset ) {
+      formData.left = new FormAttachment( numerator, offset );
+      return this;
+    }
+
+    public FD left( int numerator ) {
+      return left( numerator, 0 );
+    }
+
+    public FD left( Control control, int offset ) {
+      formData.left = new FormAttachment( control, offset );
+      return this;
+    }
+
+    public FD right( int numerator, int offset ) {
+      formData.right = new FormAttachment( numerator, offset );
+      return this;
+    }
+
+    public FD rright() {
+      formData.right = new FormAttachment( 100, -getControlOffset( control, formData.width ) );
+      return this;
+    }
+
+    public FD right( Control control, int offset ) {
+      formData.right = new FormAttachment( control, offset );
+      return this;
+    }
+
+    public void apply() {
+      control.setLayoutData( formData );
+    }
   }
 
 }
