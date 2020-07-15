@@ -99,22 +99,22 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
     separator.setLayoutData( fdSpacer );
 
     wIgnoreEmptyFolder = new Button( shell, SWT.CHECK );
-    wIgnoreEmptyFolder.setText( BaseMessages.getString( PKG, "ParquetInputDialog.IgnoreEmptyFolder.Label" ) );
-    wIgnoreEmptyFolder.setToolTipText( BaseMessages.getString( PKG, "ParquetInputDialog.IgnoreEmptyFolder.Tooltip" ) );
+    wIgnoreEmptyFolder.setText( BaseMessages.getString( parquetStepDialogClass, "ParquetInputDialog.IgnoreEmptyFolder.Label" ) );
+    wIgnoreEmptyFolder.setToolTipText( BaseMessages.getString( parquetStepDialogClass, "ParquetInputDialog.IgnoreEmptyFolder.Tooltip" ) );
     wIgnoreEmptyFolder.setOrientation( SWT.LEFT_TO_RIGHT );
     props.setLook( wIgnoreEmptyFolder );
     new FD( wIgnoreEmptyFolder ).left( 0, 0 ).top( prev, MARGIN ).apply();
 
     Group fieldsContainer = new Group( shell, SWT.SHADOW_IN );
     fieldsContainer.setLayout( new FormLayout() );
-    fieldsContainer.setText( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.Label" ) );
+    fieldsContainer.setText( BaseMessages.getString( parquetStepDialogClass, "ParquetInputDialog.Fields.Label" ) );
     new FD( fieldsContainer ).left( 0, 0 ).top( wIgnoreEmptyFolder, MARGIN ).right( 100, 0 ).bottom( separator, -MARGIN ).apply();
 
     // Accept fields from previous steps?
     //
     wPassThruFields = new Button( fieldsContainer, SWT.CHECK );
-    wPassThruFields.setText( BaseMessages.getString( PKG, "ParquetInputDialog.PassThruFields.Label" ) );
-    wPassThruFields.setToolTipText( BaseMessages.getString( PKG, "ParquetInputDialog.PassThruFields.Tooltip" ) );
+    wPassThruFields.setText( BaseMessages.getString( parquetStepDialogClass, "ParquetInputDialog.PassThruFields.Label" ) );
+    wPassThruFields.setToolTipText( BaseMessages.getString( parquetStepDialogClass, "ParquetInputDialog.PassThruFields.Tooltip" ) );
     wPassThruFields.setOrientation( SWT.LEFT_TO_RIGHT );
     props.setLook( wPassThruFields );
     new FD( wPassThruFields ).left( 0, MARGIN ).top( 0, MARGIN ).apply();
@@ -123,17 +123,17 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
     //get fields button
     lsGet = e -> populateFieldsTable();
     Button wGetFields = new Button( fieldsContainer, SWT.PUSH );
-    wGetFields.setText( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.Get" ) );
+    wGetFields.setText( BaseMessages.getString( parquetStepDialogClass, "ParquetInputDialog.Fields.Get" ) );
     props.setLook( wGetFields );
     new FD( wGetFields ).bottom( 100, -FIELDS_SEP ).right( 100, -MARGIN ).apply();
     wGetFields.addListener( SWT.Selection, lsGet );
 
     // fields table
-    ColumnInfo parquetPathColumnInfo = new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.Path" ), ColumnInfo.COLUMN_TYPE_TEXT, false, true );
-    ColumnInfo nameColumnInfo = new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.Name" ), ColumnInfo.COLUMN_TYPE_TEXT, false, false );
-    ColumnInfo typeColumnInfo = new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.Type" ), ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaFactory.getValueMetaNames() );
-    ColumnInfo formatColumnInfo = new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.Format" ), ColumnInfo.COLUMN_TYPE_CCOMBO, Const.getDateFormats() );
-    ColumnInfo sourceTypeColumnInfo = new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.SourceType" ), ColumnInfo.COLUMN_TYPE_TEXT, ValueMetaFactory.getValueMetaNames(), true );
+    ColumnInfo parquetPathColumnInfo = new ColumnInfo( BaseMessages.getString( parquetStepDialogClass, "ParquetInputDialog.Fields.column.Path" ), ColumnInfo.COLUMN_TYPE_TEXT, false, true );
+    ColumnInfo nameColumnInfo = new ColumnInfo( BaseMessages.getString( parquetStepDialogClass, "ParquetInputDialog.Fields.column.Name" ), ColumnInfo.COLUMN_TYPE_TEXT, false, false );
+    ColumnInfo typeColumnInfo = new ColumnInfo( BaseMessages.getString( parquetStepDialogClass, "ParquetInputDialog.Fields.column.Type" ), ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaFactory.getValueMetaNames() );
+    ColumnInfo formatColumnInfo = new ColumnInfo( BaseMessages.getString( parquetStepDialogClass, "ParquetInputDialog.Fields.column.Format" ), ColumnInfo.COLUMN_TYPE_CCOMBO, Const.getDateFormats() );
+    ColumnInfo sourceTypeColumnInfo = new ColumnInfo( BaseMessages.getString( parquetStepDialogClass, "ParquetInputDialog.Fields.column.SourceType" ), ColumnInfo.COLUMN_TYPE_TEXT, ValueMetaFactory.getValueMetaNames(), true );
 
     ColumnInfo[] parameterColumns = new ColumnInfo[] {parquetPathColumnInfo, nameColumnInfo, typeColumnInfo, formatColumnInfo, sourceTypeColumnInfo};
     parameterColumns[0].setAutoResize( false );
@@ -182,8 +182,8 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
       wInputFields.setRowNums();
       wInputFields.optWidth( true );
     } catch ( Exception ex ) {
-      logError( BaseMessages.getString( PKG, UNABLE_TO_LOAD_SCHEMA_FROM_CONTAINER_FILE ), ex );
-      new ErrorDialog( shell, stepname, BaseMessages.getString( PKG,
+      logError( BaseMessages.getString( parquetStepDialogClass, UNABLE_TO_LOAD_SCHEMA_FROM_CONTAINER_FILE ), ex );
+      new ErrorDialog( shell, stepname, BaseMessages.getString( parquetStepDialogClass,
         UNABLE_TO_LOAD_SCHEMA_FROM_CONTAINER_FILE, getProcessedFileName() ), ex );
     }
   }
@@ -200,8 +200,8 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
         meta.getNamedClusterResolver().resolveNamedCluster( parquetFileName ), parquetFileName );
     } catch ( Exception ex ) {
       if ( !failQuietly ) {
-        logError( BaseMessages.getString( PKG, UNABLE_TO_LOAD_SCHEMA_FROM_CONTAINER_FILE ), ex );
-        new ErrorDialog( shell, stepname, BaseMessages.getString( PKG,
+        logError( BaseMessages.getString( parquetStepDialogClass, UNABLE_TO_LOAD_SCHEMA_FROM_CONTAINER_FILE ), ex );
+        new ErrorDialog( shell, stepname, BaseMessages.getString( parquetStepDialogClass,
           UNABLE_TO_LOAD_SCHEMA_FROM_CONTAINER_FILE, parquetFileName ), ex );
       }
     }
@@ -367,8 +367,8 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
     previewMeta.getVariable( "Internal.Transformation.Filename.Directory" );
 
     EnterNumberDialog numberDialog =
-      new EnterNumberDialog( shell, props.getDefaultPreviewSize(), BaseMessages.getString( PKG,
-        "ParquetInputDialog.PreviewSize.DialogTitle" ), BaseMessages.getString( PKG,
+      new EnterNumberDialog( shell, props.getDefaultPreviewSize(), BaseMessages.getString( parquetStepDialogClass,
+        "ParquetInputDialog.PreviewSize.DialogTitle" ), BaseMessages.getString( parquetStepDialogClass,
         "ParquetInputDialog.PreviewSize.DialogMessage" ) );
     int previewSize = numberDialog.open();
 
@@ -384,8 +384,8 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
       if ( !progressDialog.isCancelled() ) {
         if ( trans.getResult() != null && trans.getResult().getNrErrors() > 0 ) {
           EnterTextDialog etd =
-            new EnterTextDialog( shell, BaseMessages.getString( PKG, "System.Dialog.PreviewError.Title" ),
-              BaseMessages.getString( PKG, "System.Dialog.PreviewError.Message" ), loggingText, true );
+            new EnterTextDialog( shell, BaseMessages.getString( parquetStepDialogClass, "System.Dialog.PreviewError.Title" ),
+              BaseMessages.getString( parquetStepDialogClass, "System.Dialog.PreviewError.Message" ), loggingText, true );
           etd.setReadOnly();
           etd.open();
         }
@@ -411,7 +411,7 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
 
   @Override
   protected String getStepTitle() {
-    return BaseMessages.getString( PKG, "ParquetInputDialog.Shell.Title" );
+    return BaseMessages.getString( parquetStepDialogClass, "ParquetInputDialog.Shell.Title" );
   }
 
   @Override
