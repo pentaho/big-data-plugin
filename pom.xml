@@ -164,6 +164,7 @@
         </property>
       </activation>
       <modules>
+        <module>legacy-amazon</module>
         <module>kettle-plugins</module>
       </modules>
     </profile>

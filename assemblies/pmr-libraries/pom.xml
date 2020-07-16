@@ -806,6 +806,11 @@
       <version>${pentaho-osgi-bundles.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.pentaho</groupId>
+      <artifactId>shim-api-core</artifactId>
+      <version>${pentaho-hadoop-shims.version}</version>
+    </dependency>
+    <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-capability-manager</artifactId>
       <version>${pentaho-osgi-bundles.version}</version>

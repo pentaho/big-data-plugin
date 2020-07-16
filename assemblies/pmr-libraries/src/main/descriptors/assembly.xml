@@ -213,6 +213,7 @@
         <include>org.pentaho:commons-database-model</include>
         <include>org.pentaho:pentaho-metadata</include>
         <include>pentaho:pentaho-osgi-utils-api</include>
+        <include>org.pentaho:shim-api-core</include>
         <include>org.pentaho:pentaho-registry</include>
         <include>pentaho:simple-jndi</include>
         <include>org.pentaho:pentaho-encryption-support</include>
