@@ -1,0 +1,112 @@
+<?xml version="1.0" ?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+  <!-- Hive Configuration can either be stored in this file or in the hadoop configuration files  -->
+  <!-- that are implied by Hadoop setup variables.                                                -->
+  <!-- Aside from Hadoop setup variables - this file is provided as a convenience so that Hive    -->
+  <!-- users do not have to edit hadoop configuration files (that may be managed as a centralized -->
+  <!-- resource).                                                                                 -->
+  <!-- Hive Execution Parameters -->
+  <property>
+    <name>javax.jdo.option.ConnectionURL</name>
+    <!--
+      Will be clobbered at startup by master 0.
+      Required to run schema tool during image build.
+    -->
+    <value>jdbc:mysql://cluster-ec0a-m-0/metastore</value>
+    <description>the URL of the MySQL database</description>
+  </property>
+  <property>
+    <name>javax.jdo.option.ConnectionDriverName</name>
+    <value>com.mysql.jdbc.Driver</value>
+  </property>
+  <property>
+    <name>javax.jdo.option.ConnectionUserName</name>
+    <value>hive</value>
+  </property>
+  <property>
+    <name>datanucleus.fixedDatastore</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>javax.jdo.option.ConnectionPassword</name>
+    <value>hive-password</value>
+  </property>
+  <property>
+    <name>datanucleus.autoStartMechanism</name>
+    <value>SchemaTable</value>
+  </property>
+  <property>
+    <!--
+      Crank up low-level retries from default value of 3. Hive 2.* will have
+      metastore connection attempts fast-fail instead of hanging between
+      "Starting hive metastore" and "Started the new metastore...", and
+      these retries happen with only 1 second between attempts. Metastore
+      startup appears to take ~5 seconds; in the rare case of startup
+      longer than 60 seconds, the secondary retry loop waits 1 minute between
+      attempts.
+    -->
+    <name>hive.metastore.connect.retries</name>
+    <value>60</value>
+  </property>
+  <property>
+    <name>datanucleus.autoCreateSchema</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>hive.localize.resource.num.wait.attempts</name>
+    <value>25</value>
+  </property>
+  <property>
+    <name>hive.execution.engine</name>
+    <value>tez</value>
+  </property>
+  <property>
+    <name>hive.metastore.uris</name>
+    <value>thrift://cluster-ec0a-m-0:9083,thrift://cluster-ec0a-m-1:9083,thrift://cluster-ec0a-m-2:9083</value>
+  </property>
+  <property>
+    <name>hive.zookeeper.quorum</name>
+    <value>cluster-ec0a-m-0:2181,cluster-ec0a-m-1:2181,cluster-ec0a-m-2:2181</value>
+  </property>
+  <property>
+    <name>hive.zookeeper.client.port</name>
+    <value>2181</value>
+  </property>
+  <property>
+    <name>hive.server2.support.dynamic.service.discovery</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>hive.server2.zookeeper.namespace</name>
+    <value>hiveserver2</value>
+  </property>
+  <property>
+    <name>hive.support.concurrency</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>hive.zookeeper.session.timeout</name>
+    <value>1200000</value>
+  </property>
+  <property>
+    <name>hive.user.install.directory</name>
+    <value>gs://dataproc-staging-us-central1-888792280192-7eit8tmn/google-cloud-dataproc-metainfo/e553cf63-468f-4b23-a59f-1025ad8e335d/hive/user-install-dir</value>
+  </property>
+</configuration>

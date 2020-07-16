@@ -79,6 +79,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -89,6 +90,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 
 import static org.pentaho.big.data.impl.cluster.tests.Constants.HADOOP_FILE_SYSTEM;
 import static org.pentaho.big.data.impl.cluster.tests.Constants.OOZIE;
@@ -410,9 +412,10 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     String oozieBaseUrl = "oozie.base.url";
     Map<String, String> properties = new HashMap();
     extractProperties( siteFilesSource, "core-site.xml", properties, new String[] { "fs.defaultFS" } );
-    extractProperties( siteFilesSource, "yarn-site.xml", properties, new String[] { "yarn.resourcemanager.address" } );
+    extractProperties( siteFilesSource, "yarn-site.xml", properties,
+            new String[] { "yarn.resourcemanager.address", "yarn.resourcemanager.hostname" } );
     extractProperties( siteFilesSource, "hive-site.xml", properties,
-      new String[] { "hive.zookeeper.quorum", "hive.zookeeper.client.port" } );
+            new String[] { "hive.zookeeper.quorum", "hive.zookeeper.client.port" } );
     extractProperties( siteFilesSource, "oozie-site.xml", properties, new String[] { oozieBaseUrl } );
     if ( properties.get( oozieBaseUrl ) == null ) {
       extractProperties( siteFilesSource, "oozie-default.xml", properties, new String[] { oozieBaseUrl } );
@@ -438,15 +441,22 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
      * yarn.resourcemanager.address
      * in
      * yarn-site.xml
+     *
+     * If address not available
+     * Hostname taken from
+     * yarn.resourcemanager.hostname
+     * in
+     * yarn-site.xml
      * */
     String jobTrackerAddress = properties.get( "yarn.resourcemanager.address" );
+    String jobTrackerHostname = properties.get( "yarn.resourcemanager.hostname" );
     if ( jobTrackerAddress != null ) {
-      if ( !jobTrackerAddress.startsWith( "http://" ) ) {
-        jobTrackerAddress = "http://" + jobTrackerAddress;
-      }
-      URI jobTrackerURL = URI.create( jobTrackerAddress );
-      nc.setJobTrackerHost( jobTrackerURL.getHost() );
-      nc.setJobTrackerPort( jobTrackerURL.getPort() != -1 ? jobTrackerURL.getPort() + "" : "" );
+      Map<String, String> hostAndPort = extractHostAndPort( jobTrackerAddress );
+      nc.setJobTrackerHost( hostAndPort.get( "host" ) );
+      nc.setJobTrackerPort( hostAndPort.get( "port" ) );
+      isConfigurationSet = true;
+    } else if ( jobTrackerHostname != null ) {
+      nc.setJobTrackerHost( jobTrackerHostname );
       isConfigurationSet = true;
     }
 
@@ -459,6 +469,14 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
      * */
     String zooKeeperAddress = properties.get( "hive.zookeeper.quorum" );
     String zooKeeperPort = properties.get( "hive.zookeeper.client.port" );
+
+    if ( zooKeeperAddress != null ) {
+      List<String> addresses = Arrays.asList( zooKeeperAddress.split( "," ) );
+      List<String> hostNames = addresses.stream().map( address ->
+              extractHostAndPort( address ).get( "host" ) ).collect( Collectors.toList() );
+      zooKeeperAddress = String.join( ",", hostNames );
+    }
+
     if ( zooKeeperAddress != null && zooKeeperPort != null ) {
       nc.setZooKeeperHost( zooKeeperAddress );
       nc.setZooKeeperPort( zooKeeperPort );
@@ -849,6 +867,21 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       nc.setUseGateway(
         !StringUtil.isEmpty( userName ) && !StringUtil.isEmpty( url ) && !StringUtil.isEmpty( password ) );
     }
+  }
+
+  /*
+   * Extract Hostname and Port from a hostname/URL pattern
+   */
+  private Map<String, String> extractHostAndPort( String urlPattern ) {
+    final String HTTP_PATTERN = "http://";
+    if ( !urlPattern.startsWith( HTTP_PATTERN ) ) {
+      urlPattern = HTTP_PATTERN + urlPattern;
+    }
+    URI parsedURI = URI.create( urlPattern );
+    Map<String, String> map = new HashMap<>();
+    map.put( "host", parsedURI.getHost() );
+    map.put( "port", parsedURI.getPort() != -1 ? parsedURI.getPort() + "" : "" );
+    return map;
   }
 
   public void deleteNamedCluster( IMetaStore metaStore, String namedCluster, boolean refreshTree ) {
