@@ -474,7 +474,7 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     actualizeDateTimeControls();
   }
 
-  private String coalesce( String value ) {
+  public static String coalesce( String value ) {
     return value == null ? "" : value;
   }
 
