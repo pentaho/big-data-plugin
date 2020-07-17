@@ -192,6 +192,33 @@ public class HadoopClusterManagerTest {
     assertTrue( StringUtil.isEmpty( thinNameClusterModel.getJobTrackerPort() ) );
   }
 
+  @Test public void testSiteXMLParsingImportNamedCluster() {
+    ThinNameClusterModel model = new ThinNameClusterModel();
+    model.setName( ncTestName );
+    model.setShimVendor( "Cloudera" );
+    model.setShimVersion( "5.14" );
+    JSONObject result =
+            hadoopClusterManager.importNamedCluster( model, getFiles( "src/test/resources/unsecured" ) );
+    assertEquals( ncTestName, result.get( "namedCluster" ) );
+    verify( namedCluster ).setJobTrackerHost( "svqxbdcn6cdh514un3.pentahoqa.com" );
+    verify( namedCluster ).setJobTrackerPort( "8032" );
+    verify( namedCluster ).setZooKeeperHost( "svqxbdcn6cdh514un1.pentahoqa.com,svqxbdcn6cdh514un5.pentahoqa.com," +
+            "svqxbdcn6cdh514un4.pentahoqa.com,svqxbdcn6cdh514un2.pentahoqa.com,svqxbdcn6cdh514un3.pentahoqa.com" );
+  }
+
+  @Test public void testSiteXMLParsingImportDataprocNamedCluster() {
+    ThinNameClusterModel model = new ThinNameClusterModel();
+    model.setName( ncTestName );
+    model.setShimVendor( "Dataproc" );
+    model.setShimVersion( "1.4" );
+    JSONObject result =
+            hadoopClusterManager.importNamedCluster( model, getFiles( "src/test/resources/dataproc" ) );
+    assertEquals( ncTestName, result.get( "namedCluster" ) );
+    verify( namedCluster ).setJobTrackerHost( "cluster-ec0a-m-0" );
+    verify( namedCluster ).setJobTrackerPort( "" );
+    verify( namedCluster ).setZooKeeperHost( "cluster-ec0a-m-0,cluster-ec0a-m-1,cluster-ec0a-m-2" );
+  }
+
   @Test public void testCreateNamedCluster() {
     ThinNameClusterModel model = new ThinNameClusterModel();
     model.setName( ncTestName );

@@ -1,0 +1,274 @@
+<?xml version="1.0" ?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License. See accompanying LICENSE file.
+-->
+<!-- Put site-specific property overrides in this file. -->
+<configuration>
+  <property>
+    <name>dfs.namenode.file.close.num-committed-allowed</name>
+    <value>1</value>
+  </property>
+  <property>
+    <name>dfs.namenode.shared.edits.dir</name>
+    <value>qjournal://cluster-ec0a-m-0:8485;cluster-ec0a-m-1:8485;cluster-ec0a-m-2:8485/cluster-ec0a</value>
+    <description>
+      A directory on shared storage between the multiple namenodes       in an
+      HA cluster. This directory will be written by the active and read       by
+      the standby in order to keep the namespaces synchronized. This directory
+      does not need to be listed in dfs.namenode.edits.dir above. It should be
+      left empty in a non-HA cluster.
+    </description>
+  </property>
+  <property>
+    <name>dfs.namenode.name.dir</name>
+    <value>file:///hadoop/dfs/name</value>
+    <description>
+      Determines where on the local filesystem the DFS namenode should store the
+      name table(fsimage). If this is a comma-delimited list of directories then
+      the name table is replicated in all of thedirectories, for redundancy.
+    </description>
+  </property>
+  <property>
+    <name>dfs.permissions.enabled</name>
+    <value>false</value>
+    <description>
+      If &amp;amp;quot;true&amp;amp;quot;, enable permission checking in HDFS. If
+      &amp;amp;quot;false&amp;amp;quot;, permission       checking is turned off, but
+      all other       behavior is unchanged. Switching       from one parameter
+      value to the       other does not change the mode, owner or       group of
+      files or       directories.
+    </description>
+  </property>
+  <property>
+    <name>dfs.client.read.shortcircuit</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>dfs.ha.automatic-failover.enabled</name>
+    <value>true</value>
+    <description>
+      Whether automatic failover is enabled. See the HDFS High
+      Availability documentation for details on automatic HA
+      configuration.
+    </description>
+  </property>
+  <property>
+    <name>dfs.journalnode.edits.dir</name>
+    <value>/var/tmp</value>
+  </property>
+  <property>
+    <name>dfs.replication</name>
+    <value>2</value>
+    <description>
+      Default block replication. The actual number of replications can be
+      specified when the file is created. The default is used if replication
+      is not specified in create time.
+    </description>
+  </property>
+  <property>
+    <name>dfs.namenode.checkpoint.dir</name>
+    <value>file:///hadoop/dfs/namesecondary</value>
+    <description>
+      Determines where on the local filesystem the DFS secondary namenode should
+      store       the temporary images to merge. If this is a comma-delimited
+      list of directories then       the image is replicated in all of the
+      directories for redundancy.
+    </description>
+  </property>
+  <property>
+    <name>dfs.nameservices</name>
+    <value>cluster-ec0a</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>dfs.datanode.data.dir</name>
+    <value>/hadoop/dfs/data</value>
+    <description>
+      Determines where on the local filesystem an DFS datanode should store its
+      blocks. If this is a comma-delimited list of directories, then data will
+      be stored in all named directories, typically on different
+      devices.Directories that do not exist are ignored.
+    </description>
+  </property>
+  <property>
+    <name>dfs.namenode.rpc-address.cluster-ec0a.nn1</name>
+    <value>cluster-ec0a-m-1:8020</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>dfs.namenode.rpc-address.cluster-ec0a.nn0</name>
+    <value>cluster-ec0a-m-0:8020</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>dfs.client.failover.proxy.provider.cluster-ec0a</name>
+    <value>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider</value>
+  </property>
+  <property>
+    <name>dfs.permissions.supergroup</name>
+    <value>hadoop</value>
+    <description>The name of the group of super-users.</description>
+  </property>
+  <property>
+    <name>dfs.hosts</name>
+    <value>/etc/hadoop/conf/nodes_include</value>
+  </property>
+  <property>
+    <name>dfs.ha.fencing.methods</name>
+    <value>shell(/bin/true)</value>
+  </property>
+  <property>
+    <name>dfs.namenode.datanode.registration.retry-hostname-dns-lookup</name>
+    <value>true</value>
+    <description>
+      If true, then the namenode will retry reverse dns lookup for hostname of
+      the       datanode. This helps in environments where DNS lookup can be
+      flaky.
+    </description>
+  </property>
+  <property>
+    <name>dfs.ha.namenodes.cluster-ec0a</name>
+    <value>nn0,nn1</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>dfs.namenode.http-address.cluster-ec0a.nn1</name>
+    <value>cluster-ec0a-m-1:9870</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>dfs.namenode.http-address.cluster-ec0a.nn0</name>
+    <value>cluster-ec0a-m-0:9870</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>dfs.domain.socket.path</name>
+    <value>/var/lib/hadoop-hdfs/dn_socket</value>
+  </property>
+  <property>
+    <name>dfs.hosts.exclude</name>
+    <value>/etc/hadoop/conf/nodes_exclude</value>
+  </property>
+  <property>
+    <name>dfs.datanode.data.dir.perm</name>
+    <value>700</value>
+    <description>
+      Permissions for the directories on on the local filesystem where the DFS
+      data node store its blocks. The permissions can either be octal or
+      symbolic.
+    </description>
+  </property>
+  <property>
+    <name>dfs.namenode.servicerpc-address.cluster-ec0a.nn1</name>
+    <value>cluster-ec0a-m-1:8051</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>dfs.namenode.servicerpc-address.cluster-ec0a.nn0</name>
+    <value>cluster-ec0a-m-0:8051</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>dfs.namenode.https-address.cluster-ec0a.nn1</name>
+    <value>cluster-ec0a-m-1:9871</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>dfs.namenode.https-address.cluster-ec0a.nn0</name>
+    <value>cluster-ec0a-m-0:9871</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>dfs.namenode.https-address</name>
+    <value>0.0.0.0:9871</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>dfs.namenode.service.handler.count</name>
+    <value>10</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>dfs.namenode.handler.count</name>
+    <value>20</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>dfs.datanode.address</name>
+    <value>0.0.0.0:9866</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>dfs.namenode.http-address</name>
+    <value>0.0.0.0:9870</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>dfs.datanode.https.address</name>
+    <value>0.0.0.0:9865</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>dfs.namenode.secondary.http-address</name>
+    <value>0.0.0.0:9868</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>dfs.namenode.secondary.https-address</name>
+    <value>0.0.0.0:9869</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>dfs.datanode.http.address</name>
+    <value>0.0.0.0:9864</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>dfs.datanode.ipc.address</name>
+    <value>0.0.0.0:9867</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>dfs.namenode.lifeline.rpc-address.cluster-ec0a.nn0</name>
+    <value>cluster-ec0a-m-0:8050</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>dfs.namenode.lifeline.rpc-address.cluster-ec0a.nn1</name>
+    <value>cluster-ec0a-m-1:8050</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+</configuration>

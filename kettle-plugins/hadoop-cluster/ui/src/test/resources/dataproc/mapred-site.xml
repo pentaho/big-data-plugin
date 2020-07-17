@@ -1,0 +1,226 @@
+<?xml version="1.0" ?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+  <property>
+    <name>mapreduce.job.reduces</name>
+    <value>2</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>mapreduce.jobhistory.address</name>
+    <value>cluster-ec0a-m-0:10020</value>
+    <description>MapReduce JobHistory Server IPC host:port</description>
+  </property>
+  <property>
+    <name>mapreduce.framework.name</name>
+    <value>yarn</value>
+  </property>
+  <property>
+    <name>mapreduce.fileoutputcommitter.task.cleanup.enabled</name>
+    <value>true</value>
+    <description>
+      Whether tasks should delete their task temporary directories. This is
+      purely an optimization for filesystems without O(1) recursive delete,
+      as commitJob will recursively delete the entire job temporary
+      directory. HDFS has O(1) recursive delete, so this parameter is left
+      false by default. Users of object stores, for example, may want to set
+      this to true.        Note: this is only used if
+      mapreduce.fileoutputcommitter.algorithm.version=2       See
+      https://issues.apache.org/jira/browse/MAPREDUCE-7029 for details.
+    </description>
+  </property>
+  <property>
+    <name>yarn.app.mapreduce.am.resource.mb</name>
+    <value>1024</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>mapreduce.map.java.opts</name>
+    <value>-Xmx819m</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>mapreduce.jobhistory.recovery.store.fs.uri</name>
+    <value>${hadoop.tmp.dir}/mapred/history/recoverystore</value>
+    <description>URI where history server state is stored.</description>
+  </property>
+  <property>
+    <name>mapreduce.job.working.dir</name>
+    <value>/user/${user.name}</value>
+    <description>
+      The FileSystem working directory to use for relative paths.
+    </description>
+  </property>
+  <property>
+    <name>mapred.local.dir</name>
+    <value>/hadoop/mapred/local</value>
+    <description>
+      Directories on the local machine in which to store mapreduce temp files.
+    </description>
+  </property>
+  <property>
+    <name>mapreduce.fileoutputcommitter.failures.attempts</name>
+    <value>4</value>
+    <description>
+      Number of attempts when failure happens in commit job.
+    </description>
+  </property>
+  <property>
+    <name>mapreduce.reduce.java.opts</name>
+    <value>-Xmx1638m</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>mapreduce.map.memory.mb</name>
+    <value>1024</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>mapreduce.reduce.memory.mb</name>
+    <value>2048</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>mapreduce.jobhistory.recovery.enable</name>
+    <value>true</value>
+    <description>
+      Enable history server to recover server state on startup.
+    </description>
+  </property>
+  <property>
+    <name>mapreduce.tasktracker.map.tasks.maximum</name>
+    <value>1</value>
+    <description>
+      Property from MapReduce version 1 still used for TeraGen sharding.
+    </description>
+  </property>
+  <property>
+    <name>mapreduce.input.fileinputformat.list-status.num-threads</name>
+    <value>20</value>
+    <description>
+      The number of threads to use to list and fetch block locations for the
+      specified input paths. Note: multiple threads should not be used if a
+      custom non thread-safe path filter is used. Setting a larger value than
+      the default of 1 can significantly improve job startup overhead,
+      especially if using GCS as input with multi-level directories, such
+      as in partitioned Hive tables.
+    </description>
+  </property>
+  <property>
+    <name>mapreduce.reduce.cpu.vcores</name>
+    <value>1</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>mapreduce.map.cpu.vcores</name>
+    <value>1</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>mapreduce.jobhistory.recovery.store.class</name>
+    <value>org.apache.hadoop.mapreduce.v2.hs.HistoryServerFileSystemStateStoreService</value>
+    <description>
+      Class used to store history server state for recovery.
+    </description>
+  </property>
+  <property>
+    <name>mapreduce.job.maps</name>
+    <value>15</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>mapreduce.jobhistory.webapp.address</name>
+    <value>cluster-ec0a-m-0:19888</value>
+    <description>MapReduce JobHistory Server Web UI host:port</description>
+  </property>
+  <property>
+    <name>yarn.app.mapreduce.am.command-opts</name>
+    <value>-Xmx819m</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>yarn.app.mapreduce.am.resource.cpu-vcores</name>
+    <value>1</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>mapreduce.jobhistory.always-scan-user-dir</name>
+    <value>true</value>
+    <description>Enable history server to always scan user dir.</description>
+  </property>
+  <property>
+    <name>mapreduce.fileoutputcommitter.algorithm.version</name>
+    <value>2</value>
+    <description>
+      Updated file output committer algorithm in Hadoop 2.7+. Significantly
+      improves commitJob times when using the Google Cloud Storage connector.
+      See https://issues.apache.org/jira/browse/MAPEDUCE-4815 for more details.
+    </description>
+  </property>
+  <property>
+    <name>mapreduce.application.classpath</name>
+    <value>$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*,
+      $HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*,
+      /usr/local/share/google/dataproc/lib/*</value>
+  </property>
+  <property>
+    <name>mapred.bq.project.id</name>
+    <value>hitachi3-281807</value>
+    <description>
+      Google Cloud Project ID to use for BigQuery operations.
+    </description>
+  </property>
+  <property>
+    <name>mapred.bq.output.buffer.size</name>
+    <value>67108864</value>
+    <description>
+      The size in bytes of the output buffer to use when writing to BigQuery.
+    </description>
+  </property>
+  <property>
+    <name>mapred.bq.gcs.bucket</name>
+    <value>dataproc-staging-us-central1-888792280192-7eit8tmn</value>
+    <description>
+      The GCS bucket holding temporary BigQuery data for the input connector.
+    </description>
+  </property>
+  <property>
+    <name>mapreduce.job.reduce.slowstart.completedmaps</name>
+    <value>0.95</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>mapreduce.task.io.sort.mb</name>
+    <value>256</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+</configuration>
