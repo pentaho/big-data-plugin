@@ -44,9 +44,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class NamedClusterMetastoreIT {
   private static final String HDFS_PREFIX = "hdfs";
@@ -206,5 +207,35 @@ public class NamedClusterMetastoreIT {
     NamedClusterSiteFile n = nc.getSiteFiles().stream().filter( sf -> sf.getSiteFileName().equals( siteFileName ) )
       .findFirst().orElse( null );
     return n == null ? null : n.getSiteFileContents();
+  }
+
+  @Test
+  public void testCorruptedFileWithList() throws Exception {
+    NamedClusterImpl corruptedNamedCluster = new NamedClusterImpl( namedCluster );
+    final String corruptedName = "corruptedNamedCluster";
+    corruptedNamedCluster.setName( corruptedName );
+    corruptedNamedCluster.addSiteFile( "core-site.xml", Character.toString( (char) 5 ) ); //Make the site file corrupt
+
+    namedClusterService.create( namedCluster, metaStore ); //Write the good one ...
+    namedClusterService.create( corruptedNamedCluster, metaStore ); //... and the bad one
+
+    //We should not get an error when we try to get the cluster by name because it uses a tolerant list
+    //The list must be tolerant or a good clusters will never be returned.
+    assertNotNull( namedClusterService.getNamedClusterByName( namedClusterName, metaStore ) );
+    assertNull( namedClusterService.getNamedClusterByName( corruptedName, metaStore ) );
+    List<MetaStoreException> exceptionList = new ArrayList<MetaStoreException>();
+
+    //Getting the list with a non-null exceptionList is tolerant of corrupt entries.
+    List<NamedCluster> namedClusterList = namedClusterService.list( metaStore, exceptionList );
+    //The list contains the good cluster only
+    assertEquals( 1, namedClusterList.size() );
+    assertEquals( namedCluster, namedClusterList.get( 0 ) );
+    assertEquals( 1, exceptionList.size() );
+    assert
+      ( exceptionList.get( 0 ).getMessage().contains( "Could not load metaStore element '" + corruptedName + "'" ) );
+
+    //Even if we didn't ask for the exception list, NamedClusters should still be tolerant, even if the metastore would
+    // not be.
+    namedClusterService.list( metaStore );
   }
 }
