@@ -54,7 +54,7 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
   public static final long SPLIT_SIZE = 128 * 1024 * 1024L;
 
   public ParquetInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
-      Trans trans ) {
+                       Trans trans ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
   }
 
@@ -119,7 +119,7 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
     FormatService
         formatService =
         meta.getNamedClusterResolver().getNamedClusterServiceLocator()
-            .getService( getNamedCluster(), FormatService.class );
+      .getService( getNamedCluster(), FormatService.class );
     if ( meta.inputFiles == null || meta.inputFiles.fileName == null || meta.inputFiles.fileName.length == 0 ) {
       throw new KettleException( "No input files defined" );
     }
@@ -128,7 +128,7 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
     for ( String file : meta.inputFiles.fileName ) {
       resolvedInputFileNames[i] = environmentSubstitute( file );
       FileObject inputFileObject = KettleVFS.getFileObject( resolvedInputFileNames[i], getTransMeta() );
-      if ( AliasedFileObject.isAliasedFile( inputFileObject ) ) {
+    if ( AliasedFileObject.isAliasedFile( inputFileObject ) ) {
         resolvedInputFileNames[i] = ( (AliasedFileObject) inputFileObject ).getOriginalURIString();
       }
       i++;
@@ -191,7 +191,7 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
   }
 
   @Override protected IBaseFileInputReader createReader( ParquetInputMeta meta, ParquetInputData data, FileObject file )
-      throws Exception {
+    throws Exception {
     return null;
   }
 }
