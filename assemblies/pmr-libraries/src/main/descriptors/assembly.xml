@@ -235,6 +235,7 @@
         <include>org.apache.kafka:kafka-clients</include>
         <include>org.mortbay.jetty:servlet-api</include>
         <include>pentaho:pentaho-metaverse-api</include>
+        <include>org.apache.avro:avro-mapred</include>
       </includes>
     </dependencySet>
   </dependencySets>
