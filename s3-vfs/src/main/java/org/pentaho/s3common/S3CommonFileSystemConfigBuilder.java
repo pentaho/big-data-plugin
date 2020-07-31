@@ -36,6 +36,7 @@ public class S3CommonFileSystemConfigBuilder extends FileSystemConfigBuilder {
   private static final String ENDPOINT = "endpoint";
   private static final String SIGNATURE_VERSION = "signature_version";
   private static final String PATHSTYLE_ACCESS = "pathSyleAccess";
+  private static final String DEFAULT_S3_CONFIG = "defaultS3Config";
 
   private FileSystemOptions fileSystemOptions;
 
@@ -99,7 +100,7 @@ public class S3CommonFileSystemConfigBuilder extends FileSystemConfigBuilder {
     this.setParam( getFileSystemOptions(), PROFILE_NAME, profileName );
   }
 
-  public void setEndpoint ( String endpoint ) {
+  public void setEndpoint( String endpoint ) {
     this.setParam( getFileSystemOptions(), ENDPOINT, endpoint );
   }
 
@@ -108,7 +109,7 @@ public class S3CommonFileSystemConfigBuilder extends FileSystemConfigBuilder {
   }
 
 
-  public void setSignatureVersion ( String signatureVersion ) {
+  public void setSignatureVersion( String signatureVersion ) {
     this.setParam( getFileSystemOptions(), SIGNATURE_VERSION, signatureVersion );
   }
 
@@ -122,6 +123,14 @@ public class S3CommonFileSystemConfigBuilder extends FileSystemConfigBuilder {
 
   public String getPathStyleAccess() {
     return (String) this.getParam( getFileSystemOptions(), PATHSTYLE_ACCESS );
+  }
+
+  public void setDefaultS3Config( String defaultS3Config ) {
+    this.setParam( getFileSystemOptions(), PATHSTYLE_ACCESS, defaultS3Config );
+  }
+
+  public String getDefaultS3Config() {
+    return (String) this.getParam( getFileSystemOptions(), DEFAULT_S3_CONFIG );
   }
 
   @Override protected Class<? extends FileSystem> getConfigClass() {

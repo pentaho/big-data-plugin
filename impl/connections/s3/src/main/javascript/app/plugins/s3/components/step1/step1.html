@@ -18,29 +18,33 @@
           </div>
           <div class="margin_bottom_15">
             <label for="secretKey" class="margin_bottom_5 block text_left">{{::vm.secretKey}}</label>
-            <input id="secretKey" class="block" type="password" size="50" ng-model="vm.data.model.secretKey" showpassword>
+            <input id="secretKey" class="block" type="password" size="50" ng-model="vm.data.model.secretKey"
+                   showpassword>
           </div>
           <div class="margin_bottom_15">
             <label for="sessionToken" class="margin_bottom_5 block text_left">{{::vm.sessionToken}}</label>
-            <input id="sessionToken" class="block" type="password" size="50" ng-model="vm.data.model.sessionToken" showpassword>
+            <input id="sessionToken" class="block" type="password" size="50" ng-model="vm.data.model.sessionToken"
+                   showpassword>
           </div>
-          <div class="margin_bottom_15">
-            <label for="endpoint" class="margin_bottom_5 block text_left">{{::vm.endpoint}}</label>
-            <input id="endpoint" class="block" type="text" size="50" ng-model="vm.data.model.endpoint">
-          </div>
-          <div>
-            <label>{{::vm.pathStyleAccess}}</label>
-          </div>
-          <div class="margin_bottom_15">
-            <input id="pathStyleAccessNo" type="radio" ng-model="vm.data.model.pathStyleAccess" name="pathStyleAccess" value="{{::vm.no}}" checked>
-            <label class="radio-button-label" for="pathStyleAccessNo">{{::vm.no}}</label>
-            <input id="pathStyleAccessYes"  type="radio" ng-model="vm.data.model.pathStyleAccess" name="pathStyleAccess" value="{{::vm.yes}}">
-            <label class="radio-button-label" for="pathStyleAccessYes">{{::vm.yes}}</label>
-          </div>
-          <div class="margin_bottom_15">
-            <label for="signatureVersion" class="margin_bottom_5 block text_left">{{::vm.signatureVersion}}</label>
-            <input id="signatureVersion" class="block" type="text" size="50" ng-model="vm.data.model.signatureVersion">
-          </div>
+          <fieldset class="fieldset-panel">
+            <legend>{{::vm.otherLabel}}</legend>
+            <div class="margin_bottom_15">
+              <label for="endpoint" class="margin_bottom_5 block text_left">{{::vm.endpoint}}</label>
+              <input id="endpoint" class="block" type="text" size="50" ng-model="vm.data.model.endpoint">
+            </div>
+            <div class="margin_bottom_15">
+              <label for="signatureVersion" class="margin_bottom_5 block text_left">{{::vm.signatureVersion}}</label>
+              <input id="signatureVersion" class="block" type="text" size="50" ng-model="vm.data.model.signatureVersion">
+            </div>
+            <div class="margin_bottom_15">
+              <input id="pathStyleAccess" type="checkbox" ng-model="vm.data.model.pathStyleAccess" ng-checked="vm.data.model.pathStyleAccess==='true'"  ng-true-value="'true'" ng-false-value="'false'" />
+              <label class="check-box-label" for="pathStyleAccess">{{::vm.pathStyleAccess}} </label>
+            </div>
+            <div class="margin_bottom_15">
+              <input id="defaultS3Config" type="checkbox" ng-model="vm.data.model.defaultS3Config" ng-checked="vm.data.model.defaultS3Config==='true'" ng-true-value="'true'" ng-false-value="'false'" />
+              <label class="check-box-label" for="defaultS3Config">{{::vm.defaultS3Config}}</label>
+            </div>
+          </fieldset>
         </div>
         <div ng-if="vm.type==1">
           <div class="margin_bottom_15">

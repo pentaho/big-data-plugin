@@ -41,15 +41,17 @@ define([
       title: i18n.get('Connection.Label.ConnectionDetails'),
       editLink: "s3step1",
       mapping: {
-        "accessKey": i18n.get('S3.Label.AccessKey'),
-        "secretKey": i18n.get('S3.Label.SecretKey'),
-        "sessionToken": i18n.get('S3.Label.SessionToken'),
-        "region": i18n.get('S3.Label.Region'),
-        "credentialsFilePath": i18n.get('S3.Label.Type.CredentialsFile'),
-        "profileName": i18n.get('S3.Label.ProfileName'),
-        "endpoint": i18n.get('S3.Label.Endpoint'),
-        "pathStyleAccess": i18n.get('S3.Label.PathStyleAccess'),
-        "signatureVersion": i18n.get('S3.Label.SignatureVersion')
+          "accessKey": i18n.get('S3.Label.AccessKey'),
+          "secretKey": i18n.get('S3.Label.SecretKey'),
+          "sessionToken": i18n.get('S3.Label.SessionToken'),
+          "region": i18n.get('S3.Label.Region'),
+          "credentialsFilePath": i18n.get('S3.Label.Type.CredentialsFile'),
+          "profileName": i18n.get('S3.Label.ProfileName'),
+          "endpoint": i18n.get('S3.Label.Endpoint'),
+          "pathStyleAccess": i18n.get('S3.Label.PathStyleAccess'),
+          "signatureVersion": i18n.get('S3.Label.SignatureVersion'),
+          "defaultS3Config": i18n.get('S3.Label.defaultS3Config'),
+          "other":  i18n.get('S3.Label.Other')
       },
       filters: {
         "accessKey": mask,

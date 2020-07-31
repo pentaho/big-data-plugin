@@ -33,54 +33,36 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-@MetaStoreElementType(
-  name = "Amazon S3 Connection",
-  description = "Defines the connection details for an Amazon S3 connection" )
+@MetaStoreElementType( name = "Amazon S3 Connection", description = "Defines the connection details for an Amazon S3 connection" )
 public class S3Details implements VFSConnectionDetails {
 
-  @MetaStoreAttribute
-  private String name;
+  @MetaStoreAttribute private String name;
 
-  @MetaStoreAttribute
-  private String description;
+  @MetaStoreAttribute private String description;
 
-  @MetaStoreAttribute
-  @Encrypted
-  private String accessKey;
+  @MetaStoreAttribute @Encrypted private String accessKey;
 
-  @MetaStoreAttribute
-  @Encrypted
-  private String secretKey;
+  @MetaStoreAttribute @Encrypted private String secretKey;
 
-  @MetaStoreAttribute
-  @Encrypted
-  private String sessionToken;
+  @MetaStoreAttribute @Encrypted private String sessionToken;
 
-  @MetaStoreAttribute
-  private String credentialsFilePath;
+  @MetaStoreAttribute private String credentialsFilePath;
 
-  @MetaStoreAttribute
-  @Encrypted
-  private String credentialsFile;
+  @MetaStoreAttribute @Encrypted private String credentialsFile;
 
-  @MetaStoreAttribute
-  private String authType;
+  @MetaStoreAttribute private String authType;
 
-  @MetaStoreAttribute
-  private String region;
+  @MetaStoreAttribute private String region;
 
-  @MetaStoreAttribute
-  private String profileName;
+  @MetaStoreAttribute private String profileName;
 
-  @MetaStoreAttribute
-  private String endpoint;
+  @MetaStoreAttribute private String endpoint;
 
-  @MetaStoreAttribute
-  private String pathStyleAccess;
+  @MetaStoreAttribute private String pathStyleAccess;
 
-  @MetaStoreAttribute
-  private String signatureVersion;
+  @MetaStoreAttribute private String signatureVersion;
+
+  @MetaStoreAttribute private String defaultS3Config;
 
   @Override public String getName() {
     return name;
@@ -97,7 +79,6 @@ public class S3Details implements VFSConnectionDetails {
   @Override public String getDescription() {
     return description;
   }
-
 
   public void setDescription( String description ) {
     this.description = description;
@@ -199,6 +180,14 @@ public class S3Details implements VFSConnectionDetails {
     this.pathStyleAccess = pathStyleAccess;
   }
 
+  public String getDefaultS3Config() {
+    return defaultS3Config;
+  }
+
+  public void setDefaultS3Config( String defaultS3Config ) {
+    this.defaultS3Config = defaultS3Config;
+  }
+
   @Override public Map<String, String> getProperties() {
     Map<String, String> props = new HashMap<>();
     props.put( "name", getName() );
@@ -214,6 +203,7 @@ public class S3Details implements VFSConnectionDetails {
     props.put( "endpoint", getEndpoint() );
     props.put( "signatureVersion", getSignatureVersion() );
     props.put( "pathStyleAccess", getPathStyleAccess() );
+    props.put( "defaultS3Config", getDefaultS3Config() );
 
     return props;
   }
