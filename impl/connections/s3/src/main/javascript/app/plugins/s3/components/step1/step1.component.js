@@ -61,9 +61,11 @@ define([
       vm.endpoint = i18n.get('S3.Label.Endpoint');
       vm.pathStyleAccess = i18n.get('S3.Label.PathStyleAccess');
       vm.signatureVersion = i18n.get('S3.Label.SignatureVersion');
+      vm.defaultS3Config = i18n.get('S3.Label.DefaultS3Config');
       vm.yes = i18n.get('S3.Label.Yes');
       vm.no = i18n.get('S3.Label.No');
       vm.browse = i18n.get('S3.Label.Browse');
+      vm.otherLabel = i18n.get('S3.Label.Other');
       vm.buttons = getButtons();
 
       if (!vm.data.model.authType) {
@@ -93,6 +95,7 @@ define([
         vm.data.model.endpoint = null;
         vm.data.model.pathStyleAccess = null;
         vm.data.model.signatureVersion = null;
+        vm.data.model.defaultS3Config = null;
         vm.data.model.profileName = null;
         vm.data.model.credentialsFilePath = null;
         vm.region = null;

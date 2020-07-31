@@ -90,6 +90,7 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
     s3CommonFileSystemConfigBuilder.setEndpoint( s3Details.getEndpoint() );
     s3CommonFileSystemConfigBuilder.setPathStyleAccess( s3Details.getPathStyleAccess() );
     s3CommonFileSystemConfigBuilder.setSignatureVersion( s3Details.getSignatureVersion() );
+    s3CommonFileSystemConfigBuilder.setDefaultS3Config( s3Details.getDefaultS3Config() );
     return s3CommonFileSystemConfigBuilder.getFileSystemOptions();
   }
 
