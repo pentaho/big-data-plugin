@@ -215,17 +215,34 @@ public class NamedClusterManager implements NamedClusterService {
   public List<NamedCluster> list( IMetaStore metastore ) throws MetaStoreException {
     MetaStoreFactory<NamedClusterImpl> factory = getMetaStoreFactory( metastore );
     List<NamedCluster> namedClusters;
+    List<MetaStoreException> exceptionList = new ArrayList<>();
 
     try {
-      namedClusters = new ArrayList<>( factory.getElements( true ) );
+      namedClusters = new ArrayList<>( factory.getElements( true, exceptionList ) );
     } catch ( MetaStoreException ex ) {
       // While executing Pentaho MapReduce on a secure cluster, the .lock file
       // might not be able to be created due to permissions.
       // In this case, try and read the MetaStore without locking.
-      namedClusters = new ArrayList<>( factory.getElements( false ) );
+      namedClusters = new ArrayList<>( factory.getElements( false, exceptionList ) );
     }
 
     return namedClusters;
+  }
+
+  /**
+   * This method lists the NamedClusters in the given IMetaStore.  If an exception is thrown when parsing the data for
+   * a given NamedCluster.  The exception will be added to the exceptionList, but list generation will continue.
+   *
+   * @param metastore the IMetaStore to operate with
+   * @param exceptionList As list to hold any exceptions that occur
+   * @return the list of NamedClusters in the provided IMetaStore
+   * @throws MetaStoreException
+   */
+  @Override
+  public List<NamedCluster> list( IMetaStore metastore, List<MetaStoreException> exceptionList )
+    throws MetaStoreException {
+    MetaStoreFactory<NamedClusterImpl> factory = getMetaStoreFactory( metastore );
+    return new ArrayList<>( factory.getElements( false, exceptionList ) );
   }
 
   @Override

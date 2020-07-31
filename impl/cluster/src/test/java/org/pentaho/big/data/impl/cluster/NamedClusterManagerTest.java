@@ -61,9 +61,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -219,7 +217,7 @@ public class NamedClusterManagerTest {
     NamedClusterImpl namedCluster = new NamedClusterImpl();
     namedCluster.setName( "testName" );
     List<NamedClusterImpl> value = new ArrayList<>( Arrays.asList( namedCluster ) );
-    when( metaStoreFactory.getElements( true ) ).thenReturn( value );
+    when( metaStoreFactory.getElements( anyBoolean(), any( List.class ) ) ).thenReturn( value );
     assertEquals( value, namedClusterManager.list( metaStore ) );
   }
 
@@ -265,8 +263,8 @@ public class NamedClusterManagerTest {
     NamedCluster namedCluster = mock( NamedCluster.class );
     when( namedCluster.getName() ).thenReturn( testName );
     List namedClusters = new ArrayList<>( Arrays.asList( namedCluster ) );
-    when( metaStoreFactory.getElements( true ) ).thenReturn( namedClusters ).thenReturn( namedClusters ).thenThrow(
-      new MetaStoreException() );
+    when( metaStoreFactory.getElements( anyBoolean(), any( List.class ) ) ).thenReturn( namedClusters )
+      .thenReturn( namedClusters ).thenThrow( new MetaStoreException() );
     assertNull( namedClusterManager.getNamedClusterByName( testName, null ) );
     assertEquals( namedCluster, namedClusterManager.getNamedClusterByName( testName, metaStore ) );
     assertNull( namedClusterManager.getNamedClusterByName( "fakeName", metaStore ) );
@@ -282,8 +280,8 @@ public class NamedClusterManagerTest {
     when( namedCluster.getName() ).thenReturn( testName );
     when( namedCluster.getHdfsHost() ).thenReturn( testHostName );
     List namedClusters = new ArrayList<>( Arrays.asList( namedCluster ) );
-    when( metaStoreFactory.getElements( true ) ).thenReturn( namedClusters ).thenReturn( namedClusters ).thenThrow(
-      new MetaStoreException() );
+    when( metaStoreFactory.getElements( anyBoolean(), any( List.class ) ) ).thenReturn( namedClusters )
+      .thenReturn( namedClusters ).thenThrow( new MetaStoreException() );
     assertNull( namedClusterManager.getNamedClusterByHost( testHostName, null ) );
     assertEquals( namedCluster, namedClusterManager.getNamedClusterByHost( testHostName, metaStore ) );
     assertNull( namedClusterManager.getNamedClusterByHost( "fakeName", metaStore ) );

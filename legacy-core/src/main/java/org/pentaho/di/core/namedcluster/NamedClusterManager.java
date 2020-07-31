@@ -35,6 +35,7 @@ import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.persist.MetaStoreFactory;
 import org.pentaho.metastore.util.PentahoDefaults;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -155,7 +156,9 @@ public class NamedClusterManager {
   }
 
   /**
-   * This method lists the NamedCluster in the given IMetaStore
+   * This method lists the NamedCluster in the given IMetaStore.  If an exception is thrown when parsing the data for
+   * a given NamedCluster, the namedCluster will be skipped a processing will continue without logging the exception.
+   * This methods serves to limit the frequency of any exception logs that would otherwise occur.
    *
    * @param metastore the IMetaStore to operate with
    * @return the list of NamedClusters in the provided IMetaStore
@@ -163,7 +166,22 @@ public class NamedClusterManager {
    */
   public List<NamedCluster> list( IMetaStore metastore ) throws MetaStoreException {
     MetaStoreFactory<NamedCluster> factory = getMetaStoreFactory( metastore );
-    return factory.getElements();
+    List<MetaStoreException> exceptionList = new ArrayList<>();
+    return factory.getElements( true, exceptionList );
+  }
+
+  /**
+   * This method lists the NamedClusters in the given IMetaStore.  If an exception is thrown when parsing the data for
+   * a given NamedCluster.  The exception will be added to the exceptionList, but list generation will continue.
+   *
+   * @param metastore the IMetaStore to operate with
+   * @return the list of NamedClusters in the provided IMetaStore
+   * @throws MetaStoreException
+   */
+  public List<NamedCluster> list( IMetaStore metastore, List<MetaStoreException> exceptionList )
+    throws MetaStoreException {
+    MetaStoreFactory<NamedCluster> factory = getMetaStoreFactory( metastore );
+    return factory.getElements( true, exceptionList );
   }
 
   /**
