@@ -50,7 +50,7 @@ define([
           "endpoint": i18n.get('S3.Label.Endpoint'),
           "pathStyleAccess": i18n.get('S3.Label.PathStyleAccess'),
           "signatureVersion": i18n.get('S3.Label.SignatureVersion'),
-          "defaultS3Config": i18n.get('S3.Label.defaultS3Config'),
+          "defaultS3Config": i18n.get('S3.Label.DefaultS3Config'),
           "other":  i18n.get('S3.Label.Other')
       },
       filters: {
