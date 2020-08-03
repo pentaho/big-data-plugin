@@ -40,7 +40,13 @@ define([
 
     var connectedToRepo = ($stateParams.data && $stateParams.data.connectedToRepo) || $location.search().connectedToRepo === 'true';
 
-    var notAllowedChars = ['\\\\', '/', '*', ':', '?', '"', '<', '>', '|', '%', '+', '#'];
+    var notAllowedCharsString = 'A~`!@#$%^&*()_+={}|:;"<>,.?/' + '\'';
+    var notAllowedChars = notAllowedCharsString.split('');
+    notAllowedChars[0] = '\\\\';
+    notAllowedChars.push('\\\[');
+    notAllowedChars.push('\\\]');
+    notAllowedChars.push('\\\s'); // space character
+
     var notAllowedGlobalRegex = new RegExp("[" + notAllowedChars.join('') + "]", "g");
     notAllowedChars[0] = '\\'; //remove extra escape for the backslash char in the array
 
