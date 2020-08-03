@@ -39,9 +39,11 @@ import com.amazonaws.services.s3.model.Bucket;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.pentaho.amazon.s3.S3Details;
 import org.pentaho.amazon.s3.S3Util;
+import org.pentaho.di.connections.ConnectionDetails;
 import org.pentaho.di.connections.ConnectionManager;
 import org.pentaho.di.connections.vfs.BaseVFSConnectionProvider;
 import org.pentaho.di.connections.vfs.VFSRoot;
+import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -81,6 +83,7 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
   public FileSystemOptions getOpts( S3Details s3Details ) {
     S3CommonFileSystemConfigBuilder s3CommonFileSystemConfigBuilder =
       new S3CommonFileSystemConfigBuilder( new FileSystemOptions() );
+    s3CommonFileSystemConfigBuilder.setName( s3Details.getName() );
     s3CommonFileSystemConfigBuilder.setAccessKey( s3Details.getAccessKey() );
     s3CommonFileSystemConfigBuilder.setSecretKey( s3Details.getSecretKey() );
     s3CommonFileSystemConfigBuilder.setSessionToken( s3Details.getSessionToken() );
@@ -137,6 +140,23 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
       // TCCL may have been set to a bundle classloader.
       Thread.currentThread().setContextClassLoader( getClass().getClassLoader() );
       Objects.requireNonNull( amazonS3 ).getS3AccountOwner();
+
+      List<? extends ConnectionDetails> connections =
+        connectionManagerSupplier.get().getConnectionDetailsByScheme( S3FileProvider.SCHEME );
+
+      if ( s3Details.getDefaultS3Config().equalsIgnoreCase( "true" ) ) {
+        for ( ConnectionDetails details : connections ) {
+          if ( !s3Details.getName().equalsIgnoreCase( details.getName() ) ) {
+            S3Details removeDefault = (S3Details) details;
+            removeDefault.setAccessKey( Encr.decryptPasswordOptionallyEncrypted( removeDefault.getAccessKey() ) );
+            removeDefault.setSecretKey( Encr.decryptPasswordOptionallyEncrypted( removeDefault.getSecretKey() ) );
+            removeDefault.setSessionToken( Encr.decryptPasswordOptionallyEncrypted( removeDefault.getSessionToken() ) );
+            removeDefault.setCredentialsFile( Encr.decryptPasswordOptionallyEncrypted( removeDefault.getCredentialsFile() ) );
+            removeDefault.setDefaultS3Config( "false" );
+            connectionManagerSupplier.get().save( removeDefault );
+          }
+        }
+      }
       return true;
     } catch ( AmazonS3Exception e ) {
       // expected exception if credentials are invalid.  Log just the message.
@@ -199,7 +219,7 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
       awsCredentialsProvider = new ProfileCredentialsProvider( profilesConfigFile, profileName );
     }
     Regions regions =
-        !S3Util.isEmpty( s3Details.getRegion() ) ? Regions.fromName( s3Details.getRegion() ) : Regions.DEFAULT_REGION;
+      !S3Util.isEmpty( s3Details.getRegion() ) ? Regions.fromName( s3Details.getRegion() ) : Regions.DEFAULT_REGION;
     if ( awsCredentialsProvider != null && S3Util.isEmpty( s3Details.getEndpoint() ) ) {
       return AmazonS3ClientBuilder.standard().withCredentials( awsCredentialsProvider )
         .enableForceGlobalBucketAccess().withRegion( regions ).build();
@@ -207,11 +227,11 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
       ClientConfiguration clientConfiguration = new ClientConfiguration();
       clientConfiguration.setSignerOverride( S3Util.isEmpty( signatureVersion ) ? S3Util.SIGNATURE_VERSION_SYSTEM_PROPERTY : signatureVersion );
       return AmazonS3ClientBuilder.standard()
-          .withEndpointConfiguration( new AwsClientBuilder.EndpointConfiguration( endpoint,  regions.getName() ) )
-          .withPathStyleAccessEnabled(  access )
-          .withClientConfiguration( clientConfiguration )
-          .withCredentials( awsCredentialsProvider )
-          .build();
+        .withEndpointConfiguration( new AwsClientBuilder.EndpointConfiguration( endpoint, regions.getName() ) )
+        .withPathStyleAccessEnabled( access )
+        .withClientConfiguration( clientConfiguration )
+        .withCredentials( awsCredentialsProvider )
+        .build();
     }
     return null;
   }

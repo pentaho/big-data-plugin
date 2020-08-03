@@ -27,6 +27,7 @@ import org.pentaho.s3n.vfs.S3NFileSystem;
  */
 public class S3CommonFileSystemConfigBuilder extends FileSystemConfigBuilder {
 
+  private static final String NAME = "name";
   private static final String ACCESS_KEY = "accessKey";
   private static final String SECRET_KEY = "secretKey";
   private static final String SESSION_TOKEN = "sessionToken";
@@ -50,6 +51,14 @@ public class S3CommonFileSystemConfigBuilder extends FileSystemConfigBuilder {
 
   public void setFileSystemOptions( FileSystemOptions fileSystemOptions ) {
     this.fileSystemOptions = fileSystemOptions;
+  }
+
+  public void setName( String name ) {
+    this.setParam( getFileSystemOptions(), NAME, name );
+  }
+
+  public String getName() {
+    return (String) this.getParam( getFileSystemOptions(), NAME );
   }
 
   public void setAccessKey( String accessKey ) {

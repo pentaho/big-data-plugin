@@ -54,12 +54,12 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
   public static final long SPLIT_SIZE = 128 * 1024 * 1024L;
 
   public ParquetInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
-      Trans trans ) {
+                       Trans trans ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
   }
 
   public static List<? extends IParquetInputField> retrieveSchema(
-      NamedClusterServiceLocator namedClusterServiceLocator, NamedCluster namedCluster, String path ) throws Exception {
+    NamedClusterServiceLocator namedClusterServiceLocator, NamedCluster namedCluster, String path ) throws Exception {
     FormatService formatService = namedClusterServiceLocator.getService( namedCluster, FormatService.class );
     IPentahoParquetInputFormat in = formatService.createInputFormat( IPentahoParquetInputFormat.class, namedCluster );
     FileObject inputFileObject = KettleVFS.getFileObject( path );
@@ -117,19 +117,19 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
 
   void initSplits() throws Exception {
     FormatService
-        formatService =
-        meta.getNamedClusterResolver().getNamedClusterServiceLocator()
-            .getService( getNamedCluster(), FormatService.class );
+      formatService =
+      meta.getNamedClusterResolver().getNamedClusterServiceLocator()
+        .getService( getNamedCluster(), FormatService.class );
     if ( meta.inputFiles == null || meta.inputFiles.fileName == null || meta.inputFiles.fileName.length == 0 ) {
       throw new KettleException( "No input files defined" );
     }
-    String[] resolvedInputFileNames = new String[meta.inputFiles.fileName.length];
+    String[] resolvedInputFileNames = new String[ meta.inputFiles.fileName.length ];
     int i = 0;
     for ( String file : meta.inputFiles.fileName ) {
-      resolvedInputFileNames[i] = environmentSubstitute( file );
-      FileObject inputFileObject = KettleVFS.getFileObject( resolvedInputFileNames[i], getTransMeta() );
+      resolvedInputFileNames[ i ] = environmentSubstitute( file );
+      FileObject inputFileObject = KettleVFS.getFileObject( resolvedInputFileNames[ i ], getTransMeta() );
       if ( AliasedFileObject.isAliasedFile( inputFileObject ) ) {
-        resolvedInputFileNames[i] = ( (AliasedFileObject) inputFileObject ).getOriginalURIString();
+        resolvedInputFileNames[ i ] = ( (AliasedFileObject) inputFileObject ).getOriginalURIString();
       }
       i++;
     }
@@ -138,18 +138,18 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
     // Pentaho 8.0 transformations will have the formatType set to 0. Get the fields from the schema and set the
     // formatType to the formatType retrieved from the schema.
     List<? extends IParquetInputField>
-        actualFileFields =
-        ParquetInput.retrieveSchema( meta.getNamedClusterResolver().getNamedClusterServiceLocator(), getNamedCluster(),
-            resolvedInputFileNames[0] );
+      actualFileFields =
+      ParquetInput.retrieveSchema( meta.getNamedClusterResolver().getNamedClusterServiceLocator(), getNamedCluster(),
+        resolvedInputFileNames[ 0 ] );
 
     if ( meta.isIgnoreEmptyFolder() && ( actualFileFields.isEmpty() ) ) {
       data.splits = new ArrayList<>();
       logBasic( "No Parquet input files found." );
     } else {
       Map<String, IParquetInputField>
-          fieldNamesToTypes =
-          actualFileFields.stream()
-              .collect( Collectors.toMap( IParquetInputField::getFormatFieldName, Function.identity() ) );
+        fieldNamesToTypes =
+        actualFileFields.stream()
+          .collect( Collectors.toMap( IParquetInputField::getFormatFieldName, Function.identity() ) );
       for ( ParquetInputField f : meta.getInputFields() ) {
         if ( fieldNamesToTypes.containsKey( f.getFormatFieldName() ) ) {
           if ( f.getFormatType() == 0 ) {
@@ -162,7 +162,7 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
 
       data.input.setSchema( createSchemaFromMeta( meta ) );
       if ( resolvedInputFileNames != null && resolvedInputFileNames.length == 1 ) {
-        data.input.setInputFile( resolvedInputFileNames[0] );
+        data.input.setInputFile( resolvedInputFileNames[ 0 ] );
       } else if ( resolvedInputFileNames != null && resolvedInputFileNames.length > 1 ) {
         data.input.setInputFiles( resolvedInputFileNames );
       }
@@ -191,7 +191,7 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
   }
 
   @Override protected IBaseFileInputReader createReader( ParquetInputMeta meta, ParquetInputData data, FileObject file )
-      throws Exception {
+    throws Exception {
     return null;
   }
 }

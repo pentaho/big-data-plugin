@@ -34,8 +34,6 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.apache.commons.vfs2.provider.AbstractFileSystem;
-import org.pentaho.amazon.s3.LumadaPropertiesCredentials;
-import org.pentaho.amazon.s3.LumadaPropertiesFileCredentialsProvider;
 import org.pentaho.amazon.s3.S3Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,17 +90,6 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
       } else if ( !S3Util.isEmpty( credentialsFilePath ) ) {
         ProfilesConfigFile profilesConfigFile = new ProfilesConfigFile( credentialsFilePath );
         awsCredentialsProvider = new ProfileCredentialsProvider( profilesConfigFile, profileName );
-      } else {
-        try {
-          LumadaPropertiesCredentials awsCredentials =
-            (LumadaPropertiesCredentials) new LumadaPropertiesFileCredentialsProvider().getCredentials();
-          awsCredentialsProvider = new AWSStaticCredentialsProvider( awsCredentials );
-          endpoint = awsCredentials.getEndpointUrl();
-          access = true;
-          signatureVersion = awsCredentials.getApiSignature();
-        } catch ( Exception e ) {
-          logger.info( e.getMessage() );
-        }
       }
 
       if ( !S3Util.isEmpty( endpoint ) ) {
