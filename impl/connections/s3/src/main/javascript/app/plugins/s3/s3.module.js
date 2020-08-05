@@ -36,7 +36,7 @@ define([
   var module = {
     name: "pentaho-s3-plugin",
     scheme: "s3",
-    label: "Amazon S3",
+    label: "Amazon S3 / Minio",
     summary: [{
       title: i18n.get('Connection.Label.ConnectionDetails'),
       editLink: "s3step1",
@@ -49,9 +49,9 @@ define([
         "profileName": i18n.get('S3.Label.ProfileName'),
         "endpoint": i18n.get('S3.Label.Endpoint'),
         "pathStyleAccess": i18n.get('S3.Label.PathStyleAccess'),
-          "signatureVersion": i18n.get('S3.Label.SignatureVersion'),
-          "defaultS3Config": i18n.get('S3.Label.DefaultS3Config'),
-          "other":  i18n.get('S3.Label.Other')
+        "signatureVersion": i18n.get('S3.Label.SignatureVersion'),
+        "defaultS3Config": i18n.get('S3.Label.DefaultS3Config'),
+        "connectionType": i18n.get('S3.Label.ConnectionType')
       },
       filters: {
         "accessKey": mask,

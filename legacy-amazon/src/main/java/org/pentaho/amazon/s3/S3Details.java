@@ -36,6 +36,9 @@ import java.util.Map;
 @MetaStoreElementType( name = "Amazon S3 Connection", description = "Defines the connection details for an Amazon S3 connection" )
 public class S3Details implements VFSConnectionDetails {
 
+  public static final String CONNECTION_TYPE_AWS = "0";
+  public static final String CONNECTION_TYPE_MINIO = "1";
+
   @MetaStoreAttribute private String name;
 
   @MetaStoreAttribute private String description;
@@ -63,6 +66,8 @@ public class S3Details implements VFSConnectionDetails {
   @MetaStoreAttribute private String signatureVersion;
 
   @MetaStoreAttribute private String defaultS3Config;
+
+  @MetaStoreAttribute private String connectionType;
 
   @Override public String getName() {
     return name;
@@ -188,6 +193,14 @@ public class S3Details implements VFSConnectionDetails {
     this.defaultS3Config = defaultS3Config;
   }
 
+  public String getConnectionType() {
+    return connectionType;
+  }
+
+  public void setConnectionType( String connectionType ) {
+    this.connectionType = connectionType;
+  }
+
   @Override public Map<String, String> getProperties() {
     Map<String, String> props = new HashMap<>();
     props.put( "name", getName() );
@@ -204,6 +217,7 @@ public class S3Details implements VFSConnectionDetails {
     props.put( "signatureVersion", getSignatureVersion() );
     props.put( "pathStyleAccess", getPathStyleAccess() );
     props.put( "defaultS3Config", getDefaultS3Config() );
+    props.put( "connectionType", getConnectionType() );
 
     return props;
   }

@@ -45,7 +45,7 @@ public class S3DetailsTest {
     assertThat( props.get( "region" ), equalTo( "aws-west-1" ) );
     assertThat( props.get( "accessKey" ), equalTo( "ASIAXJ3TZZPFVO3NK6O" ) );
     assertThat( props.get( "secretKey" ), equalTo( "jKbmptEdHk6cTXXqGodacxJn5yaETIIhKjJb/oZ" ) );
-    assertThat( props.size(), equalTo( 14 ) );
+    assertThat( props.size(), equalTo( 15 ) );
     assertThat( props.entrySet().stream().filter( e -> e.getValue() != null ).count(), equalTo( 4L ) );
   }
 
@@ -68,7 +68,7 @@ public class S3DetailsTest {
     assertThat( props.get( "pathStyleAccess" ), equalTo( "true" ) );
     assertThat( props.get( "signatureVersion" ), equalTo( "v4" ) );
 
-    assertThat( props.size(), equalTo( 14 ) );
+    assertThat( props.size(), equalTo( 15 ) );
     assertThat( props.entrySet().stream().filter( e -> e.getValue() != null ).count(), equalTo( 7L ) );
   }
 
