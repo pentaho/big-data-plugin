@@ -38,6 +38,7 @@ public class S3CommonFileSystemConfigBuilder extends FileSystemConfigBuilder {
   private static final String SIGNATURE_VERSION = "signature_version";
   private static final String PATHSTYLE_ACCESS = "pathSyleAccess";
   private static final String DEFAULT_S3_CONFIG = "defaultS3Config";
+  private static final String CONNECTION_TYPE = "connectionType";
 
   private FileSystemOptions fileSystemOptions;
 
@@ -140,6 +141,14 @@ public class S3CommonFileSystemConfigBuilder extends FileSystemConfigBuilder {
 
   public String getDefaultS3Config() {
     return (String) this.getParam( getFileSystemOptions(), DEFAULT_S3_CONFIG );
+  }
+
+  public void setConnectionType( String connectionType ) {
+    this.setParam( getFileSystemOptions(), CONNECTION_TYPE, connectionType );
+  }
+
+  public String getConnectionType() {
+    return (String) this.getParam( getFileSystemOptions(), CONNECTION_TYPE );
   }
 
   @Override protected Class<? extends FileSystem> getConfigClass() {

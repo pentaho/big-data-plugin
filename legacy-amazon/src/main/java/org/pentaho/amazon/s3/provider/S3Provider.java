@@ -94,6 +94,7 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
     s3CommonFileSystemConfigBuilder.setPathStyleAccess( s3Details.getPathStyleAccess() );
     s3CommonFileSystemConfigBuilder.setSignatureVersion( s3Details.getSignatureVersion() );
     s3CommonFileSystemConfigBuilder.setDefaultS3Config( s3Details.getDefaultS3Config() );
+    s3CommonFileSystemConfigBuilder.setConnectionType( s3Details.getConnectionType() );
     return s3CommonFileSystemConfigBuilder.getFileSystemOptions();
   }
 
@@ -144,7 +145,7 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
       List<? extends ConnectionDetails> connections =
         connectionManagerSupplier.get().getConnectionDetailsByScheme( S3FileProvider.SCHEME );
 
-      if ( s3Details.getDefaultS3Config().equalsIgnoreCase( "true" ) ) {
+      if ( s3Details.getDefaultS3Config() != null && s3Details.getDefaultS3Config().equalsIgnoreCase( "true" ) ) {
         for ( ConnectionDetails details : connections ) {
           if ( !s3Details.getName().equalsIgnoreCase( details.getName() ) ) {
             S3Details removeDefault = (S3Details) details;
