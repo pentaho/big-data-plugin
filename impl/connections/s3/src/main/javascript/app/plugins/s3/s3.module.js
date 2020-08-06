@@ -57,6 +57,13 @@ define([
         "accessKey": mask,
         "secretKey": mask,
         "sessionToken": mask,
+        "connectionType": function(value) {
+          if (value === '1') {
+            return i18n.get('S3.Label.ConnectionType.Minio');
+          } else {
+            return i18n.get('S3.Label.ConnectionType.AWS');
+          }
+        },
         "region": function(value) {
           if (!value) {
             return i18n.get('S3.Label.Default');
