@@ -35,22 +35,32 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.apache.commons.vfs2.provider.AbstractFileSystem;
 import org.pentaho.amazon.s3.S3Util;
+import org.pentaho.di.connections.ConnectionDetails;
+import org.pentaho.di.connections.ConnectionManager;
+import org.pentaho.di.core.encryption.Encr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 public abstract class S3CommonFileSystem extends AbstractFileSystem {
 
+  private static final Logger logger = LoggerFactory.getLogger( S3CommonFileSystem.class );
+  private static final String DEFAULT_S3_CONFIG_PROPERTY = "defaultS3Config";
   private String awsAccessKeyCache;
   private String awsSecretKeyCache;
   private AmazonS3 client;
-
-  private static final Logger logger = LoggerFactory.getLogger( S3CommonFileSystem.class );
+  private Supplier<ConnectionManager> connectionManager = ConnectionManager::getInstance;
+  private Map<String, String> currentConnectionProperties;
 
   protected S3CommonFileSystem( final FileName rootName, final FileSystemOptions fileSystemOptions ) {
     super( rootName, null, fileSystemOptions );
+    currentConnectionProperties = new HashMap<>();
   }
 
   @SuppressWarnings( "unchecked" )
@@ -61,18 +71,74 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
   protected abstract FileObject createFile( AbstractFileName name ) throws Exception;
 
   public AmazonS3 getS3Client() {
+    S3CommonFileSystemConfigBuilder s3CommonFileSystemConfigBuilder =
+      new S3CommonFileSystemConfigBuilder( getFileSystemOptions() );
+
+    Optional<? extends ConnectionDetails> defaultS3Connection = Optional.empty();
+    try {
+      defaultS3Connection =
+        connectionManager.get().getConnectionDetailsByScheme( "s3" ).stream().filter(
+          connectionDetails -> connectionDetails.getProperties().get( DEFAULT_S3_CONFIG_PROPERTY ) != null
+            && connectionDetails.getProperties().get( DEFAULT_S3_CONFIG_PROPERTY ).equalsIgnoreCase( "true" ) )
+          .findFirst();
+    } catch ( Exception ignored ) {
+      // Ignore the exception, it's OK if we can't find a default S3 connection.
+    }
+
+    // If the fileSystemOptions don't contain a name, the originating url is s3:// NOT pvfs://
+    // Use a specified default PVFS connection if it's available.
+    if ( s3CommonFileSystemConfigBuilder.getName() == null ) {
+      // Copy the connection properties
+      Map<String, String> newConnectionProperties = new HashMap<>();
+      if ( defaultS3Connection.isPresent() ) {
+        for ( Map.Entry<String, String> entry : defaultS3Connection.get().getProperties().entrySet() ) {
+          newConnectionProperties.put( entry.getKey(), entry.getValue() );
+        }
+      }
+
+      // Have the default connection properties changed?
+      if ( !newConnectionProperties.equals( currentConnectionProperties ) ) {
+        // Force a new connection if the default PVFS was changed
+        client = null;
+        // Track the new connection
+        currentConnectionProperties = newConnectionProperties;
+        // Clear the file system cache as the credentials have changed and the cache is now invalid.
+        this.getFileSystemManager().getFilesCache().clear( this );
+      }
+    }
+
     if ( client == null && getFileSystemOptions() != null ) {
-      S3CommonFileSystemConfigBuilder s3CommonFileSystemConfigBuilder =
-        new S3CommonFileSystemConfigBuilder( getFileSystemOptions() );
-      String accessKey = s3CommonFileSystemConfigBuilder.getAccessKey();
-      String secretKey = s3CommonFileSystemConfigBuilder.getSecretKey();
-      String sessionToken = s3CommonFileSystemConfigBuilder.getSessionToken();
-      String region = s3CommonFileSystemConfigBuilder.getRegion();
-      String credentialsFilePath = s3CommonFileSystemConfigBuilder.getCredentialsFile();
-      String profileName = s3CommonFileSystemConfigBuilder.getProfileName();
-      String endpoint = s3CommonFileSystemConfigBuilder.getEndpoint();
-      String signatureVersion = s3CommonFileSystemConfigBuilder.getSignatureVersion();
-      String pathStyleAccess = s3CommonFileSystemConfigBuilder.getPathStyleAccess();
+      String accessKey = null;
+      String secretKey = null;
+      String sessionToken = null;
+      String region = null;
+      String credentialsFilePath = null;
+      String profileName = null;
+      String endpoint = null;
+      String signatureVersion = null;
+      String pathStyleAccess = null;
+
+      if ( defaultS3Connection.isPresent() ) {
+        accessKey = Encr.decryptPassword( currentConnectionProperties.get( "accessKey" ) );
+        secretKey = Encr.decryptPassword( currentConnectionProperties.get( "secretKey" ) );
+        sessionToken = Encr.decryptPassword( currentConnectionProperties.get( "sessionToken" ) );
+        region = currentConnectionProperties.get( "region" );
+        credentialsFilePath = currentConnectionProperties.get( "credentialsFilePath" );
+        profileName = currentConnectionProperties.get( "profileName" );
+        endpoint = currentConnectionProperties.get( "endpoint" );
+        signatureVersion = currentConnectionProperties.get( "signatureVersion" );
+        pathStyleAccess = currentConnectionProperties.get( "pathStyleAccess" );
+      } else {
+        accessKey = s3CommonFileSystemConfigBuilder.getAccessKey();
+        secretKey = s3CommonFileSystemConfigBuilder.getSecretKey();
+        sessionToken = s3CommonFileSystemConfigBuilder.getSessionToken();
+        region = s3CommonFileSystemConfigBuilder.getRegion();
+        credentialsFilePath = s3CommonFileSystemConfigBuilder.getCredentialsFile();
+        profileName = s3CommonFileSystemConfigBuilder.getProfileName();
+        endpoint = s3CommonFileSystemConfigBuilder.getEndpoint();
+        signatureVersion = s3CommonFileSystemConfigBuilder.getSignatureVersion();
+        pathStyleAccess = s3CommonFileSystemConfigBuilder.getPathStyleAccess();
+      }
       boolean access = ( pathStyleAccess == null ) || Boolean.parseBoolean( pathStyleAccess );
 
       AWSCredentialsProvider awsCredentialsProvider = null;
