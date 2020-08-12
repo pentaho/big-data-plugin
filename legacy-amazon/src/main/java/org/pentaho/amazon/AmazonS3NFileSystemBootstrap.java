@@ -66,7 +66,7 @@ public class AmazonS3NFileSystemBootstrap implements KettleLifecycleListener {
       FileSystemManager fsm = KettleVFS.getInstance().getFileSystemManager();
       if ( fsm instanceof DefaultFileSystemManager && !Arrays.asList( fsm.getSchemes() )
         .contains( S3NFileProvider.SCHEME ) ) {
-        ( (DefaultFileSystemManager) fsm ).addProvider( S3NFileProvider.SCHEME, new S3FileProvider() );
+        ( (DefaultFileSystemManager) fsm ).addProvider( S3NFileProvider.SCHEME, new S3NFileProvider() );
       }
 
       if ( connectionManager.get() != null ) {
