@@ -57,6 +57,7 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
   private AmazonS3 client;
   private Supplier<ConnectionManager> connectionManager = ConnectionManager::getInstance;
   private Map<String, String> currentConnectionProperties;
+  private FileSystemOptions currentFileSystemOptions;
 
   protected S3CommonFileSystem( final FileName rootName, final FileSystemOptions fileSystemOptions ) {
     super( rootName, null, fileSystemOptions );
@@ -107,7 +108,13 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
       }
     }
 
+    if ( currentFileSystemOptions != null && !currentFileSystemOptions.equals( getFileSystemOptions() ) ) {
+      client = null;
+      this.getFileSystemManager().getFilesCache().clear( this );
+    }
+
     if ( client == null && getFileSystemOptions() != null ) {
+      currentFileSystemOptions = getFileSystemOptions();
       String accessKey = null;
       String secretKey = null;
       String sessionToken = null;
@@ -118,7 +125,7 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
       String signatureVersion = null;
       String pathStyleAccess = null;
 
-      if ( defaultS3Connection.isPresent() ) {
+      if ( s3CommonFileSystemConfigBuilder.getName() == null && defaultS3Connection.isPresent() ) {
         accessKey = Encr.decryptPassword( currentConnectionProperties.get( "accessKey" ) );
         secretKey = Encr.decryptPassword( currentConnectionProperties.get( "secretKey" ) );
         sessionToken = Encr.decryptPassword( currentConnectionProperties.get( "sessionToken" ) );
