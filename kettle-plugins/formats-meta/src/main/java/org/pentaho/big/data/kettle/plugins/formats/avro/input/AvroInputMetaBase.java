@@ -22,8 +22,6 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.avro.input;
 
-import java.util.ArrayList;
-import java.util.List;
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.kettle.plugins.formats.avro.AvroTypeConverter;
 import org.pentaho.big.data.kettle.plugins.formats.avro.output.AvroOutputMetaBase;
@@ -53,6 +51,9 @@ import org.pentaho.di.workarounds.ResolvableResource;
 import org.pentaho.hadoop.shim.api.format.AvroSpec;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class AvroInputMetaBase extends BaseStepMeta implements StepMetaInterface, ResolvableResource {
 
@@ -442,7 +443,7 @@ public abstract class AvroInputMetaBase extends BaseStepMeta implements StepMeta
         String realFileName = getParentStepMeta().getParentTransMeta().environmentSubstitute( dataLocation );
         FileObject fileObject = KettleVFS.getFileObject( realFileName );
         if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
-          dataLocation = ( (AliasedFileObject) fileObject ).getOriginalURIString();
+          dataLocation = ( (AliasedFileObject) fileObject ).getAELSafeURIString();
         }
       } catch ( KettleFileException e ) {
         throw new RuntimeException( e );
@@ -454,7 +455,7 @@ public abstract class AvroInputMetaBase extends BaseStepMeta implements StepMeta
         String realSchemaFilename = getParentStepMeta().getParentTransMeta().environmentSubstitute( schemaLocation );
         FileObject fileObject = KettleVFS.getFileObject( realSchemaFilename );
         if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
-          schemaLocation = ( (AliasedFileObject) fileObject ).getOriginalURIString();
+          schemaLocation = ( (AliasedFileObject) fileObject ).getAELSafeURIString();
         }
       } catch ( KettleFileException e ) {
         throw new RuntimeException( e );
