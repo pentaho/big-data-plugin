@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2018-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -21,7 +21,6 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.formats.orc.input;
 
-import java.util.List;
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputFile;
 import org.pentaho.big.data.kettle.plugins.formats.orc.OrcInputField;
@@ -51,6 +50,8 @@ import org.pentaho.hadoop.shim.api.format.IOrcInputField;
 import org.pentaho.hadoop.shim.api.format.OrcSpec;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
+
+import java.util.List;
 
 /**
  * Orc input meta step without Hadoop-dependent classes. Required for read meta in the spark native code.
@@ -300,7 +301,7 @@ public abstract class OrcInputMetaBase extends
           String realFileName = getParentStepMeta().getParentTransMeta().environmentSubstitute( inputFiles.fileName[ i ] );
           FileObject fileObject = KettleVFS.getFileObject( realFileName );
           if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
-            inputFiles.fileName[ i ] = ( (AliasedFileObject) fileObject ).getOriginalURIString();
+            inputFiles.fileName[ i ] = ( (AliasedFileObject) fileObject ).getAELSafeURIString();
           }
         } catch ( KettleFileException e ) {
           throw new RuntimeException( e );
