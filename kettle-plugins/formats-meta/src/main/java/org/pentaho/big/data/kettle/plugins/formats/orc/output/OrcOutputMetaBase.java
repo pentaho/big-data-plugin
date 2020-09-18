@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -326,7 +326,7 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
         String realFileName = getParentStepMeta().getParentTransMeta().environmentSubstitute( filename );
         FileObject fileObject = KettleVFS.getFileObject( realFileName );
         if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
-          filename = ( (AliasedFileObject) fileObject ).getOriginalURIString();
+          filename = ( (AliasedFileObject) fileObject ).getAELSafeURIString();
         }
       } catch ( KettleFileException e ) {
         throw new RuntimeException( e );
