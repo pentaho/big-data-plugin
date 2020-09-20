@@ -38,6 +38,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.verification.VerificationMode;
+import org.pentaho.di.core.Const;
+import org.pentaho.di.core.logging.LogLevel;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.di.core.KettleClientEnvironment;
@@ -131,6 +133,7 @@ public class KafkaConsumerInputTest {
   @Before
   public void setUp() {
     KettleLogStore.setLogChannelInterfaceFactory( logChannelFactory );
+    doReturn( LogLevel.BASIC ).when( logChannel ).getLogLevel();
     when( logChannelFactory.create( any(), any() ) ).thenReturn( logChannel );
     when( logChannelFactory.create( any() ) ).thenReturn( logChannel );
 
@@ -533,15 +536,15 @@ public class KafkaConsumerInputTest {
 
   public void verifyRow( String key, String message, String offset, String lineNr, final VerificationMode mode ) {
     verify( logChannel, mode ).logBasic(
-      "\n"
-        + "------------> Linenr " + lineNr + "------------------------------\n"
-        + "Key = " + key + "\n"
-        + "Message = " + message + "\n"
-        + "Topic = pentaho\n"
-        + "Partition = 0\n"
-        + "Offset = " + offset + "\n"
-        + "Timestamp = -1\n"
-        + "\n"
+      Const.CR
+        + "------------> Linenr " + lineNr + "------------------------------" + Const.CR
+        + "Key = " + key + Const.CR
+        + "Message = " + message + Const.CR
+        + "Topic = pentaho" + Const.CR
+        + "Partition = 0" + Const.CR
+        + "Offset = " + offset + Const.CR
+        + "Timestamp = -1" + Const.CR
+        + Const.CR
         + "====================" );
   }
 }
