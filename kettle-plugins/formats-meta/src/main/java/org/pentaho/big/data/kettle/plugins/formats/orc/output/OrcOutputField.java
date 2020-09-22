@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -52,7 +52,7 @@ public class OrcOutputField extends BaseFormatOutputField implements IOrcOutputF
       setFormatType( Integer.parseInt( typeName ) );
     } catch ( NumberFormatException nfe ) {
       for ( OrcSpec.DataType orcType : OrcSpec.DataType.values() ) {
-        if ( orcType.getName().equals( typeName ) ) {
+        if ( orcType.toString().equalsIgnoreCase( typeName ) ) {
           this.formatType = orcType.ordinal();
         }
       }

@@ -22,9 +22,9 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.avro.input;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.kettle.plugins.formats.avro.AvroTypeConverter;
-import org.pentaho.big.data.kettle.plugins.formats.avro.output.AvroOutputMetaBase;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
@@ -57,7 +57,7 @@ import java.util.List;
 
 public abstract class AvroInputMetaBase extends BaseStepMeta implements StepMetaInterface, ResolvableResource {
 
-  public static final Class<?> PKG = AvroOutputMetaBase.class;
+  public static final Class<?> PKG = AvroInputMetaBase.class;
 
   public static enum LocationDescriptor {
     FILE_NAME, FIELD_NAME, FIELD_CONTAINING_FILE_NAME;
@@ -73,7 +73,8 @@ public abstract class AvroInputMetaBase extends BaseStepMeta implements StepMeta
   private String dataLocation;
 
   @Injection( name = "DATA_LOCATION_TYPE" )
-  private int dataLocationType = LocationDescriptor.FILE_NAME.ordinal();
+  @VisibleForTesting
+  public int dataLocationType = LocationDescriptor.FILE_NAME.ordinal();
 
   @Injection( name = "SCHEMA_LOCATION" )
   private String schemaLocation;

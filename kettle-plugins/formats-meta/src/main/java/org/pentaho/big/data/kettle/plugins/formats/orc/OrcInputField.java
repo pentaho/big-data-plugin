@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -45,13 +45,14 @@ public class OrcInputField extends BaseFormatInputField implements IOrcInputFiel
   @Override
   public void setOrcType( String orcType ) {
     for ( OrcSpec.DataType tmpType : OrcSpec.DataType.values() ) {
-      if ( tmpType.getName().equalsIgnoreCase( orcType ) ) {
+      if ( tmpType.toString().equalsIgnoreCase( orcType ) ) {
         setFormatType( tmpType.getId() );
         break;
       }
     }
   }
 
+  @Override
   public String getTypeDesc() {
     return ValueMetaFactory.getValueMetaName( getPentahoType() );
   }
