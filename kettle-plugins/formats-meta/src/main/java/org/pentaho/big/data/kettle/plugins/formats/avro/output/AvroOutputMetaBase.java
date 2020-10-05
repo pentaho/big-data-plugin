@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -21,12 +21,6 @@
  ******************************************************************************/
 
 package org.pentaho.big.data.kettle.plugins.formats.avro.output;
-
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.function.Function;
 
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.kettle.plugins.formats.avro.AvroTypeConverter;
@@ -51,6 +45,12 @@ import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.workarounds.ResolvableResource;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.function.Function;
 
 /**
  * Avro output meta step without Hadoop-dependent classes. Required for read meta in the spark native code.
@@ -310,7 +310,7 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
         String realFileName = getParentStepMeta().getParentTransMeta().environmentSubstitute( filename );
         FileObject fileObject = KettleVFS.getFileObject( realFileName );
         if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
-          filename = ( (AliasedFileObject) fileObject ).getOriginalURIString();
+          filename = ( (AliasedFileObject) fileObject ).getAELSafeURIString();
         }
       } catch ( KettleFileException e ) {
         throw new RuntimeException( e );
@@ -322,7 +322,7 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
         String realSchemaFilename = getParentStepMeta().getParentTransMeta().environmentSubstitute( schemaFilename );
         FileObject fileObject = KettleVFS.getFileObject( realSchemaFilename );
         if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
-          schemaFilename = ( (AliasedFileObject) fileObject ).getOriginalURIString();
+          schemaFilename = ( (AliasedFileObject) fileObject ).getAELSafeURIString();
         }
       } catch ( KettleFileException e ) {
         throw new RuntimeException( e );

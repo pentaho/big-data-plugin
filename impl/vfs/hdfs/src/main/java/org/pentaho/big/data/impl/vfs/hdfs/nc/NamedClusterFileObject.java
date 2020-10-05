@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p>
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  * <p>
  * ******************************************************************************
  * <p>
@@ -36,4 +36,11 @@ public class NamedClusterFileObject extends HDFSFileObject implements AliasedFil
   public String getOriginalURIString() {
     return realFileSystemURI + getName().getPath();
   }
+
+  @Override
+  public String getAELSafeURIString() {
+    return getOriginalURIString();
+  }
+
+
 }

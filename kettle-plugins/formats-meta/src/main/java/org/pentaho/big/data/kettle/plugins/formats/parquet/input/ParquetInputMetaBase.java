@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2018-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -335,7 +335,7 @@ public abstract class ParquetInputMetaBase extends
             getParentStepMeta().getParentTransMeta().environmentSubstitute( inputFiles.fileName[ i ] );
           FileObject fileObject = KettleVFS.getFileObject( realFileName );
           if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
-            inputFiles.fileName[ i ] = ( (AliasedFileObject) fileObject ).getOriginalURIString();
+            inputFiles.fileName[ i ] = ( (AliasedFileObject) fileObject ).getAELSafeURIString();
           }
         } catch ( KettleFileException e ) {
           throw new RuntimeException( e );
