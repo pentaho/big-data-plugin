@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -427,6 +427,17 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     if ( namedCluster == null ) {
       throw new KettleException( "Named cluster was not initialized!" );
     }
+    if ( namedCluster.getShimIdentifier() == null && getParentStepMeta() != null
+      && getParentStepMeta().getParentTransMeta() != null ) {
+      // If here we have a template for the named cluster, not the real thing.  This is likely due to not having
+      // the namedCluster present in the local metastore.  Time to load it from the embedded Metastore which is only
+      // present at runtime
+      NamedCluster nc = namedClusterService.getNamedClusterByName( namedCluster.getName(),
+        metaStoreService.getExplicitMetastore( getParentStepMeta().getParentTransMeta().getEmbeddedMetastoreProviderKey() ) );
+      if ( nc != null && nc.getShimIdentifier() != null ) {
+        namedCluster = nc; //Overwrite with the real one
+      }
+    }
     try {
       HBaseService hBaseService = getService();
       Mapping tempMapping = null;
@@ -544,6 +555,10 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
     namedClusterLoadSaveUtil
         .getXml( retval, namedClusterService, namedCluster, repository == null ? null : repository.getMetaStore(), getLog() );
+
+    if ( parentStepMeta != null && parentStepMeta.getParentTransMeta() != null ) {
+      parentStepMeta.getParentTransMeta().getNamedClusterEmbedManager().addClusterToMeta( namedCluster.getName() );
+    }
 
     if ( !Const.isEmpty( m_coreConfigURL ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "core_config_url", m_coreConfigURL ) );
@@ -981,7 +996,11 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   protected HBaseService getService() throws ClusterInitializationException {
     HBaseService service = null;
     try {
-      service = namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class );
+      String embeddedMetastoreProviderKey =
+        parentStepMeta == null || parentStepMeta.getParentTransMeta() == null ? null
+          : parentStepMeta.getParentTransMeta().getEmbeddedMetastoreProviderKey();
+      service = namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class,
+        embeddedMetastoreProviderKey );
       this.serviceStatus = ServiceStatus.OK;
     } catch ( Exception e ) {
       this.serviceStatus = ServiceStatus.notOk( e );
