@@ -16,6 +16,9 @@
  */
 package org.pentaho.amazon.s3;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public final class S3Util {
 
   /** System property name for the AWS Endpoint (This is for Minio) */
@@ -42,6 +45,12 @@ public final class S3Util {
   /** Configuration file name */
   public static final String CONFIG_FILE = "config";
 
+  /** Regex for detecting S3 credentials in URI */
+  public static final String URI_AWS_CREDENTIALS_REGEX = "(?<=s3[a-z]:\\/\\/).*:.*(?=@s3[a-z]?)";
+
+  /** Regex for detecting File Name parsing with S3 credentials */
+  public static final String URI_AWS_CREDENTIALS_FILE_NAME_PARSER_REGEX = "(?<=\\/).*:.*(?=s3[a-z]?)";
+
   public static boolean hasChanged( String previousValue, String currentValue ) {
     if ( !isEmpty( previousValue ) && isEmpty( currentValue ) ) {
       return true;
@@ -54,6 +63,16 @@ public final class S3Util {
 
   public static boolean isEmpty( String value ) {
     return value == null || value.length() == 0;
+  }
+
+  public static String getKeysFromURI( String uri, String regex ) {
+    Pattern uriPatternWithCredentials = Pattern.compile( regex );
+    Matcher match = uriPatternWithCredentials.matcher( uri );
+    String keys = "";
+    if ( match.find() ) {
+      keys = match.group();
+    }
+    return keys;
   }
 
   private S3Util() { }
