@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  * ******************************************************************************
  *
@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.hbase.mapping;
 
+import org.pentaho.big.data.kettle.plugins.hbase.HbaseUtil;
 import org.pentaho.hadoop.shim.api.hbase.ByteConversionUtil;
 import org.pentaho.hadoop.shim.api.hbase.HBaseConnection;
 import org.pentaho.hadoop.shim.api.hbase.mapping.Mapping;
@@ -46,13 +47,13 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * Class for managing a mapping table in HBase. Has routines for creating the mapping table, writing and reading
@@ -443,12 +444,12 @@ public class MappingAdmin implements Closeable {
 
   /**
    * Create the mapping table
-   *
+   * @param tableName The fuly qualified tablename with namespace to make the mapping file for
    * @throws Exception
    *           if there is no connection specified or the mapping table already exists.
    */
-  public void createMappingTable() throws Exception {
-    HBaseTable hBaseTable = hBaseConnection.getTable( m_mappingTableName );
+  public void createMappingTable( String tableName ) throws Exception {
+    HBaseTable hBaseTable = hBaseConnection.getTable( getMappingTableName( tableName ) );
     if ( hBaseTable.exists() ) {
       throw new IOException( "Mapping table already exists!" );
     }
@@ -472,25 +473,40 @@ public class MappingAdmin implements Closeable {
    *           if a problem occurs
    */
   public boolean mappingExists( String tableName, String mappingName ) throws Exception {
-    try ( HBaseTable hBaseTable = hBaseConnection.getTable( m_mappingTableName ) ) {
+    try ( HBaseTable hBaseTable = hBaseConnection.getTable( getMappingTableName( tableName ) ) ) {
       if ( hBaseTable.exists() ) {
-        return hBaseTable.keyExists( hBaseConnection.getByteConversionUtil().compoundKey( tableName, mappingName ) );
+        return hBaseTable.keyExists( hBaseConnection.getByteConversionUtil()
+          .compoundKey( HbaseUtil.parseQualifierFromTableName( tableName ), mappingName ) );
       }
       return false;
     }
   }
 
   /**
-   * Get a list of tables that have mappings. List will be empty if there are no mappings defined yet.
+   * Get a list of fully qualifieed tableNames that have mappings in the given namesSpace. If the namespace is null then
+   * cycle through all namespaces. List will be empty if there are no mappings defined yet.
    *
    * @return a list of tables that have mappings.
    * @throws IOException
    *           if something goes wrong
    */
-  public Set<String> getMappedTables() throws Exception {
+  public Set<String> getMappedTables( String nameSpace ) throws Exception {
     ByteConversionUtil byteConversionUtil = hBaseConnection.getByteConversionUtil();
-    HashSet<String> tableNames = new HashSet<String>();
-    try ( HBaseTable hBaseTable = hBaseConnection.getTable( m_mappingTableName ) ) {
+    TreeSet<String> tableNames = new TreeSet<>();
+    if ( nameSpace != null ) {
+      addMappedTables( tableNames, nameSpace );
+    } else {
+      List<String> namespaces = hBaseConnection.listNamespaces();
+      for ( String nextNamespace: namespaces ) {
+        addMappedTables( tableNames, nextNamespace );
+      }
+    }
+    return tableNames;
+  }
+
+  private void addMappedTables( Set<String> tableNames, String nameSpace ) throws Exception {
+    ByteConversionUtil byteConversionUtil = hBaseConnection.getByteConversionUtil();
+    try ( HBaseTable hBaseTable = hBaseConnection.getTable( nameSpace + ":" + m_mappingTableName ) ) {
       if ( hBaseTable.exists() ) {
         ResultScannerBuilder scannerBuilder = hBaseTable.createScannerBuilder( null, null );
         scannerBuilder.setCaching( 10 );
@@ -501,13 +517,12 @@ public class MappingAdmin implements Closeable {
             byte[] rawKey = next.getRow();
 
             // extract the table name
-            String tableName = byteConversionUtil.splitKey( rawKey )[ 0 ];
-            tableNames.add( tableName.trim() );
+            String tableName =
+              nameSpace + ":" + HbaseUtil.parseQualifierFromTableName( byteConversionUtil.splitKey( rawKey )[ 0 ] );
+            tableNames.add( tableName );
           }
         }
       }
-
-      return tableNames;
     }
   }
 
@@ -522,21 +537,23 @@ public class MappingAdmin implements Closeable {
    *           if something goes wrong.
    */
   public List<String> getMappingNames( String tableName ) throws Exception {
+    tableName = HbaseUtil.expandTableName( tableName );
     ByteConversionUtil byteConversionUtil = hBaseConnection.getByteConversionUtil();
     List<String> mappingsForTable = new ArrayList<String>();
-    try ( HBaseTable hBaseTable = hBaseConnection.getTable( m_mappingTableName ) ) {
+    try ( HBaseTable hBaseTable = hBaseConnection.getTable( getMappingTableName( tableName ) ) ) {
       if ( hBaseTable.exists() ) {
         ResultScannerBuilder scannerBuilder = hBaseTable.createScannerBuilder( null, null );
         scannerBuilder.setCaching( 10 );
 
         try ( ResultScanner resultScanner = scannerBuilder.build() ) {
           Result next;
+          String qualifier = HbaseUtil.parseQualifierFromTableName( tableName );
           while ( ( next = resultScanner.next() ) != null ) {
             byte[] rowKey = next.getRow();
             String[] splitKey = byteConversionUtil.splitKey( rowKey );
             String tableN = splitKey[ 0 ];
 
-            if ( tableName.equals( tableN ) ) {
+            if ( qualifier.equals( tableN ) ) {
               // extract out the mapping name
               mappingsForTable.add( splitKey[ 1 ] );
             }
@@ -561,13 +578,13 @@ public class MappingAdmin implements Closeable {
    */
   public boolean deleteMapping( String tableName, String mappingName ) throws Exception {
     ByteConversionUtil byteConversionUtil = hBaseConnection.getByteConversionUtil();
-    try ( HBaseTable hBaseTable = hBaseConnection.getTable( m_mappingTableName ) ) {
+    try ( HBaseTable hBaseTable = hBaseConnection.getTable( getMappingTableName( tableName ) ) ) {
       try ( HBaseTableWriteOperationManager hBaseTableWriteOperationManager = hBaseTable
         .createWriteOperationManager( null ) ) {
 
         if ( !hBaseTable.exists() ) {
           // create the mapping table
-          createMappingTable();
+          createMappingTable( tableName );
           return false; // no mapping table so nothing to delete!
         }
 
@@ -580,7 +597,8 @@ public class MappingAdmin implements Closeable {
           return false; // mapping doesn't seem to exist
         }
 
-        hBaseTableWriteOperationManager.createDelete( byteConversionUtil.compoundKey( tableName, mappingName ) )
+        hBaseTableWriteOperationManager.createDelete(
+          byteConversionUtil.compoundKey( HbaseUtil.parseQualifierFromTableName( tableName ), mappingName ) )
           .execute();
         return true;
       }
@@ -615,10 +633,10 @@ public class MappingAdmin implements Closeable {
     String tupleFamilies = theMapping.getTupleFamilies();
 
     ByteConversionUtil byteConversionUtil = hBaseConnection.getByteConversionUtil();
-    try ( HBaseTable hBaseTable = hBaseConnection.getTable( m_mappingTableName ) ) {
+    try ( HBaseTable hBaseTable = hBaseConnection.getTable( getMappingTableName( tableName ) ) ) {
       if ( !hBaseTable.exists() ) {
         // create the mapping table
-        createMappingTable();
+        createMappingTable( tableName );
       }
 
       if ( hBaseTable.disabled() ) {
@@ -636,7 +654,8 @@ public class MappingAdmin implements Closeable {
       }
 
       HBaseTableWriteOperationManager writeOperationManager = hBaseTable.createWriteOperationManager( null );
-      HBasePut hBasePut = writeOperationManager.createPut( byteConversionUtil.compoundKey( tableName, mappingName ) );
+      HBasePut hBasePut = writeOperationManager
+        .createPut( byteConversionUtil.compoundKey( HbaseUtil.parseQualifierFromTableName( tableName ), mappingName ) );
       hBasePut.setWriteToWAL( true );
 
       String family = COLUMNS_FAMILY_NAME;
@@ -751,16 +770,17 @@ public class MappingAdmin implements Closeable {
     ByteConversionUtil byteConversionUtil = hBaseConnection.getByteConversionUtil();
     MappingFactory mappingFactory = hBaseConnection.getMappingFactory();
     HBaseValueMetaInterfaceFactory valueMetaInterfaceFactory = hBaseConnection.getHBaseValueMetaInterfaceFactory();
-    try ( HBaseTable hBaseTable = hBaseConnection.getTable( m_mappingTableName ) ) {
+    try ( HBaseTable hBaseTable = hBaseConnection.getTable( getMappingTableName( tableName ) ) ) {
       if ( !hBaseTable.exists() ) {
 
         // create the mapping table
-        createMappingTable();
+        createMappingTable( tableName );
 
         throw new IOException( "Mapping \"" + tableName + "," + mappingName + "\" does not exist!" );
       }
 
-      byte[] compoundKey = byteConversionUtil.compoundKey( tableName, mappingName );
+      byte[] compoundKey =
+        byteConversionUtil.compoundKey( HbaseUtil.parseQualifierFromTableName( tableName ), mappingName );
       ResultScannerBuilder scannerBuilder = hBaseTable.createScannerBuilder( compoundKey, compoundKey );
       scannerBuilder.setCaching( 10 );
 
@@ -914,5 +934,9 @@ public class MappingAdmin implements Closeable {
   public static String getTableNameFromVariable( BaseStepMeta stepMeta, String mappedTableName ) {
     TransMeta parentTransMeta = stepMeta.getParentStepMeta().getParentTransMeta();
     return parentTransMeta.environmentSubstitute( mappedTableName );
+  }
+
+  private String getMappingTableName( String tableName ) {
+    return HbaseUtil.expandTableName( HbaseUtil.parseNamespaceFromTableName( tableName ), m_mappingTableName );
   }
 }
