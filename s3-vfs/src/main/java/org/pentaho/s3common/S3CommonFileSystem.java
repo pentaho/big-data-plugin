@@ -176,11 +176,13 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
           .withCredentials( awsCredentialsProvider )
           .build();
       } else {
-        client = AmazonS3ClientBuilder.standard()
+        AmazonS3ClientBuilder clientBuilder = AmazonS3ClientBuilder.standard()
           .enableForceGlobalBucketAccess()
-          .withRegion( regions )
-          .withCredentials( awsCredentialsProvider )
-          .build();
+          .withCredentials( awsCredentialsProvider );
+        if ( !isRegionSet() ) {
+          clientBuilder.withRegion( regions );
+        }
+        client = clientBuilder.build();
       }
     }
 
@@ -219,6 +221,10 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
     //check if configuration file exists in default location
     File awsConfigFolder = new File(
       System.getProperty( "user.home" ) + File.separator + S3Util.AWS_FOLDER + File.separator + S3Util.CONFIG_FILE );
-    return awsConfigFolder.exists();
+    if ( awsConfigFolder.exists() ) {
+      return true;
+    }
+    //When running on an Amazon EC2 instance getCurrentRegion will get its region. Null if not running in an EC2 instance
+    return Regions.getCurrentRegion() != null;
   }
 }
