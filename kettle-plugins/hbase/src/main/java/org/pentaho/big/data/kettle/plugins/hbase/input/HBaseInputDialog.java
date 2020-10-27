@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  * ******************************************************************************
  *
@@ -34,6 +34,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -49,6 +50,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
+import org.pentaho.big.data.kettle.plugins.hbase.HbaseUtil;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
@@ -432,6 +434,9 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
       @Override
       public void widgetSelected( SelectionEvent e ) {
         setupMappedTableNames();
+        if (  m_mappedTableNamesCombo.getItemCount() > 0 ) {
+          m_mappedTableNamesCombo.setListVisible( true );
+        }
       }
     } );
 
@@ -458,6 +463,9 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
       @Override
       public void widgetSelected( SelectionEvent e ) {
         setupMappingNamesForTable( false );
+        if (  m_mappingNamesCombo.getItemCount() > 0 ) {
+          m_mappingNamesCombo.setListVisible( true );
+        }
       }
     } );
 
@@ -1481,14 +1489,15 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
   }
 
   private void setupMappedTableNames() {
-    m_mappedTableNamesCombo.removeAll();
-
     HBaseConnection connection = null;
+    Cursor busy = new Cursor( shell.getDisplay(), SWT.CURSOR_WAIT );
     try {
+      shell.setCursor( busy );
       connection = getHBaseConnection();
       MappingAdmin admin = new MappingAdmin( connection );
-      Set<String> tableNames = admin.getMappedTables();
+      Set<String> tableNames = admin.getMappedTables( parseNamespaceFromTableName( null ) );
 
+      m_mappedTableNamesCombo.removeAll();
       for ( String s : tableNames ) {
         m_mappedTableNamesCombo.add( s );
       }
@@ -1497,6 +1506,8 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
       new ErrorDialog( shell, Messages.getString( "HBaseInputDialog.ErrorMessage." + "UnableToConnect" ), Messages
         .getString( "HBaseInputDialog.ErrorMessage.UnableToConnect" ), e );
     } finally {
+      shell.setCursor( null );
+      busy.dispose();
       if ( connection != null ) {
         try {
           connection.close();
@@ -1518,7 +1529,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
         connection = getHBaseConnection();
         MappingAdmin admin = new MappingAdmin( connection );
 
-        List<String> mappingNames = admin.getMappingNames( m_mappedTableNamesCombo.getText().trim() );
+        List<String> mappingNames = admin.getMappingNames( transMeta.environmentSubstitute( m_mappedTableNamesCombo.getText().trim() ) );
 
         for ( String n : mappingNames ) {
           m_mappingNamesCombo.add( n );
@@ -1543,6 +1554,11 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
         }
       }
     }
+  }
+
+  private String parseNamespaceFromTableName( String defaultNamespaceIfNoneSpecified ) {
+    return HbaseUtil.parseNamespaceFromTableName( transMeta.environmentSubstitute( m_mappedTableNamesCombo.getText() ),
+      defaultNamespaceIfNoneSpecified );
   }
 
   public String getCurrentConfiguration() {
