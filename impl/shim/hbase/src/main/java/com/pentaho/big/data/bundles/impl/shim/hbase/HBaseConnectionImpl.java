@@ -83,4 +83,20 @@ public class HBaseConnectionImpl implements HBaseConnection {
   @Override public void close() throws IOException {
     hBaseConnectionPool.close();
   }
+
+  @Override public List<String> listNamespaces() throws IOException {
+    try ( HBaseConnectionHandle hBaseConnectionHandle = hBaseConnectionPool.getConnectionHandle() ) {
+      return hBaseConnectionHandle.getConnection().listNamespaces();
+    } catch ( Exception e ) {
+      throw IOExceptionUtil.wrapIfNecessary( e );
+    }
+  }
+
+  @Override public List<String> listTableNamesByNamespace( String namespace ) throws IOException {
+    try ( HBaseConnectionHandle hBaseConnectionHandle = hBaseConnectionPool.getConnectionHandle() ) {
+      return hBaseConnectionHandle.getConnection().listTableNamesByNamespace( namespace );
+    } catch ( Exception e ) {
+      throw IOExceptionUtil.wrapIfNecessary( e );
+    }
+  }
 }
