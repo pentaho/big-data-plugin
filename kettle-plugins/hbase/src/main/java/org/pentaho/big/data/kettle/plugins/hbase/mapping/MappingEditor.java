@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -42,6 +42,7 @@ import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -55,6 +56,7 @@ import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.big.data.kettle.plugins.hbase.HbaseUtil;
 import org.pentaho.big.data.kettle.plugins.hbase.HBaseConnectionException;
 import org.pentaho.big.data.kettle.plugins.hbase.input.HBaseInput;
 import org.pentaho.big.data.kettle.plugins.hbase.input.Messages;
@@ -234,7 +236,10 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     m_getTableNames.addSelectionListener( new SelectionAdapter() {
       @Override
       public void widgetSelected( SelectionEvent e ) {
-        populateTableCombo( false );
+        populateTableCombo( true );
+        if (  m_existingTableNamesCombo.getItemCount() > 0 ) {
+          m_existingTableNamesCombo.setListVisible( true );
+        }
       }
     } );
 
@@ -616,15 +621,26 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
 
     if ( ( m_existingTableNamesCombo.getItemCount() == 0 || force ) && !m_connectionProblem ) {
       String existingName = m_existingTableNamesCombo.getText();
-      m_existingTableNamesCombo.removeAll();
-      try {
+      String namespace = HbaseUtil.parseNamespaceFromTableName( existingName, null );
 
+      m_existingTableNamesCombo.removeAll();
+      Cursor busy = new Cursor( this.getDisplay(), SWT.CURSOR_WAIT );
+      try {
+        this.setCursor( busy );
         resetConnection();
         m_admin = MappingUtils.getMappingAdmin( m_configProducer );
 
-        List<String> tables = m_admin.getConnection().listTableNames();
+        TreeSet<String> tableNames = new TreeSet<>();
+        if ( namespace != null ) {
+          addTables( tableNames, namespace );
+        } else {
+          List<String> namespaces = m_admin.getConnection().listNamespaces();
+          for ( String nextNamespace: namespaces ) {
+            addTables( tableNames, nextNamespace );
+          }
+        }
 
-        for ( String currentTableName : tables ) {
+        for ( String currentTableName : tableNames ) {
           m_existingTableNamesCombo.add( currentTableName );
         }
         // restore any previous value
@@ -634,7 +650,18 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
       } catch ( Exception e ) {
         m_connectionProblem = true;
         showConnectionErrorDialog( e );
+      } finally {
+        this.setCursor( null );
+        busy.dispose();
       }
+    }
+  }
+
+  private void addTables( Set<String> tableNames, String namespace ) throws Exception {
+    HBaseConnection hBaseConnection = m_admin.getConnection();
+    List<String> tables = hBaseConnection.listTableNamesByNamespace( namespace );
+    for ( String currentTableName : tables ) {
+      tableNames.add( HbaseUtil.expandTableName( currentTableName ) );
     }
   }
 
@@ -1221,7 +1248,7 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
         HBaseConnection hbAdmin = m_admin.getConnection();
 
         HBaseTable hBaseTable = hbAdmin.getTable( tableName );
-        if ( hBaseTable.exists() ) {
+        if ( !HbaseUtil.parseQualifierFromTableName( tableName ).isEmpty() && hBaseTable.exists() ) {
           List<String> colFams = hBaseTable.getColumnFamilies();
           String[] familyNames = colFams.toArray( new String[1] );
           m_familyCI.setComboValues( familyNames );
