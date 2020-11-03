@@ -23,6 +23,10 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
+import org.pentaho.di.core.variables.Variables;
+import org.pentaho.di.trans.TransMeta;
+import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
@@ -71,6 +75,7 @@ public class HBaseOutputMetaTest {
   @Mock RuntimeTester runtimeTester;
   @Mock NamedClusterLoadSaveUtil namedClusterLoadSaveUtil;
   @Mock NamedCluster namedCluster;
+  @Mock MetastoreLocatorOsgi metastoreLocatorOsgi;
 
   @Mock Repository rep;
   @Mock IMetaStore metaStore;
@@ -219,5 +224,25 @@ public class HBaseOutputMetaTest {
     ServiceStatus serviceStatus = hBaseOutputMeta.getServiceStatus();
     assertNotNull( serviceStatus );
     assertTrue( serviceStatus.isOk() );
+  }
+
+  @Test
+  public void testInjectWithEmbeddedMetastoreProviderKey() throws Exception {
+    KettleLogStore.init();
+    hBaseOutputMeta.setNamedCluster( namedCluster );
+    when( namedCluster.getName() ).thenReturn( "ClusterName" );
+    NamedCluster embeddedNamedCluster = mock( NamedCluster.class );
+    when( embeddedNamedCluster.getShimIdentifier() ).thenReturn( "shim" );
+    StepMeta mockStepMeta = mock( StepMeta.class );
+    TransMeta mockTransMeta = mock( TransMeta.class );
+    when( mockTransMeta.getEmbeddedMetastoreProviderKey() ).thenReturn( "key" );
+    hBaseOutputMeta.setParentStepMeta( mockStepMeta );
+    when( mockStepMeta.getParentTransMeta() ).thenReturn( mockTransMeta );
+    when( metastoreLocatorOsgi.getExplicitMetastore( "key" ) ).thenReturn( metaStore );
+    when( namedClusterService.getNamedClusterByName( "ClusterName", metaStore ) ).thenReturn( embeddedNamedCluster );
+    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class, "key" ) ).thenReturn( hBaseService );
+
+    hBaseOutputMeta.applyInjection( new Variables() );
+    assertEquals( embeddedNamedCluster, hBaseOutputMeta.getNamedCluster() );
   }
 }
