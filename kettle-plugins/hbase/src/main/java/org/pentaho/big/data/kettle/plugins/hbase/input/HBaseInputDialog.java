@@ -1,8 +1,8 @@
 /*******************************************************************************
  * Pentaho Big Data
- * <p>
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
- * <p>
+ *
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ *
  * ******************************************************************************
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -29,6 +29,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -48,6 +49,7 @@ import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.big.data.kettle.plugins.hbase.HbaseUtil;
 import org.pentaho.big.data.kettle.plugins.hbase.ServiceStatus;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.ConfigurationProducer;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingAdmin;
@@ -432,6 +434,9 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
       @Override
       public void widgetSelected( SelectionEvent e ) {
         setupMappedTableNames();
+        if (  m_mappedTableNamesCombo.getItemCount() > 0 ) {
+          m_mappedTableNamesCombo.setListVisible( true );
+        }
       }
     } );
 
@@ -458,6 +463,9 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
       @Override
       public void widgetSelected( SelectionEvent e ) {
         setupMappingNamesForTable( false );
+        if (  m_mappingNamesCombo.getItemCount() > 0 ) {
+          m_mappingNamesCombo.setListVisible( true );
+        }
       }
     } );
 
@@ -1484,14 +1492,15 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
   }
 
   private void setupMappedTableNames() {
-    m_mappedTableNamesCombo.removeAll();
-
     HBaseConnection connection = null;
+    Cursor busy = new Cursor( shell.getDisplay(), SWT.CURSOR_WAIT );
     try {
+      shell.setCursor( busy );
       connection = getHBaseConnection();
       MappingAdmin admin = new MappingAdmin( connection );
-      Set<String> tableNames = admin.getMappedTables();
+      Set<String> tableNames = admin.getMappedTables( parseNamespaceFromTableName( null ) );
 
+      m_mappedTableNamesCombo.removeAll();
       for ( String s : tableNames ) {
         m_mappedTableNamesCombo.add( s );
       }
@@ -1500,6 +1509,8 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
       new ErrorDialog( shell, Messages.getString( "HBaseInputDialog.ErrorMessage." + "UnableToConnect" ), Messages
         .getString( "HBaseInputDialog.ErrorMessage.UnableToConnect" ), e );
     } finally {
+      shell.setCursor( null );
+      busy.dispose();
       if ( connection != null ) {
         try {
           connection.close();
@@ -1521,10 +1532,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
         connection = getHBaseConnection();
         MappingAdmin admin = new MappingAdmin( connection );
 
-        String mappedTableName =
-          MappingAdmin.getTableNameFromVariable( m_currentMeta, m_mappedTableNamesCombo.getText().trim() );
-
-        List<String> mappingNames = admin.getMappingNames( mappedTableName );
+        List<String> mappingNames = admin.getMappingNames( transMeta.environmentSubstitute( m_mappedTableNamesCombo.getText().trim() ) );
 
         for ( String n : mappingNames ) {
           m_mappingNamesCombo.add( n );
@@ -1549,6 +1557,11 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
         }
       }
     }
+  }
+
+  private String parseNamespaceFromTableName( String defaultNamespaceIfNoneSpecified ) {
+    return HbaseUtil.parseNamespaceFromTableName( transMeta.environmentSubstitute( m_mappedTableNamesCombo.getText() ),
+      defaultNamespaceIfNoneSpecified );
   }
 
   public String getCurrentConfiguration() {
