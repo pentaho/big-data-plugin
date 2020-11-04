@@ -28,7 +28,6 @@ import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
-import org.pentaho.big.data.kettle.plugins.hbase.HbaseUtil;
 import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.NamedClusterLoadSaveUtil;
 import org.pentaho.big.data.kettle.plugins.hbase.ServiceStatus;
@@ -349,8 +348,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
 
     m_coreConfigURL = XMLHandler.getTagValue( stepnode, "core_config_url" );
     m_defaultConfigURL = XMLHandler.getTagValue( stepnode, "default_config_url" );
-    m_targetTableName =
-      HbaseUtil.expandLegacyTableNameOnLoad( XMLHandler.getTagValue( stepnode, "target_table_name" ) );
+    m_targetTableName = XMLHandler.getTagValue( stepnode, "target_table_name" );
     m_targetMappingName = XMLHandler.getTagValue( stepnode, "target_mapping_name" );
     String deleteKeys = XMLHandler.getTagValue( stepnode, "delete_rows_by_key" );
     if ( !Utils.isEmpty( deleteKeys ) ) {
@@ -391,8 +389,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
 
     m_coreConfigURL = rep.getStepAttributeString( id_step, 0, "core_config_url" );
     m_defaultConfigURL = rep.getStepAttributeString( id_step, 0, "default_config_url" );
-    m_targetTableName =
-      HbaseUtil.expandLegacyTableNameOnLoad( rep.getStepAttributeString( id_step, 0, "target_table_name" ) );
+    m_targetTableName = rep.getStepAttributeString( id_step, 0, "target_table_name" );
     m_targetMappingName = rep.getStepAttributeString( id_step, 0, "target_mapping_name" );
     m_deleteRowKey = rep.getStepAttributeBoolean( id_step, 0, "delete_rows_by_key" );
     m_writeBufferSize = rep.getStepAttributeString( id_step, 0, "write_buffer_size" );
