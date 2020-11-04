@@ -48,4 +48,13 @@ public interface HBaseConnection extends Closeable {
   void checkHBaseAvailable() throws IOException;
 
   List<String> listTableNames() throws IOException;
+
+  default List<String> listNamespaces() throws Exception {
+    // May have to implement something here
+    throw new UnsupportedOperationException( "This method has not supported with the present HbaseConnection" );
+  }
+
+  default List<String> listTableNamesByNamespace( String namespace ) throws Exception {
+    throw new UnsupportedOperationException( "This method has not supported with the present HbaseConnection" );
+  }
 }

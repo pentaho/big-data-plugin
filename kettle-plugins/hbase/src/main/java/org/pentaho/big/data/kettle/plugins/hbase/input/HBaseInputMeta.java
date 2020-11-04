@@ -27,6 +27,7 @@ import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.big.data.kettle.plugins.hbase.HbaseUtil;
 import org.pentaho.big.data.kettle.plugins.hbase.FilterDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.NamedClusterLoadSaveUtil;
@@ -608,7 +609,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
     m_coreConfigURL = XMLHandler.getTagValue( stepnode, "core_config_url" );
     m_defaultConfigURL = XMLHandler.getTagValue( stepnode, "default_config_url" );
-    m_sourceTableName = XMLHandler.getTagValue( stepnode, "source_table_name" );
+    m_sourceTableName = HbaseUtil.expandLegacyTableNameOnLoad( XMLHandler.getTagValue( stepnode, "source_table_name" ) );
     m_sourceMappingName = XMLHandler.getTagValue( stepnode, "source_mapping_name" );
     m_keyStart = XMLHandler.getTagValue( stepnode, "key_start" );
     m_keyStop = XMLHandler.getTagValue( stepnode, "key_stop" );
@@ -749,7 +750,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
     m_coreConfigURL = rep.getStepAttributeString( id_step, 0, "core_config_url" );
     m_defaultConfigURL = rep.getStepAttributeString( id_step, 0, "default_config_url" );
-    m_sourceTableName = rep.getStepAttributeString( id_step, 0, "source_table_name" );
+    m_sourceTableName = HbaseUtil.expandLegacyTableNameOnLoad( rep.getStepAttributeString( id_step, 0, "source_table_name" ) );
     m_sourceMappingName = rep.getStepAttributeString( id_step, 0, "source_mapping_name" );
     m_keyStart = rep.getStepAttributeString( id_step, 0, "key_start" );
     m_keyStop = rep.getStepAttributeString( id_step, 0, "key_stop" );
@@ -855,7 +856,8 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
           mappingAdmin = new MappingAdmin( conf );
 
-          m_cachedMapping = mappingAdmin.getMapping( m_sourceTableName, m_sourceMappingName );
+          m_cachedMapping = mappingAdmin.getMapping( space.environmentSubstitute( m_sourceTableName ),
+            space.environmentSubstitute( m_sourceMappingName ) );
         } catch ( Exception ex ) {
           throw new KettleStepException( ex.getMessage(), ex );
         }
