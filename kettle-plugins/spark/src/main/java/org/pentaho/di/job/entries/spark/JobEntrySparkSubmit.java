@@ -790,7 +790,7 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
       try {
         FileObject fileObject = KettleVFS.getFileObject( path );
         if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
-          return  ( (AliasedFileObject) fileObject ).getOriginalURIString();
+          return  ( (AliasedFileObject) fileObject ).getAELSafeURIString();
         }
       } catch ( KettleFileException e ) {
         throw new RuntimeException( e );
