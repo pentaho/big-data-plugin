@@ -136,7 +136,7 @@ public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
     String inputFileName = path;
     FileObject inputFileObject = KettleVFS.getFileObject( path );
     if ( AliasedFileObject.isAliasedFile( inputFileObject ) ) {
-      inputFileName = ( (AliasedFileObject) inputFileObject ).getOriginalURIString();
+      inputFileName = ( (AliasedFileObject) inputFileObject ).getAELSafeURIString();
     }
 
     return inputFileName;

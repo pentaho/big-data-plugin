@@ -66,7 +66,7 @@ public class PvfsFileAliaser {
 
     FileObject pvfsFileObject = KettleVFS.getFileObject( finalFilePath, variableSpace );
     if ( AliasedFileObject.isAliasedFile( pvfsFileObject ) ) {
-      finalFilePath = ( (AliasedFileObject) pvfsFileObject ).getOriginalURIString();
+      finalFilePath = ( (AliasedFileObject) pvfsFileObject ).getAELSafeURIString();
     }
     //See if we need to use a another URI because the HadoopFileSystem is not supported for this URL.
     String aliasedFile = aliasGenerator.generateAlias( finalFilePath );
