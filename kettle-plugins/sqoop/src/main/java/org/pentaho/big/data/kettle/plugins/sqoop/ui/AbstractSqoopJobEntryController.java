@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -26,6 +26,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
+import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.big.data.kettle.plugins.hdfs.vfs.HadoopVfsFileChooserDialog;
@@ -254,7 +255,12 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
       if ( cn != null ) {
         NamedCluster namedCluster = jobEntry.getNamedClusterService().read( cn, getMetaStore() );
         namedClusterMenu.setSelectedItem( namedCluster );
-        setSelectedNamedCluster( namedCluster );
+        if ( namedCluster == null && StringUtil.hasVariable( cn ) ) {
+          // If we have a variable name in the cluster then we should be using advanced list
+          setSelectedNamedCluster( USE_ADVANCED_OPTIONS_CLUSTER );
+        } else {
+          setSelectedNamedCluster( namedCluster );
+        }
       } else if ( config.isAdvancedClusterConfigSet() ) {
         setSelectedNamedCluster( USE_ADVANCED_OPTIONS_CLUSTER );
       } else {
@@ -278,9 +284,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     if ( !suppressEventHandling ) {
       if ( CHOOSE_AVAILABLE_CLUSTER.equals( namedCluster ) ) {
         config.setNamedCluster( null );
-      } else if ( USE_ADVANCED_OPTIONS_CLUSTER.equals( namedCluster ) || namedCluster == null ) {
-        config.setClusterName( null );
-      } else {
+      } else if ( !USE_ADVANCED_OPTIONS_CLUSTER.equals( namedCluster ) && namedCluster != null ) {
         config.setNamedCluster( namedCluster );
       }
 
@@ -890,8 +894,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
    */
   public void browseSchema() {
     DatabaseMeta databaseMeta = jobMeta.findDatabase( getConfig().getDatabase() );
-    Database database = new Database( jobMeta.getParent(), databaseMeta );
-    try {
+    try ( Database database = new Database( jobMeta.getParent(), databaseMeta ) ) {
       database.connect();
       String[] schemas = database.getSchemas();
 
@@ -913,8 +916,6 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
       showErrorDialog( BaseMessages.getString( BaseMessages.getString( AbstractSqoopJobEntry.class,
           "System.Dialog.Error.Title" ) ), BaseMessages.getString( BaseMessages.getString( AbstractSqoopJobEntry.class,
           "ErrorRetrievingSchemas" ) ), e );
-    } finally {
-      database.disconnect();
     }
   }
 
