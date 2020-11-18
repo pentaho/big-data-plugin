@@ -153,8 +153,8 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   private boolean loadNamedCluster( IMetaStore metaStore ) {
     try {
       // attempt to load from named cluster
-      String clusterName = getJobConfig().getClusterName();
-
+      String clusterName = getParentJobMeta() == null ? getJobConfig().getClusterName()
+        : getParentJob().getJobMeta().environmentSubstitute( getJobConfig().getClusterName() );
       return loadNamedCluster( clusterName );
     } catch ( Throwable t ) {
       logDebug( t.getMessage(), t );
@@ -306,10 +306,10 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
       List<String> args = SqoopUtils.getCommandLineArgs( config, getVariables() );
       args.add( 0, getToolName() ); // push the tool command-line argument on the top of the args list
 
-      String configuredShinIdentifier = config.getNamedCluster().getShimIdentifier();
-      if ( !StringUtil.isEmpty( configuredShinIdentifier ) ) {
+      String configuredShimIdentifier = config.getNamedCluster().getShimIdentifier();
+      if ( !StringUtil.isEmpty( configuredShimIdentifier ) ) {
         List<ShimIdentifierInterface> shimIdentifers = PentahoSystem.getAll( ShimIdentifierInterface.class );
-        if ( shimIdentifers.stream().noneMatch( identifier -> identifier.getId().equals( configuredShinIdentifier ) ) ) {
+        if ( shimIdentifers.stream().noneMatch( identifier -> identifier.getId().equals( configuredShimIdentifier ) ) ) {
           String installedShimIdentifiers = shimIdentifers.stream().map( ShimIdentifierInterface::<String>getId ).collect( Collectors.joining( ",", "{", "}" ) );
           throw new KettleException( "Invalid driver version value: " +  config.getNamedCluster().getShimIdentifier() + " Available valid values: " + installedShimIdentifiers );
         }
@@ -335,8 +335,8 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
         }
       }
 
-      if ( !StringUtil.isEmpty( configuredShinIdentifier ) ) {
-        config.getNamedCluster().setShimIdentifier( configuredShinIdentifier );
+      if ( !StringUtil.isEmpty( configuredShimIdentifier ) ) {
+        config.getNamedCluster().setShimIdentifier( configuredShimIdentifier );
       }
 
       // Clone named cluster and copy in variable space

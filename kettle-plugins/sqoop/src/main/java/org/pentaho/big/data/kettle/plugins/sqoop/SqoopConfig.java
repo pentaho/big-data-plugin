@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -49,6 +49,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   public static final String NAMENODE_HOST = "namenodeHost";
   public static final String NAMENODE_PORT = "namenodePort";
   public static final String SHIM_IDENTIFIER = "shimIdentifier";
+  public static final String CLUSTER_NAME = "clusterName";
   public static final String JOBTRACKER_HOST = "jobtrackerHost";
   public static final String JOBTRACKER_PORT = "jobtrackerPort";
 
@@ -287,6 +288,10 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
       items.add( new ArgumentWrapper( NAMENODE_PORT, BaseMessages.getString( getClass(), "NamenodePort.Label" ), false,
           "", 0,
           this, getClass().getMethod( "getNamenodePort" ), getClass().getMethod( "setNamenodePort", String.class ) ) );
+
+      items.add( new ArgumentWrapper( CLUSTER_NAME, BaseMessages.getString( getClass(), "ClusterName.Label" ), false,
+        "", 0,
+        this, getClass().getMethod( "getClusterName" ), getClass().getMethod( "setClusterName", String.class ) ) );
 
       items.add( new ArgumentWrapper( SHIM_IDENTIFIER, BaseMessages.getString( getClass(), "ShimIdentifier.Label" ), false,
               "", 0,
