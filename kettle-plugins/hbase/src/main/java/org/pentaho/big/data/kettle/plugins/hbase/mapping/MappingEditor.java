@@ -258,9 +258,9 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     }
     m_existingTableNamesCombo.setLayoutData( fd );
 
-    // allow or disallow table creation by enabling/disabling the ability
-    // to type into this combo
-    m_existingTableNamesCombo.setEditable( m_allowTableCreate );
+    // Must be editable to change the namespace once populated (see Hbase row decoder).  If m_allowTableCreate is false
+    // then saving the map is disabled so it is not important what text exists here
+    m_existingTableNamesCombo.setEditable( true );
 
     // mapping names
     Label mappingNameLab = new Label( this, SWT.RIGHT );
