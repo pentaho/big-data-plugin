@@ -1,5 +1,5 @@
 /*!
-* Copyright 2010 - 2019 Hitachi Vantara.  All rights reserved.
+* Copyright 2010 - 2020 Hitachi Vantara.  All rights reserved.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 */
 package org.pentaho.s3.vfs;
 
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.s3.AmazonS3Client;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.FileType;
@@ -25,10 +27,19 @@ import org.apache.commons.vfs2.impl.DefaultFileSystemConfigBuilder;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.pentaho.amazon.s3.S3Util;
 import org.pentaho.di.core.KettleEnvironment;
 import org.pentaho.di.core.util.StorageUnitConverter;
+import org.pentaho.s3common.S3CommonFileSystem;
 import org.pentaho.s3common.S3KettleProperty;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+
+import java.io.File;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -39,6 +50,9 @@ import static org.mockito.Mockito.when;
 /**
  * Unit tests for S3FileSystem
  */
+@RunWith( PowerMockRunner.class )
+@PowerMockIgnore( { "javax.management.*", "javax.net.ssl.*" } )
+@PrepareForTest( { S3CommonFileSystem.class, Regions.class, System.class } )
 public class S3FileSystemTest {
 
   S3FileSystem fileSystem;
@@ -127,31 +141,52 @@ public class S3FileSystemTest {
     assertEquals( _12GBLong, s3FileSystem.parsePartSize( "12GB" ) );
   }
 
-    @Test
-    public void testConvertToInt() throws Exception {
-      S3FileSystem s3FileSystem = getTestInstance();
-  
-      // TEST 1: below int max
-      assertEquals( 10, s3FileSystem.convertToInt( 10L ) );
-  
-      // TEST 2: at int max
-      assertEquals( Integer.MAX_VALUE, s3FileSystem.convertToInt( (long) Integer.MAX_VALUE ) );
-  
-      // TEST 3: above int max
-      assertEquals( Integer.MAX_VALUE, s3FileSystem.convertToInt( 5L* 1024L * 1024L * 1024L ) );
-    }
+  @Test
+  public void testConvertToInt() throws Exception {
+    S3FileSystem s3FileSystem = getTestInstance();
 
-    @Test
-    public void testConvertToLong() throws Exception  {
-      S3FileSystem s3FileSystem = getTestInstance();
-      long _10MBLong = 10L * 1024L * 1024L;
-      s3FileSystem.storageUnitConverter = new StorageUnitConverter();
-      assertEquals( _10MBLong, s3FileSystem.convertToLong( "10MB" ) );
-    }
+    // TEST 1: below int max
+    assertEquals( 10, s3FileSystem.convertToInt( 10L ) );
 
-    public S3FileSystem getTestInstance() throws Exception {
-      FileName rootName = mock( FileName.class );
-      FileSystemOptions fileSystemOptions = new FileSystemOptions();
-      return new S3FileSystem( rootName, fileSystemOptions );
-    }
+    // TEST 2: at int max
+    assertEquals( Integer.MAX_VALUE, s3FileSystem.convertToInt( (long) Integer.MAX_VALUE ) );
+
+    // TEST 3: above int max
+    assertEquals( Integer.MAX_VALUE, s3FileSystem.convertToInt( 5L * 1024L * 1024L * 1024L ) );
+  }
+
+  @Test
+  public void testConvertToLong() throws Exception  {
+    S3FileSystem s3FileSystem = getTestInstance();
+    long _10MBLong = 10L * 1024L * 1024L;
+    s3FileSystem.storageUnitConverter = new StorageUnitConverter();
+    assertEquals( _10MBLong, s3FileSystem.convertToLong( "10MB" ) );
+  }
+
+  public S3FileSystem getTestInstance() throws Exception {
+    FileName rootName = mock( FileName.class );
+    FileSystemOptions fileSystemOptions = new FileSystemOptions();
+    return new S3FileSystem( rootName, fileSystemOptions );
+  }
+
+  @Test
+  public void getS3ClientWithDefaultRegion() throws Exception {
+    FileSystemOptions options = new FileSystemOptions();
+    PowerMockito.mockStatic( Regions.class );
+    PowerMockito.mockStatic( System.class );
+    File file = mock( File.class );
+    //No Region set in env
+    when( System.getenv( S3Util.AWS_REGION ) ).thenReturn( null );
+    //No Config file with region set
+    when( System.getenv( S3Util.AWS_CONFIG_FILE ) ).thenReturn( null );
+    //No Config File with region
+    when( file.exists() ).thenReturn( false );
+    PowerMockito.whenNew( File.class ).withAnyArguments().thenReturn( file );
+    //Not under an EC2 instance - getCurrentRegion returns null
+    when( Regions.getCurrentRegion() ).thenReturn( null );
+    fileSystem = new S3FileSystem( fileName, options );
+    AmazonS3Client s3Client = (AmazonS3Client) fileSystem.getS3Client();
+    assertEquals( "No Region was configured - client must have default region",
+      Regions.DEFAULT_REGION.getName(), s3Client.getRegionName() );
+  }
 }
