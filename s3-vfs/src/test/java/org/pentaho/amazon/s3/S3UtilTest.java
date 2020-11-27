@@ -25,42 +25,42 @@ public class S3UtilTest {
   @Test
   public void getKeysFromURITest() {
     String keys = S3Util.getKeysFromURI( "s3n://ThiSiSA+PossibleAcce/ssK3y:PossiblES3cre+K3y@s3n/mybucket/something",
-      S3Util.URI_AWS_CREDENTIALS_REGEX );
+      S3Util.URI_AWS_KEYS_GROUP );
     assertEquals( "ThiSiSA+PossibleAcce/ssK3y:PossiblES3cre+K3y", keys );
   }
 
   @Test
   public void getKeysFromURIWithoutKeysTest() {
     String keys = S3Util.getKeysFromURI( "s3n://s3n/mybucket/something",
-      S3Util.URI_AWS_CREDENTIALS_REGEX );
+      S3Util.URI_AWS_KEYS_GROUP );
     assertEquals( "", keys );
   }
 
   @Test
   public void getKeysFromURIWrongKeyTest() {
     String keys = S3Util.getKeysFromURI( "s3n://ThiSiSA+PossibleAcce/ssK3yPossiblES3cre+K3y@s3n/mybucket/something",
-            S3Util.URI_AWS_CREDENTIALS_REGEX );
+      S3Util.URI_AWS_KEYS_GROUP );
     assertEquals( "", keys );
   }
 
   @Test
   public void getKeysFromNameParserURITest() {
     String keys = S3Util.getKeysFromURI( "s3n://ThiSiSA+PossibleAcce/ssK3y:PossiblES3cre+K3y@s3n/mybucket/something",
-            S3Util.URI_AWS_CREDENTIALS_FILE_NAME_PARSER_REGEX );
-    assertEquals( "/ThiSiSA+PossibleAcce/ssK3y:PossiblES3cre+K3y@", keys );
+      S3Util.URI_AWS_FULL_KEYS_GROUP );
+    assertEquals( "ThiSiSA+PossibleAcce/ssK3y:PossiblES3cre+K3y@", keys );
   }
 
   @Test
   public void getKeysFromNameParserURIWrongKeyTest() {
     String keys = S3Util.getKeysFromURI( "s3n://ThiSiSA+PossibleAcce/ssK3yPossiblES3cre+K3y@s3n/mybucket/something",
-            S3Util.URI_AWS_CREDENTIALS_FILE_NAME_PARSER_REGEX );
+      S3Util.URI_AWS_FULL_KEYS_GROUP );
     assertEquals( "", keys );
   }
 
   @Test
   public void getKeysFromNameParserURIWithoutKeysTest() {
     String keys = S3Util.getKeysFromURI( "s3n://s3n/mybucket/something",
-            S3Util.URI_AWS_CREDENTIALS_FILE_NAME_PARSER_REGEX );
+      S3Util.URI_AWS_FULL_KEYS_GROUP );
     assertEquals( "", keys );
   }
 }

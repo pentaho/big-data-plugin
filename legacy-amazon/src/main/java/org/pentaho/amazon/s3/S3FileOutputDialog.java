@@ -1656,7 +1656,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
 
   protected FileSystemOptions getFileSystemOptions() throws FileSystemException {
     FileSystemOptions opts = new FileSystemOptions();
-    String keys = S3Util.getKeysFromURI( wFilename.getText(), S3Util.URI_AWS_CREDENTIALS_REGEX );
+    String keys = S3Util.getKeysFromURI( wFilename.getText(), S3Util.URI_AWS_KEYS_GROUP );
     if ( keys.isEmpty() ) {
       AWSCredentials credentials = S3CredentialsProvider.getAWSCredentials();
       if ( credentials != null ) {
