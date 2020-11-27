@@ -46,10 +46,19 @@ public final class S3Util {
   public static final String CONFIG_FILE = "config";
 
   /** Regex for detecting S3 credentials in URI */
-  public static final String URI_AWS_CREDENTIALS_REGEX = "(?<=s3[a-z]:\\/\\/).*:.*(?=@s3[a-z]?)";
+  private static final String URI_AWS_CREDENTIALS_REGEX = "(s3[an]?:\\/)?\\/(?<fullkeys>(?<keys>[^@].*:.*)@)?s3[an]?\\/?(?<bucket>[^\\/]+)(?<path>.*)";
 
-  /** Regex for detecting File Name parsing with S3 credentials */
-  public static final String URI_AWS_CREDENTIALS_FILE_NAME_PARSER_REGEX = "(?<=\\/).*:.*(?=s3[a-z]?)";
+  /** to be used with getKeysFromURI to get the FULL KEYS GROUP **/
+  public static final String URI_AWS_FULL_KEYS_GROUP = "fullkeys";
+
+  /** to be used with getKeysFromURI to get the KEYS GROUP **/
+  public static final String URI_AWS_KEYS_GROUP = "keys";
+
+  /** to be used with getKeysFromURI to get the BUCKET GROUP **/
+  public static final String URI_AWS_BuCKET_GROUP = "bucket";
+
+  /** to be used with getKeysFromURI to get the PATH GROUP **/
+  public static final String URI_AWS_PATH_GROUP = "path";
 
   public static boolean hasChanged( String previousValue, String currentValue ) {
     if ( !isEmpty( previousValue ) && isEmpty( currentValue ) ) {
@@ -65,14 +74,14 @@ public final class S3Util {
     return value == null || value.length() == 0;
   }
 
-  public static String getKeysFromURI( String uri, String regex ) {
-    Pattern uriPatternWithCredentials = Pattern.compile( regex );
+  public static String getKeysFromURI( String uri, String group ) {
+    Pattern uriPatternWithCredentials = Pattern.compile( URI_AWS_CREDENTIALS_REGEX );
     Matcher match = uriPatternWithCredentials.matcher( uri );
     String keys = "";
     if ( match.find() ) {
-      keys = match.group();
+      keys = match.group( group );
     }
-    return keys;
+    return keys != null ? keys : "";
   }
 
   private S3Util() { }
