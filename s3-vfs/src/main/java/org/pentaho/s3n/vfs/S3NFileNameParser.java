@@ -58,15 +58,15 @@ public class S3NFileNameParser extends AbstractFileNameParser {
     FileType fileType = UriParser.normalisePath( name );
 
     //URI includes credentials
-    String keys = S3Util.getKeysFromURI( name.toString(), S3Util.URI_AWS_FULL_KEYS_GROUP );
-    if ( !keys.isEmpty() ) {
+    String keys = S3Util.getFullKeysFromURI( name.toString() );
+    if ( keys != null ) {
       name.replace( name.indexOf( keys ), name.indexOf( keys ) + keys.length(), "" );
     }
 
     // Extract bucket name
     String bucketName = UriParser.extractFirstElement( name );
 
-    if ( !keys.isEmpty() ) {
+    if ( keys != null ) {
       bucketName = keys + bucketName;
     }
     return new S3NFileName( scheme, bucketName, name.toString(), fileType );
