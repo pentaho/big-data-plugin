@@ -46,19 +46,19 @@ public final class S3Util {
   public static final String CONFIG_FILE = "config";
 
   /** Regex for detecting S3 credentials in URI */
-  private static final String URI_AWS_CREDENTIALS_REGEX = "(s3[an]?:\\/)?\\/(?<fullkeys>(?<keys>[^@].*:.*)@)?s3[an]?\\/?(?<bucket>[^\\/]+)(?<path>.*)";
+  private static final String URI_AWS_CREDENTIALS_REGEX = "(s3[an]?:\\/)?\\/(?<fullkeys>(?<keys>.*:.*)@)?s3[an]?\\/?(?<bucket>[^\\/]+)(?<path>.*)";
 
   /** to be used with getKeysFromURI to get the FULL KEYS GROUP **/
-  public static final String URI_AWS_FULL_KEYS_GROUP = "fullkeys";
+  private static final String URI_AWS_FULL_KEYS_GROUP = "fullkeys";
 
   /** to be used with getKeysFromURI to get the KEYS GROUP **/
-  public static final String URI_AWS_KEYS_GROUP = "keys";
+  private static final String URI_AWS_KEYS_GROUP = "keys";
 
   /** to be used with getKeysFromURI to get the BUCKET GROUP **/
-  public static final String URI_AWS_BuCKET_GROUP = "bucket";
+  private static final String URI_AWS_BUCKET_GROUP = "bucket";
 
   /** to be used with getKeysFromURI to get the PATH GROUP **/
-  public static final String URI_AWS_PATH_GROUP = "path";
+  private static final String URI_AWS_PATH_GROUP = "path";
 
   public static boolean hasChanged( String previousValue, String currentValue ) {
     if ( !isEmpty( previousValue ) && isEmpty( currentValue ) ) {
@@ -74,16 +74,39 @@ public final class S3Util {
     return value == null || value.length() == 0;
   }
 
-  public static String getKeysFromURI( String uri, String group ) {
-    Pattern uriPatternWithCredentials = Pattern.compile( URI_AWS_CREDENTIALS_REGEX );
-    Matcher match = uriPatternWithCredentials.matcher( uri );
-    String keys = "";
-    if ( match.find() ) {
-      keys = match.group( group );
+  public static String getFullKeysFromURI( String uri ) {
+    Matcher match = Pattern.compile( URI_AWS_CREDENTIALS_REGEX ).matcher( uri );
+    return match.find() ? match.group( URI_AWS_FULL_KEYS_GROUP ) : null;
+  }
+
+  public static S3Keys getKeysFromURI( String uri ) {
+    Matcher match = Pattern.compile( URI_AWS_CREDENTIALS_REGEX ).matcher( uri );
+    return match.find() && match.group( URI_AWS_KEYS_GROUP ) != null ? new S3Keys( match.group( URI_AWS_KEYS_GROUP ) ) : null;
+  }
+
+  /**
+   * S3Keys object returned by @see getKeysFromURI
+   * contains accessKey and secretKey
+   */
+  public static class S3Keys {
+
+    private String accessKey;
+    private String secretKey;
+
+    private S3Keys( String keys ) {
+      String[] splitKeys = keys.split( ":" );
+      accessKey = splitKeys[0];
+      secretKey = splitKeys[1];
     }
-    return keys != null ? keys : "";
+
+    public String getAccessKey() {
+      return accessKey;
+    }
+
+    public String getSecretKey() {
+      return secretKey;
+    }
   }
 
   private S3Util() { }
-
 }

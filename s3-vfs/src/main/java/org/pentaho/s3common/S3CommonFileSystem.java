@@ -151,11 +151,10 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
       AWSCredentialsProvider awsCredentialsProvider = null;
       Regions regions = Regions.DEFAULT_REGION;
 
-      String keys = S3Util.getKeysFromURI( getRootURI(), S3Util.URI_AWS_KEYS_GROUP );
-      if ( !keys.isEmpty() ) {
-        String[] splitKeys = keys.split( ":" );
-        accessKey = splitKeys[0];
-        secretKey = splitKeys[1];
+      S3Util.S3Keys keys = S3Util.getKeysFromURI( getRootURI() );
+      if ( keys != null ) {
+        accessKey = keys.getAccessKey();
+        secretKey = keys.getSecretKey();
       }
 
       if ( !S3Util.isEmpty( accessKey ) && !S3Util.isEmpty( secretKey ) ) {
