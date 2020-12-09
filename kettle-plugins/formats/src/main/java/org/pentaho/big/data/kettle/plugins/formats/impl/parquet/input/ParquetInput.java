@@ -64,7 +64,7 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
     IPentahoParquetInputFormat in = formatService.createInputFormat( IPentahoParquetInputFormat.class, namedCluster );
     FileObject inputFileObject = KettleVFS.getFileObject( path );
     if ( AliasedFileObject.isAliasedFile( inputFileObject ) ) {
-      path = ( (AliasedFileObject) inputFileObject ).getAELSafeURIString();
+      path = ( (AliasedFileObject) inputFileObject ).getOriginalURIString();
     }
     return in.readSchema( path );
   }
@@ -129,7 +129,7 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
       resolvedInputFileNames[ i ] = environmentSubstitute( file );
       FileObject inputFileObject = KettleVFS.getFileObject( resolvedInputFileNames[ i ], getTransMeta() );
       if ( AliasedFileObject.isAliasedFile( inputFileObject ) ) {
-        resolvedInputFileNames[ i ] = ( (AliasedFileObject) inputFileObject ).getAELSafeURIString();
+        resolvedInputFileNames[ i ] = ( (AliasedFileObject) inputFileObject ).getOriginalURIString();
       }
       i++;
     }
