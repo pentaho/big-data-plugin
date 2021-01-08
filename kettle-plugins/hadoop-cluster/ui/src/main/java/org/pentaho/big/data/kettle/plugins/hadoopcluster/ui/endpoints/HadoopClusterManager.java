@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -902,9 +902,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
    * @return shim identifiers, excluding the internal shim, which should not be exposed to the cluster ui.
    */
   List<ShimIdentifierInterface> getShimIdentifiers() {
-    List<ShimIdentifierInterface> shims = shimIdentifiersSupplier.get().stream()
-      .filter( s -> !internalShim.equals( s.getId() ) )
-      .collect( Collectors.toList() );
+    List<ShimIdentifierInterface> shims = shimIdentifiersSupplier.get();
     shims.sort( Comparator.comparing( ShimIdentifierInterface::getVendor ) );
     return shims;
   }
