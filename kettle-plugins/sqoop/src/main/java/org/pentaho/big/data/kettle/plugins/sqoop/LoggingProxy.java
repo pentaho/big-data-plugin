@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -55,7 +55,6 @@ public class LoggingProxy extends PrintStream {
 
   @Override
   public void print( String s ) {
-    wrappedStream.print( s );
     logger.log( level, s );
   }
 

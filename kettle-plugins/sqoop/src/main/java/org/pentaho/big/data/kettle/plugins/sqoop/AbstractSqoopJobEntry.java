@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -55,6 +55,7 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.platform.engine.core.system.PentahoSystem;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
+import org.slf4j.MDC;
 import org.w3c.dom.Node;
 
 import java.util.List;
@@ -197,6 +198,8 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   @SuppressWarnings( "deprecation" )
   public void attachLoggingAppenders() {
     sqoopToKettleAppender = new org.pentaho.di.core.logging.KettleLogChannelAppender( log );
+    sqoopToKettleAppender.addFilter( new SqoopLog4jFilter( log.getLogChannelId() ) );
+    MDC.put( "logChannelId", log.getLogChannelId() );
     try {
       // Redirect all stderr logging to the first log to monitor so it shows up in the Kettle LogChannel
       Logger sqoopLogger = JobEntryUtils.findLogger( LOGS_TO_MONITOR[0] );
