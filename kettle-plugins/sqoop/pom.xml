@@ -8,7 +8,7 @@
     <version>8.3.0.8-718</version>
   </parent>
   <artifactId>pentaho-big-data-kettle-plugins-sqoop</artifactId>
-  <version>8.3.0.8-718</version>
+  <version>8.3.0.8-C246</version>
   <packaging>bundle</packaging>
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <description>a Pentaho open source project</description>
@@ -20,22 +20,22 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-api-sqoop</artifactId>
-      <version>${project.version}</version>
+      <version>8.3.0.8-718</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-api-cluster-service-locator</artifactId>
-      <version>${project.version}</version>
+      <version>8.3.0.8-718</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-kettle-plugins-common-ui</artifactId>
-      <version>${project.version}</version>
+      <version>8.3.0.8-718</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-kettle-plugins-common-job</artifactId>
-      <version>${project.version}</version>
+      <version>8.3.0.8-718</version>
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
@@ -89,7 +89,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-kettle-plugins-hdfs</artifactId>
-      <version>${project.version}</version>
+      <version>8.3.0.8-718</version>
     </dependency>
   </dependencies>
   <build>
