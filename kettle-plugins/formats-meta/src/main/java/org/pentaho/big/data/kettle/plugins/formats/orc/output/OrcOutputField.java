@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2018-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018-2021 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -48,12 +48,15 @@ public class OrcOutputField extends BaseFormatOutputField implements IOrcOutputF
 
   @Injection( name = "FIELD_TYPE", group = "FIELDS" )
   public void setFormatType( String typeName ) {
-    try  {
+    try {
       setFormatType( Integer.parseInt( typeName ) );
     } catch ( NumberFormatException nfe ) {
       for ( OrcSpec.DataType orcType : OrcSpec.DataType.values() ) {
-        if ( orcType.toString().equalsIgnoreCase( typeName ) ) {
-          this.formatType = orcType.ordinal();
+        //Match on Name( for dialog ) or Enum Name ( For metadata injection ), note that the former uses "Int" and
+        // the later uses "INTEGER"
+        if ( orcType.getName().equalsIgnoreCase( typeName ) || orcType.toString().equalsIgnoreCase( typeName ) ) {
+          this.formatType = orcType.getId();
+          return;
         }
       }
     }
