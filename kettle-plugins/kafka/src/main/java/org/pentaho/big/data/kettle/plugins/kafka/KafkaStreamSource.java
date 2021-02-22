@@ -148,6 +148,9 @@ public class KafkaStreamSource extends BlockingQueueStreamSource<List<Object>> {
           throw e;
         }
         return null;
+      } catch ( Exception ef ) {
+        KafkaStreamSource.this.streamStep.logError( "Exception consuming messages.", ef );
+        return null;
       } finally {
         commitOffsets();
         consumer.close();
