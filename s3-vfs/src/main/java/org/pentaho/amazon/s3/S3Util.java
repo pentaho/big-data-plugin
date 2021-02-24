@@ -1,5 +1,5 @@
 /*!
- * Copyright 2010 - 2020 Hitachi Vantara.  All rights reserved.
+ * Copyright 2010 - 2021 Hitachi Vantara.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,11 +74,23 @@ public final class S3Util {
     return value == null || value.length() == 0;
   }
 
+  /**
+   * Extracts from a S3 URI the credentials including the S3 protocol.
+   * Uses URI_AWS_CREDENTIALS_REGEX and the group URI_AWS_FULL_KEYS_GROUP
+   * @param uri string representing the URI
+   * @return the full keys extracted from the URI representing "<accesskey>:<secretkey>@s3[na]"
+   */
   public static String getFullKeysFromURI( String uri ) {
     Matcher match = Pattern.compile( URI_AWS_CREDENTIALS_REGEX ).matcher( uri );
     return match.find() ? match.group( URI_AWS_FULL_KEYS_GROUP ) : null;
   }
 
+  /**
+   * Extracts from a S3 URI the credentials.
+   * Uses URI_AWS_CREDENTIALS_REGEX and the group URI_AWS_KEYS_GROUP
+   * @param uri string representing the URI
+   * @return the full keys extracted from the URI representing "<accesskey>:<secretkey>"
+   */
   public static S3Keys getKeysFromURI( String uri ) {
     Matcher match = Pattern.compile( URI_AWS_CREDENTIALS_REGEX ).matcher( uri );
     return match.find() && match.group( URI_AWS_KEYS_GROUP ) != null ? new S3Keys( match.group( URI_AWS_KEYS_GROUP ) ) : null;
