@@ -253,7 +253,7 @@
     <dependency>
       <groupId>org.elasticsearch</groupId>
       <artifactId>elasticsearch</artifactId>
-      <version>6.4.2</version>
+      <version>6.8.13</version>
     </dependency>
     <dependency>
       <groupId>feed4j</groupId>
