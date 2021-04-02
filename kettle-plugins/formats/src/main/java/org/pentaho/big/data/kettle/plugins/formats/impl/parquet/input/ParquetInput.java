@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2021 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -27,6 +27,7 @@ import org.pentaho.big.data.kettle.plugins.formats.parquet.input.ParquetInputFie
 import org.pentaho.big.data.kettle.plugins.formats.parquet.input.ParquetInputMetaBase;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.vfs.AliasedFileObject;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.trans.Trans;
@@ -64,7 +65,7 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
     IPentahoParquetInputFormat in = formatService.createInputFormat( IPentahoParquetInputFormat.class, namedCluster );
     FileObject inputFileObject = KettleVFS.getFileObject( path );
     if ( AliasedFileObject.isAliasedFile( inputFileObject ) ) {
-      path = ( (AliasedFileObject) inputFileObject ).getAELSafeURIString();
+      path = ( (AliasedFileObject) inputFileObject ).getOriginalURIString();
     }
     return in.readSchema( path );
   }
@@ -126,10 +127,10 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
     String[] resolvedInputFileNames = new String[ meta.inputFiles.fileName.length ];
     int i = 0;
     for ( String file : meta.inputFiles.fileName ) {
-      resolvedInputFileNames[ i ] = environmentSubstitute( file );
+      resolvedInputFileNames[ i ] = StringUtil.toUri( environmentSubstitute( file ) ).toString();
       FileObject inputFileObject = KettleVFS.getFileObject( resolvedInputFileNames[ i ], getTransMeta() );
       if ( AliasedFileObject.isAliasedFile( inputFileObject ) ) {
-        resolvedInputFileNames[ i ] = ( (AliasedFileObject) inputFileObject ).getAELSafeURIString();
+        resolvedInputFileNames[ i ] = ( (AliasedFileObject) inputFileObject ).getOriginalURIString();
       }
       i++;
     }
@@ -166,7 +167,6 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
       } else if ( resolvedInputFileNames != null && resolvedInputFileNames.length > 1 ) {
         data.input.setInputFiles( resolvedInputFileNames );
       }
-
       data.input.setSplitSize( SPLIT_SIZE );
 
       data.splits = data.input.getSplits();

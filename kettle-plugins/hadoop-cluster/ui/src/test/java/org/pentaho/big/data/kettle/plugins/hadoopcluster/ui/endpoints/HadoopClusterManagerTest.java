@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -59,6 +59,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -137,7 +138,7 @@ public class HadoopClusterManagerTest {
     when( knoxNamedCluster.getGatewayUrl() ).thenReturn( "http://localhost:8008" );
     when( knoxNamedCluster.getGatewayUsername() ).thenReturn( "username" );
     hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService, metaStore, "apache" );
-    hadoopClusterManager.shimIdentifiersSupplier = () -> ImmutableList.of( cdhShim, internalShim, maprShim );
+    hadoopClusterManager.shimIdentifiersSupplier = () -> Arrays.asList( cdhShim, internalShim, maprShim );
     when( namedClusterService.list( metaStore ) ).thenReturn( ImmutableList.of( namedCluster ) );
   }
 
@@ -436,8 +437,8 @@ public class HadoopClusterManagerTest {
   @Test public void testGetShimIdentifiers() {
     List<ShimIdentifierInterface> shimIdentifiers = hadoopClusterManager.getShimIdentifiers();
     assertNotNull( shimIdentifiers );
-    assertThat( shimIdentifiers.size(), equalTo( 2 ) );
-    assertFalse( shimIdentifiers.contains( internalShim ) );
+    assertEquals( 3, shimIdentifiers.size() );
+    assert( shimIdentifiers.contains( internalShim ) );
   }
 
   @Test public void testInstallDriver() throws IOException {

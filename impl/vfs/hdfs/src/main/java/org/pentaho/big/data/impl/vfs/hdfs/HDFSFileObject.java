@@ -65,6 +65,11 @@ public class HDFSFileObject extends AbstractFileObject  {
   }
 
   @Override
+  protected InputStream doGetInputStream( final int bufferSize ) throws Exception {
+    return this.doGetInputStream();
+  }
+
+  @Override
   protected FileType doGetType() throws Exception {
     HadoopFileStatus status = null;
     try {

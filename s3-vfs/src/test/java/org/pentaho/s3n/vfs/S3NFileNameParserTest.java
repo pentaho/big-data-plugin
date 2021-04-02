@@ -1,5 +1,5 @@
 /*!
-* Copyright 2010 - 2019 Hitachi Vantara.  All rights reserved.
+* Copyright 2010 - 2020 Hitachi Vantara.  All rights reserved.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -55,6 +55,10 @@ public class S3NFileNameParserTest {
     uri = "s3n://s3n/bucket/file";
     withBaseFile = parser.parseUri( context, fileName, uri );
     assertEquals( "s3n", ( (S3NFileName)withBaseFile ).getBucketId() );
-  }
 
+    //with credentials
+    uri = "s3n://ThiSiSA+PossibleAcce/ssK3y:PossiblES3cre+K3y@s3n/bucket/file";
+    withBaseFile = parser.parseUri( context, fileName, uri );
+    assertEquals( "ThiSiSA+PossibleAcce/ssK3y:PossiblES3cre+K3y@s3n", ( (S3NFileName)withBaseFile ).getBucketId() );
+  }
 }
