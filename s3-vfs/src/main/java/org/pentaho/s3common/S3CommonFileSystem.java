@@ -1,5 +1,5 @@
 /*!
- * Copyright 2010 - 2021 Hitachi Vantara.  All rights reserved.
+ * Copyright 2010 - 2020 Hitachi Vantara.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -150,12 +150,6 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
 
       AWSCredentialsProvider awsCredentialsProvider = null;
       Regions regions = Regions.DEFAULT_REGION;
-
-      S3Util.S3Keys keys = S3Util.getKeysFromURI( getRootURI() );
-      if ( keys != null ) {
-        accessKey = keys.getAccessKey();
-        secretKey = keys.getSecretKey();
-      }
 
       if ( !S3Util.isEmpty( accessKey ) && !S3Util.isEmpty( secretKey ) ) {
         AWSCredentials awsCredentials;
