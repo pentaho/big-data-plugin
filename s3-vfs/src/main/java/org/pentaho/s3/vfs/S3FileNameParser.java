@@ -1,5 +1,5 @@
 /*!
-* Copyright 2010 - 2021 Hitachi Vantara.  All rights reserved.
+* Copyright 2010 - 2019 Hitachi Vantara.  All rights reserved.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import org.apache.commons.vfs2.provider.AbstractFileNameParser;
 import org.apache.commons.vfs2.provider.FileNameParser;
 import org.apache.commons.vfs2.provider.UriParser;
 import org.apache.commons.vfs2.provider.VfsComponentContext;
-import org.pentaho.amazon.s3.S3Util;
 
 /**
  * Custom parser for the s3 URL
@@ -56,19 +55,9 @@ public class S3FileNameParser extends AbstractFileNameParser {
     // Normalise the path
     FileType fileType = UriParser.normalisePath( name );
 
-    //URI includes credentials
-    String keys = S3Util.getFullKeysFromURI( name.toString() );
-    if ( keys != null ) {
-      name.replace( name.indexOf( keys ), name.indexOf( keys ) + keys.length(), "" );
-    }
-
     String fullPath = name.toString();
     // Extract bucket name
-    String bucketName = UriParser.extractFirstElement( name );
-
-    if ( keys != null ) {
-      bucketName = keys + bucketName;
-    }
+    final String bucketName = UriParser.extractFirstElement( name );
 
     return new S3FileName( scheme, bucketName, fullPath, fileType );
   }

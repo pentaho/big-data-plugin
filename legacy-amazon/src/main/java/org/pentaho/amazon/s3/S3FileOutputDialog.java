@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -1656,17 +1656,10 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
 
   protected FileSystemOptions getFileSystemOptions() throws FileSystemException {
     FileSystemOptions opts = new FileSystemOptions();
-    S3Util.S3Keys keys = S3Util.getKeysFromURI( wFilename.getText() );
-    if ( keys == null ) {
-      AWSCredentials credentials = S3CredentialsProvider.getAWSCredentials();
-      if ( credentials != null ) {
-        StaticUserAuthenticator userAuthenticator =
-                new StaticUserAuthenticator( null, credentials.getAWSAccessKeyId(), credentials.getAWSSecretKey() );
-        DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts, userAuthenticator );
-      }
-    } else {
+    AWSCredentials credentials = S3CredentialsProvider.getAWSCredentials();
+    if ( credentials != null ) {
       StaticUserAuthenticator userAuthenticator =
-              new StaticUserAuthenticator( null, keys.getAccessKey(), keys.getSecretKey() );
+        new StaticUserAuthenticator( null, credentials.getAWSAccessKeyId(), credentials.getAWSSecretKey() );
       DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts, userAuthenticator );
     }
     return opts;
