@@ -24,6 +24,7 @@ import org.apache.commons.vfs2.provider.AbstractFileNameParser;
 import org.apache.commons.vfs2.provider.FileNameParser;
 import org.apache.commons.vfs2.provider.UriParser;
 import org.apache.commons.vfs2.provider.VfsComponentContext;
+import org.pentaho.amazon.s3.S3Util;
 
 /**
  * Custom parser for the s3a URL
@@ -55,10 +56,19 @@ public class S3AFileNameParser extends AbstractFileNameParser {
     // Normalise the path
     FileType fileType = UriParser.normalisePath( name );
 
+    //URI includes credentials
+    String keys = S3Util.getKeysFromURI( name.toString(), S3Util.URI_AWS_CREDENTIALS_FILE_NAME_PARSER_REGEX );
+    if ( !keys.isEmpty() ) {
+      name.replace( name.indexOf( keys ), name.indexOf( keys ) + keys.length(), "" );
+    }
+
     String fullPath = name.toString();
     // Extract bucket name
-    final String bucketName = UriParser.extractFirstElement( name );
+    String bucketName = UriParser.extractFirstElement( name );
 
+    if ( !keys.isEmpty() ) {
+      bucketName = keys + bucketName;
+    }
     return new S3AFileName( scheme, bucketName, fullPath, fileType );
   }
 }
