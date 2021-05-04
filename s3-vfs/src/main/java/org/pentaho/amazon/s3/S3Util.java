@@ -46,7 +46,7 @@ public final class S3Util {
   public static final String CONFIG_FILE = "config";
 
   /** Regex for detecting S3 credentials in URI */
-  private static final String URI_AWS_CREDENTIALS_REGEX = "(s3[an]?:\\/)?\\/(?<fullkeys>(?<keys>.*:.*)@)?s3[an]?\\/?(?<bucket>[^\\/]+)(?<path>.*)";
+  private static final String URI_AWS_CREDENTIALS_REGEX = "(s3[an]?:\\/)?\\/(?<fullkeys>(?<keys>.*:.*)@)?s3[an]?\\/?((?<bucket>[^\\/]+)(?<path>.*))?";
 
   /** to be used with getKeysFromURI to get the FULL KEYS GROUP **/
   private static final String URI_AWS_FULL_KEYS_GROUP = "fullkeys";

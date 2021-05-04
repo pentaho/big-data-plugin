@@ -1,5 +1,5 @@
 /*!
-* Copyright 2010 - 2019 Hitachi Vantara.  All rights reserved.
+* Copyright 2010 - 2021 Hitachi Vantara.  All rights reserved.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -111,9 +111,9 @@ public class S3FileObjectTest {
     s3Object.setBucketName( BUCKET_NAME );
 
     filename = new S3FileName( SCHEME, BUCKET_NAME, BUCKET_NAME, FileType.FOLDER );
-    S3FileName rootFileName = new S3FileName( SCHEME, "", "", FileType.FOLDER );
+    S3FileName rootFileName = new S3FileName( SCHEME, BUCKET_NAME, "", FileType.FOLDER );
     S3KettleProperty s3KettleProperty  = mock( S3KettleProperty.class );
-    when ( s3KettleProperty.getPartSize() ).thenReturn( "5MB" );
+    when( s3KettleProperty.getPartSize() ).thenReturn( "5MB" );
     S3FileSystem fileSystem = new S3FileSystem( rootFileName, new FileSystemOptions(), new StorageUnitConverter(),
             s3KettleProperty );
     fileSystemSpy = spy( fileSystem );
@@ -195,7 +195,7 @@ public class S3FileObjectTest {
     out.close();
 
     // check kettle.properties 's3.vfs.partSize' is less than [5MB, 6MB)
-    verify(s3ServiceMock, times(2) ).uploadPart(any());
+    verify( s3ServiceMock, times( 2 ) ).uploadPart( any() );
     verify( s3ServiceMock, atMost( 1 ) ).completeMultipartUpload( any() );
   }
 
@@ -322,7 +322,7 @@ public class S3FileObjectTest {
   public void testHandleAttachException() throws FileSystemException {
     String testKey = BUCKET_NAME + "/" + origKey;
     String testBucket = "badBucketName";
-    AmazonS3Exception exception = new AmazonS3Exception("NoSuchKey");
+    AmazonS3Exception exception = new AmazonS3Exception( "NoSuchKey" );
 
     //test the case where the folder exists and contains things; no exception should be thrown
     when( s3ServiceMock.getObject( BUCKET_NAME, origKey + "/" ) ).thenThrow( exception );
@@ -338,8 +338,8 @@ public class S3FileObjectTest {
   public void testHandleAttachExceptionEmptyFolder() throws FileSystemException {
     String testKey = BUCKET_NAME + "/" + origKey;
     String testBucket = "badBucketName";
-    AmazonS3Exception exception = new AmazonS3Exception("NoSuchKey");
-    exception.setErrorCode("NoSuchKey");
+    AmazonS3Exception exception = new AmazonS3Exception( "NoSuchKey" );
+    exception.setErrorCode( "NoSuchKey" );
 
     //test the case where the folder exists and contains things; no exception should be thrown
     when( s3ServiceMock.getObject( BUCKET_NAME, origKey + "/" ) ).thenThrow( exception );

@@ -28,6 +28,18 @@ public class S3UtilTest {
     S3Util.S3Keys keys = S3Util.getKeysFromURI( "s3n://ThiSiSA+PossibleAcce/ssK3y:PossiblES3cre+K3y@s3n/mybucket/something" );
     assertEquals( "ThiSiSA+PossibleAcce/ssK3y", keys.getAccessKey() );
     assertEquals( "PossiblES3cre+K3y", keys.getSecretKey() );
+
+    keys = S3Util.getKeysFromURI( "s3n://ThiSiSA+PossibleAcce/ssK3y:PossiblES3cre+K3y@s3n" );
+    assertEquals( "ThiSiSA+PossibleAcce/ssK3y", keys.getAccessKey() );
+    assertEquals( "PossiblES3cre+K3y", keys.getSecretKey() );
+
+    keys = S3Util.getKeysFromURI( "s3://ThiSiSA+PossibleAcce/ssK3y:PossiblES3cre+K3y@s3" );
+    assertEquals( "ThiSiSA+PossibleAcce/ssK3y", keys.getAccessKey() );
+    assertEquals( "PossiblES3cre+K3y", keys.getSecretKey() );
+
+    keys = S3Util.getKeysFromURI( "s3a://ThiSiSA+PossibleAcce/ssK3y:PossiblES3cre+K3y@s3a" );
+    assertEquals( "ThiSiSA+PossibleAcce/ssK3y", keys.getAccessKey() );
+    assertEquals( "PossiblES3cre+K3y", keys.getSecretKey() );
   }
 
   @Test

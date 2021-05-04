@@ -1,5 +1,5 @@
 /*!
-* Copyright 2010 - 2020 Hitachi Vantara.  All rights reserved.
+* Copyright 2010 - 2021 Hitachi Vantara.  All rights reserved.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -75,5 +75,6 @@ public class S3FileName extends AbstractFileName {
     // s3:///bucket/example.txt.  In our VFS, this is handled the same, in CLS 3 slashes do not resolve appropriately.
     // For consistency, the code here changes so that we will end up with 2 slashes.
     buffer.append( ":/" );
+    buffer.append( bucketId );
   }
 }
