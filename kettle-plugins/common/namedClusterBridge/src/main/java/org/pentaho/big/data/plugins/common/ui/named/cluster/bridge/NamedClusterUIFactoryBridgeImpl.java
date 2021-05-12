@@ -43,7 +43,10 @@ import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 /**
  * Created by bryan on 8/17/15.
+ *
+ * @deprecated
  */
+@Deprecated
 public class NamedClusterUIFactoryBridgeImpl implements NamedClusterUIFactory {
   private final NamedClusterService namedClusterService;
   private final RuntimeTestActionService runtimeTestActionService;

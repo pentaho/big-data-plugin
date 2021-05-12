@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,17 +22,24 @@
 
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.fileupload.FileItem;
+import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.CachedFileItemStream;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.pentaho.di.core.logging.KettleLogStore;
+import org.pentaho.di.core.logging.LogChannelInterface;
 
 import java.io.InputStreamReader;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ThinNameClusterModel {
+  private static final LogChannelInterface log =
+    KettleLogStore.getLogChannelInterfaceFactory().create( "ThinNameClusterModel" );
+
+  public static final String NAME_KEY = "name";
+
   private String name;
   private String shimVendor;
   private String shimVersion;
@@ -58,8 +65,7 @@ public class ThinNameClusterModel {
   private String gatewayPassword;
   private String keytabAuthFile;
   private String keytabImpFile;
-
-  private static final Logger logChannel = LoggerFactory.getLogger( ThinNameClusterModel.class );
+  private List<SimpleImmutableEntry<String, String>> siteFiles;
 
   public String getShimVendor() {
     return shimVendor;
@@ -261,15 +267,20 @@ public class ThinNameClusterModel {
     this.keytabImpFile = keytabImpFile;
   }
 
-  public static ThinNameClusterModel unmarshall( List<FileItem> siteFilesSource ) {
+  public List<SimpleImmutableEntry<String, String>> getSiteFiles() {
+    return siteFiles;
+  }
+
+  public void setSiteFiles( List<SimpleImmutableEntry<String, String>> siteFiles ) {
+    this.siteFiles = siteFiles;
+  }
+
+  public static ThinNameClusterModel unmarshall( Map<String, CachedFileItemStream> siteFilesSource ) {
     ThinNameClusterModel model = new ThinNameClusterModel();
     try {
-      FileItem siteFile = (FileItem) CollectionUtils.find( siteFilesSource, ( Object object ) -> {
-        FileItem fileItem = (FileItem) object;
-        return fileItem.getFieldName().equals( "data" );
-      } );
+      final CachedFileItemStream fileItemStream = siteFilesSource.remove( "data" );
 
-      InputStreamReader inputStreamReader = new InputStreamReader( siteFile.getInputStream() );
+      InputStreamReader inputStreamReader = new InputStreamReader( fileItemStream.getCachedInputStream() );
       JSONParser parser = new JSONParser();
       JSONObject json = (JSONObject) parser.parse( inputStreamReader );
       model.setName( (String) json.get( "name" ) );
@@ -297,9 +308,11 @@ public class ThinNameClusterModel {
       model.setGatewayPassword( (String) json.get( "gatewayPassword" ) );
       model.setKeytabImpFile( (String) json.get( "keytabImpFile" ) );
       model.setKeytabAuthFile( (String) json.get( "keytabAuthFile" ) );
-      siteFilesSource.remove( siteFile );
+      model.setSiteFiles( siteFilesSource.keySet().stream()
+        .map( name -> new SimpleImmutableEntry<>( NAME_KEY, name ) )
+        .collect( Collectors.toList() ) );
     } catch ( Exception e ) {
-      logChannel.error( e.getMessage() );
+      log.logError( e.getMessage() );
     }
     return model;
   }

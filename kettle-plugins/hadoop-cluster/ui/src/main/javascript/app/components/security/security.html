@@ -5,15 +5,21 @@
       <span>{{::vm.securityTypeLabel}}</span>
     </div>
     <div>
-      <input id="securityNone" type="radio" ng-model="vm.data.model.securityType" name="securityType" value="{{::vm.securityType.NONE}}" checked>
-      <label class="radio-button-label" for="securityNone">{{::vm.securityType.NONE}}</label>
-      <br />
-      <input id="securityKerberos"  type="radio" ng-model="vm.data.model.securityType" name="securityType" value="{{::vm.securityType.KERBEROS}}">
-      <label class="radio-button-label" for="securityKerberos">{{::vm.securityType.KERBEROS}}</label>
-      <br />
+      <input id="securityNone" type="radio" ng-model="vm.data.model.securityType" name="securityType"
+             class="radio-button" value="{{::vm.securityType.NONE}}" checked>
+      <label class="radio-button-label" for="securityNone" tabindex="0"
+             ng-keydown="vm.keyDown($event,vm.securityType.NONE)">{{::vm.securityType.NONE}}</label>
+      <br/>
+      <input id="securityKerberos"  type="radio" ng-model="vm.data.model.securityType" name="securityType"
+             value="{{::vm.securityType.KERBEROS}}">
+      <label class="radio-button-label" for="securityKerberos" tabindex="0"
+             ng-keydown="vm.keyDown($event,vm.securityType.KERBEROS)">{{::vm.securityType.KERBEROS}}</label>
+      <br/>
       <div ng-if="vm.data.model.shimVendor === 'Hortonworks'">
-        <input id="securityKnox" type="radio" ng-model="vm.data.model.securityType" name="securityType" value="{{::vm.securityType.KNOX}}">
-        <label class="radio-button-label" for="securityKnox">{{::vm.securityType.KNOX}}</label>
+        <input id="securityKnox" type="radio" ng-model="vm.data.model.securityType" name="securityType"
+               value="{{::vm.securityType.KNOX}}">
+        <label class="radio-button-label" for="securityKnox" tabindex="0"
+               ng-keydown="vm.keyDown($event,vm.securityType.KNOX)">{{::vm.securityType.KNOX}}</label>
       </div>
     </div>
   </div>

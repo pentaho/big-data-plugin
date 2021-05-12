@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -23,10 +23,9 @@
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONObject;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDialog;
@@ -34,14 +33,18 @@ import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameCluste
 import org.pentaho.big.data.plugins.common.ui.HadoopClusterDelegateImpl;
 import org.pentaho.di.base.AbstractMeta;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleXMLException;
+import org.pentaho.di.core.logging.KettleLogStore;
+import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.core.osgi.api.NamedClusterSiteFile;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.spoon.Spoon;
-import org.pentaho.hadoop.shim.api.ShimIdentifierInterface;
+import org.pentaho.hadoop.shim.api.core.ShimIdentifierInterface;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.metastore.api.IMetaStore;
@@ -54,8 +57,6 @@ import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.module.RuntimeTestModuleResults;
 import org.pentaho.runtime.test.result.RuntimeTestResult;
 import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
@@ -64,32 +65,46 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 
 import static org.pentaho.big.data.impl.cluster.tests.Constants.HADOOP_FILE_SYSTEM;
 import static org.pentaho.big.data.impl.cluster.tests.Constants.OOZIE;
 import static org.pentaho.big.data.impl.cluster.tests.Constants.KAFKA;
 import static org.pentaho.big.data.impl.cluster.tests.Constants.ZOOKEEPER;
 import static org.pentaho.big.data.impl.cluster.tests.Constants.MAP_REDUCE;
+import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel.NAME_KEY;
 
 //HadoopClusterDelegateImpl
 public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
   private static final Class<?> PKG = HadoopClusterDialog.class;
   public static final String STRING_NAMED_CLUSTERS = BaseMessages.getString( PKG, "HadoopClusterTree.Title" );
+  public static final String PLACEHOLDER_VALUE = "[object Object]";
   private final String fileSeparator = System.getProperty( "file.separator" );
   private static final String PASS = "Pass";
   private static final String WARNING = "Warning";
@@ -99,6 +114,11 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   private static final String CONFIG_PROPERTIES = "config.properties";
   private static final String KEYTAB_AUTH_FILE = "keytabAuthFile";
   private static final String KEYTAB_IMPL_FILE = "keytabImpFile";
+  public static final String MAPR_SHIM = "Map-R";
+  public static final String MAPRFS_SCHEME = "maprfs";
+
+  private static final LogChannelInterface log =
+    KettleLogStore.getLogChannelInterfaceFactory().create( "HadoopClusterManager" );
 
   private final String internalShim;
 
@@ -167,7 +187,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   private final IMetaStore metaStore;
   private final VariableSpace variableSpace;
   private RuntimeTestStatus runtimeTestStatus = null;
-  private static final Logger logChannel = LoggerFactory.getLogger( HadoopClusterManager.class );
 
   public HadoopClusterManager( Spoon spoon, NamedClusterService namedClusterService, IMetaStore metaStore,
                                String internalShim ) {
@@ -178,7 +197,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     this.internalShim = internalShim;
   }
 
-  public JSONObject importNamedCluster( ThinNameClusterModel model, List<FileItem> siteFilesSource ) {
+  public JSONObject importNamedCluster( ThinNameClusterModel model,
+                                        Map<String, CachedFileItemStream> siteFilesSource ) {
     JSONObject response = new JSONObject();
     response.put( NAMED_CLUSTER, "" );
     try {
@@ -193,7 +213,9 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       nc.setOozieUrl( "" );
       nc.setName( model.getName() );
       nc.setHdfsUsername( model.getHdfsUsername() );
-      nc.setHdfsPassword( model.getHdfsPassword() );
+      nc.setHdfsPassword( nc.encodePassword( model.getHdfsPassword() ) );
+      if (MAPR_SHIM.equals(model.getShimVendor()))
+        nc.setStorageScheme(MAPRFS_SCHEME);
       if ( variableSpace != null ) {
         nc.shareVariablesWith( variableSpace );
       } else {
@@ -205,15 +227,15 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       if ( isConfigurationSet ) {
         deleteNamedClusterSchemaOnly( model );
         setupKnoxSecurity( nc, model );
-        namedClusterService.create( nc, metaStore );
         deleteConfigFolder( nc.getName() );
         installSiteFiles( siteFilesSource, nc );
+        namedClusterService.create( nc, metaStore );
         createConfigProperties( nc );
         setupKerberosSecurity( model, siteFilesSource, "", "" );
         response.put( NAMED_CLUSTER, nc.getName() );
       }
     } catch ( Exception e ) {
-      logChannel.error( e.getMessage() );
+      log.logError( e.getMessage() );
     }
     return response;
   }
@@ -227,13 +249,14 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  private NamedCluster createXMLSchema( ThinNameClusterModel model ) throws MetaStoreException {
+  private NamedCluster convertToNamedCluster( ThinNameClusterModel model ) {
+
     NamedCluster nc = namedClusterService.getClusterTemplate();
     nc.setName( model.getName() );
     nc.setHdfsHost( model.getHdfsHost() );
     nc.setHdfsPort( model.getHdfsPort() );
     nc.setHdfsUsername( model.getHdfsUsername() );
-    nc.setHdfsPassword( model.getHdfsPassword() );
+    nc.setHdfsPassword( nc.encodePassword( model.getHdfsPassword() ) );
     nc.setJobTrackerHost( model.getJobTrackerHost() );
     nc.setJobTrackerPort( model.getJobTrackerPort() );
     nc.setZooKeeperHost( model.getZooKeeperHost() );
@@ -241,14 +264,14 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     nc.setOozieUrl( model.getOozieUrl() );
     nc.setKafkaBootstrapServers( model.getKafkaBootstrapServers() );
     resolveShimIdentifier( nc, model.getShimVendor(), model.getShimVersion() );
+    if (MAPR_SHIM.equals(model.getShimVendor()))
+      nc.setStorageScheme(MAPRFS_SCHEME);
     setupKnoxSecurity( nc, model );
     if ( variableSpace != null ) {
       nc.shareVariablesWith( variableSpace );
     } else {
       nc.initializeVariablesFrom( null );
     }
-    deleteNamedClusterSchemaOnly( model );
-    namedClusterService.create( nc, metaStore );
     return nc;
   }
 
@@ -265,31 +288,43 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  public JSONObject createNamedCluster( ThinNameClusterModel model, List<FileItem> siteFilesSource ) {
+  public JSONObject createNamedCluster( ThinNameClusterModel model,
+                                        Map<String, CachedFileItemStream> siteFilesSource ) {
     JSONObject response = new JSONObject();
     response.put( NAMED_CLUSTER, "" );
     try {
-      NamedCluster nc = createXMLSchema( model );
-      deleteConfigFolder( nc.getName() );
+      NamedCluster nc = convertToNamedCluster( model );
       installSiteFiles( siteFilesSource, nc );
+      namedClusterService.create( nc, metaStore );
+      deleteConfigFolder( nc.getName() );
       createConfigProperties( nc );
       setupKerberosSecurity( model, siteFilesSource, "", "" );
       response.put( NAMED_CLUSTER, nc.getName() );
     } catch ( Exception e ) {
-      logChannel.error( e.getMessage() );
+      log.logError( e.getMessage() );
     }
     return response;
   }
 
-  public JSONObject editNamedCluster( ThinNameClusterModel model, boolean isEditMode, List<FileItem> siteFilesSource ) {
+  public JSONObject editNamedCluster( ThinNameClusterModel model, boolean isEditMode,
+                                      Map<String, CachedFileItemStream> siteFilesSource ) {
     JSONObject response = new JSONObject();
     response.put( NAMED_CLUSTER, "" );
     try {
+      final NamedCluster newNc = namedClusterService.getNamedClusterByName( model.getName(), metaStore );
+      final NamedCluster oldNc = namedClusterService.getNamedClusterByName( model.getOldName(), metaStore );
       // Must get the current shim identifier before the creation of the Named Cluster xml schema for later comparison.
-      String shimId = namedClusterService.getNamedClusterByName( model.getOldName(), metaStore ).getShimIdentifier();
+      String shimId = oldNc.getShimIdentifier();
+      final List<NamedClusterSiteFile> existingSiteFiles = oldNc.getSiteFiles();
 
-      // Create new or update existing Named Cluster XML schema.
-      NamedCluster nc = createXMLSchema( model );
+      NamedCluster nc = convertToNamedCluster( model );
+      nc.setSiteFiles( getIntersectionSiteFiles( model, existingSiteFiles ) );
+      installSiteFiles( siteFilesSource, nc );
+      if ( newNc != null ) {
+        namedClusterService.update( nc, metaStore ); //new cluster name exists
+      } else {
+        namedClusterService.create( nc, metaStore ); //new cluster does not exist.  Use creation logic
+      }
 
       File oldConfigFolder = new File( getNamedClusterConfigsRootDir() + fileSeparator + model.getOldName() );
       File newConfigFolder = new File( getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() );
@@ -301,11 +336,10 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       } else {
         boolean success = oldConfigFolder.renameTo( newConfigFolder );
         if ( !success ) {
-          logChannel.error( "Renaming Named Cluster configuration folder failed." );
+          log.logError( "Renaming Named Cluster configuration folder failed." );
         }
       }
 
-      installSiteFiles( siteFilesSource, nc );
 
       // If the user changed the shim, create a new config.properties file that corresponds to that shim
       // in the new config folder. Also save the keytab locations to set them again in the new config.properties
@@ -332,7 +366,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
       response.put( NAMED_CLUSTER, nc.getName() );
     } catch ( Exception e ) {
-      logChannel.error( e.getMessage() );
+      log.logError( e.getMessage() );
     }
     return response;
   }
@@ -347,7 +381,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           model.setName( nc.getName() );
           model.setHdfsHost( nc.getHdfsHost() );
           model.setHdfsUsername( nc.getHdfsUsername() );
-          model.setHdfsPassword( nc.getHdfsPassword() );
+          model.setHdfsPassword( nc.decodePassword( nc.getHdfsPassword() ) );
           model.setHdfsPort( nc.getHdfsPort() );
           model.setJobTrackerHost( nc.getJobTrackerHost() );
           model.setJobTrackerPort( nc.getJobTrackerPort() );
@@ -356,7 +390,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           model.setZooKeeperPort( nc.getZooKeeperPort() );
           model.setZooKeeperHost( nc.getZooKeeperHost() );
           resolveShimVendorAndVersion( model, nc.getShimIdentifier() );
-          model.setGatewayPassword( nc.getGatewayPassword() );
+          model.setGatewayPassword( nc.decodePassword( nc.getGatewayPassword() ) );
           model.setGatewayUrl( nc.getGatewayUrl() );
           model.setGatewayUsername( nc.getGatewayUsername() );
           model.setSecurityType( SECURITY_TYPE.NONE.getValue() );
@@ -365,25 +399,29 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           } else {
             resolveKerberosSecurity( model, nc );
           }
+          model.setSiteFiles( nc.getSiteFiles().stream()
+            .map( sf -> new SimpleImmutableEntry<>( NAME_KEY, sf.getSiteFileName() ) )
+            .collect( Collectors.toList() ) );
           break;
         }
       }
     } catch ( MetaStoreException e ) {
-      logChannel.error( e.getMessage() );
+      log.logError( e.getMessage() );
     }
     return model;
   }
 
-  private boolean configureNamedCluster( List<FileItem> siteFilesSource, NamedCluster nc, String shimVendor,
-                                         String shimVersion ) {
+  private boolean configureNamedCluster( Map<String, CachedFileItemStream> siteFilesSource, NamedCluster nc,
+                                         String shimVendor, String shimVersion ) {
     resolveShimIdentifier( nc, shimVendor, shimVersion );
 
     String oozieBaseUrl = "oozie.base.url";
     Map<String, String> properties = new HashMap();
     extractProperties( siteFilesSource, "core-site.xml", properties, new String[] { "fs.defaultFS" } );
-    extractProperties( siteFilesSource, "yarn-site.xml", properties, new String[] { "yarn.resourcemanager.address" } );
+    extractProperties( siteFilesSource, "yarn-site.xml", properties,
+            new String[] { "yarn.resourcemanager.address", "yarn.resourcemanager.hostname" } );
     extractProperties( siteFilesSource, "hive-site.xml", properties,
-      new String[] { "hive.zookeeper.quorum", "hive.zookeeper.client.port" } );
+            new String[] { "hive.zookeeper.quorum", "hive.zookeeper.client.port" } );
     extractProperties( siteFilesSource, "oozie-site.xml", properties, new String[] { oozieBaseUrl } );
     if ( properties.get( oozieBaseUrl ) == null ) {
       extractProperties( siteFilesSource, "oozie-default.xml", properties, new String[] { oozieBaseUrl } );
@@ -409,15 +447,22 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
      * yarn.resourcemanager.address
      * in
      * yarn-site.xml
+     *
+     * If address not available
+     * Hostname taken from
+     * yarn.resourcemanager.hostname
+     * in
+     * yarn-site.xml
      * */
     String jobTrackerAddress = properties.get( "yarn.resourcemanager.address" );
+    String jobTrackerHostname = properties.get( "yarn.resourcemanager.hostname" );
     if ( jobTrackerAddress != null ) {
-      if ( !jobTrackerAddress.startsWith( "http://" ) ) {
-        jobTrackerAddress = "http://" + jobTrackerAddress;
-      }
-      URI jobTrackerURL = URI.create( jobTrackerAddress );
-      nc.setJobTrackerHost( jobTrackerURL.getHost() );
-      nc.setJobTrackerPort( jobTrackerURL.getPort() != -1 ? jobTrackerURL.getPort() + "" : "" );
+      Map<String, String> hostAndPort = extractHostAndPort( jobTrackerAddress );
+      nc.setJobTrackerHost( hostAndPort.get( "host" ) );
+      nc.setJobTrackerPort( hostAndPort.get( "port" ) );
+      isConfigurationSet = true;
+    } else if ( jobTrackerHostname != null ) {
+      nc.setJobTrackerHost( jobTrackerHostname );
       isConfigurationSet = true;
     }
 
@@ -430,6 +475,14 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
      * */
     String zooKeeperAddress = properties.get( "hive.zookeeper.quorum" );
     String zooKeeperPort = properties.get( "hive.zookeeper.client.port" );
+
+    if ( zooKeeperAddress != null ) {
+      List<String> addresses = Arrays.asList( zooKeeperAddress.split( "," ) );
+      List<String> hostNames = addresses.stream().map( address ->
+              extractHostAndPort( address ).get( "host" ) ).collect( Collectors.toList() );
+      zooKeeperAddress = String.join( ",", hostNames );
+    }
+
     if ( zooKeeperAddress != null && zooKeeperPort != null ) {
       nc.setZooKeeperHost( zooKeeperAddress );
       nc.setZooKeeperPort( zooKeeperPort );
@@ -472,12 +525,10 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  private void extractProperties( List<FileItem> siteFilesSource, String fileName, Map<String, String> properties,
+  private void extractProperties( Map<String, CachedFileItemStream> siteFilesSource, String fileName,
+                                  Map<String, String> properties,
                                   String[] keys ) {
-    FileItem siteFile = (FileItem) CollectionUtils.find( siteFilesSource, ( Object object ) -> {
-      FileItem fileItem = (FileItem) object;
-      return fileItem.getName().endsWith( fileName );
-    } );
+    CachedFileItemStream siteFile = siteFilesSource.get( fileName );
 
     if ( siteFile != null ) {
       Document document = parseSiteFileDocument( siteFile );
@@ -493,60 +544,116 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
               properties.put( key, nodes.item( 0 ).getNodeValue() );
             }
           } catch ( XPathExpressionException e ) {
-            logChannel.warn( e.getMessage() );
+            log.logMinimal( e.getMessage() );
           }
         }
       }
     }
   }
 
-  public JSONObject installDriver( List<FileItem> driver ) {
-    boolean success = true;
-    try {
+  public JSONObject installDriver( FileItemStream driver ) {
+    boolean success = false;
+    if ( driver != null ) {
       String destination = Const.getShimDriverDeploymentLocation();
-      FileItem driverFile = driver.get( 0 );
-      FileUtils.copyInputStreamToFile( driverFile.getInputStream(),
-        new File( destination + fileSeparator + driverFile.getFieldName() ) );
-    } catch ( IOException e ) {
-      success = false;
-      logChannel.error( e.getMessage() );
+
+      try ( final InputStream driverStream = driver.openStream() ) {
+        FileUtils.copyInputStreamToFile( driverStream,
+          new File( destination + fileSeparator + driver.getFieldName() ) );
+        success = true;
+      } catch ( IOException e ) {
+        log.logError( e.getMessage() );
+      }
     }
     JSONObject response = new JSONObject();
     response.put( INSTALLED, success );
     return response;
   }
 
-  private void installSiteFiles( List<FileItem> siteFilesSource, NamedCluster nc ) throws IOException {
-    for ( FileItem sitefile : siteFilesSource ) {
-      if ( isValidConfigurationFile( sitefile ) ) {
-        String name = sitefile.getFieldName();
-        if ( name.equals( KEYTAB_AUTH_FILE ) || name.equals( KEYTAB_IMPL_FILE ) ) {
-          name = extractFileNameFromFullPath( sitefile.getName() );
-        }
+  /**
+   * Get Intersection of siteFiles
+   *
+   * @param model
+   * @param existingSiteFiles
+   * @return a list of siteFiles at the intersection of siteFiles in the model and the existingSiteFiles
+   */
+  private List<NamedClusterSiteFile> getIntersectionSiteFiles( ThinNameClusterModel model,
+                                                               List<NamedClusterSiteFile> existingSiteFiles ) {
+    List<String> newSiteFileNames =
+      Optional.ofNullable( model.getSiteFiles() )
+        .map( Collection::stream )
+        .orElseGet( Stream::empty )
+        .map( SimpleImmutableEntry::getValue )
+        .collect( Collectors.toList() );
 
-        File destination = new File(
-          getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() + fileSeparator + name );
-        FileUtils.copyInputStreamToFile( sitefile.getInputStream(), destination );
+    return existingSiteFiles.stream()
+      .filter( siteFile -> newSiteFileNames.contains( siteFile.getSiteFileName() ) )
+      .collect( Collectors.toList() );
+  }
+
+  private void installSiteFiles( Map<String, CachedFileItemStream> siteFileSource, NamedCluster nc )
+    throws IOException {
+    for ( Map.Entry<String, CachedFileItemStream> siteFile : siteFileSource.entrySet() ) {
+      String name = siteFile.getValue().getFieldName();
+      if ( isValidConfigurationFile( name ) ) {
+        if ( name.equals( KEYTAB_AUTH_FILE ) || name.equals( KEYTAB_IMPL_FILE ) || !name.endsWith( "-site.xml" ) ) {
+          name = extractFileNameFromFullPath( siteFile.getValue().getName() );
+          addFileToConfigFolder( siteFile.getValue().getCachedOutputStream(), name, nc );
+        } else {
+          addFileToNamedClusterSiteFiles( siteFile.getValue().getCachedInputStream(), name, nc );
+        }
       }
     }
   }
 
-  public boolean isValidConfigurationFile( FileItem fileItem ) {
-    return fileItem.getFieldName() != null && ( fileItem.getFieldName().endsWith( "-site.xml" ) || fileItem
-      .getFieldName()
-      .endsWith( "-default.xml" ) || fileItem.getFieldName().equals( CONFIG_PROPERTIES ) || fileItem.getFieldName()
-      .equals( KEYTAB_AUTH_FILE ) || fileItem.getFieldName().equals( KEYTAB_IMPL_FILE ) || fileItem.getFieldName()
-      .equals( "data" ) );
+  private void addFileToConfigFolder( ByteArrayOutputStream outputStream, String fileName, NamedCluster nc )
+    throws IOException {
+    File destination = new File(
+      getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() + fileSeparator + fileName );
+    destination.getParentFile().mkdirs();
+    try ( OutputStream fos = new FileOutputStream( destination ) ) {
+      outputStream.writeTo( fos );
+    }
   }
 
-  private Document parseSiteFileDocument( FileItem file ) {
+  private void addFileToNamedClusterSiteFiles( InputStream inputStream, String fileName, NamedCluster nc )
+    throws IOException {
+    InputStreamReader isReader = new InputStreamReader( inputStream );
+    BufferedReader reader = new BufferedReader( isReader );
+    StringBuilder sb = new StringBuilder();
+    String str;
+    while ( ( str = reader.readLine() ) != null ) {
+      sb.append( str );
+    }
+    //skip placeholder site file contents because the site file content is in the NamedCluster already
+    if ( !sb.toString().equals( PLACEHOLDER_VALUE ) ) {
+      boolean nameExists = false;
+      //replace the contents if the name exists
+      for ( NamedClusterSiteFile siteFile : nc.getSiteFiles() ) {
+        if ( siteFile.getSiteFileName().equals( fileName ) ) {
+          siteFile.setSiteFileContents( sb.toString() );
+          nameExists = true;
+          break;
+        }
+      }
+      //Add the file if the name didn't exist
+      if ( !nameExists ) {
+        nc.addSiteFile( fileName, sb.toString() );
+      }
+    }
+  }
+
+  public boolean isValidConfigurationFile( String fileName ) {
+    return fileName != null && ( fileName.endsWith( "-site.xml" ) || fileName.endsWith( "-default.xml" )
+      || fileName.equals( CONFIG_PROPERTIES ) || fileName.equals( KEYTAB_AUTH_FILE )
+      || fileName.equals( KEYTAB_IMPL_FILE ) || fileName.equals( "data" ) );
+  }
+
+  private Document parseSiteFileDocument( CachedFileItemStream file ) {
     Document document = null;
     try {
-      document = XMLHandler.loadXMLFile( file.getInputStream() );
+      document = XMLHandler.loadXMLFile( file.getCachedInputStream() );
     } catch ( KettleXMLException e ) {
-      logChannel.warn( String.format( "Site file %s is not a well formed XML document", file.getName() ) );
-    } catch ( IOException e ) {
-      logChannel.error( e.getMessage() );
+      log.logMinimal( String.format( "Site file %s is not a well formed XML document", file.getName() ) );
     }
     return document;
   }
@@ -567,7 +674,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  private void setupKerberosSecurity( ThinNameClusterModel model, List<FileItem> siteFilesSource,
+  private void setupKerberosSecurity( ThinNameClusterModel model, Map<String, CachedFileItemStream> siteFilesSource,
                                       String keytabAuthenticationLocation, String keytabImpersonationLocation ) {
     Path
       configPropertiesPath =
@@ -602,7 +709,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       config.setProperty( KERBEROS_IMPERSONATION_PASS, "" );
       config.save();
     } catch ( ConfigurationException e ) {
-      logChannel.warn( e.getMessage() );
+      log.logMinimal( e.getMessage() );
     }
   }
 
@@ -612,9 +719,16 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() + fileSeparator + CONFIG_PROPERTIES;
       PropertiesConfiguration config = new PropertiesConfiguration( new File( configFile ) );
       model.setKerberosAuthenticationUsername( (String) config.getProperty( KERBEROS_AUTHENTICATION_USERNAME ) );
-      model.setKerberosAuthenticationPassword( (String) config.getProperty( KERBEROS_AUTHENTICATION_PASS ) );
+      model.setKerberosAuthenticationPassword(
+        Encr.decryptPasswordOptionallyEncrypted( (String) config.getProperty( KERBEROS_AUTHENTICATION_PASS ) ) );
       model.setKerberosImpersonationUsername( (String) config.getProperty( KERBEROS_IMPERSONATION_USERNAME ) );
-      model.setKerberosImpersonationPassword( (String) config.getProperty( KERBEROS_IMPERSONATION_PASS ) );
+      String impersonationPasswordValue =
+        Encr.decryptPasswordOptionallyEncrypted( (String) config.getProperty( KERBEROS_IMPERSONATION_PASS ) );
+      if ( "Encrypted".equals( impersonationPasswordValue ) ) {
+        impersonationPasswordValue = "";
+      }
+      model.setKerberosImpersonationPassword( impersonationPasswordValue );
+
       String keytabAuthenticationLocation = (String) config.getProperty( KEYTAB_AUTHENTICATION_LOCATION );
       String keytabImpersonationLocation = (String) config.getProperty( KEYTAB_IMPERSONATION_LOCATION );
 
@@ -650,7 +764,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         model.setKerberosSubType( KERBEROS_SUBTYPE.KEYTAB.getValue() );
       }
     } catch ( ConfigurationException e ) {
-      logChannel.error( e.getMessage() );
+      log.logError( e.getMessage() );
     }
   }
 
@@ -658,9 +772,19 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     try {
       PropertiesConfiguration config = new PropertiesConfiguration( configPropertiesPath.toFile() );
       config.setProperty( KERBEROS_AUTHENTICATION_USERNAME, model.getKerberosAuthenticationUsername() );
-      config.setProperty( KERBEROS_AUTHENTICATION_PASS, model.getKerberosAuthenticationPassword() );
+      if ( !StringUtil.isEmpty( model.getKerberosAuthenticationPassword() ) ) {
+        config.setProperty( KERBEROS_AUTHENTICATION_PASS,
+          Encr.encryptPasswordIfNotUsingVariables( model.getKerberosAuthenticationPassword() ) );
+      } else {
+        config.setProperty( KERBEROS_AUTHENTICATION_PASS, "" );
+      }
       config.setProperty( KERBEROS_IMPERSONATION_USERNAME, model.getKerberosImpersonationUsername() );
-      config.setProperty( KERBEROS_IMPERSONATION_PASS, model.getKerberosImpersonationPassword() );
+      if ( !StringUtil.isEmpty( model.getKerberosImpersonationPassword() ) ) {
+        config.setProperty( KERBEROS_IMPERSONATION_PASS,
+          Encr.encryptPasswordIfNotUsingVariables( model.getKerberosImpersonationPassword() ) );
+      } else {
+        config.setProperty( KERBEROS_IMPERSONATION_PASS, "" );
+      }
       if ( ( !StringUtil.isEmpty( model.getKerberosImpersonationUsername() )
         && !StringUtil.isEmpty( model.getKerberosImpersonationPassword() ) )
         || ( !StringUtil.isEmpty( model.getKerberosAuthenticationUsername() )
@@ -671,7 +795,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       }
       config.save();
     } catch ( ConfigurationException e ) {
-      logChannel.warn( e.getMessage() );
+      log.logMinimal( e.getMessage() );
     }
   }
 
@@ -688,26 +812,23 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   }
 
   private void setupKeytabSecurity( ThinNameClusterModel model, Path configPropertiesPath,
-                                    List<FileItem> siteFilesSource, String keytabAuthenticationLocation,
-                                    String keytabImpersonationLocation ) {
+                                    Map<String, CachedFileItemStream> siteFilesSource,
+                                    String keytabAuthenticationLocation, String keytabImpersonationLocation ) {
     String namedClusterName = model.getName();
-    FileItem keytabAuthFile = (FileItem) CollectionUtils.find( siteFilesSource, ( Object object ) -> {
-      FileItem fileItem = (FileItem) object;
-      return fileItem.getFieldName().equals( KEYTAB_AUTH_FILE );
-    } );
-    FileItem keytabImpFile = (FileItem) CollectionUtils.find( siteFilesSource, ( Object object ) -> {
-      FileItem fileItem = (FileItem) object;
-      return fileItem.getFieldName().equals( KEYTAB_IMPL_FILE );
-    } );
+    CachedFileItemStream keytabAuthFile = siteFilesSource.get( KEYTAB_AUTH_FILE );
+    CachedFileItemStream keytabImpFile = siteFilesSource.get( KEYTAB_IMPL_FILE );
+
+    String authenticationLocation = keytabAuthenticationLocation;
+    String impersonationLocation = keytabImpersonationLocation;
 
     if ( keytabAuthFile != null ) {
       String name = extractFileNameFromFullPath( keytabAuthFile.getName() );
-      keytabAuthenticationLocation =
+      authenticationLocation =
         getNamedClusterConfigsRootDir() + fileSeparator + namedClusterName + fileSeparator + name;
     }
     if ( keytabImpFile != null ) {
       String name = extractFileNameFromFullPath( keytabImpFile.getName() );
-      keytabImpersonationLocation =
+      impersonationLocation =
         getNamedClusterConfigsRootDir() + fileSeparator + namedClusterName + fileSeparator + name;
     }
 
@@ -716,16 +837,16 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
       // Authentication
       config.setProperty( KERBEROS_AUTHENTICATION_USERNAME, model.getKerberosAuthenticationUsername() );
-      if ( !StringUtil.isEmpty( keytabAuthenticationLocation ) ) {
-        config.setProperty( KEYTAB_AUTHENTICATION_LOCATION, keytabAuthenticationLocation );
+      if ( !StringUtil.isEmpty( authenticationLocation ) ) {
+        config.setProperty( KEYTAB_AUTHENTICATION_LOCATION, authenticationLocation );
       }
 
       // Impersonation
       config.setProperty( KERBEROS_IMPERSONATION_USERNAME, model.getKerberosImpersonationUsername() );
       if ( keytabImpFile == null && StringUtil.isEmpty( model.getKeytabImpFile() ) ) {
         config.setProperty( KEYTAB_IMPERSONATION_LOCATION, "" );
-      } else if ( !StringUtil.isEmpty( keytabImpersonationLocation ) ) {
-        config.setProperty( KEYTAB_IMPERSONATION_LOCATION, keytabImpersonationLocation );
+      } else if ( !StringUtil.isEmpty( impersonationLocation ) ) {
+        config.setProperty( KEYTAB_IMPERSONATION_LOCATION, impersonationLocation );
       }
 
       if ( !StringUtil.isEmpty( (String) config.getProperty( KEYTAB_AUTHENTICATION_LOCATION ) )
@@ -737,7 +858,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
       config.save();
     } catch ( ConfigurationException e ) {
-      logChannel.warn( e.getMessage() );
+      log.logMinimal( e.getMessage() );
     }
   }
 
@@ -746,12 +867,27 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       String userName = model.getGatewayUsername();
       String url = model.getGatewayUrl();
       String password = model.getGatewayPassword();
-      nc.setGatewayPassword( password );
+      nc.setGatewayPassword( nc.encodePassword( password ) );
       nc.setGatewayUrl( url );
       nc.setGatewayUsername( userName );
       nc.setUseGateway(
         !StringUtil.isEmpty( userName ) && !StringUtil.isEmpty( url ) && !StringUtil.isEmpty( password ) );
     }
+  }
+
+  /*
+   * Extract Hostname and Port from a hostname/URL pattern
+   */
+  private Map<String, String> extractHostAndPort( String urlPattern ) {
+    final String HTTP_PATTERN = "http://";
+    if ( !urlPattern.startsWith( HTTP_PATTERN ) ) {
+      urlPattern = HTTP_PATTERN + urlPattern;
+    }
+    URI parsedURI = URI.create( urlPattern );
+    Map<String, String> map = new HashMap<>();
+    map.put( "host", parsedURI.getHost() );
+    map.put( "port", parsedURI.getPort() != -1 ? parsedURI.getPort() + "" : "" );
+    return map;
   }
 
   public void deleteNamedCluster( IMetaStore metaStore, String namedCluster, boolean refreshTree ) {
@@ -764,7 +900,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         refreshTree();
       }
     } catch ( Exception e ) {
-      logChannel.warn( e.getMessage() );
+      log.logMinimal( e.getMessage() );
     }
   }
 
@@ -772,9 +908,9 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
    * @return shim identifiers, excluding the internal shim, which should not be exposed to the cluster ui.
    */
   List<ShimIdentifierInterface> getShimIdentifiers() {
-    return shimIdentifiersSupplier.get().stream()
-      .filter( s -> !internalShim.equals( s.getId() ) )
-      .collect( Collectors.toList() );
+    List<ShimIdentifierInterface> shims = shimIdentifiersSupplier.get();
+    shims.sort( Comparator.comparing( ShimIdentifierInterface::getVendor ) );
+    return shims;
   }
 
   public Object runTests( RuntimeTester runtimeTester, String namedCluster ) {
@@ -791,7 +927,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           }
         }
       } catch ( Exception e ) {
-        logChannel.warn( e.getLocalizedMessage() );
+        log.logMinimal( e.getLocalizedMessage() );
       }
       return produceTestCategories( runtimeTestStatus, nc );
     } else {

@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -111,6 +111,7 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
   public static final String TRANSFORMATION_PATH = "transformationPath";
   public static final String BATCH_SIZE = "batchSize";
   public static final String BATCH_DURATION = "batchDuration";
+  public static final String PREFETCH_MESSAGE_COUNT = "prefetchMessageCount";
   public static final String CONNECTION_TYPE = "connectionType";
   public static final String DIRECT_BOOTSTRAP_SERVERS = "directBootstrapServers";
   public static final String ADVANCED_CONFIG = "advancedConfig";
@@ -238,6 +239,8 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     setBatchDuration( Optional.ofNullable( XMLHandler.getTagValue( stepnode, BATCH_DURATION ) ).orElse( "" ) );
     String parallelism = XMLHandler.getTagValue( stepnode, PARALLELISM );
     setParallelism( isNullOrEmpty( parallelism ) ? "1" : parallelism );
+    String prefetchCount = XMLHandler.getTagValue( stepnode, PREFETCH_MESSAGE_COUNT );
+    setPrefetchCount( isNullOrEmpty( prefetchCount ) ? PREFETCH_DEFAULT : prefetchCount );
     setConnectionType( ConnectionType.valueOf( XMLHandler.getTagValue( stepnode, CONNECTION_TYPE ) ) );
     setDirectBootstrapServers( XMLHandler.getTagValue( stepnode, DIRECT_BOOTSTRAP_SERVERS ) );
     String autoCommitValue = XMLHandler.getTagValue( stepnode, AUTO_COMMIT );
@@ -279,6 +282,7 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     batchSize = "1000";
     batchDuration = "1000";
     parallelism = "1";
+    prefetchCount = PREFETCH_DEFAULT;
   }
 
   @Override public void readRep( Repository rep, IMetaStore metaStore, ObjectId objectId, List<DatabaseMeta> databases )
@@ -298,6 +302,8 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     setBatchDuration( Optional.ofNullable( rep.getStepAttributeString( objectId, BATCH_DURATION ) ).orElse( "" ) );
     String parallelism = rep.getStepAttributeString( objectId, PARALLELISM );
     setParallelism( isNullOrEmpty( parallelism ) ? "1" : parallelism );
+    String prefetchCount = rep.getStepAttributeString( objectId, PREFETCH_MESSAGE_COUNT );
+    setPrefetchCount( isNullOrEmpty( prefetchCount ) ? PREFETCH_DEFAULT : prefetchCount );
     setConnectionType( ConnectionType.valueOf( rep.getStepAttributeString( objectId, CONNECTION_TYPE ) ) );
     setDirectBootstrapServers( rep.getStepAttributeString( objectId, DIRECT_BOOTSTRAP_SERVERS ) );
     setAutoCommit( rep.getStepAttributeBoolean( objectId, 0, AUTO_COMMIT, true ) );
@@ -334,6 +340,7 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     rep.saveStepAttribute( transId, stepId, BATCH_SIZE, batchSize );
     rep.saveStepAttribute( transId, stepId, BATCH_DURATION, batchDuration );
     rep.saveStepAttribute( transId, stepId, PARALLELISM, parallelism );
+    rep.saveStepAttribute( transId, stepId, PREFETCH_MESSAGE_COUNT, prefetchCount );
     rep.saveStepAttribute( transId, stepId, CONNECTION_TYPE, connectionType.name() );
     rep.saveStepAttribute( transId, stepId, DIRECT_BOOTSTRAP_SERVERS, directBootstrapServers );
     rep.saveStepAttribute( transId, stepId, AUTO_COMMIT, autoCommit );
@@ -506,6 +513,7 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     retval.append( "    " ).append( XMLHandler.addTagValue( BATCH_SIZE, batchSize ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( BATCH_DURATION, batchDuration ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( PARALLELISM, parallelism ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( PREFETCH_MESSAGE_COUNT, prefetchCount ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( CONNECTION_TYPE, connectionType.name() ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( DIRECT_BOOTSTRAP_SERVERS, directBootstrapServers ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( AUTO_COMMIT, autoCommit ) );

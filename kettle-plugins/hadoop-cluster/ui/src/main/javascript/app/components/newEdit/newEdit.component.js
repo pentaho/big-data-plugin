@@ -40,7 +40,13 @@ define([
 
     var connectedToRepo = ($stateParams.data && $stateParams.data.connectedToRepo) || $location.search().connectedToRepo === 'true';
 
-    var notAllowedChars = ['\\\\', '/', '*', ':', '?', '"', '<', '>', '|', '%', '+', '#'];
+    var notAllowedCharsString = 'A~`!@#$%^&*()_+={}|:;"<>,.?/' + '\'';
+    var notAllowedChars = notAllowedCharsString.split('');
+    notAllowedChars[0] = '\\\\';
+    notAllowedChars.push('\\\[');
+    notAllowedChars.push('\\\]');
+    notAllowedChars.push('\\\s'); // space character
+
     var notAllowedGlobalRegex = new RegExp("[" + notAllowedChars.join('') + "]", "g");
     notAllowedChars[0] = '\\'; //remove extra escape for the backslash char in the array
 
@@ -98,6 +104,7 @@ define([
               vm.data.model.name = duplicateName;
               vm.data.type = "duplicate";
             }
+            vm.siteFiles = vm.data.model.siteFiles;
             loadShimDropDowns();
           });
         } else if (vm.data.model && vm.data.model.name) {
@@ -110,12 +117,20 @@ define([
             dataService.getNamedCluster(vm.data.model.name).then(function (res) {
               vm.data.model = res.data;
               vm.data.model.oldName = vm.data.model.name;
+              vm.siteFiles = vm.data.model.siteFiles;
               loadShimDropDowns();
             });
           } else {
             //Most of the data already exists in the model
             loadShimDropDowns();
             vm.siteFiles = fileService.getFiles();
+            if (vm.data.type) {
+              if (vm.data.type === "new") {
+                vm.header = i18n.get('new.header');
+              } else if (vm.data.type === "edit" || vm.data.type === "duplicate") {
+                vm.header = i18n.get('edit.header');
+              }
+            }
           }
         } else {
           //this is a new state, no name exists in the model or on the URL

@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -84,9 +84,8 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
     consumer.subscribe( topics );
 
     source = new KafkaStreamSource( consumer, kafkaConsumerInputMeta, kafkaConsumerInputData, variables, this );
-    window = new FixedTimeStreamWindow<>( subtransExecutor, kafkaConsumerInputData.outputRowMeta, getDuration(),
-      getBatchSize(), getParallelism(), kafkaConsumerInputMeta.isAutoCommit() ? p -> {
-      } : this::commitOffsets );
+    window = new FixedTimeStreamWindow<>( getSubtransExecutor(), kafkaConsumerInputData.outputRowMeta, getDuration(),
+      getBatchSize(), getParallelism(), kafkaConsumerInputMeta.isAutoCommit() ? p -> { } : this::commitOffsets );
 
     return true;
   }

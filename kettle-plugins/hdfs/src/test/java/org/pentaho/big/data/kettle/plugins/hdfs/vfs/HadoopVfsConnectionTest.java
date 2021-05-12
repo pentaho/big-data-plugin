@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -91,6 +91,7 @@ public class HadoopVfsConnectionTest {
     when( testNamedCluster.getHdfsPort() ).thenReturn( TEST_PORT );
     when( testNamedCluster.getHdfsUsername() ).thenReturn( TEST_USER );
     when( testNamedCluster.getHdfsPassword() ).thenReturn( TEST_PASSWORD );
+    when( testNamedCluster.decodePassword( TEST_PASSWORD ) ).thenReturn( TEST_PASSWORD );
 
     HadoopVfsConnection hdfsConnection = new HadoopVfsConnection( testNamedCluster, new Variables() );
     assertEquals( EMPTY, hdfsConnection.getHostname() );
@@ -106,6 +107,7 @@ public class HadoopVfsConnectionTest {
     when( testNamedCluster.getHdfsPort() ).thenReturn( null );
     when( testNamedCluster.getHdfsUsername() ).thenReturn( TEST_USER );
     when( testNamedCluster.getHdfsPassword() ).thenReturn( TEST_PASSWORD );
+    when( testNamedCluster.decodePassword( TEST_PASSWORD ) ).thenReturn( TEST_PASSWORD );
 
     HadoopVfsConnection hdfsConnection = new HadoopVfsConnection( testNamedCluster, new Variables() );
     assertEquals( TEST_HOST, hdfsConnection.getHostname() );
@@ -121,6 +123,7 @@ public class HadoopVfsConnectionTest {
     when( testNamedCluster.getHdfsPort() ).thenReturn( TEST_PORT );
     when( testNamedCluster.getHdfsUsername() ).thenReturn( null );
     when( testNamedCluster.getHdfsPassword() ).thenReturn( TEST_PASSWORD );
+    when( testNamedCluster.decodePassword( TEST_PASSWORD ) ).thenReturn( TEST_PASSWORD );
 
     HadoopVfsConnection hdfsConnection = new HadoopVfsConnection( testNamedCluster, new Variables() );
     assertEquals( TEST_HOST, hdfsConnection.getHostname() );
@@ -177,6 +180,7 @@ public class HadoopVfsConnectionTest {
     when( nCluster.getHdfsPort() ).thenReturn( TEST_PORT );
     when( nCluster.getHdfsUsername() ).thenReturn( TEST_USER );
     when( nCluster.getHdfsPassword() ).thenReturn( TEST_PASSWORD );
+    when( nCluster.decodePassword( TEST_PASSWORD ) ).thenReturn( TEST_PASSWORD );
     return nCluster;
   }
 

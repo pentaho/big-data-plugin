@@ -36,10 +36,20 @@ define([
     vm.$onInit = onInit;
     vm.canNext = canNext;
     vm.doTest = doTest;
-    vm.onSelect = onSelect;
+    vm.onSelectOfAuthType = onSelectOfAuthType;
+    vm.onSelectOfConnectionType = onSelectOfConnectionType;
     vm.onSelectRegion = onSelectRegion;
     vm.onBrowse = onBrowse;
     vm.type = 0;
+    vm.connectionType = 0;
+    vm.connectionTypes = [{
+      value: 0,
+      label: i18n.get('S3.Label.ConnectionType.AWS')
+    }, {
+      value: 1,
+      label: i18n.get('S3.Label.ConnectionType.Minio')
+    }];
+
     vm.authTypes = [{
       value: 0,
       label: i18n.get('S3.Label.Type.AccessKeySecretKey')
@@ -58,8 +68,22 @@ define([
       vm.secretKey = i18n.get('S3.Label.SecretKey');
       vm.sessionToken = i18n.get('S3.Label.SessionToken.Label');
       vm.fileLocation = i18n.get('S3.Label.FileLocation');
+      vm.endpoint = i18n.get('S3.Label.Endpoint');
+      vm.pathStyleAccess = i18n.get('S3.Label.PathStyleAccess');
+      vm.signatureVersion = i18n.get('S3.Label.SignatureVersion');
+      vm.defaultS3Config = i18n.get('S3.Label.DefaultS3Config');
+      vm.yes = i18n.get('S3.Label.Yes');
+      vm.no = i18n.get('S3.Label.No');
       vm.browse = i18n.get('S3.Label.Browse');
+      vm.otherLabel = i18n.get('S3.Label.Other');
+      vm.connectionTypeLabel = i18n.get('S3.Label.ConnectionType');
       vm.buttons = getButtons();
+
+      if (!vm.data.model.connectionType) {
+        vm.connectionType = 0;
+      } else {
+        vm.connectionType = parseInt(vm.data.model.connectionType);
+      }
 
       if (!vm.data.model.authType) {
         vm.type = 0;
@@ -80,11 +104,28 @@ define([
       }
     }
 
-    function onSelect(type) {
+    function onSelectOfConnectionType(connectionType) {
+      if (vm.connectionType !== parseInt(vm.data.model.connectionType)) {
+        vm.data.model.endpoint = null;
+        vm.data.model.pathStyleAccess = null;
+        vm.data.model.signatureVersion = null;
+        vm.data.model.defaultS3Config = null;
+        vm.data.model.profileName = null;
+        vm.data.model.credentialsFilePath = null;
+        vm.region = null;
+      }
+      vm.connectionType = connectionType.value;      
+    }
+
+    function onSelectOfAuthType(type) {
       if (vm.type !== parseInt(vm.data.model.authType)) {
         vm.data.model.accessKey = null;
         vm.data.model.secretKey = null;
         vm.data.model.sessionToken = null;
+        vm.data.model.endpoint = null;
+        vm.data.model.pathStyleAccess = null;
+        vm.data.model.signatureVersion = null;
+        vm.data.model.defaultS3Config = null;
         vm.data.model.profileName = null;
         vm.data.model.credentialsFilePath = null;
         vm.region = null;
@@ -109,11 +150,14 @@ define([
 
     function canNext() {
       if (vm.data && vm.data.model) {
-        if (vm.type === 0) {
+        if (vm.connectionType === 0 && vm.type === 0) {
           return vm.data.model.accessKey && vm.data.model.secretKey;
         }
-        if (vm.type === 1) {
+        if (vm.connectionType === 0 && vm.type === 1) {
           return vm.data.model.profileName && vm.data.model.credentialsFilePath;
+        }
+        if (vm.connectionType === 1) {
+          return vm.data.model.accessKey && vm.data.model.secretKey && vm.data.model.endpoint && vm.data.model.pathStyleAccess && vm.data.model.signatureVersion;
         }
       }
       return false;
@@ -122,7 +166,17 @@ define([
     function doTest() {
       return $q(function(resolve, reject) {
         vm.data.model.authType = vm.type;
+        vm.data.model.connectionType = vm.connectionType;
         vm.data.model.region = vm.region;
+
+        if (!vm.data.model.pathStyleAccess) {
+          vm.data.model.pathStyleAccess = "false";
+        }
+
+        if (!vm.data.model.defaultS3Config) {
+          vm.data.model.defaultS3Config = "false";
+        }
+
         dataService.testConnection(vm.data.model).then(function() {
           vm.message = {
             "type": "success",
@@ -150,6 +204,7 @@ define([
         position: "right",
         onClick: function() {
           vm.data.model.authType = vm.type;
+          vm.data.model.connectionType = vm.connectionType;
           vm.data.model.region = vm.region;
           $state.go("summary", {data: vm.data, transition: "slideLeft"});
         }

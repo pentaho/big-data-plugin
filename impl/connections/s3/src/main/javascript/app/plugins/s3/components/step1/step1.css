@@ -1,5 +1,6 @@
 .middle_div {
   width: 390px;
+  height: 400px;
 }
 
 selectbox .selected_value {
@@ -16,4 +17,23 @@ selectbox#region .options {
 
 selectbox#region .options {
   height: 100px;
+}
+
+.scroll-form {
+  overflow-y: auto;
+  height: calc(100% - 94px);
+  padding-right: 4px;
+}
+
+.radio-button-label {
+  display: inline;
+}
+
+.check-box-label {
+    display: inline;
+    left-margin:10px;
+}
+
+.fieldset-panel {
+    margin: 5px;
 }

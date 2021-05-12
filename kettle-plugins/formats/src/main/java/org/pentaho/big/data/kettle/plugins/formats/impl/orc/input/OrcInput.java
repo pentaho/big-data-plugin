@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -49,12 +49,9 @@ import java.util.List;
 public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
   public static final long SPLIT_SIZE = 128L * 1024L * 1024L;
 
-  private final NamedClusterServiceLocator namedClusterServiceLocator;
-
   public OrcInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
-                   Trans trans, NamedClusterServiceLocator namedClusterServiceLocator ) {
+                   Trans trans ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
-    this.namedClusterServiceLocator = namedClusterServiceLocator;
   }
 
   @Override
@@ -96,13 +93,14 @@ public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
   }
 
   private NamedCluster getNamedCluster() {
-    return meta.getNamedCluster( environmentSubstitute( meta.getFilename() ) );
+    return meta.getNamedClusterResolver().resolveNamedCluster( environmentSubstitute( meta.getFilename() ) );
   }
 
   private FormatService getFormatService() throws KettleException {
     FormatService formatService;
     try {
-      formatService = namedClusterServiceLocator.getService( getNamedCluster(), FormatService.class );
+      formatService = meta.getNamedClusterResolver().getNamedClusterServiceLocator()
+        .getService( getNamedCluster(), FormatService.class );
     } catch ( ClusterInitializationException e ) {
       throw new KettleException( "can't get service format shim ", e );
     }

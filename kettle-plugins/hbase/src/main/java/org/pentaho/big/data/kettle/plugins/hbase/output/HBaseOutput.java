@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -418,6 +418,11 @@ public class HBaseOutput extends BaseStep implements StepInterface {
     if ( super.init( smi, sdi ) ) {
       HBaseOutputMeta meta = (HBaseOutputMeta) smi;
       try {
+        // Set Embedded NamedCluter MetatStore Provider Key so that it can be passed to VFS
+        if ( getTransMeta().getNamedClusterEmbedManager() != null ) {
+          getTransMeta().getNamedClusterEmbedManager().passEmbeddedMetastoreKey( getTransMeta(),
+            getTransMeta().getEmbeddedMetastoreProviderKey() );
+        }
         meta.applyInjection( this );
         return true;
       } catch ( KettleException e ) {

@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  * <p>
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  * <p>
  * ******************************************************************************
  * <p>
@@ -23,6 +23,10 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
+import org.pentaho.di.core.variables.Variables;
+import org.pentaho.di.trans.TransMeta;
+import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
@@ -71,6 +75,7 @@ public class HBaseOutputMetaTest {
   @Mock RuntimeTester runtimeTester;
   @Mock NamedClusterLoadSaveUtil namedClusterLoadSaveUtil;
   @Mock NamedCluster namedCluster;
+  @Mock MetastoreLocatorOsgi metastoreLocatorOsgi;
 
   @Mock Repository rep;
   @Mock IMetaStore metaStore;
@@ -86,7 +91,7 @@ public class HBaseOutputMetaTest {
   public void testReadRepSetsNamedCluster() throws Exception {
     when( namedClusterLoadSaveUtil.loadClusterConfig( any(), any(), any(), any(), any(), any() ) )
       .thenReturn( namedCluster );
-    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class ) ).thenReturn( hBaseService );
+    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class, null ) ).thenReturn( hBaseService );
     when( hBaseService.getMappingFactory() )
       .thenReturn( mock( MappingFactory.class ) );
     Mapping mapping = mock( Mapping.class );
@@ -118,7 +123,7 @@ public class HBaseOutputMetaTest {
   @Test
   public void testApplyInjectionDefinitionExists() throws Exception {
     HBaseOutputMeta hBaseOutputMetaSpy = Mockito.spy( this.hBaseOutputMeta );
-    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class ) ).thenReturn( hBaseService );
+    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class, null ) ).thenReturn( hBaseService );
     hBaseOutputMetaSpy.setMappingDefinition( mappingDefinition );
     hBaseOutputMetaSpy.setNamedCluster( namedCluster );
     Mockito.doReturn( null ).when( hBaseOutputMetaSpy ).getMapping( any(), any() );
@@ -133,7 +138,7 @@ public class HBaseOutputMetaTest {
   @Test
   public void testApplyInjectionDefinitionNull() throws Exception {
     HBaseOutputMeta hBaseOutputMetaSpy = Mockito.spy( this.hBaseOutputMeta );
-    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class ) ).thenReturn( hBaseService );
+    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class, null ) ).thenReturn( hBaseService );
     hBaseOutputMetaSpy.setMappingDefinition( null );
     hBaseOutputMetaSpy.setNamedCluster( namedCluster );
     Mockito.doReturn( null ).when( hBaseOutputMetaSpy ).getMapping( any(), any() );
@@ -148,7 +153,7 @@ public class HBaseOutputMetaTest {
     KettleLogStore.init();
     ClusterInitializationException exception = new ClusterInitializationException( new Exception() );
     hBaseOutputMeta.setNamedCluster( namedCluster );
-    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class ) ).thenThrow( exception );
+    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class, null ) ).thenThrow( exception );
     when( namedClusterLoadSaveUtil.loadClusterConfig( any(), any(), any(), any(), any(), any() ) )
       .thenReturn( namedCluster );
 
@@ -171,7 +176,7 @@ public class HBaseOutputMetaTest {
   public void testLoadXmlServiceStatusOk() throws Exception {
     KettleLogStore.init();
     hBaseOutputMeta.setNamedCluster( namedCluster );
-    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class ) ).thenReturn( hBaseService );
+    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class, null ) ).thenReturn( hBaseService );
     when( namedClusterLoadSaveUtil.loadClusterConfig( any(), any(), any(), any(), any(), any() ) )
       .thenReturn( namedCluster );
 
@@ -194,7 +199,7 @@ public class HBaseOutputMetaTest {
     KettleLogStore.init();
     ClusterInitializationException exception = new ClusterInitializationException( new Exception() );
     hBaseOutputMeta.setNamedCluster( namedCluster );
-    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class ) ).thenThrow( exception );
+    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class, null ) ).thenThrow( exception );
     when( namedClusterLoadSaveUtil.loadClusterConfig( any(), any(), any(), any(), any(), any() ) )
       .thenReturn( namedCluster );
 
@@ -210,7 +215,7 @@ public class HBaseOutputMetaTest {
   public void testReadRepServiceStatusOk() throws Exception {
     KettleLogStore.init();
     hBaseOutputMeta.setNamedCluster( namedCluster );
-    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class ) ).thenReturn( hBaseService );
+    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class, null ) ).thenReturn( hBaseService );
     when( namedClusterLoadSaveUtil.loadClusterConfig( any(), any(), any(), any(), any(), any() ) )
       .thenReturn( namedCluster );
 
@@ -219,5 +224,25 @@ public class HBaseOutputMetaTest {
     ServiceStatus serviceStatus = hBaseOutputMeta.getServiceStatus();
     assertNotNull( serviceStatus );
     assertTrue( serviceStatus.isOk() );
+  }
+
+  @Test
+  public void testInjectWithEmbeddedMetastoreProviderKey() throws Exception {
+    KettleLogStore.init();
+    hBaseOutputMeta.setNamedCluster( namedCluster );
+    when( namedCluster.getName() ).thenReturn( "ClusterName" );
+    NamedCluster embeddedNamedCluster = mock( NamedCluster.class );
+    when( embeddedNamedCluster.getShimIdentifier() ).thenReturn( "shim" );
+    StepMeta mockStepMeta = mock( StepMeta.class );
+    TransMeta mockTransMeta = mock( TransMeta.class );
+    when( mockTransMeta.getEmbeddedMetastoreProviderKey() ).thenReturn( "key" );
+    hBaseOutputMeta.setParentStepMeta( mockStepMeta );
+    when( mockStepMeta.getParentTransMeta() ).thenReturn( mockTransMeta );
+    when( metastoreLocatorOsgi.getExplicitMetastore( "key" ) ).thenReturn( metaStore );
+    when( namedClusterService.getNamedClusterByName( "ClusterName", metaStore ) ).thenReturn( embeddedNamedCluster );
+    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class, "key" ) ).thenReturn( hBaseService );
+
+    hBaseOutputMeta.applyInjection( new Variables() );
+    assertEquals( embeddedNamedCluster, hBaseOutputMeta.getNamedCluster() );
   }
 }

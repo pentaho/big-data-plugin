@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -21,14 +21,10 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input;
 
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
 import org.pentaho.big.data.kettle.plugins.formats.parquet.input.ParquetInputMetaBase;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.injection.InjectionSupported;
-import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
@@ -54,21 +50,16 @@ import org.pentaho.di.trans.step.StepMeta;
 } )
 public class ParquetInputMeta extends ParquetInputMetaBase {
 
-  protected final NamedClusterServiceLocator namedClusterServiceLocator;
-  private final NamedClusterService namedClusterService;
-  private MetastoreLocatorOsgi metaStoreService;
+  private final NamedClusterResolver namedClusterResolver;
 
-  public ParquetInputMeta( NamedClusterServiceLocator namedClusterServiceLocator,
-                           NamedClusterService namedClusterService, MetastoreLocatorOsgi metaStore ) {
-    this.namedClusterServiceLocator = namedClusterServiceLocator;
-    this.namedClusterService = namedClusterService;
-    this.metaStoreService = metaStore;
+  public ParquetInputMeta( NamedClusterResolver namedClusterResolver ) {
+    this.namedClusterResolver = namedClusterResolver;
   }
 
   @Override
   public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
                                 Trans trans ) {
-    return new ParquetInput( stepMeta, stepDataInterface, copyNr, transMeta, trans, namedClusterServiceLocator );
+    return new ParquetInput( stepMeta, stepDataInterface, copyNr, transMeta, trans );
   }
 
   @Override
@@ -76,11 +67,7 @@ public class ParquetInputMeta extends ParquetInputMetaBase {
     return new ParquetInputData();
   }
 
-  public NamedCluster getNamedCluster() {
-    return NamedClusterResolver.resolveNamedCluster( namedClusterService, metaStoreService, this.inputFiles.fileName[ 0 ] );
-  }
-
-  public NamedCluster getNamedCluster( String fileUri ) {
-    return NamedClusterResolver.resolveNamedCluster( namedClusterService, metaStoreService, fileUri );
+  public NamedClusterResolver getNamedClusterResolver() {
+    return namedClusterResolver;
   }
 }

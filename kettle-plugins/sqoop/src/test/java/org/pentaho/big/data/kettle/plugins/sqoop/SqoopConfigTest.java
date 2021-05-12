@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -159,7 +159,7 @@ public class SqoopConfigTest {
   @Test
   public void getAdvancedArgumentsList() {
     AbstractModelList<ArgumentWrapper> args = config.getAdvancedArgumentsList();
-    assertEquals( 60, args.size() );
+    assertEquals( 61, args.size() );
 
     PropertyChangeListener l = mock( PropertyChangeListener.class );
     config.addPropertyChangeListener( l );
@@ -172,7 +172,7 @@ public class SqoopConfigTest {
     }
 
     // We should have received one event for every property changed
-    verify( l, times( 60 ) ).propertyChange( (PropertyChangeEvent) any() );
+    verify( l, times( 61 ) ).propertyChange( (PropertyChangeEvent) any() );
   }
 
   @Test

@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,11 +22,9 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.avro.input;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.kettle.plugins.formats.avro.AvroTypeConverter;
-import org.pentaho.big.data.kettle.plugins.formats.avro.output.AvroOutputMetaBase;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
@@ -54,9 +52,12 @@ import org.pentaho.hadoop.shim.api.format.AvroSpec;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public abstract class AvroInputMetaBase extends BaseStepMeta implements StepMetaInterface, ResolvableResource {
 
-  public static final Class<?> PKG = AvroOutputMetaBase.class;
+  public static final Class<?> PKG = AvroInputMetaBase.class;
 
   public static enum LocationDescriptor {
     FILE_NAME, FIELD_NAME, FIELD_CONTAINING_FILE_NAME;
@@ -72,7 +73,8 @@ public abstract class AvroInputMetaBase extends BaseStepMeta implements StepMeta
   private String dataLocation;
 
   @Injection( name = "DATA_LOCATION_TYPE" )
-  private int dataLocationType = LocationDescriptor.FILE_NAME.ordinal();
+  @VisibleForTesting
+  public int dataLocationType = LocationDescriptor.FILE_NAME.ordinal();
 
   @Injection( name = "SCHEMA_LOCATION" )
   private String schemaLocation;
@@ -248,6 +250,7 @@ public abstract class AvroInputMetaBase extends BaseStepMeta implements StepMeta
 
     retval.append( INDENT ).append( XMLHandler.addTagValue( "passing_through_fields", passingThruFields ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( "dataLocation", getDataLocation() ) );
+    parentStepMeta.getParentTransMeta().getNamedClusterEmbedManager().registerUrl( getDataLocation() );
     retval.append( INDENT ).append( XMLHandler.addTagValue( "sourceFormat", getFormat() ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( "dataLocationType", dataLocationType ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( "schemaLocation", getSchemaLocation() ) );
@@ -441,7 +444,7 @@ public abstract class AvroInputMetaBase extends BaseStepMeta implements StepMeta
         String realFileName = getParentStepMeta().getParentTransMeta().environmentSubstitute( dataLocation );
         FileObject fileObject = KettleVFS.getFileObject( realFileName );
         if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
-          dataLocation = ( (AliasedFileObject) fileObject ).getOriginalURIString();
+          dataLocation = ( (AliasedFileObject) fileObject ).getAELSafeURIString();
         }
       } catch ( KettleFileException e ) {
         throw new RuntimeException( e );
@@ -453,7 +456,7 @@ public abstract class AvroInputMetaBase extends BaseStepMeta implements StepMeta
         String realSchemaFilename = getParentStepMeta().getParentTransMeta().environmentSubstitute( schemaLocation );
         FileObject fileObject = KettleVFS.getFileObject( realSchemaFilename );
         if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
-          schemaLocation = ( (AliasedFileObject) fileObject ).getOriginalURIString();
+          schemaLocation = ( (AliasedFileObject) fileObject ).getAELSafeURIString();
         }
       } catch ( KettleFileException e ) {
         throw new RuntimeException( e );

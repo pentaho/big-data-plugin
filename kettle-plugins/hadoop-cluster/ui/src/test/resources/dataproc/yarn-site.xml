@@ -1,0 +1,289 @@
+<?xml version="1.0" ?>
+<!--
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License. See accompanying LICENSE file.
+-->
+<configuration>
+  <!-- Site specific YARN configuration properties -->
+  <property>
+    <name>yarn.resourcemanager.webapp.methods-allowed</name>
+    <value>GET,HEAD</value>
+    <description>
+      The HTTP methods allowed by the YARN Resource Manager web UI and REST API.
+    </description>
+  </property>
+  <property>
+    <description>
+      Name of the cluster. In a HA setting,       this is used to ensure the RM
+      participates in leader       election for this cluster and ensures it does
+      not affect       other clusters
+    </description>
+    <name>yarn.resourcemanager.cluster-id</name>
+    <value>cluster-ec0a</value>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.store.class</name>
+    <value>org.apache.hadoop.yarn.server.resourcemanager.recovery.ZKRMStateStore</value>
+  </property>
+  <property>
+    <name>yarn.nodemanager.local-dirs</name>
+    <value>/hadoop/yarn/nm-local-dir</value>
+    <description>
+      Directories on the local machine in which to application temp files.
+    </description>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.hostname</name>
+    <value>cluster-ec0a-m-0</value>
+  </property>
+  <property>
+    <name>yarn.nodemanager.resource.memory-mb</name>
+    <value>3072</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>yarn.scheduler.minimum-allocation-mb</name>
+    <value>256</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.nodes.include-path</name>
+    <value>/etc/hadoop/conf/nodes_include</value>
+  </property>
+  <property>
+    <name>yarn.nodemanager.container-executor.os.sched.priority.adjustment</name>
+    <value>1</value>
+  </property>
+  <property>
+    <name>yarn.nodemanager.resource.cpu-vcores</name>
+    <value>1</value>
+    <description>
+      Number of vcores that can be allocated for containers. This is used by
+      the RM scheduler when allocating resources for containers. This is not
+      used to limit the number of physical cores used by YARN containers.
+    </description>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.ha.automatic-failover.zk-base-path</name>
+    <value>/hadoop/yarn-leader-election</value>
+    <description>
+      The base znode path to use for storing leader information,       when
+      using ZooKeeper based leader election.
+    </description>
+  </property>
+  <property>
+    <name>yarn.scheduler.maximum-allocation-mb</name>
+    <value>3072</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.ha.enabled</name>
+    <value>true</value>
+    <description>
+      Enable RM high-availability. When enabled,       (1) The RM starts in the
+      Standby mode by default, and transitions to       the Active mode when
+      prompted to.       (2) The nodes in the RM ensemble are listed in
+      yarn.resourcemanager.ha.rm-ids       (3) The id of each RM either comes
+      from yarn.resourcemanager.ha.id       if yarn.resourcemanager.ha.id is
+      explicitly specified or can be       figured out by matching
+      yarn.resourcemanager.address.{id} with local address       (4) The actual
+      physical addresses come from the configs of the pattern       - {rpc-
+      config}.{id}
+    </description>
+  </property>
+  <property>
+    <name>yarn.client.failover-sleep-max-ms</name>
+    <value>15000</value>
+    <description>
+      When HA is enabled, the maximum sleep time (in milliseconds) between
+      failovers. When set, this overrides the yarn.resourcemanager.connect.*
+      settings. When not set, yarn.resourcemanager.connect.retry-interval.ms is
+      used instead.
+    </description>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.zk-state-store.parent-path</name>
+    <value>/hadoop/rmstore</value>
+    <description>
+      Full path of the ZooKeeper znode where RM state will be     stored. This
+      must be supplied when using
+      org.apache.hadoop.yarn.server.resourcemanager.recovery.ZKRMStateStore
+      as the value for yarn.resourcemanager.store.class
+    </description>
+  </property>
+  <property>
+    <name>yarn.log-aggregation-enable</name>
+    <value>false</value>
+    <description>Enable remote logs aggregation to the default FS.</description>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.hostname.rm0</name>
+    <value>cluster-ec0a-m-0</value>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.hostname.rm1</name>
+    <value>cluster-ec0a-m-1</value>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.hostname.rm2</name>
+    <value>cluster-ec0a-m-2</value>
+  </property>
+  <property>
+    <name>yarn.client.failover-max-attempts</name>
+    <value>15</value>
+    <description>
+      When HA is enabled, the max number of times FailoverProxyProvider should
+      attempt failover. When set, this overrides the
+      yarn.resourcemanager.connect.max-wait.ms. When not set, this is inferred
+      from yarn.resourcemanager.connect.max-wait.ms.
+    </description>
+  </property>
+  <property>
+    <name>yarn.nodemanager.aux-services</name>
+    <value>mapreduce_shuffle,spark_shuffle</value>
+  </property>
+  <property>
+    <name>yarn.nodemanager.vmem-check-enabled</name>
+    <value>false</value>
+  </property>
+  <property>
+    <description>
+      The maximum allocation for every container request at the RM,       in
+      terms of virtual CPU cores. Requests higher than this won't take
+      effect, and will get capped to this value.
+    </description>
+    <name>yarn.scheduler.maximum-allocation-vcores</name>
+    <value>32000</value>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.webapp.address.rm0</name>
+    <value>cluster-ec0a-m-0:8088</value>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.webapp.address.rm1</name>
+    <value>cluster-ec0a-m-1:8088</value>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.webapp.address.rm2</name>
+    <value>cluster-ec0a-m-2:8088</value>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.nodes.exclude-path</name>
+    <value>/etc/hadoop/conf/nodes_exclude</value>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.zk-timeout-ms</name>
+    <value>60000</value>
+    <description>
+      ZooKeeper session timeout in milliseconds. Session expiration is managed
+      by the ZooKeeper cluster itself, not by the client. This value is used by
+      the cluster to determine when the client's session expires. Expirations
+      happens when the cluster does not hear from the client within the
+      specified session timeout period (i.e. no heartbeat).
+    </description>
+  </property>
+  <property>
+    <name>yarn.client.failover-sleep-base-ms</name>
+    <value>500</value>
+    <description>
+      When HA is enabled, the sleep base (in milliseconds) to be used for
+      calculating the exponential delay between failovers. When set, this
+      overrides the yarn.resourcemanager.connect.* settings. When not set,
+      yarn.resourcemanager.connect.retry-interval.ms is used instead.
+    </description>
+  </property>
+  <property>
+    <name>yarn.nodemanager.remote-app-log-dir</name>
+    <value>/yarn-logs/</value>
+    <description>
+      The remote path, on the default FS, to store logs.
+    </description>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.recovery.enabled</name>
+    <value>true</value>
+    <description>Enable RM to recover state after starting.</description>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.ha.rm-ids</name>
+    <value>rm0,rm1,rm2</value>
+    <description>
+      The list of RM nodes in the cluster when HA is       enabled. See
+      description of yarn.resourcemanager.ha       .enabled for full details on
+      how this is used.
+    </description>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.bind-host</name>
+    <value>0.0.0.0</value>
+  </property>
+  <property>
+    <name>yarn.application.classpath</name>
+    <value>$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/*,$HADOOP_COMMON_HOME/lib/*,
+      $HADOOP_HDFS_HOME/*,$HADOOP_HDFS_HOME/lib/*,$HADOOP_MAPRED_HOME/*,
+      $HADOOP_MAPRED_HOME/lib/*,$HADOOP_YARN_HOME/*,$HADOOP_YARN_HOME/lib/*,
+      /usr/local/share/google/dataproc/lib/*</value>
+  </property>
+  <property>
+    <name>yarn.nodemanager.aux-services.spark_shuffle.class</name>
+    <value>org.apache.spark.network.yarn.YarnShuffleService</value>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.webapp.cross-origin.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>yarn.timeline-service.http-cross-origin.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>yarn.timeline-service.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>yarn.timeline-service.hostname</name>
+    <value>cluster-ec0a-m-0</value>
+  </property>
+  <property>
+    <name>yarn.timeline-service.bind-host</name>
+    <value>0.0.0.0</value>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.system-metrics-publisher.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>yarn.timeline-service.generic-application-history.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>yarn.timeline-service.ui-names</name>
+    <value>tez</value>
+  </property>
+  <property>
+    <name>yarn.timeline-service.ui-on-disk-path.tez</name>
+    <value>/usr/lib/tez/tez-ui-0.9.2.war</value>
+  </property>
+  <property>
+    <name>yarn.timeline-service.ui-web-path.tez</name>
+    <value>/tez-ui</value>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.nodemanager-graceful-decommission-timeout-secs</name>
+    <value>86400</value>
+    <final>false</final>
+    <source>Dataproc Cluster Properties</source>
+  </property>
+</configuration>

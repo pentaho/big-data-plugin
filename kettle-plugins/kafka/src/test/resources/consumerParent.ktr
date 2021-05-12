@@ -460,6 +460,7 @@
     <transformationPath />
     <batchSize>100</batchSize>
     <batchDuration>1000</batchDuration>
+    <prefetchCount>100</prefetchCount>
     <connectionType>CLUSTER</connectionType>
     <directBootstrapServers></directBootstrapServers>
     <OutputField kafkaName="key" type="String">Key</OutputField>

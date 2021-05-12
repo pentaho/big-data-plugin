@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -32,6 +32,7 @@ import org.pentaho.di.core.logging.KettleLoggingEventListener;
 import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -46,6 +47,9 @@ public class NamedClusterResolverTest {
   @Mock private NamedClusterService namedClusterService;
   @Mock private KettleLoggingEventListener kettleLoggingEventListener;
   @Mock private NamedCluster namedCluster;
+  @Mock private NamedClusterServiceLocator namedClusterServiceLocator;
+
+  private NamedClusterResolver namedClusterResolver;
 
   @Before
   public void before() {
@@ -55,32 +59,30 @@ public class NamedClusterResolverTest {
       .thenReturn( namedCluster );
     when( namedClusterService.getNamedClusterByHost( "somehost", null ) )
       .thenReturn( namedCluster );
+
+    namedClusterResolver = new NamedClusterResolver( namedClusterServiceLocator, namedClusterService, metaStoreService );
   }
 
   @Test
   public void windowsFilePathsAreHandled() {
     assertNull(
-      NamedClusterResolver.resolveNamedCluster(
-        namedClusterService, metaStoreService, "C:/path/to some/file" ) );
+      namedClusterResolver.resolveNamedCluster( "C:/path/to some/file" ) );
     verify( kettleLoggingEventListener, times( 0 ) ).eventAdded( any() );
   }
 
   @Test
   public void testNamedClusterByName() {
-    NamedCluster cluster = NamedClusterResolver.resolveNamedCluster(
-      namedClusterService, metaStoreService, "hc://testhc/path" );
+    NamedCluster cluster = namedClusterResolver.resolveNamedCluster( "hc://testhc/path" );
     assertEquals( namedCluster, cluster );
 
-    cluster = NamedClusterResolver.resolveNamedCluster(
-      namedClusterService, metaStoreService, "hc://nosuchhc/path" );
+    cluster = namedClusterResolver.resolveNamedCluster( "hc://nosuchhc/path" );
     assertNull( cluster );
 
   }
 
   @Test
   public void testNamedClusterByHost() {
-    NamedCluster cluster = NamedClusterResolver.resolveNamedCluster(
-      namedClusterService, metaStoreService, "hdfs://somehost/path" );
+    NamedCluster cluster = namedClusterResolver.resolveNamedCluster( "hdfs://somehost/path" );
     assertEquals( namedCluster, cluster );
   }
 

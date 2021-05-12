@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -106,7 +106,7 @@ public class HBaseInputMetaTest {
   public void testApplyInjectionDefinitionsExists() throws Exception {
     HBaseInputMeta hBaseInputMetaSpy = Mockito.spy( hBaseInputMeta );
     hBaseInputMetaSpy.setNamedCluster( namedCluster );
-    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class ) ).thenReturn( hBaseService );
+    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class, null ) ).thenReturn( hBaseService );
     hBaseInputMetaSpy.setMappingDefinition( mappingDefinition );
     List list = mock( List.class );
     hBaseInputMetaSpy.setOutputFieldsDefinition( list );
@@ -145,7 +145,7 @@ public class HBaseInputMetaTest {
     KettleLogStore.init();
     ClusterInitializationException exception = new ClusterInitializationException( new Exception() );
     hBaseInputMeta.setNamedCluster( namedCluster );
-    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class ) ).thenThrow( exception );
+    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class, null ) ).thenThrow( exception );
     when( namedClusterService.getClusterTemplate() ).thenReturn( namedCluster );
 
     IIOMetadataNode node = new IIOMetadataNode();
@@ -193,7 +193,7 @@ public class HBaseInputMetaTest {
     KettleLogStore.init();
     ClusterInitializationException exception = new ClusterInitializationException( new Exception() );
     hBaseInputMeta.setNamedCluster( namedCluster );
-    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class ) ).thenThrow( exception );
+    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class, null ) ).thenThrow( exception );
     when( namedClusterService.getClusterTemplate() ).thenReturn( namedCluster );
 
     hBaseInputMeta.readRep( new MemoryRepository(), metaStore, mock( ObjectId.class ), new ArrayList<>() );

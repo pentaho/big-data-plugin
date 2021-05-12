@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2018-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -23,6 +23,7 @@ package org.pentaho.big.data.kettle.plugins.formats.parquet.input;
 
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputFile;
+import org.pentaho.big.data.kettle.plugins.formats.parquet.ParquetTypeConverter;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
@@ -34,7 +35,6 @@ import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaBase;
-import org.pentaho.big.data.kettle.plugins.formats.parquet.ParquetTypeConverter;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.vfs.AliasedFileObject;
@@ -47,9 +47,10 @@ import org.pentaho.di.trans.steps.file.BaseFileInputAdditionalField;
 import org.pentaho.di.trans.steps.file.BaseFileInputMeta;
 import org.pentaho.di.workarounds.ResolvableResource;
 import org.pentaho.hadoop.shim.api.format.IParquetInputField;
-import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.hadoop.shim.api.format.ParquetSpec;
+import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
+
 import java.util.List;
 
 /**
@@ -80,16 +81,27 @@ public abstract class ParquetInputMetaBase extends
   }
 
   public String getFilename() {
-    if ( inputFiles != null && inputFiles.fileName != null
-      && inputFiles.fileName.length > 0 ) {
-      return inputFiles.fileName[ 0 ];
+    if ( inputFiles != null && inputFiles.fileName != null && inputFiles.fileName.length > 0 ) {
+      return inputFiles.fileName[0];
+    } else {
+      return null;
+    }
+  }
+
+  public String[] getFileNames() {
+    if ( inputFiles != null && inputFiles.fileName != null && inputFiles.fileName.length > 0 ) {
+      return inputFiles.fileName;
     } else {
       return null;
     }
   }
 
   public void setFilename( String filename ) {
-    inputFiles.fileName[ 0 ] = filename;
+    inputFiles.fileName[0] = filename;
+  }
+
+  public void setFilenames( String[] filenames ) {
+    inputFiles.fileName = filenames;
   }
 
   public ParquetInputField[] getInputFields() {
@@ -323,7 +335,7 @@ public abstract class ParquetInputMetaBase extends
             getParentStepMeta().getParentTransMeta().environmentSubstitute( inputFiles.fileName[ i ] );
           FileObject fileObject = KettleVFS.getFileObject( realFileName );
           if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
-            inputFiles.fileName[ i ] = ( (AliasedFileObject) fileObject ).getOriginalURIString();
+            inputFiles.fileName[ i ] = ( (AliasedFileObject) fileObject ).getAELSafeURIString();
           }
         } catch ( KettleFileException e ) {
           throw new RuntimeException( e );

@@ -62,6 +62,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -86,6 +87,9 @@ public class AvroInputMetaBaseTest {
   @Mock
   private List<DatabaseMeta> databases;
 
+  @Mock
+  private NamedClusterEmbedManager embedManager;
+
   private AvroInputMetaBase meta;
 
   private static final String FILE_NAME_VALID_PATH = "path/to/file";
@@ -108,10 +112,8 @@ public class AvroInputMetaBaseTest {
       }
     } );
 
-    NamedClusterEmbedManager manager = mock( NamedClusterEmbedManager.class );
-
     TransMeta parentTransMeta = mock( TransMeta.class );
-    doReturn( manager ).when( parentTransMeta ).getNamedClusterEmbedManager();
+    doReturn( embedManager ).when( parentTransMeta ).getNamedClusterEmbedManager();
 
     StepMeta parentStepMeta = mock( StepMeta.class );
     doReturn( parentTransMeta ).when( parentStepMeta ).getParentTransMeta();
@@ -129,12 +131,13 @@ public class AvroInputMetaBaseTest {
     meta.setInputFields( Arrays.asList( field ) );
 
     assertNotNull( meta.getXML() );
-    verify( meta ).getDataLocation();
+    verify( meta, atLeastOnce() ).getDataLocation();
     verify( meta ).getSchemaLocation();
 
     verify( field ).getAvroFieldName();
     verify( field, times( 3 ) ).getPentahoFieldName();
     verify( field ).getTypeDesc();
+    verify( embedManager ).registerUrl( anyString() );
   }
 
   @Test

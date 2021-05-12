@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -31,7 +31,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.pentaho.big.data.kettle.plugins.job.PropertyEntry;
 import org.pentaho.hadoop.shim.api.HadoopClientServices;
-import org.pentaho.hadoop.shim.api.ShimIdentifierInterface;
+import org.pentaho.hadoop.shim.api.core.ShimIdentifierInterface;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
@@ -55,6 +55,7 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.platform.engine.core.system.PentahoSystem;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
+import org.slf4j.MDC;
 import org.w3c.dom.Node;
 
 import java.util.List;
@@ -153,8 +154,8 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   private boolean loadNamedCluster( IMetaStore metaStore ) {
     try {
       // attempt to load from named cluster
-      String clusterName = getJobConfig().getClusterName();
-
+      String clusterName = getParentJobMeta() == null ? getJobConfig().getClusterName()
+        : getParentJob().getJobMeta().environmentSubstitute( getJobConfig().getClusterName() );
       return loadNamedCluster( clusterName );
     } catch ( Throwable t ) {
       logDebug( t.getMessage(), t );
@@ -197,6 +198,8 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   @SuppressWarnings( "deprecation" )
   public void attachLoggingAppenders() {
     sqoopToKettleAppender = new org.pentaho.di.core.logging.KettleLogChannelAppender( log );
+    sqoopToKettleAppender.addFilter( new SqoopLog4jFilter( log.getLogChannelId() ) );
+    MDC.put( "logChannelId", log.getLogChannelId() );
     try {
       // Redirect all stderr logging to the first log to monitor so it shows up in the Kettle LogChannel
       Logger sqoopLogger = JobEntryUtils.findLogger( LOGS_TO_MONITOR[0] );
@@ -306,10 +309,10 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
       List<String> args = SqoopUtils.getCommandLineArgs( config, getVariables() );
       args.add( 0, getToolName() ); // push the tool command-line argument on the top of the args list
 
-      String configuredShinIdentifier = config.getNamedCluster().getShimIdentifier();
-      if ( !StringUtil.isEmpty( configuredShinIdentifier ) ) {
+      String configuredShimIdentifier = config.getNamedCluster().getShimIdentifier();
+      if ( !StringUtil.isEmpty( configuredShimIdentifier ) ) {
         List<ShimIdentifierInterface> shimIdentifers = PentahoSystem.getAll( ShimIdentifierInterface.class );
-        if ( shimIdentifers.stream().noneMatch( identifier -> identifier.getId().equals( configuredShinIdentifier ) ) ) {
+        if ( shimIdentifers.stream().noneMatch( identifier -> identifier.getId().equals( configuredShimIdentifier ) ) ) {
           String installedShimIdentifiers = shimIdentifers.stream().map( ShimIdentifierInterface::<String>getId ).collect( Collectors.joining( ",", "{", "}" ) );
           throw new KettleException( "Invalid driver version value: " +  config.getNamedCluster().getShimIdentifier() + " Available valid values: " + installedShimIdentifiers );
         }
@@ -335,8 +338,8 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
         }
       }
 
-      if ( !StringUtil.isEmpty( configuredShinIdentifier ) ) {
-        config.getNamedCluster().setShimIdentifier( configuredShinIdentifier );
+      if ( !StringUtil.isEmpty( configuredShimIdentifier ) ) {
+        config.getNamedCluster().setShimIdentifier( configuredShimIdentifier );
       }
 
       // Clone named cluster and copy in variable space

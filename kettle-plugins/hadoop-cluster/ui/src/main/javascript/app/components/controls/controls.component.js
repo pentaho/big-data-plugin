@@ -50,7 +50,9 @@ define([
     function getRightButtons() {
       return getButtonsByPosition("right");
     }
+
   }
+
 
   return {
     name: "controls",

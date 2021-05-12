@@ -34,6 +34,7 @@ define([
   function securityController($location, $state, $q, $stateParams, fileService) {
     var vm = this;
     vm.$onInit = onInit;
+    vm.keyDown = keyDown;
 
     function onInit() {
       vm.securityType = {
@@ -123,6 +124,14 @@ define([
       vm.data.model.gatewayUrl = "";
       vm.data.model.gatewayUsername = "";
       vm.data.model.gatewayPassword = "";
+    }
+
+    function keyDown( e, securityType ) {
+      if (e.which == 13 || e.keyCode == 13 ) {
+        vm.data.model.securityType = securityType;
+        return false;
+      }
+      return true;
     }
   }
 

@@ -5,8 +5,8 @@
     <bundle>wrap:mvn:com.amazonaws/aws-java-sdk/1.11.275</bundle>
     <bundle>mvn:commons-cli/commons-cli/1.2</bundle>
     <bundle>wrap:mvn:com.github.stephenc.high-scale-lib/high-scale-lib/1.1.2</bundle>
-    <bundle>mvn:org.codehaus.jackson/jackson-core-asl/1.5.2</bundle>
-    <bundle>mvn:org.codehaus.jackson/jackson-mapper-asl/1.5.2</bundle>
+    <bundle>mvn:org.codehaus.jackson/jackson-core-asl/${codehaus-jackson.version}</bundle>
+    <bundle>mvn:org.codehaus.jackson/jackson-mapper-asl/${codehaus-jackson.version}</bundle>
     <bundle>wrap:mvn:net.java.dev.jets3t/jets3t/0.9.4</bundle>
     <bundle>wrap:mvn:jline/jline/0.9.94</bundle>
     <bundle>wrap:mvn:com.googlecode.json-simple/json-simple/1.1</bundle>
@@ -52,7 +52,6 @@
     <feature>pentaho-big-data-common</feature>
     <bundle>mvn:org.pentaho/shim-api/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-api-runtimeTest/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-common/${project.version}</bundle>
     <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-services-api/${pentaho-hadoop-shims.version}</bundle>
   </feature>
 
@@ -72,7 +71,6 @@
     <feature>pentaho-jackson</feature>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-common-ui/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-common-job/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-common-named-cluster-bridge/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-guiTestActionHandlers/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-hdfs/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-hbase/${project.version}</bundle>
@@ -90,11 +88,12 @@
 
   <feature name="pentaho-hadoop-cluster-ui" version="1.0">
     <bundle>mvn:org.pentaho.di.plugins/core-ui/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-legacy/${project.version}</bundle>
     <bundle>mvn:pentaho/hadoop-cluster-ui/${project.version}</bundle>
-    <bundle>pentaho-webjars:mvn:org.webjars.bower/angular-animate/1.5.8</bundle>
-    <bundle>pentaho-webjars:mvn:org.webjars.npm/jquery/3.4.0</bundle>
-    <bundle>mvn:commons-fileupload/commons-fileupload/1.4</bundle>
+    <bundle>pentaho-webjars:mvn:org.webjars.bower/angular-animate/${angular.version}</bundle>
+    <bundle>pentaho-webjars:mvn:org.webjars.npm/uirouter__core/${uirouter-core.version}</bundle>
+    <bundle>pentaho-webjars:mvn:org.webjars.npm/uirouter__angularjs/${uirouter-angularjs.version}</bundle>
+    <bundle>pentaho-webjars:mvn:org.webjars.npm/jquery/${jquery.version}</bundle>
+    <bundle>mvn:commons-fileupload/commons-fileupload/${commons-fileupload.version}</bundle>
   </feature>
 
 </features>

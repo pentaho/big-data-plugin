@@ -1,0 +1,387 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<window id="amazon-emr-window-wrapper" onload="jobEntryController.init()">
+
+  <dialog id="amazon-emr-job-entry-dialog"
+          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+          xmlns:pen="http://www.pentaho.org/2008/xul"
+          title="${JobEntryDialog.Title}"
+          resizable="true"
+          height="682"
+          width="465"
+          linuxHeight="742"
+          linuxWidth="514"
+          appicon="AWS-HIVE.png"
+          buttons="">
+
+    <vbox>
+      <grid>
+        <columns>
+          <column/>
+          <column/>
+          <column/>
+        </columns>
+        <rows>
+          <row>
+            <hbox width="5"></hbox>
+            <vbox flex="1">
+              <label value="${JobEntry.Name.Label}"/>
+              <textbox id="jobentry-name" flex="1" multiline="false" width="200"/>
+            </vbox>
+            <hbox flex="1">
+              <spacer flex="1"/>
+              <image src="AWS-HIVE.png"/>
+            </hbox>
+          </row>
+        </rows>
+      </grid>
+    </vbox>
+    <vbox height="3"></vbox>
+    <hbox>
+      <hbox width="9"></hbox>
+      <separator padding="0" flex="1" orient="HORIZONTAL"/>
+      <hbox width="9"></hbox>
+    </hbox>
+    <vbox height="4"></vbox>
+    <hbox flex="1">
+      <hbox width="9"></hbox>
+      <tabbox selectedIndex="0" flex="1">
+        <tabs>
+          <tab label="${AmazonHiveJobExecutor.Hive.Tab.Label}"/>
+          <tab label="${AmazonHiveJobExecutor.Job.Tab.Label}"/>
+        </tabs>
+        <tabpanels flex="1">
+          <tabpanel flex="1">
+            <hbox flex="1">
+              <hbox width="1"></hbox>
+              <vbox padding="8" flex="1">
+                <groupbox>
+                  <caption label="${AmazonHiveJobExecutor.AwsConnection.Group.Label}"/>
+                  <hbox padding="0" flex="1">
+                    <hbox width="5" padding="0"></hbox>
+                    <grid>
+                      <columns>
+                        <column flex="1"/>
+                      </columns>
+                      <rows>
+                        <row>
+                          <vbox>
+                            <label value="${AmazonHiveJobExecutor.AWSAccessKey.Label}"/>
+                            <textbox pen:customclass="variabletextbox" type="password" id="access-key" flex="1"
+                                     multiline="false" width="263"/>
+                          </vbox>
+                        </row>
+                        <row>
+                          <hbox padding="0">
+                            <hbox padding="0"></hbox>
+                            <vbox padding="0">
+                              <label value="${AmazonHiveJobExecutor.AWSSecretKey.Label}"/>
+                              <textbox pen:customclass="variabletextbox" type="password" id="secret-key" flex="1"
+                                       multiline="false" width="263"/>
+                              <hbox padding="0"></hbox>
+                            </vbox>
+                          </hbox>
+                        </row>
+                        <row>
+                          <hbox padding="0">
+                            <hbox padding="0"></hbox>
+                            <vbox padding="0">
+                              <label value="${AmazonHiveJobExecutor.AWSSessionToken.Label}"/>
+                              <textbox pen:customclass="variabletextbox" type="password" id="session-token" flex="1"
+                                       multiline="false" width="263"/>
+                              <hbox padding="0"></hbox>
+                            </vbox>
+                          </hbox>
+                        </row>
+                        <row>
+                          <hbox padding="0">
+                            <hbox padding="0"></hbox>
+                            <vbox padding="0">
+                              <label value="${AmazonHiveJobExecutor.Region.Label}"/>
+                              <hbox padding="0">
+                                <menulist id="region" width="160">
+                                  <menupopup>
+                                  </menupopup>
+                                </menulist>
+                                <hbox padding="0" spacing="0" width="1"></hbox>
+                                <button id="emr-settings" label="${AmazonHiveJobExecutor.EmrSettings.Connect}"
+                                        onclick="jobEntryController.getEmrSettings()" disabled="true"/>
+                              </hbox>
+                            </vbox>
+                          </hbox>
+                        </row>
+                      </rows>
+                    </grid>
+                    <hbox width="5" padding="0"></hbox>
+                  </hbox>
+                  <hbox height="8"></hbox>
+                </groupbox>
+                <hbox height="7"></hbox>
+                <groupbox>
+                  <caption label="${AmazonHiveJobExecutor.Cluster.Group.Label}"/>
+                  <hbox padding="0">
+                    <grid>
+                      <columns>
+                        <column flex="1"/>
+                      </columns>
+                      <rows>
+                        <row>
+                          <hbox>
+                            <hbox width="3"></hbox>
+                            <vbox padding="0">
+                              <hbox padding="0"></hbox>
+                              <radiogroup id="cluster-mode">
+                                <radio command="jobEntryController.updateClusterState()" id="new-cluster"
+                                       label="${AmazonHiveJobExecutor.New.Radio.Label}"
+                                       selected="true"/>
+                                <hbox padding="0" height="2"></hbox>
+                                <radio command="jobEntryController.updateClusterState()" id="existing-cluster"
+                                       label="${AmazonHiveJobExecutor.Existing.Radio.Label}"/>
+                              </radiogroup>
+                            </vbox>
+                            <hbox padding="0" spacing="0"></hbox>
+                          </hbox>
+                        </row>
+                      </rows>
+                    </grid>
+                    <vbox padding="0">
+                      <hbox padding="0" height="8"></hbox>
+                      <separator padding="0" flex="1" spacing="0" orient="VERTICAL"/>
+                      <hbox padding="0" height="10"></hbox>
+                    </vbox>
+                    <deck padding="0" spacing="0" id="cluster-tab" selectedIndex="0">
+                      <grid padding="0" spacing="0">
+                        <columns>
+                          <column/>
+                        </columns>
+                        <rows>
+                          <row>
+                            <vbox flex="1" spacing="0">
+                              <hbox>
+                                <hbox padding="0" width="7"></hbox>
+                                <vbox padding="0">
+                                  <label value="${AmazonHiveJobExecutor.Ec2Role.Label}"/>
+                                  <menulist width="90" id="ec2-role" disabled="true">
+                                    <menupopup>
+                                    </menupopup>
+                                  </menulist>
+                                  <hbox padding="0"></hbox>
+                                  <label value="${AmazonHiveJobExecutor.MasterInstanceType.Label}"/>
+                                  <menulist width="90" id="master-instance-type" disabled="true">
+                                    <menupopup>
+                                    </menupopup>
+                                  </menulist>
+                                  <hbox padding="0"></hbox>
+                                  <label value="${AmazonHiveJobExecutor.EmrRelease.Label}"/>
+                                  <menulist width="90" id="emr-release" editable="true" disabled="true">
+                                    <menupopup>
+                                    </menupopup>
+                                  </menulist>
+                                  <vbox padding="0" spacing="0"></vbox>
+                                </vbox>
+                                <hbox padding="0" width="11"></hbox>
+                                <vbox padding="0">
+                                  <label value="${AmazonHiveJobExecutor.EmrRole.Label}"/>
+                                  <menulist id="emr-role" disabled="true">
+                                    <menupopup>
+                                    </menupopup>
+                                  </menulist>
+                                  <hbox padding="0"></hbox>
+                                  <label value="${AmazonHiveJobExecutor.SlaveInstanceType.Label}"/>
+                                  <menulist id="slave-instance-type" disabled="true">
+                                    <menupopup>
+                                    </menupopup>
+                                  </menulist>
+                                  <hbox padding="0"></hbox>
+                                  <hbox padding="0">
+                                    <label value="${AmazonHiveJobExecutor.NumInstances.Label}"/>
+                                  </hbox>
+                                  <hbox padding="0">
+                                    <textbox pen:customclass="variabletextbox" id="num-instances" multiline="false"
+                                             width="48"
+                                             disabled="true"/>
+                                  </hbox>
+                                </vbox>
+                                <hbox padding="0" width="5"></hbox>
+                              </hbox>
+                              <hbox flex="1" padding="0" spacing="0">
+                                <hbox padding="0" width="11"></hbox>
+                                <vbox flex="1" padding="0" spacing="0">
+                                  <label value="${AmazonHiveJobExecutor.BootstrapActions.Label}"/>
+                                  <hbox padding="0" height="2"></hbox>
+                                  <textbox pen:customclass="variabletextbox" id="bootstrap-actions" height="39"
+                                           width="265" multiline="true"/>
+                                </vbox>
+                                <hbox padding="0" width="8"></hbox>
+                              </hbox>
+                              <vbox padding="0" height="10"></vbox>
+                            </vbox>
+                          </row>
+                        </rows>
+                      </grid>
+                      <grid padding="0" spacing="0">
+                        <columns>
+                          <column/>
+                        </columns>
+                        <rows>
+                          <row>
+                            <hbox>
+                              <hbox width="7"></hbox>
+                              <vbox>
+                                <label value="${AmazonHiveJobExecutor.JobFlowId.Label}"/>
+                                <textbox pen:customclass="variabletextbox" id="jobentry-hadoopjob-flow-id"
+                                         multiline="false" width="263"/>
+                              </vbox>
+                            </hbox>
+                          </row>
+                        </rows>
+                      </grid>
+                    </deck>
+                  </hbox>
+                </groupbox>
+              </vbox>
+              <hbox width="1"></hbox>
+            </hbox>
+          </tabpanel>
+          <tabpanel flex="1">
+            <vbox padding="5" flex="1">
+              <grid>
+                <columns>
+                  <column flex="1"/>
+                </columns>
+                <rows>
+                  <row>
+                    <hbox padding="0">
+                      <hbox padding="0" width="4"></hbox>
+                      <vbox padding="0">
+                        <label value="${AmazonHiveJobExecutor.Name.Label}"/>
+                        <textbox pen:customclass="variabletextbox" id="jobentry-hadoopjob-name" flex="1"
+                                 multiline="false"
+                                 width="263"/>
+                      </vbox>
+                    </hbox>
+                  </row>
+                  <row>
+                    <hbox>
+                      <hbox padding="0" width="2"></hbox>
+                      <vbox padding="0">
+                        <label value="${AmazonHiveJobExecutor.S3StagingDir.Label}"/>
+                        <hbox padding="0">
+                          <textbox pen:customclass="variabletextbox" id="s3-staging-directory" flex="1" width="263"
+                                   multiline="false"/>
+                          <spacer/>
+                          <button id="browseS3Stage" label="${AmazonHiveJobExecutor.S3StagingDir.Browse}"
+                                  onclick="jobEntryController.browseS3StagingDir()"/>
+                        </hbox>
+                      </vbox>
+                    </hbox>
+                  </row>
+                  <row>
+                    <hbox padding="0">
+                      <hbox padding="0" width="4"></hbox>
+                      <vbox padding="0">
+                        <label value="${AmazonHiveJobExecutor.QUrl.Label}"/>
+                        <hbox padding="0">
+                          <textbox pen:customclass="variabletextbox" id="q-url" flex="1" width="263" multiline="false"/>
+                          <spacer/>
+                          <button id="browseQUrl" label="${AmazonHiveJobExecutor.QUrl.Browse}"
+                                  onclick="jobEntryController.browseQ()"/>
+                        </hbox>
+                      </vbox>
+                    </hbox>
+                  </row>
+                  <row>
+                    <hbox>
+                      <hbox padding="0" width="2"></hbox>
+                      <vbox padding="0" spacing="0">
+                        <label value="${AmazonHiveJobExecutor.CommandLineArguments.Label}"/>
+                        <hbox padding="0" height="2"></hbox>
+                        <textbox pen:customclass="variabletextbox" id="command-line-arguments" height="39"
+                                 multiline="true" width="339"/>
+                        <hbox padding="0"></hbox>
+                      </vbox>
+                    </hbox>
+                  </row>
+                  <row>
+                    <grid spacing="0">
+                      <columns>
+                        <column flex="1"/>
+                      </columns>
+                      <rows>
+                        <row>
+                          <vbox padding="0">
+                            <hbox padding="0">
+                              <hbox padding="0" width="2"></hbox>
+                              <hbox padding="0">
+                                <checkbox id="alive" flex="1" command="jobEntryController.invertAlive()"/>
+                                <label value="${AmazonHiveJobExecutor.Alive.Label}"/>
+                              </hbox>
+                            </hbox>
+                            <hbox padding="0"></hbox>
+                          </vbox>
+                        </row>
+                        <row>
+                          <hbox padding="0">
+                            <hbox padding="0" width="2"></hbox>
+                            <hbox padding="0">
+                              <checkbox id="blocking" flex="1" command="jobEntryController.invertBlocking()"/>
+                              <label value="${AmazonHiveJobExecutor.Blocking.Label}"/>
+                            </hbox>
+                          </hbox>
+                        </row>
+                        <row>
+                          <vbox padding="0">
+                            <hbox padding="0">
+                              <hbox padding="0" width="2"></hbox>
+                              <label value="${AmazonHiveJobExecutor.Logging.Interval.Label}"/>
+                            </hbox>
+                            <hbox padding="0"></hbox>
+                          </vbox>
+                        </row>
+                        <row>
+                          <hbox padding="0">
+                            <hbox padding="0" width="2"></hbox>
+                            <textbox pen:customclass="variabletextbox" type="numeric" id="logging-interval" width="48"
+                                     multiline="false"/>
+                          </hbox>
+                        </row>
+                      </rows>
+                    </grid>
+                  </row>
+                </rows>
+              </grid>
+            </vbox>
+          </tabpanel>
+        </tabpanels>
+      </tabbox>
+      <hbox width="9"></hbox>
+    </hbox>
+    <vbox height="7"></vbox>
+    <hbox>
+      <hbox width="9"></hbox>
+      <separator padding="0" flex="1" orient="HORIZONTAL"/>
+      <hbox width="9"></hbox>
+    </hbox>
+    <vbox height="6"></vbox>
+    <hbox padding="0">
+      <hbox width="11"></hbox>
+      <button label="${Dialog.Help}" image="help_web.png" onclick="jobEntryController.help()"/>
+      <spacer flex="1"/>
+      <button label="${Dialog.Accept}" width="75" onclick="jobEntryController.accept()"/>
+      <hbox width="1"></hbox>
+      <button label="${Dialog.Cancel}" width="75" onclick="jobEntryController.cancel()"/>
+      <hbox width="11"></hbox>
+    </hbox>
+    <vbox padding="0" height="11"></vbox>
+  </dialog>
+
+  <!--  ###############################################################################   -->
+  <!--     ERROR DIALOG: Dialog to display error text                                     -->
+  <!--  ###############################################################################   -->
+  <dialog id="amazon-emr-error-dialog" title="${Dialog.Error}" buttonlabelaccept="${Dialog.OK}" buttons="accept"
+          ondialogaccept="jobEntryController.closeErrorDialog()" width="600" height="300" buttonalign="center">
+    <textbox id="amazon-emr-error-message" value="${errorDialog.errorOccurred}" multiline="true" readonly="true"
+             flex="1"/>
+  </dialog>
+</window>

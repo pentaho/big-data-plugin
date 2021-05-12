@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -23,6 +23,7 @@
 package org.pentaho.big.data.kettle.plugins.hbase.input;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.pentaho.big.data.kettle.plugins.hbase.HbaseUtil;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
@@ -427,6 +428,18 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     if ( namedCluster == null ) {
       throw new KettleException( "Named cluster was not initialized!" );
     }
+    if ( namedCluster.getShimIdentifier() == null && getParentStepMeta() != null
+      && getParentStepMeta().getParentTransMeta() != null ) {
+      // If here we have a template for the named cluster, not the real thing.  This is likely due to not having
+      // the namedCluster present in the local metastore.  Time to load it from the embedded Metastore which is only
+      // present at runtime
+      NamedCluster nc = namedClusterService.getNamedClusterByName( namedCluster.getName(),
+        metaStoreService
+          .getExplicitMetastore( getParentStepMeta().getParentTransMeta().getEmbeddedMetastoreProviderKey() ) );
+      if ( nc != null && nc.getShimIdentifier() != null ) {
+        namedCluster = nc; //Overwrite with the real one
+      }
+    }
     try {
       HBaseService hBaseService = getService();
       Mapping tempMapping = null;
@@ -545,6 +558,10 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     namedClusterLoadSaveUtil
         .getXml( retval, namedClusterService, namedCluster, repository == null ? null : repository.getMetaStore(), getLog() );
 
+    if ( parentStepMeta != null && parentStepMeta.getParentTransMeta() != null ) {
+      parentStepMeta.getParentTransMeta().getNamedClusterEmbedManager().addClusterToMeta( namedCluster.getName() );
+    }
+
     if ( !Const.isEmpty( m_coreConfigURL ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "core_config_url", m_coreConfigURL ) );
     }
@@ -616,7 +633,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
     m_coreConfigURL = XMLHandler.getTagValue( stepnode, "core_config_url" );
     m_defaultConfigURL = XMLHandler.getTagValue( stepnode, "default_config_url" );
-    m_sourceTableName = XMLHandler.getTagValue( stepnode, "source_table_name" );
+    m_sourceTableName = HbaseUtil.expandLegacyTableNameOnLoad( XMLHandler.getTagValue( stepnode, "source_table_name" ) );
     m_sourceMappingName = XMLHandler.getTagValue( stepnode, "source_mapping_name" );
     m_keyStart = XMLHandler.getTagValue( stepnode, "key_start" );
     m_keyStop = XMLHandler.getTagValue( stepnode, "key_stop" );
@@ -766,7 +783,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
     m_coreConfigURL = rep.getStepAttributeString( id_step, 0, "core_config_url" );
     m_defaultConfigURL = rep.getStepAttributeString( id_step, 0, "default_config_url" );
-    m_sourceTableName = rep.getStepAttributeString( id_step, 0, "source_table_name" );
+    m_sourceTableName = HbaseUtil.expandLegacyTableNameOnLoad( rep.getStepAttributeString( id_step, 0, "source_table_name" ) );
     m_sourceMappingName = rep.getStepAttributeString( id_step, 0, "source_mapping_name" );
     m_keyStart = rep.getStepAttributeString( id_step, 0, "key_start" );
     m_keyStop = rep.getStepAttributeString( id_step, 0, "key_stop" );
@@ -876,7 +893,8 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
           mappingAdmin = new MappingAdmin( conf );
 
-          m_cachedMapping = mappingAdmin.getMapping( m_sourceTableName, m_sourceMappingName );
+          m_cachedMapping = mappingAdmin.getMapping( space.environmentSubstitute( m_sourceTableName ),
+            space.environmentSubstitute( m_sourceMappingName ) );
         } catch ( Exception ex ) {
           throw new KettleStepException( ex.getMessage(), ex );
         }
@@ -981,7 +999,11 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   protected HBaseService getService() throws ClusterInitializationException {
     HBaseService service = null;
     try {
-      service = namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class );
+      String embeddedMetastoreProviderKey =
+        parentStepMeta == null || parentStepMeta.getParentTransMeta() == null ? null
+          : parentStepMeta.getParentTransMeta().getEmbeddedMetastoreProviderKey();
+      service = namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class,
+        embeddedMetastoreProviderKey );
       this.serviceStatus = ServiceStatus.OK;
     } catch ( Exception e ) {
       this.serviceStatus = ServiceStatus.notOk( e );

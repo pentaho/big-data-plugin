@@ -27,6 +27,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FormAttachment;
@@ -53,6 +54,7 @@ import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
+import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.events.dialog.SelectionOperation;
 import org.pentaho.di.ui.core.gui.GUIResource;
@@ -71,37 +73,12 @@ import java.util.function.BiConsumer;
 
 public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta> implements StepDialogInterface {
 
-  private static final Class<?> PKG = ParquetOutputMeta.class;
+  public static final Class<?> PKG = ParquetOutputMeta.class;
 
-  private static final int PARQUET_OUTPUT_FIELD_TINY = Const.isLinux() ? FIELD_TINY + 20 : FIELD_TINY;
-
-  private static final int SHELL_WIDTH = 698;
-  private static final int SHELL_HEIGHT = 620;
-
-  private static final int COLUMNS_SEP = 5 * MARGIN;
-
-  private static final int OFFSET = 16;
-
-  private TableView wOutputFields;
-
-  private Button wOverwriteExistingFile;
-
-  private ComboVar wCompression;
-  private ComboVar wVersion;
-  private TextVar wRowSize;
-  private TextVar wPageSize;
-
-  private TextVar wExtension;
-  private TextVar wDictPageSize;
-
-  private Label lDict;
-  private Button wDictionaryEncoding;
-  private Button wIncludeDateInFilename;
-  private Button wIncludeTimeInFilename;
-  private Button wSpecifyDateTimeFormat;
-  private ComboVar wDateTimeFormat;
-
-  private static final ParquetSpec.DataType[] SUPPORTED_PARQUET_TYPES = {
+  public static final int PARQUET_OUTPUT_FIELD_TINY = Const.isLinux() ? FIELD_TINY + 20 : FIELD_TINY;
+  public static final int COLUMNS_SEP = 5 * MARGIN;
+  public static final int OFFSET = 16;
+  public static final ParquetSpec.DataType[] SUPPORTED_PARQUET_TYPES = {
     ParquetSpec.DataType.BINARY,
     ParquetSpec.DataType.BOOLEAN,
     ParquetSpec.DataType.DATE,
@@ -114,6 +91,22 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     ParquetSpec.DataType.TIMESTAMP_MILLIS,
     ParquetSpec.DataType.UTF8
   };
+  private static final int SHELL_WIDTH = 698;
+  private static final int SHELL_HEIGHT = 620;
+  private TableView wOutputFields;
+  private Button wOverwriteExistingFile;
+  private ComboVar wCompression;
+  private ComboVar wVersion;
+  private TextVar wRowSize;
+  private TextVar wPageSize;
+  private TextVar wExtension;
+  private TextVar wDictPageSize;
+  private Label lDict;
+  private Button wDictionaryEncoding;
+  private Button wIncludeDateInFilename;
+  private Button wIncludeTimeInFilename;
+  private Button wSpecifyDateTimeFormat;
+  private ComboVar wDateTimeFormat;
 
 
   public ParquetOutputDialog( Shell parent, Object parquetOutputMeta, TransMeta transMeta, String sname ) {
@@ -125,7 +118,66 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     this.meta = parquetOutputMeta;
   }
 
-  protected void createUI(  ) {
+  public static ComboVar createComboVar( TransMeta transMeta, ModifyListener lsMod, Composite container,
+                                         String[] options ) {
+    ComboVar combo = new ComboVar( transMeta, container, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    combo.setItems( options );
+    combo.addModifyListener( lsMod );
+    return combo;
+  }
+
+  public static Label createLabel( Composite container, String labelRef, PropsUI props ) {
+    Label label = new Label( container, SWT.NONE );
+    label.setText( BaseMessages.getString( PKG, labelRef ) );
+    props.setLook( label );
+    return label;
+  }
+
+  public static MessageDialog getFieldsChoiceDialog( Shell shell, int newFields ) {
+    MessageDialog messageDialog =
+      new MessageDialog( shell,
+        BaseMessages.getString( PKG, "ParquetOutput.GetFieldsChoice.Title" ), // "Warning!"
+        null,
+        BaseMessages.getString( PKG, "ParquetOutput.GetFieldsChoice.Message", "" + newFields ),
+        MessageDialog.WARNING, new String[] {
+        BaseMessages.getString( PKG, "ParquetOutput.GetFieldsChoice.AddNew" ),
+        BaseMessages.getString( PKG, "ParquetOutput.GetFieldsChoice.Add" ),
+        BaseMessages.getString( PKG, "ParquetOutput.GetFieldsChoice.ClearAndAdd" ),
+        BaseMessages.getString( PKG, "ParquetOutput.GetFieldsChoice.Cancel" ), }, 0 ) {
+
+        @Override
+        public void create() {
+          super.create();
+          getShell().setBackground( GUIResource.getInstance().getColorWhite() );
+        }
+
+        @Override
+        protected Control createMessageArea( Composite composite ) {
+          Control control = super.createMessageArea( composite );
+          imageLabel.setBackground( GUIResource.getInstance().getColorWhite() );
+          messageLabel.setBackground( GUIResource.getInstance().getColorWhite() );
+          return control;
+        }
+
+        @Override
+        protected Control createDialogArea( Composite parent ) {
+          Control control = super.createDialogArea( parent );
+          control.setBackground( GUIResource.getInstance().getColorWhite() );
+          return control;
+        }
+
+        @Override
+        protected Control createButtonBar( Composite parent ) {
+          Control control = super.createButtonBar( parent );
+          control.setBackground( GUIResource.getInstance().getColorWhite() );
+          return control;
+        }
+      };
+    org.eclipse.jface.window.Window.setDefaultImage( GUIResource.getInstance().getImageSpoon() );
+    return messageDialog;
+  }
+
+  protected void createUI() {
     Control prev = createHeader();
 
     //main fields
@@ -204,24 +256,24 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     }
     ColumnInfo[] parameterColumns = new ColumnInfo[] {
       new ColumnInfo( BaseMessages.getString( PKG, "ParquetOutputDialog.Fields.column.Path" ),
-          ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
+        ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
       new ColumnInfo( BaseMessages.getString( PKG, "ParquetOutputDialog.Fields.column.Name" ),
-          ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
+        ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
       new ColumnInfo( BaseMessages.getString( PKG, "ParquetOutputDialog.Fields.column.Type" ),
-          ColumnInfo.COLUMN_TYPE_CCOMBO,  typeNames, false ),
+        ColumnInfo.COLUMN_TYPE_CCOMBO, typeNames, false ),
       new ColumnInfo( BaseMessages.getString( PKG, "ParquetOutputDialog.Fields.column.Precision" ),
-          ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
+        ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
       new ColumnInfo( BaseMessages.getString( PKG, "ParquetOutputDialog.Fields.column.Scale" ),
-          ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
+        ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
       new ColumnInfo( BaseMessages.getString( PKG, "ParquetOutputDialog.Fields.column.Default" ),
-          ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
+        ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
       new ColumnInfo( BaseMessages.getString( PKG, "ParquetOutputDialog.Fields.column.Null" ),
-          ColumnInfo.COLUMN_TYPE_CCOMBO, NullableValuesEnum.getValuesArr(), true ) };
-    parameterColumns[0].setAutoResize( false );
-    parameterColumns[1].setUsingVariables( true );
+        ColumnInfo.COLUMN_TYPE_CCOMBO, NullableValuesEnum.getValuesArr(), true ) };
+    parameterColumns[ 0 ].setAutoResize( false );
+    parameterColumns[ 1 ].setUsingVariables( true );
     wOutputFields =
-        new TableView( transMeta, wComp, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER | SWT.NO_SCROLL | SWT.V_SCROLL,
-            parameterColumns, 7, lsMod, props );
+      new TableView( transMeta, wComp, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER | SWT.NO_SCROLL | SWT.V_SCROLL,
+        parameterColumns, 7, lsMod, props );
     ColumnsResizer resizer = new ColumnsResizer( 0, 30, 20, 10, 10, 10, 15, 5 );
     wOutputFields.getTable().addListener( SWT.Resize, resizer );
 
@@ -255,27 +307,31 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     formLayout.marginHeight = formLayout.marginWidth = MARGIN;
     wComp.setLayout( formLayout );
 
-    Label lCompression = createLabel( wComp, "ParquetOutputDialog.Options.Compression" );
+    Label lCompression = createLabel( wComp, "ParquetOutputDialog.Options.Compression", props );
     new FD( lCompression ).left( 0, 0 ).top( wComp, 0 ).apply();
-    wCompression = createComboVar( wComp, meta.getCompressionTypes() );
-    new FD( wCompression ).left( 0, 0 ).top( lCompression, FIELD_LABEL_SEP ).width( PARQUET_OUTPUT_FIELD_TINY + VAR_EXTRA_WIDTH ).apply();
+    wCompression = createComboVar( transMeta, lsMod, wComp, meta.getCompressionTypes() );
+    new FD( wCompression ).left( 0, 0 ).top( lCompression, FIELD_LABEL_SEP )
+      .width( PARQUET_OUTPUT_FIELD_TINY + VAR_EXTRA_WIDTH ).apply();
 
-    Label lVersion = createLabel( wComp, "ParquetOutputDialog.Options.Version" );
+    Label lVersion = createLabel( wComp, "ParquetOutputDialog.Options.Version", props );
     new FD( lVersion ).left( 0, 0 ).top( wCompression, FIELDS_SEP ).apply();
-    wVersion = createComboVar( wComp, meta.getVersionTypes() );
-    new FD( wVersion ).left( 0, 0 ).top( lVersion, FIELD_LABEL_SEP ).width( PARQUET_OUTPUT_FIELD_TINY + VAR_EXTRA_WIDTH ).apply();
+    wVersion = createComboVar( transMeta, lsMod, wComp, meta.getVersionTypes() );
+    new FD( wVersion ).left( 0, 0 ).top( lVersion, FIELD_LABEL_SEP )
+      .width( PARQUET_OUTPUT_FIELD_TINY + VAR_EXTRA_WIDTH ).apply();
 
-    Label lRowSize = createLabel( wComp, "ParquetOutputDialog.Options.RowSize" );
+    Label lRowSize = createLabel( wComp, "ParquetOutputDialog.Options.RowSize", props );
     new FD( lRowSize ).left( 0, 0 ).top( wVersion, FIELDS_SEP ).apply();
     wRowSize = new TextVar( transMeta, wComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    new FD( wRowSize ).left( 0, 0 ).top( lRowSize, FIELD_LABEL_SEP ).width( PARQUET_OUTPUT_FIELD_TINY + VAR_EXTRA_WIDTH ).apply();
+    new FD( wRowSize ).left( 0, 0 ).top( lRowSize, FIELD_LABEL_SEP )
+      .width( PARQUET_OUTPUT_FIELD_TINY + VAR_EXTRA_WIDTH ).apply();
     setIntegerOnly( wRowSize );
     wRowSize.addModifyListener( lsMod );
 
-    Label lDataPageSize = createLabel( wComp, "ParquetOutputDialog.Options.PageSize" );
+    Label lDataPageSize = createLabel( wComp, "ParquetOutputDialog.Options.PageSize", props );
     new FD( lDataPageSize ).left( 0, 0 ).top( wRowSize, FIELDS_SEP ).apply();
     wPageSize = new TextVar( transMeta, wComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    new FD( wPageSize ).left( 0, 0 ).top( lDataPageSize, FIELD_LABEL_SEP ).width( PARQUET_OUTPUT_FIELD_TINY + VAR_EXTRA_WIDTH ).apply();
+    new FD( wPageSize ).left( 0, 0 ).top( lDataPageSize, FIELD_LABEL_SEP )
+      .width( PARQUET_OUTPUT_FIELD_TINY + VAR_EXTRA_WIDTH ).apply();
     setIntegerOnly( wPageSize );
     wPageSize.addModifyListener( lsMod );
 
@@ -296,7 +352,8 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     lDict.setText( BaseMessages.getString( PKG, "ParquetOutputDialog.Options.DictPageSize" ) );
     new FD( lDict ).left( 0, OFFSET ).top( wDictionaryEncoding, FIELD_LABEL_SEP ).apply();
     wDictPageSize = new TextVar( transMeta, wComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    new FD( wDictPageSize ).left( 0, OFFSET ).top( lDict, FIELD_LABEL_SEP ).width( PARQUET_OUTPUT_FIELD_TINY + VAR_EXTRA_WIDTH - OFFSET ).apply();
+    new FD( wDictPageSize ).left( 0, OFFSET ).top( lDict, FIELD_LABEL_SEP )
+      .width( PARQUET_OUTPUT_FIELD_TINY + VAR_EXTRA_WIDTH - OFFSET ).apply();
     setIntegerOnly( wDictPageSize );
     wDictPageSize.addModifyListener( lsMod );
 
@@ -311,7 +368,8 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     wExtension.addModifyListener( lsMod );
 
     wIncludeDateInFilename = new Button( wComp, SWT.CHECK );
-    wIncludeDateInFilename.setText( BaseMessages.getString( PKG, "ParquetOutputDialog.Options.IncludeDateInFilename" ) );
+    wIncludeDateInFilename
+      .setText( BaseMessages.getString( PKG, "ParquetOutputDialog.Options.IncludeDateInFilename" ) );
     props.setLook( wIncludeDateInFilename );
     new FD( wIncludeDateInFilename ).left( leftRef, COLUMNS_SEP ).top( wExtension, MARGIN ).apply();
     wIncludeDateInFilename.addSelectionListener( new SelectionAdapter() {
@@ -322,7 +380,8 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     } );
 
     wIncludeTimeInFilename = new Button( wComp, SWT.CHECK );
-    wIncludeTimeInFilename.setText( BaseMessages.getString( PKG, "ParquetOutputDialog.Options.IncludeTimeInFilename" ) );
+    wIncludeTimeInFilename
+      .setText( BaseMessages.getString( PKG, "ParquetOutputDialog.Options.IncludeTimeInFilename" ) );
     props.setLook( wIncludeTimeInFilename );
     new FD( wIncludeTimeInFilename ).left( leftRef, COLUMNS_SEP ).top( wIncludeDateInFilename, FIELDS_SEP ).apply();
     wIncludeTimeInFilename.addSelectionListener( new SelectionAdapter() {
@@ -333,7 +392,8 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     } );
 
     wSpecifyDateTimeFormat = new Button( wComp, SWT.CHECK );
-    wSpecifyDateTimeFormat.setText( BaseMessages.getString( PKG, "ParquetOutputDialog.Options.SpecifyDateTimeFormat" ) );
+    wSpecifyDateTimeFormat
+      .setText( BaseMessages.getString( PKG, "ParquetOutputDialog.Options.SpecifyDateTimeFormat" ) );
     props.setLook( wSpecifyDateTimeFormat );
     new FD( wSpecifyDateTimeFormat ).left( leftRef, COLUMNS_SEP ).top( wIncludeTimeInFilename, FIELDS_SEP ).apply();
 
@@ -348,9 +408,9 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
 
     String[] dates = Const.getDateFormats();
     dates =
-        Arrays.stream( dates ).filter( d -> d.indexOf( '/' ) < 0 && d.indexOf( '\\' ) < 0 && d.indexOf( ':' ) < 0 )
-            .toArray( String[]::new ); // remove formats with slashes and colons
-    wDateTimeFormat = createComboVar( wComp, dates );
+      Arrays.stream( dates ).filter( d -> d.indexOf( '/' ) < 0 && d.indexOf( '\\' ) < 0 && d.indexOf( ':' ) < 0 )
+        .toArray( String[]::new ); // remove formats with slashes and colons
+    wDateTimeFormat = createComboVar( transMeta, lsMod, wComp, dates );
     props.setLook( wDateTimeFormat );
     new FD( wDateTimeFormat ).left( leftRef, COLUMNS_SEP + OFFSET ).top( wSpecifyDateTimeFormat, FIELD_LABEL_SEP )
       .width( 200 ).apply();
@@ -375,24 +435,10 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     }
   }
 
-  protected ComboVar createComboVar( Composite container, String[] options ) {
-    ComboVar combo = new ComboVar( transMeta, container, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    combo.setItems( options );
-    combo.addModifyListener( lsMod );
-    return combo;
-  }
-
   protected String getComboVarValue( ComboVar combo ) {
     String text = combo.getText();
     String data = (String) combo.getData( text );
     return data != null ? data : text;
-  }
-
-  private Label createLabel( Composite container, String labelRef ) {
-    Label label = new Label( container, SWT.NONE );
-    label.setText( BaseMessages.getString( PKG, labelRef ) );
-    props.setLook( label );
-    return label;
   }
 
   /**
@@ -428,7 +474,7 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     actualizeDateTimeControls();
   }
 
-  private String coalesce( String value ) {
+  public static String coalesce( String value ) {
     return value == null ? "" : value;
   }
 
@@ -477,7 +523,8 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
       if ( field.getParquetType().equals( ParquetSpec.DataType.DECIMAL ) ) {
         field.setPrecision( item.getText( j++ ) );
         field.setScale( item.getText( j++ ) );
-      } else if ( field.getParquetType().equals( ParquetSpec.DataType.FLOAT ) || field.getParquetType().equals( ParquetSpec.DataType.DOUBLE ) ) {
+      } else if ( field.getParquetType().equals( ParquetSpec.DataType.FLOAT ) || field.getParquetType()
+        .equals( ParquetSpec.DataType.DOUBLE ) ) {
         j++;
         field.setScale( item.getText( j++ ) );
       } else {
@@ -485,7 +532,7 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
       }
 
       field.setDefaultValue( item.getText( j++ ) );
-      field.setAllowNull( NullableValuesEnum.YES.getValue().equals( item.getText( j++ ) ) );
+      field.setAllowNull( NullableValuesEnum.YES.getValue().equals( item.getText( j ) ) );
       outputFields.add( field );
     }
     meta.setOutputFields( outputFields );
@@ -501,7 +548,8 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
       if ( field.getParquetType().equals( ParquetSpec.DataType.DECIMAL ) ) {
         item.setText( i++, coalesce( String.valueOf( field.getPrecision() ) ) );
         item.setText( i++, coalesce( String.valueOf( field.getScale() ) ) );
-      } else if ( field.getParquetType().equals( ParquetSpec.DataType.FLOAT ) || field.getParquetType().equals( ParquetSpec.DataType.DOUBLE ) ) {
+      } else if ( field.getParquetType().equals( ParquetSpec.DataType.FLOAT ) || field.getParquetType()
+        .equals( ParquetSpec.DataType.DOUBLE ) ) {
         item.setText( i++, "" );
         item.setText( i++, field.getScale() > 0 ? String.valueOf( field.getScale() ) : "" );
       } else {
@@ -514,7 +562,8 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     } );
   }
 
-  private void populateFieldsUI( List<ParquetOutputField> fields, TableView wFields, BiConsumer<ParquetOutputField, TableItem> converter ) {
+  private void populateFieldsUI( List<ParquetOutputField> fields, TableView wFields,
+                                 BiConsumer<ParquetOutputField, TableItem> converter ) {
     for ( int i = 0; i < fields.size(); i++ ) {
       TableItem item = null;
       if ( i < wFields.table.getItemCount() ) {
@@ -604,10 +653,10 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
             // Set the default scale
             tableItem.setText( precisionColumn, Integer.toString( ParquetSpec.DEFAULT_DECIMAL_SCALE ) );
           }
-        } else if ( parquetTypeName.equals( ParquetSpec.DataType.FLOAT.getName() ) || parquetTypeName.equals( ParquetSpec.DataType.DOUBLE.getName() ) ) {
-          if ( precisionColumn > 0 && v.getPrecision() > 0 ) {
-            tableItem.setText( precisionColumn, Integer.toString( v.getPrecision() ) );
-          }
+        } else if ( parquetTypeName.equals( ParquetSpec.DataType.FLOAT.getName() )
+          || parquetTypeName.equals( ParquetSpec.DataType.DOUBLE.getName() )
+          && ( precisionColumn > 0 && v.getPrecision() > 0 ) ) {
+          tableItem.setText( precisionColumn, Integer.toString( v.getPrecision() ) );
         }
 
         if ( listener != null && !listener.tableItemInserted( tableItem, v ) ) {
@@ -641,51 +690,8 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
       }
     } catch ( KettleException ke ) {
       new ErrorDialog( shell, BaseMessages.getString( PKG, "System.Dialog.GetFieldsFailed.Title" ), BaseMessages
-          .getString( PKG, "System.Dialog.GetFieldsFailed.Message" ), ke );
+        .getString( PKG, "System.Dialog.GetFieldsFailed.Message" ), ke );
     }
-  }
-
-  static MessageDialog getFieldsChoiceDialog( Shell shell, int newFields ) {
-    MessageDialog messageDialog =
-      new MessageDialog( shell,
-        BaseMessages.getString( PKG, "ParquetOutput.GetFieldsChoice.Title" ), // "Warning!"
-        null,
-        BaseMessages.getString( PKG, "ParquetOutput.GetFieldsChoice.Message", "" + newFields ),
-        MessageDialog.WARNING, new String[] {
-        BaseMessages.getString( PKG, "ParquetOutput.GetFieldsChoice.AddNew" ),
-        BaseMessages.getString( PKG, "ParquetOutput.GetFieldsChoice.Add" ),
-        BaseMessages.getString( PKG, "ParquetOutput.GetFieldsChoice.ClearAndAdd" ),
-        BaseMessages.getString( PKG, "ParquetOutput.GetFieldsChoice.Cancel" ), }, 0 ) {
-
-        @Override
-        public void create() {
-          super.create();
-          getShell().setBackground( GUIResource.getInstance().getColorWhite() );
-        }
-
-        @Override
-        protected Control createMessageArea( Composite composite ) {
-          Control control = super.createMessageArea( composite );
-          imageLabel.setBackground( GUIResource.getInstance().getColorWhite() );
-          messageLabel.setBackground( GUIResource.getInstance().getColorWhite() );
-          return control;
-        }
-
-        @Override
-        protected Control createDialogArea( Composite parent ) {
-          Control control = super.createDialogArea( parent );
-          control.setBackground( GUIResource.getInstance().getColorWhite() );
-          return control;
-        }
-        @Override
-        protected Control createButtonBar( Composite parent ) {
-          Control control = super.createButtonBar( parent );
-          control.setBackground( GUIResource.getInstance().getColorWhite() );
-          return control;
-        }
-      };
-    MessageDialog.setDefaultImage( GUIResource.getInstance().getImageSpoon() );
-    return messageDialog;
   }
 
   @Override

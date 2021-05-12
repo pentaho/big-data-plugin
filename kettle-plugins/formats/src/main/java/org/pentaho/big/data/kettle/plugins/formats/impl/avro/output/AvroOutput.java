@@ -1,8 +1,8 @@
-/*******************************************************************************
+/*! ******************************************************************************
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,7 +25,6 @@ package org.pentaho.big.data.kettle.plugins.formats.impl.avro.output;
 import java.io.IOException;
 
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
@@ -45,16 +44,13 @@ import org.pentaho.hadoop.shim.api.format.IPentahoAvroOutputFormat;
 
 public class AvroOutput extends BaseStep implements StepInterface {
 
-  private final NamedClusterServiceLocator namedClusterServiceLocator;
-
   private AvroOutputMeta meta;
 
   private AvroOutputData data;
 
   public AvroOutput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
-                     Trans trans, NamedClusterServiceLocator namedClusterServiceLocator ) {
+                     Trans trans ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
-    this.namedClusterServiceLocator = namedClusterServiceLocator;
   }
 
   @Override
@@ -118,19 +114,28 @@ public class AvroOutput extends BaseStep implements StepInterface {
   }
 
   public void init() throws Exception {
+    //Set Embedded NamedCluter MetatStore Provider Key so that it can be passed to VFS
+    if ( getTransMeta().getNamedClusterEmbedManager() != null ) {
+      getTransMeta().getNamedClusterEmbedManager()
+        .passEmbeddedMetastoreKey( getTransMeta(), getTransMeta().getEmbeddedMetastoreProviderKey() );
+    }
+
+    NamedCluster namedCluster = getNamedCluster(); //Do this once, it has overhead
+
     FormatService formatService;
     try {
-      formatService = namedClusterServiceLocator
-        .getService( getNamedCluster(), FormatService.class );
+      formatService = meta.getNamedClusterResolver().getNamedClusterServiceLocator()
+        .getService( namedCluster, FormatService.class );
     } catch ( ClusterInitializationException e ) {
       throw new KettleException( "can't get service format shim ", e );
     }
     TransMeta parentTransMeta = meta.getParentStepMeta().getParentTransMeta();
-    data.output = formatService.createOutputFormat( IPentahoAvroOutputFormat.class, getNamedCluster() );
+    data.output = formatService.createOutputFormat( IPentahoAvroOutputFormat.class, namedCluster );
     data.output
       .setOutputFile( parentTransMeta.environmentSubstitute( meta.constructOutputFilename( meta.getFilename() ) ),
         meta.isOverrideOutput() );
     data.output.setFields( meta.getOutputFields() );
+    data.output.setVariableSpace( parentTransMeta );
     IPentahoAvroOutputFormat.COMPRESSION compression;
     try {
       compression = IPentahoAvroOutputFormat.COMPRESSION
@@ -150,7 +155,8 @@ public class AvroOutput extends BaseStep implements StepInterface {
   }
 
   private NamedCluster getNamedCluster() {
-    return meta.getNamedCluster( environmentSubstitute( meta.getFilename() ) );
+    return meta.getNamedClusterResolver().resolveNamedCluster( environmentSubstitute( meta.getFilename() ),
+      meta.getParentStepMeta().getParentTransMeta().getEmbeddedMetastoreProviderKey() );
   }
 
   public void closeWriter() throws KettleException {
@@ -165,9 +171,6 @@ public class AvroOutput extends BaseStep implements StepInterface {
   public boolean init( StepMetaInterface smi, StepDataInterface sdi ) {
     meta = (AvroOutputMeta) smi;
     data = (AvroOutputData) sdi;
-    if ( super.init( smi, sdi ) ) {
-      return true;
-    }
-    return false;
+    return super.init( smi, sdi );
   }
 }

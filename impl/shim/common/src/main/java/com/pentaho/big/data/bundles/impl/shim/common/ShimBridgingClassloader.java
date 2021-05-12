@@ -41,7 +41,10 @@ import java.util.List;
 
 /**
  * Created by bryan on 6/4/15.
+ *
+ * @deprecated
  */
+@Deprecated
 public class ShimBridgingClassloader extends ClassLoader implements BundleReference {
   public static final String HADOOP_SPOON_PLUGIN = "HadoopSpoonPlugin";
   private static PluginClassloaderGetter pluginClassloaderGetter = new PluginClassloaderGetter();

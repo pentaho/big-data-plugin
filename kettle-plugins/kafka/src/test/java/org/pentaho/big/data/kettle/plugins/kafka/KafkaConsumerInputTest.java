@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,7 +22,6 @@
 
 package org.pentaho.big.data.kettle.plugins.kafka;
 
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -39,6 +38,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.verification.VerificationMode;
+import org.pentaho.di.core.Const;
+import org.pentaho.di.core.logging.LogLevel;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.di.core.KettleClientEnvironment;
@@ -132,6 +133,7 @@ public class KafkaConsumerInputTest {
   @Before
   public void setUp() {
     KettleLogStore.setLogChannelInterfaceFactory( logChannelFactory );
+    doReturn( LogLevel.BASIC ).when( logChannel ).getLogLevel();
     when( logChannelFactory.create( any(), any() ) ).thenReturn( logChannel );
     when( logChannelFactory.create( any() ) ).thenReturn( logChannel );
 
@@ -296,7 +298,8 @@ public class KafkaConsumerInputTest {
 
     KafkaStreamSource kafkaStreamSource = (KafkaStreamSource) spy( step.getSource() );
     step.setSource( kafkaStreamSource );
-    Iterable rows = kafkaStreamSource.flowable().blockingIterable();
+    List<Object> items = new ArrayList();
+    kafkaStreamSource.flowable().forEach( i -> items.add( i ) );
 
     Runnable processRowRunnable = () -> {
       try {
@@ -314,7 +317,7 @@ public class KafkaConsumerInputTest {
 
     verify( kafkaStreamSource ).open();
     verify( kafkaStreamSource, times( 2 ) ).flowable();
-    assertEquals( 5, Iterables.size( rows ) );
+    assertEquals( 5, items.size() );
 
     // make sure all of the appropriate columns are in the output row meta
     assertNotNull( data.outputRowMeta.searchValueMeta( meta.getMessageField().getOutputName() ) );
@@ -533,15 +536,15 @@ public class KafkaConsumerInputTest {
 
   public void verifyRow( String key, String message, String offset, String lineNr, final VerificationMode mode ) {
     verify( logChannel, mode ).logBasic(
-      "\n"
-        + "------------> Linenr " + lineNr + "------------------------------\n"
-        + "Key = " + key + "\n"
-        + "Message = " + message + "\n"
-        + "Topic = pentaho\n"
-        + "Partition = 0\n"
-        + "Offset = " + offset + "\n"
-        + "Timestamp = -1\n"
-        + "\n"
+      Const.CR
+        + "------------> Linenr " + lineNr + "------------------------------" + Const.CR
+        + "Key = " + key + Const.CR
+        + "Message = " + message + Const.CR
+        + "Topic = pentaho" + Const.CR
+        + "Partition = 0" + Const.CR
+        + "Offset = " + offset + Const.CR
+        + "Timestamp = -1" + Const.CR
+        + Const.CR
         + "====================" );
   }
 }

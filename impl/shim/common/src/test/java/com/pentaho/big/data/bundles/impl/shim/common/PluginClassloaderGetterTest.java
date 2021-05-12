@@ -46,7 +46,10 @@ import static org.mockito.Mockito.when;
 
 /**
  * Created by bryan on 10/5/15.
+ *
+ * @deprecated
  */
+@Deprecated
 public class PluginClassloaderGetterTest {
   private PluginRegistry pluginRegistry;
   private PluginClassloaderGetter pluginClassloaderGetter;

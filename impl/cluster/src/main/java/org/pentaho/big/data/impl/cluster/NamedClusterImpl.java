@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p>
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  * <p>
  * ******************************************************************************
  * <p>
@@ -17,8 +17,11 @@
 
 package org.pentaho.big.data.impl.cluster;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -39,8 +42,11 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.provider.url.UrlFileName;
 import org.apache.commons.vfs2.provider.url.UrlFileNameParser;
+import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleValueException;
 import org.pentaho.di.core.osgi.api.NamedClusterOsgi;
+import org.pentaho.di.core.osgi.api.NamedClusterSiteFile;
+import org.pentaho.di.core.osgi.impl.NamedClusterSiteFileImpl;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.util.StringUtil;
@@ -69,8 +75,14 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
   public static final String MAPRFS_SCHEME = "maprfs";
   public static final String WASB_SCHEME = "wasb";
   public static final String NC_SCHEME = "hc";
-  public static final String INDENT = "  ";
-  public static final String ROOT_INDENT = "    ";
+  public static final String ID = "id";
+  public static final String CHILD = "child";
+  public static final String CHILDREN = "children";
+  public static final String STRING = "string";
+  public static final String VALUE = "value";
+  public static final String UPPER_STRING = "String";
+
+
   private static final Logger LOGGER = LoggerFactory.getLogger( NamedClusterImpl.class );
 
   private VariableSpace variables = new Variables();
@@ -90,8 +102,8 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
   private String hdfsPort;
   @MetaStoreAttribute
   private String hdfsUsername;
-  @MetaStoreAttribute( password = true )
-  private String hdfsPassword;
+  @MetaStoreAttribute
+  private String hdfsPassword; //encrypted
   @MetaStoreAttribute
   private String jobTrackerHost;
   @MetaStoreAttribute
@@ -115,8 +127,8 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
   @MetaStoreAttribute
   private String gatewayUsername;
 
-  @MetaStoreAttribute ( password = true )
-  private String gatewayPassword;
+  @MetaStoreAttribute
+  private String gatewayPassword;  //encrypted
   @MetaStoreAttribute
   private boolean useGateway;
 
@@ -126,9 +138,13 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
   @MetaStoreAttribute
   private long lastModifiedDate = System.currentTimeMillis();
 
+  @MetaStoreAttribute
+  private List<NamedClusterSiteFile> siteFiles;
+
   private ITwoWayPasswordEncoder passwordEncoder = new Base64TwoWayPasswordEncoder();
 
   public NamedClusterImpl() {
+    siteFiles = new ArrayList<>();
     initializeVariablesFrom( null );
   }
 
@@ -251,6 +267,9 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
     this.setUseGateway( nc.isUseGateway() );
     this.setKafkaBootstrapServers( nc.getKafkaBootstrapServers() );
     this.lastModifiedDate = System.currentTimeMillis();
+    for ( NamedClusterSiteFile ncsf : nc.getSiteFiles() ) {
+      this.siteFiles.add( ncsf.copy() );
+    }
   }
 
   public NamedClusterImpl clone() {
@@ -304,7 +323,7 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
         FileName fileName = parser.parseUri( null, null, noVariablesURL );
         String root = fileName.getRootURI();
         String path = fullyQualifiedIncomingURL.substring( root.length() - 1 );
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         // Check for a special case where a fully qualified path (one that has the protocol in it).
         // This can only happen through variable replacement. See BACKLOG-15849. When this scenario
         // occurs we do not prepend the cluster uri to the url.
@@ -358,7 +377,7 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
         String ncHostname = getHdfsHost() != null ? getHdfsHost() : "";
         String ncPort = getHdfsPort() != null ? getHdfsPort() : "";
         String ncUsername = getHdfsUsername() != null ? getHdfsUsername() : "";
-        String ncPassword = getHdfsPassword() != null ? getHdfsPassword() : "";
+        String ncPassword = getHdfsPassword() != null ? decodePassword( getHdfsPassword() ) : "";
 
         if ( variableSpace != null ) {
           variableSpace.initializeVariablesFrom( getParentVariableSpace() );
@@ -406,7 +425,7 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
             null );
         clusterURL = file.getURI();
         if ( clusterURL.endsWith( "/" ) ) {
-          clusterURL = clusterURL.substring( 0, clusterURL.lastIndexOf( "/" ) );
+          clusterURL = clusterURL.substring( 0, clusterURL.lastIndexOf( '/' ) );
         }
       }
     } catch ( Exception e ) {
@@ -556,10 +575,14 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
         String elementName = (String) entry.getKey();
         if ( !"class".equals( elementName ) && !"parentVariableSpace".equals( elementName ) ) {
           String value = "";
-          String type = "String";
+          String type = UPPER_STRING;
+          Element children = null;
           Object o = entry.getValue();
           if ( o != null ) {
-            if ( o instanceof Long ) {
+            if ( o instanceof ArrayList ) {
+              value = NamedClusterSiteFileImpl.class.getName();
+              children = createSiteFileChildren( doc, ( (ArrayList<NamedClusterSiteFile>) o ) );
+            } else if ( o instanceof Long ) {
               value = Long.toString( (Long) o );
             } else if ( o instanceof Boolean ) {
               value = Boolean.toString( (Boolean) o );
@@ -567,14 +590,14 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
               try {
                 value = (String) entry.getValue();
                 if ( elementName.toLowerCase().contains( "password" ) ) {
-                  value = passwordEncoder.encode( value );
+                  value = encodePassword( value );
                 }
               } catch ( Exception e ) {
-                e.printStackTrace();
+                LOGGER.error( "Error encoding password", e );
               }
             }
           }
-          rootNode.appendChild( createChildElement( doc, elementName, type, value ) );
+          rootNode.appendChild( createChildElement( doc, elementName, type, value, children ) );
         }
       }
       DOMSource domSource = new DOMSource( doc );
@@ -585,37 +608,91 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
       transformer.transform( domSource, result );
       String s = writer.toString();
       // Remove header from the XML
-      s = s.substring( s.indexOf( ">" ) + 1 );
+      s = s.substring( s.indexOf( '>' ) + 1 );
       return s;
     } catch ( ParserConfigurationException | TransformerException e1 ) {
-      LOGGER.error( "Could not parse embedded cluster xml" + e1.toString() );
+      LOGGER.error( "Could not parse embedded cluster xml", e1 );
       return "";
     }
   }
 
+  private Element createSiteFileChildren( Document doc, ArrayList<NamedClusterSiteFile> siteFiles ) {
+    Element children = doc.createElement( CHILDREN );
+    int index = 0;
+    for ( NamedClusterSiteFile sitefile : siteFiles ) {
+      Element siteChildren = doc.createElement( CHILDREN );
+      siteChildren
+        .appendChild( createChildElement( doc, "siteFileContents", UPPER_STRING, sitefile.getSiteFileContents(), null ) );
+      siteChildren
+        .appendChild( createChildElement( doc, "siteFileName",  UPPER_STRING, sitefile.getSiteFileName(), null ) );
+      children.appendChild( createChildElement( doc, String.valueOf( index++ ),  UPPER_STRING, "", siteChildren ) );
+    }
+    return children;
+  }
+
   public NamedCluster fromXmlForEmbed( Node node ) {
     NamedClusterImpl returnCluster = this.clone();
-    List<Node> fields = XMLHandler.getNodes( node, "child" );
+    List<Node> fields = XMLHandler.getNodes( node, CHILD );
     for ( Node field: fields ) {
-      String fieldName = XMLHandler.getTagValue( field, "id" );
-      String fieldValue = XMLHandler.getTagValue(  field, "value" );
-      if ( fieldName.toLowerCase().contains( "password" ) ) {
-        fieldValue = passwordEncoder.decode( fieldValue );
+      String fieldName = XMLHandler.getTagValue( field, ID );
+      Object fieldValue = null;
+
+      if ( "siteFiles".equals( fieldName ) ) {
+        fieldValue = unmarshallSiteFileNode( field );
+      } else {
+        String stringValue = XMLHandler.getTagValue( field, VALUE );
+        if ( fieldName.toLowerCase().contains( "password" ) ) {
+          stringValue = decodePassword( stringValue );
+        }
+        fieldValue = stringValue;
       }
       try {
         BeanUtils.setProperty( returnCluster, fieldName, fieldValue );
       } catch ( IllegalAccessException | InvocationTargetException e ) {
-        LOGGER.error( "Could not serialize NamedCluster to xml: " + e.toString() );
+        LOGGER.error( "Could not set field " + fieldName + " in NamedCluster", e );
       }
     }
     return returnCluster;
   }
 
-  private Node createChildElement( Document doc, String elementName, String elementType, String elementValue ) {
-    Element childNode = doc.createElement( "child" );
-    childNode.appendChild( createTextNode( doc, "id", elementName ) );
-    childNode.appendChild( createTextNode( doc, "value", elementValue ) );
+  private Object unmarshallSiteFileNode( Node field ) {
+    ArrayList<NamedClusterSiteFile> namedClusterSiteFiles = new ArrayList<>();
+    Node siteFileWrapper = XMLHandler.getSubNode( field, CHILDREN );
+    if ( siteFileWrapper != null ) {
+      unmarshallSiteFiles( namedClusterSiteFiles, XMLHandler.getNodes( siteFileWrapper, CHILD )  );
+    }
+    return namedClusterSiteFiles;
+  }
+
+  private void unmarshallSiteFiles( ArrayList<NamedClusterSiteFile> namedClusterSiteFiles, List<Node> siteFileNodes ) {
+    for ( Node siteFile : siteFileNodes ) {
+      namedClusterSiteFiles.add( unmarshallSiteFields( XMLHandler.getNodes( XMLHandler.getSubNode( siteFile, CHILDREN ), CHILD ) ) );
+    }
+  }
+
+  private NamedClusterSiteFileImpl unmarshallSiteFields( List<Node> siteFields ) {
+    NamedClusterSiteFileImpl namedClusterSiteFile = new NamedClusterSiteFileImpl();
+    for ( Node siteField : siteFields ) {
+      String id = XMLHandler.getTagValue( siteField, ID );
+      if ( id != null && !id.isEmpty() ) {
+        try {
+          BeanUtils.setProperty( namedClusterSiteFile, id, XMLHandler.getTagValue( siteField, VALUE ) );
+        } catch ( IllegalAccessException | InvocationTargetException e ) {
+          LOGGER.error( "Could not set field " + id + " in NamedClusterSiteFile", e );
+        }
+      }
+    }
+    return namedClusterSiteFile;
+  }
+
+  private Node createChildElement( Document doc, String elementName, String elementType, String elementValue, Element children ) {
+    Element childNode = doc.createElement( CHILD );
+    childNode.appendChild( createTextNode( doc, ID, elementName ) );
+    childNode.appendChild( createTextNode( doc, VALUE, elementValue ) );
     childNode.appendChild( createTextNode( doc, "type", elementType ) );
+    if ( children != null ) {
+      childNode.appendChild( children );
+    }
     return childNode;
   }
 
@@ -647,12 +724,12 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
 
   @Override
   public String getGatewayPassword() {
-    return gatewayPassword;
+    return decodePassword( gatewayPassword );
   }
 
   @Override
   public void setGatewayPassword( String gatewayPassword ) {
-    this.gatewayPassword = gatewayPassword;
+    this.gatewayPassword = encodePassword( gatewayPassword );
   }
 
   @Override
@@ -675,5 +752,43 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
 
   @Override public NamedClusterOsgi nonOsgiFromXmlForEmbed( Node node ) {
     return (NamedClusterOsgi) fromXmlForEmbed( node );
+  }
+
+  public String decodePassword( String password ) {
+    if ( password == null || password.startsWith( Encr.PASSWORD_ENCRYPTED_PREFIX ) ) {
+      return Encr.decryptPasswordOptionallyEncrypted( password );
+    } else {
+      //Password is likely stored encrypted with legacy Base64TwoWayPasswordEncoder
+      if ( !StringUtil.isVariable( password ) ) {
+        return passwordEncoder.decode( password );
+      }
+    }
+    return password;
+  }
+
+  public String encodePassword( String password ) {
+    return Encr.encryptPasswordIfNotUsingVariables( password );
+  }
+
+  @Override
+  public List<NamedClusterSiteFile> getSiteFiles() {
+    return siteFiles;
+  }
+
+  @Override
+  public void setSiteFiles( List<NamedClusterSiteFile> siteFiles ) {
+    this.siteFiles = siteFiles;
+  }
+
+  @Override
+  public void addSiteFile( String fileName, String content ) {
+    siteFiles.add( new NamedClusterSiteFileImpl( fileName, content ) );
+  }
+
+  @Override
+  public InputStream getSiteFileInputStream( String siteFileName ) {
+    NamedClusterSiteFile n = siteFiles.stream().filter( sf -> sf.getSiteFileName().equals( siteFileName ) )
+      .findFirst().orElse( null );
+    return n == null ? null : new ByteArrayInputStream( n.getSiteFileContents().getBytes() );
   }
 }

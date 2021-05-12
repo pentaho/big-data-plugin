@@ -26,3 +26,14 @@ controls .waiting .loading-icon {
   width: 34px;
   background-size: 34px 34px;
 }
+
+
+controls .button:hover {
+  background-color: #0f2b5b;
+  color: #FFF
+}
+
+controls .button:focus {
+  background-color: #0f2b5b;
+  color: #FFF
+}

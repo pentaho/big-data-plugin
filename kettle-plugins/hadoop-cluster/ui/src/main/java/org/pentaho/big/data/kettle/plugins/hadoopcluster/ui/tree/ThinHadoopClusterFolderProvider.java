@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -35,6 +35,7 @@ import org.pentaho.di.ui.spoon.tree.TreeFolderProvider;
 import org.pentaho.di.ui.util.SwtSvgImageUtil;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -48,8 +49,13 @@ public class ThinHadoopClusterFolderProvider extends TreeFolderProvider {
   @Override
   public void refresh( AbstractMeta meta, TreeNode treeNode, String filter ) {
     List<NamedCluster> namedClusters;
+    List<MetaStoreException> exceptionList = new ArrayList<>();
     try {
-      namedClusters = NamedClusterManager.getInstance().list( Spoon.getInstance().metaStore );
+      namedClusters = NamedClusterManager.getInstance().list( Spoon.getInstance().metaStore, exceptionList );
+      for ( MetaStoreException e : exceptionList ) {
+        new ErrorDialog( Spoon.getInstance().getShell(), BaseMessages.getString( PKG, "Spoon.ErrorDialog.Title" ),
+          BaseMessages.getString( PKG, "Spoon.ErrorDialog.ErrorFetchingFromRepo.NamedCluster" ), e );
+      }
     } catch ( MetaStoreException e ) {
       new ErrorDialog( Spoon.getInstance().getShell(), BaseMessages.getString( PKG, "Spoon.ErrorDialog.Title" ),
         BaseMessages.getString( PKG, "Spoon.ErrorDialog.ErrorFetchingFromRepo.NamedCluster" ), e );

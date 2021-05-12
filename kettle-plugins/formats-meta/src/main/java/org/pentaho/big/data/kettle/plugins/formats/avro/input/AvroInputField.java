@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -160,7 +160,7 @@ public class AvroInputField extends BaseFormatInputField implements IAvroInputFi
   @Override
   public void setAvroType( String avroType ) {
     for ( AvroSpec.DataType tmpType : AvroSpec.DataType.values() ) {
-      if ( tmpType.getName().equalsIgnoreCase( avroType ) ) {
+      if ( tmpType.toString().equalsIgnoreCase( avroType ) ) {
         setFormatType( tmpType.getId() );
         break;
       }

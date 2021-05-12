@@ -64,7 +64,7 @@ public class HadoopClusterDialog extends ThinDialog {
 
     StringBuilder clientPath = new StringBuilder();
     clientPath.append( getClientPath() );
-    clientPath.append( "#/" );
+    clientPath.append( "#!/" );
     if ( thinAppState != null ) {
       clientPath.append( thinAppState );
     }

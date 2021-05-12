@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -29,6 +29,8 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.pentaho.di.core.attributes.metastore.EmbeddedMetaStore;
+import org.pentaho.di.core.encryption.Encr;
+import org.pentaho.di.core.encryption.TwoWayPasswordEncoderPluginType;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.plugins.LifecyclePluginType;
@@ -59,9 +61,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -83,6 +83,9 @@ public class NamedClusterManagerTest {
   @Before
   @SuppressWarnings( "unchecked" )
   public void setup() throws KettleException, IOException {
+    PluginRegistry.addPluginType( TwoWayPasswordEncoderPluginType.getInstance() );
+    PluginRegistry.init( false );
+    Encr.init( "Kettle" );
     KettleLogStore.init();
     metaStore = mock( IMetaStore.class );
     metaStoreFactory = mock( MetaStoreFactory.class );
@@ -214,7 +217,7 @@ public class NamedClusterManagerTest {
     NamedClusterImpl namedCluster = new NamedClusterImpl();
     namedCluster.setName( "testName" );
     List<NamedClusterImpl> value = new ArrayList<>( Arrays.asList( namedCluster ) );
-    when( metaStoreFactory.getElements( true ) ).thenReturn( value );
+    when( metaStoreFactory.getElements( anyBoolean(), any( List.class ) ) ).thenReturn( value );
     assertEquals( value, namedClusterManager.list( metaStore ) );
   }
 
@@ -246,7 +249,7 @@ public class NamedClusterManagerTest {
   @Test
   public void testContainsSlaveServer() throws MalformedURLException, MetaStoreException {
     String pluginFilePath = getClass().getResource( "/plugin.properties" ).getFile();
-    String resourceDir = pluginFilePath.substring( 0, pluginFilePath.lastIndexOf( File.separator ) );
+    String resourceDir = pluginFilePath.substring( 0, pluginFilePath.lastIndexOf( "/" ) );
     when( mockBigDataPlugin.getPluginDirectory() ).thenReturn( new URL( "file://" + resourceDir ) );
     String testName = "testName";
     assertFalse( namedClusterManager.contains( testName, null ) );
@@ -260,8 +263,8 @@ public class NamedClusterManagerTest {
     NamedCluster namedCluster = mock( NamedCluster.class );
     when( namedCluster.getName() ).thenReturn( testName );
     List namedClusters = new ArrayList<>( Arrays.asList( namedCluster ) );
-    when( metaStoreFactory.getElements( true ) ).thenReturn( namedClusters ).thenReturn( namedClusters ).thenThrow(
-      new MetaStoreException() );
+    when( metaStoreFactory.getElements( anyBoolean(), any( List.class ) ) ).thenReturn( namedClusters )
+      .thenReturn( namedClusters ).thenThrow( new MetaStoreException() );
     assertNull( namedClusterManager.getNamedClusterByName( testName, null ) );
     assertEquals( namedCluster, namedClusterManager.getNamedClusterByName( testName, metaStore ) );
     assertNull( namedClusterManager.getNamedClusterByName( "fakeName", metaStore ) );
@@ -277,8 +280,8 @@ public class NamedClusterManagerTest {
     when( namedCluster.getName() ).thenReturn( testName );
     when( namedCluster.getHdfsHost() ).thenReturn( testHostName );
     List namedClusters = new ArrayList<>( Arrays.asList( namedCluster ) );
-    when( metaStoreFactory.getElements( true ) ).thenReturn( namedClusters ).thenReturn( namedClusters ).thenThrow(
-      new MetaStoreException() );
+    when( metaStoreFactory.getElements( anyBoolean(), any( List.class ) ) ).thenReturn( namedClusters )
+      .thenReturn( namedClusters ).thenThrow( new MetaStoreException() );
     assertNull( namedClusterManager.getNamedClusterByHost( testHostName, null ) );
     assertEquals( namedCluster, namedClusterManager.getNamedClusterByHost( testHostName, metaStore ) );
     assertNull( namedClusterManager.getNamedClusterByHost( "fakeName", metaStore ) );
