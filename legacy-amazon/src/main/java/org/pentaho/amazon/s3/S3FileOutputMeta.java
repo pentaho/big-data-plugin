@@ -24,6 +24,7 @@ package org.pentaho.amazon.s3;
 
 import java.util.List;
 
+import mondrian.olap.Util;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
@@ -154,10 +155,8 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
    * @return
    */
   protected void processFilename( String filename ) throws Exception {
-    if ( Const.isEmpty( filename ) ) {
+    if ( Util.isEmpty( filename ) ) {
       filename = "s3n://s3n/";
-      setFileName( filename );
-      return;
     }
     setFileName( filename );
   }
