@@ -54,7 +54,6 @@
     <oss-licenses.version>9.3.0.0-SNAPSHOT</oss-licenses.version>
     <pdi.version>9.3.0.0-SNAPSHOT</pdi.version>
     <pentaho-reporting.version>9.3.0.0-SNAPSHOT</pentaho-reporting.version>
-    <simple-jndi.version>1.0.3</simple-jndi.version>
     <dependency.xpp3.revision>1.1.4c</dependency.xpp3.revision>
     <dependency.jets3t.revision>0.9.4</dependency.jets3t.revision>
     <dependency.oozie.revision>3.1.3-incubating</dependency.oozie.revision>
