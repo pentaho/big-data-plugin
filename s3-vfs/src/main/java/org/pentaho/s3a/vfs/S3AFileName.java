@@ -1,5 +1,5 @@
 /*!
-* Copyright 2019 - 2020 Hitachi Vantara.  All rights reserved.
+* Copyright 2019 - 2021 Hitachi Vantara.  All rights reserved.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -69,6 +69,7 @@ public class S3AFileName extends AbstractFileName {
   protected void appendRootUri( StringBuilder buffer, boolean addPassword ) {
     buffer.append( getScheme() );
     buffer.append( "://" );
+    buffer.append( bucketId );
   }
 
   @Override public boolean equals( Object o ) {

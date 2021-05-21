@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2020 Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2021 Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -23,9 +23,8 @@
 package org.pentaho.amazon.s3;
 
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import mondrian.olap.Util;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
@@ -57,8 +56,6 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
   private static final String SECRET_KEY_TAG = "secret_key";
   private static final String FILE_TAG = "file";
   private static final String NAME_TAG = "name";
-
-  private static final Pattern OLD_STYLE_FILENAME = Pattern.compile( "^[s|S]3:\\/\\/([0-9a-zA-Z]{20}):(.+)@(.+)$" );
 
 
   private String accessKey = null;
@@ -158,21 +155,10 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
    * @return
    */
   protected void processFilename( String filename ) throws Exception {
-    if ( Const.isEmpty( filename ) ) {
+    if ( Util.isEmpty( filename ) ) {
       filename = "s3n://s3n/";
-      setFileName( filename );
-      return;
     }
-    // it it's an old-style filename - use and then remove keys from the filename
-    Matcher matcher = OLD_STYLE_FILENAME.matcher( filename );
-    if ( matcher.matches() ) {
-      // old style filename is URL encoded
-      accessKey = decodeAccessKey( matcher.group( 1 ) );
-      secretKey = decodeAccessKey( matcher.group( 2 ) );
-      setFileName( "s3://" + matcher.group( 3 ) );
-    } else {
-      setFileName( filename );
-    }
+    setFileName( filename );
   }
 
   protected String decodeAccessKey( String key ) {

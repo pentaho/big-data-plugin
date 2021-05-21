@@ -1,5 +1,5 @@
 /*!
-* Copyright 2010 - 2020 Hitachi Vantara.  All rights reserved.
+* Copyright 2010 - 2021 Hitachi Vantara.  All rights reserved.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -31,26 +31,26 @@ public class S3FileNameTest {
 
   private S3FileName fileName = null;
 
-  private static final String DELIMITER = "/";
+  private static final String BUCKET_ID = "bucketId";
   private static final String SCHEME_DELIMITER = ":/";
 
   public static final String SCHEME = "s3";
 
   @Before
   public void setup() {
-    fileName = new S3FileName( SCHEME, DELIMITER, "", FileType.FOLDER );
+    fileName = new S3FileName( SCHEME, BUCKET_ID, "", FileType.FOLDER );
   }
 
   @Test
   public void testGetURI() {
-    String expected = buildS3URL( "/" );
+    String expected = buildS3URL( "bucketId/" );
     assertEquals( expected, fileName.getURI() );
   }
 
 
   @Test
   public void testCreateName() {
-    assertEquals( "s3://path/to/my/file",
+    assertEquals( "s3:/bucketId/path/to/my/file",
       fileName.createName( "/path/to/my/file", FileType.FILE ).getURI() );
   }
 
@@ -58,12 +58,12 @@ public class S3FileNameTest {
   public void testAppendRootUriWithNonDefaultPort() {
     String fooFolder = "FooFolder";
     String fooBucket = "FooBucket";
-    fileName = new S3FileName( SCHEME, DELIMITER, fooFolder, FileType.FOLDER );
-    String expectedUri = SCHEME + SCHEME_DELIMITER + fooFolder;
+    fileName = new S3FileName( SCHEME, BUCKET_ID, fooFolder, FileType.FOLDER );
+    String expectedUri = SCHEME + SCHEME_DELIMITER + BUCKET_ID + fooFolder;
     assertEquals( expectedUri, fileName.getURI() );
 
-    fileName = new S3FileName( SCHEME, fooBucket, fooBucket + DELIMITER + fooFolder, FileType.FOLDER );
-    expectedUri = SCHEME + SCHEME_DELIMITER + fooBucket + DELIMITER + fooFolder;
+    fileName = new S3FileName( SCHEME, fooBucket, fooFolder, FileType.FOLDER );
+    expectedUri = SCHEME + SCHEME_DELIMITER + fooBucket + fooFolder;
     assertEquals( expectedUri, fileName.getURI() );
   }
 
