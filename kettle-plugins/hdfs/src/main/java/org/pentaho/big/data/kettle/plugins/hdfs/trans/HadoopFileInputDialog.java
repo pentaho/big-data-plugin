@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -103,6 +103,7 @@ import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.steps.file.BaseFileField;
+import org.pentaho.di.trans.steps.fileinput.text.BufferedInputStreamReader;
 import org.pentaho.di.trans.steps.fileinput.text.EncodingType;
 import org.pentaho.di.trans.steps.fileinput.text.TextFileFilter;
 import org.pentaho.di.trans.steps.fileinput.text.TextFileInputMeta;
@@ -2730,11 +2731,11 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
             CompressionProviderFactory.getInstance().createCompressionProviderInstance( meta.content.fileCompression );
         f = provider.createInputStream( fi );
 
-        InputStreamReader reader;
+        BufferedInputStreamReader reader;
         if ( meta.getEncoding() != null && meta.getEncoding().length() > 0 ) {
-          reader = new InputStreamReader( f, meta.getEncoding() );
+          reader = new BufferedInputStreamReader( new InputStreamReader( f, meta.getEncoding() ) );
         } else {
-          reader = new InputStreamReader( f );
+          reader = new BufferedInputStreamReader( new InputStreamReader( f ) );
         }
 
         int linenr = 0;
@@ -3121,14 +3122,19 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     return new InputStreamReader( inputStream );
   }
 
+  private BufferedInputStreamReader getBufferedInputStreamReader( HadoopFileInputMeta meta, InputStream inputStream )
+    throws IOException {
+    return new BufferedInputStreamReader( getInputStreamReader( meta, inputStream ) );
+  }
+
   private String getLine( HadoopFileInputMeta meta, FileInputList textFileList )
     throws IOException, KettleFileException {
 
     InputStream inputStream = null;
-    InputStreamReader reader = null;
+    BufferedInputStreamReader reader = null;
 
     inputStream = getInputStream( meta, textFileList );
-    reader = getInputStreamReader( meta, inputStream );
+    reader = getBufferedInputStreamReader( meta, inputStream );
 
     EncodingType encodingType = EncodingType.guessEncodingType( reader.getEncoding() );
     StringBuilder lineStringBuilder = new StringBuilder( 256 );
