@@ -114,6 +114,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   private static final String CONFIG_PROPERTIES = "config.properties";
   private static final String KEYTAB_AUTH_FILE = "keytabAuthFile";
   private static final String KEYTAB_IMPL_FILE = "keytabImpFile";
+  public static final String MAPR_SHIM = "Map-R";
+  public static final String MAPRFS_SCHEME = "maprfs";
 
   private static final LogChannelInterface log =
     KettleLogStore.getLogChannelInterfaceFactory().create( "HadoopClusterManager" );
@@ -212,6 +214,9 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       nc.setName( model.getName() );
       nc.setHdfsUsername( model.getHdfsUsername() );
       nc.setHdfsPassword( nc.encodePassword( model.getHdfsPassword() ) );
+      if (MAPR_SHIM.equals(model.getShimVendor())) {
+        nc.setStorageScheme(MAPRFS_SCHEME);
+      }
       if ( variableSpace != null ) {
         nc.shareVariablesWith( variableSpace );
       } else {
@@ -260,6 +265,9 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     nc.setOozieUrl( model.getOozieUrl() );
     nc.setKafkaBootstrapServers( model.getKafkaBootstrapServers() );
     resolveShimIdentifier( nc, model.getShimVendor(), model.getShimVersion() );
+    if (MAPR_SHIM.equals(model.getShimVendor())) {
+      nc.setStorageScheme(MAPRFS_SCHEME);
+    }
     setupKnoxSecurity( nc, model );
     if ( variableSpace != null ) {
       nc.shareVariablesWith( variableSpace );

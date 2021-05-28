@@ -86,6 +86,8 @@ public class HadoopClusterManagerTest {
   private static final String HIVE_SITE = "hive-site.xml";
   private static final String OOZIE_SITE = "oozie-site.xml";
   private static final String YARN_SITE = "yarn-site.xml";
+  public static final String MAPR_SHIM_VENDOR = "Map-R";
+  public static final String MAPRFS_SCHEME = "maprfs";
 
   @Mock private Spoon spoon;
   @Mock private LogChannelInterfaceFactory logChannelFactory;
@@ -224,6 +226,14 @@ public class HadoopClusterManagerTest {
     model.setName( ncTestName );
     JSONObject result = hadoopClusterManager.createNamedCluster( model, getFiles( "/" ) );
     assertEquals( ncTestName, result.get( "namedCluster" ) );
+    verify( namedCluster, never() ).setStorageScheme( any( String.class ) );
+  }
+
+  @Test public void testMaprCreateNamedCluster() {
+    ThinNameClusterModel model = new ThinNameClusterModel();
+    model.setShimVendor(MAPR_SHIM_VENDOR);
+    JSONObject result = hadoopClusterManager.createNamedCluster( model, getFiles( "/" ) );
+    verify( namedCluster ).setStorageScheme( eq( MAPRFS_SCHEME ));
   }
 
   @Test public void testOverwriteNamedClusterCaseInsensitive() {
