@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2021 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -27,6 +27,7 @@ import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
 import org.pentaho.di.core.logging.KettleLogStore;
@@ -47,6 +48,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -64,6 +67,9 @@ public class HadoopClusterEndpoints {
   private final RuntimeTester runtimeTester;
   private final String internalShim;
   private final boolean secureEnabled;
+  private static final String MOD_DATE_FILENAME_PREFIX = "mod-";
+  private static final String FILE_CONTENT_FILENAME_PREFIX = "file-";
+  private static final String ZERO = "0";
 
   enum FileType {
     CONFIGURATION( "configuration" ),
@@ -99,18 +105,42 @@ public class HadoopClusterEndpoints {
     Map<String, CachedFileItemStream> fileStreamByName = new HashMap<>();
     if ( ServletFileUpload.isMultipartContent( request ) ) {
       try {
+        CachedFileItemStream lastCachedFileInputStream =
+          null; //Holds the last cached item reference so can be accessed to add a modification date
         FileItemIterator streamItemIterator = ( new ServletFileUpload() ).getItemIterator( request );
         while ( streamItemIterator.hasNext() ) {
-          List<CachedFileItemStream> fileItemStreams = copyAndUnzip( streamItemIterator.next(), fileType );
-          for ( CachedFileItemStream fileItemStream : fileItemStreams ) {
-            fileStreamByName.put( fileItemStream.getFieldName(), fileItemStream );
+          FileItemStream fileItemStream = streamItemIterator.next();
+          if ( fileItemStream.getFieldName().startsWith( MOD_DATE_FILENAME_PREFIX ) ) {
+            //We have a modification date coming date
+            String realFileName = removePrefix( fileItemStream.getFieldName(), MOD_DATE_FILENAME_PREFIX );
+            if ( lastCachedFileInputStream != null && realFileName.equals( lastCachedFileInputStream.getFieldName() ) ) {
+              String millis = ZERO;
+              try ( InputStream is = fileItemStream.openStream() ) {
+                millis = IOUtils.toString( fileItemStream.openStream(), String.valueOf( StandardCharsets.UTF_8 ) );
+              }
+              long modificationDateMillis = Long.parseLong( millis );
+              lastCachedFileInputStream.setLastModified( modificationDateMillis );
+            }
+          } else {
+            //We have file content coming in
+            String realFileName = removePrefix( fileItemStream.getFieldName(), FILE_CONTENT_FILENAME_PREFIX );
+            List<CachedFileItemStream> fileItemStreams = copyAndUnzip( fileItemStream, fileType, realFileName );
+            for ( CachedFileItemStream cachedFileItemStream : fileItemStreams ) {
+              fileStreamByName.put( cachedFileItemStream.getFieldName(), cachedFileItemStream );
+              lastCachedFileInputStream = cachedFileItemStream;
+            }
           }
+
         }
       } catch ( FileUploadException | IOException e ) {
         log.logError( e.getMessage() );
       }
     }
     return fileStreamByName;
+  }
+
+  private String removePrefix( String fieldName, String prefix ) {
+    return fieldName.startsWith( prefix ) ? fieldName.substring( prefix.length() ) :  fieldName;
   }
 
   private boolean isValidUpload( String fileName, FileType fileType ) {
@@ -137,11 +167,12 @@ public class HadoopClusterEndpoints {
    * @throws IOException
    */
   @VisibleForTesting
-  List<CachedFileItemStream> copyAndUnzip( FileItemStream fileItemStream, FileType fileType ) throws IOException {
+  List<CachedFileItemStream> copyAndUnzip( FileItemStream fileItemStream, FileType fileType, String realFileName )
+    throws IOException {
 
     List<CachedFileItemStream> unzippedFileItemStreams = new ArrayList<>();
 
-    if ( fileItemStream.getFieldName().endsWith( ".zip" ) ) {
+    if ( realFileName.endsWith( ".zip" ) ) {
 
       try ( ZipInputStream zis = new ZipInputStream( fileItemStream.openStream() ) ) {
 
@@ -153,6 +184,7 @@ public class HadoopClusterEndpoints {
             if ( isValidUpload( unzippedFileName, fileType ) ) {
               CachedFileItemStream unzippedFileItemStream =
                 new CachedFileItemStream( zis, fileItemStream.getName(), unzippedFileName );
+              unzippedFileItemStream.setLastModified( zipEntry.getLastModifiedTime().toMillis() );
               unzippedFileItemStreams.add( unzippedFileItemStream );
             }
           }
@@ -160,8 +192,9 @@ public class HadoopClusterEndpoints {
       }
     } else {
       //file is not zipped
-      if ( isValidUpload( fileItemStream.getFieldName(), fileType ) ) {
-        unzippedFileItemStreams.add( new CachedFileItemStream( fileItemStream ) );
+      if ( isValidUpload( realFileName, fileType ) ) {
+        unzippedFileItemStreams.add( new CachedFileItemStream( fileItemStream.openStream(), fileItemStream.getName(),
+          realFileName ) );
       }
     }
     return unzippedFileItemStreams;
