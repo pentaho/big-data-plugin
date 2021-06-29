@@ -33,6 +33,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -63,16 +64,19 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.never;
@@ -100,6 +104,7 @@ public class HadoopClusterManagerTest {
   @Mock private ShimIdentifierInterface cdhShim;
   @Mock private ShimIdentifierInterface internalShim;
   @Mock private ShimIdentifierInterface maprShim;
+  @Captor ArgumentCaptor<NamedClusterSiteFile> siteFileCaptor;
   private String ncTestName = "ncTest";
   private String knoxNC = "knoxNC";
   private HadoopClusterManager hadoopClusterManager;
@@ -148,21 +153,16 @@ public class HadoopClusterManagerTest {
     model.setShimVendor( "Cloudera" );
     model.setShimVersion( "5.14" );
 
-    Map<String, CachedFileItemStream> cachedFileItemStream = getFiles( "src/test/resources/secured" );
+    Map<String, CachedFileItemStream> cachedFileItemStreamMap = getFiles( "src/test/resources/secured" );
     File keytabFileDirectory = new File( "src/test/resources/keytab" );
     Map<String, CachedFileItemStream> keytabFileItems = getFiles( keytabFileDirectory.getPath(), "keytabAuthFile" );
-    cachedFileItemStream.putAll( keytabFileItems );
+    cachedFileItemStreamMap.putAll( keytabFileItems );
 
-    JSONObject result = hadoopClusterManager.importNamedCluster( model, cachedFileItemStream );
+    JSONObject result = hadoopClusterManager.importNamedCluster( model, cachedFileItemStreamMap );
     assertEquals( ncTestName, result.get( "namedCluster" ) );
-    InOrder inOrder = inOrder( namedCluster, namedClusterService );
-    verify( namedCluster ).addSiteFile( eq( CORE_SITE ), any( String.class ) );
-    verify( namedCluster ).addSiteFile( eq( YARN_SITE ), any( String.class ) );
-    inOrder.verify( namedCluster ).addSiteFile( eq( HIVE_SITE ), any( String.class ) );
-    verify( namedCluster, never() ).addSiteFile( eq( "test.keytab" ), any( String.class ) );
-    inOrder.verify( namedClusterService ).create( any(), any() );
+    verify( namedCluster, times(3) ).addSiteFile( siteFileCaptor.capture() );
+    assertSiteFields( cachedFileItemStreamMap, siteFileCaptor.getAllValues(), new String[] { "keytabAuthFile" } );
     assertTrue( new File( getShimTestDir(), "test.keytab" ).exists() );
-
   }
 
   @Test public void testUnsecuredImportNamedCluster() {
@@ -170,12 +170,25 @@ public class HadoopClusterManagerTest {
     model.setName( ncTestName );
     model.setShimVendor( "Cloudera" );
     model.setShimVersion( "5.14" );
-    JSONObject result =
-      hadoopClusterManager.importNamedCluster( model, getFiles( "src/test/resources/unsecured" ) );
+    Map<String, CachedFileItemStream> cachedFileItemStreamMap = getFiles( "src/test/resources/unsecured" );
+    JSONObject result = hadoopClusterManager.importNamedCluster( model, cachedFileItemStreamMap );
     assertEquals( ncTestName, result.get( "namedCluster" ) );
-    verify( namedCluster ).addSiteFile( eq( CORE_SITE ), any( String.class ) );
-    verify( namedCluster ).addSiteFile( eq( YARN_SITE ), any( String.class ) );
-    verify( namedCluster ).addSiteFile( eq( HIVE_SITE ), any( String.class ) );
+    verify( namedCluster, times(3) ).addSiteFile( siteFileCaptor.capture() );
+    assertSiteFields( cachedFileItemStreamMap, siteFileCaptor.getAllValues(), new String[] { "oozie-default.xml"} );
+  }
+
+  private void assertSiteFields( Map<String, CachedFileItemStream> streamMap, List<NamedClusterSiteFile> siteFiles,
+                                 String[] missingFiles ) {
+    assertEquals( siteFiles.size(), streamMap.size() - missingFiles.length );
+    for ( int i = 0; i < siteFiles.size(); i++ ) {
+      NamedClusterSiteFile namedClusterSiteFile = siteFiles.get( i );
+      for ( String missingFile : missingFiles ) {
+        assertNotEquals( namedClusterSiteFile.getSiteFileName(), missingFile );
+      }
+      assert ( streamMap.containsKey( namedClusterSiteFile.getSiteFileName() ) );
+      CachedFileItemStream cachedFileItemStream = streamMap.get( namedClusterSiteFile.getSiteFileName() );
+      assertEquals( cachedFileItemStream.getLastModified(), namedClusterSiteFile.getSourceFileModificationTime() );
+    }
   }
 
   @Test public void testMissingInfoImportNamedCluster() {
@@ -183,12 +196,12 @@ public class HadoopClusterManagerTest {
     model.setName( ncTestName );
     model.setShimVendor( "Cloudera" );
     model.setShimVersion( "5.14" );
+    Map<String, CachedFileItemStream> cachedFileItemStreamMap = getFiles( "src/test/resources/missing-info" );
     JSONObject result =
-      hadoopClusterManager.importNamedCluster( model, getFiles( "src/test/resources/missing-info" ) );
+      hadoopClusterManager.importNamedCluster( model, cachedFileItemStreamMap );
     assertEquals( ncTestName, result.get( "namedCluster" ) );
-    verify( namedCluster ).addSiteFile( eq( CORE_SITE ), any( String.class ) );
-    verify( namedCluster ).addSiteFile( eq( YARN_SITE ), any( String.class ) );
-    verify( namedCluster ).addSiteFile( eq( HIVE_SITE ), any( String.class ) );
+    verify( namedCluster, times(3) ).addSiteFile( siteFileCaptor.capture() );
+    assertSiteFields( cachedFileItemStreamMap, siteFileCaptor.getAllValues(), new String[] { "oozie-default.xml"} );
     ThinNameClusterModel thinNameClusterModel = hadoopClusterManager.getNamedCluster( ncTestName );
     assertTrue( StringUtil.isEmpty( thinNameClusterModel.getHdfsHost() ) );
     assertTrue( StringUtil.isEmpty( thinNameClusterModel.getHdfsPort() ) );
@@ -686,6 +699,7 @@ public class HadoopClusterManagerTest {
         String fieldName = customFieldName == null ? siteFile.getName() : customFieldName;
         CachedFileItemStream cachedFileItemStream =
           new CachedFileItemStream( new FileInputStream( siteFile ), siteFile.getName(), fieldName );
+        cachedFileItemStream.setLastModified(  siteFile.lastModified() );
         fileItemStreamByName.put( fieldName, cachedFileItemStream );
       }
     } catch ( IOException e ) {

@@ -1,5 +1,5 @@
 /*!
- * Copyright 2020 Hitachi Vantara. All rights reserved.
+ * Copyright 2021 Hitachi Vantara. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ public class CachedFileItemStream {
   private ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
   private String name;
   private String fieldName;
+  private long lastModified; //optional file last modified date
 
   /**
    * Create a {@link CachedFileItemStream} from a {@link FileItemStream}
@@ -70,5 +71,13 @@ public class CachedFileItemStream {
 
   public String getFieldName() {
     return this.fieldName;
+  }
+
+  public long getLastModified() {
+    return lastModified;
+  }
+
+  public void setLastModified( long lastModified ) {
+    this.lastModified = lastModified;
   }
 }
