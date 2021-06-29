@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p>
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
  * <p>
  * ******************************************************************************
  * <p>
@@ -783,6 +783,11 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
   @Override
   public void addSiteFile( String fileName, String content ) {
     siteFiles.add( new NamedClusterSiteFileImpl( fileName, content ) );
+  }
+
+  @Override
+  public void addSiteFile( NamedClusterSiteFile namedClusterSiteFile ) {
+    siteFiles.add( namedClusterSiteFile );
   }
 
   @Override
