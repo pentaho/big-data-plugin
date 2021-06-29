@@ -1,5 +1,5 @@
 /*!
- * Copyright 2019 Hitachi Vantara. All rights reserved.
+ * Copyright 2021 Hitachi Vantara. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,7 +88,12 @@ define(
         var files = fileService.getFiles();
         if (files) {
           for (var i = 0; i < files.length; i++) {
-            fd.append(files[i].name, files[i]);
+            fd.append( "file-"+files[i].name, files[i] );
+            if ( 'lastModified' in files[i] ) {
+              fd.append( "mod-"+files[i].name, files[i].lastModified );
+            } else if ( 'lastModifiedDate' in files[i]) {
+              fd.append( "mod-"+files[i].name, Date.parse( files[i].lastModifiedDate ) );
+            }
           }
           fileService.setFiles(null);
         }

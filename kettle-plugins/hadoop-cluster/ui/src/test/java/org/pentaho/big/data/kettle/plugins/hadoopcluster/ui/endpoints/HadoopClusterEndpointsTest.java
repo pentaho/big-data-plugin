@@ -1,5 +1,5 @@
 /*!
- * Copyright 2020 Hitachi Vantara. All rights reserved.
+ * Copyright 2021 Hitachi Vantara. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,7 +81,7 @@ public class HadoopClusterEndpointsTest {
       new HadoopClusterEndpoints( metaStoreLocator, namedClusterService, runtimeTester, internalShim, secureEnabled );
 
     List<CachedFileItemStream> cachedFileItemStreams =
-      hce.copyAndUnzip( fileItemStream, HadoopClusterEndpoints.FileType.CONFIGURATION );
+      hce.copyAndUnzip( fileItemStream, HadoopClusterEndpoints.FileType.CONFIGURATION, fileItemStream.getFieldName() );
 
     assertEquals( 6, cachedFileItemStreams.size() );
 
