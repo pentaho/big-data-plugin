@@ -38,6 +38,7 @@ import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.osgi.api.NamedClusterSiteFile;
+import org.pentaho.di.core.osgi.impl.NamedClusterSiteFileImpl;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
@@ -593,7 +594,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           name = extractFileNameFromFullPath( siteFile.getValue().getName() );
           addFileToConfigFolder( siteFile.getValue().getCachedOutputStream(), name, nc );
         } else {
-          addFileToNamedClusterSiteFiles( siteFile.getValue().getCachedInputStream(), name, nc );
+          addFileToNamedClusterSiteFiles( siteFile, name, nc );
         }
       }
     }
@@ -609,8 +610,10 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  private void addFileToNamedClusterSiteFiles( InputStream inputStream, String fileName, NamedCluster nc )
+  private void addFileToNamedClusterSiteFiles( Map.Entry<String, CachedFileItemStream> cachedFileItemStreamMapEntry,
+                                               String fileName, NamedCluster nc )
     throws IOException {
+    InputStream inputStream = cachedFileItemStreamMapEntry.getValue().getCachedInputStream();
     InputStreamReader isReader = new InputStreamReader( inputStream );
     BufferedReader reader = new BufferedReader( isReader );
     StringBuilder sb = new StringBuilder();
@@ -631,7 +634,9 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       }
       //Add the file if the name didn't exist
       if ( !nameExists ) {
-        nc.addSiteFile( fileName, sb.toString() );
+        nc.addSiteFile(
+          new NamedClusterSiteFileImpl( fileName, cachedFileItemStreamMapEntry.getValue().getLastModified(),
+            sb.toString() ) );
       }
     }
   }

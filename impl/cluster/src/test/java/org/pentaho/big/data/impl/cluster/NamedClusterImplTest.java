@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p>
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
  * <p>
  * ******************************************************************************
  * <p>
@@ -37,6 +37,7 @@ import org.mockito.stubbing.Answer;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.encryption.TwoWayPasswordEncoderPluginType;
 import org.pentaho.di.core.osgi.api.NamedClusterSiteFile;
+import org.pentaho.di.core.osgi.impl.NamedClusterSiteFileImpl;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.di.core.exception.KettleValueException;
@@ -144,7 +145,7 @@ public class NamedClusterImplTest {
     namedCluster.setStorageScheme( namedClusterStorageScheme );
     namedCluster.setKafkaBootstrapServers( namedClusterKafkaBootstrapServers );
     namedCluster.addSiteFile( "core-site.xml", fileContents1 );
-    namedCluster.addSiteFile( "hbase-site.xml", fileContents2 );
+    namedCluster.addSiteFile( new NamedClusterSiteFileImpl( "hbase-site.xml", 11111L, fileContents2 ) );
 
     fsm = mock( StandardFileSystemManager.class );
     when( VFS.getManager() ).thenReturn( fsm );
@@ -630,6 +631,9 @@ public class NamedClusterImplTest {
     for ( NamedClusterSiteFile siteFile : namedCluster.getSiteFiles() ) {
       String contents = getSiteFileContents( nc, siteFile.getSiteFileName() );
       assertEquals( siteFile.getSiteFileContents(), contents );
+      if ( "hbase-site.xml".equals( siteFile.getSiteFileName() ) ) {
+        assertEquals( 11111L, siteFile.getSourceFileModificationTime() );
+      }
     }
   }
 
