@@ -5,10 +5,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-assemblies</artifactId>
-    <version>9.3.0.0-SNAPSHOT</version>
+    <version>9.3.0.0-115</version>
   </parent>
   <artifactId>pentaho-big-data-assemblies-pmr-libraries</artifactId>
-  <version>9.3.0.0-SNAPSHOT</version>
+  <version>9.3.0.0-115</version>
   <packaging>pom</packaging>
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
@@ -16,7 +16,7 @@
     <blueprints-core.version>2.6.0</blueprints-core.version>
     <rxjava.version>2.2.3</rxjava.version>
     <jsch.version>0.1.54</jsch.version>
-    <encryption-support.version>9.3.0.0-SNAPSHOT</encryption-support.version>
+    <encryption-support.version>9.3.0.0-115</encryption-support.version>
   </properties>
   <dependencies>
     <dependency>
