@@ -2931,7 +2931,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
               if ( namedCluster.isMapr() ) {
                 selectedFile =
                   fileChooserDialog.open( shell, new String[] { Schemes.MAPRFS_SCHEME },
-                    Schemes.MAPRFS_SCHEME, true, path, fileFilters, fileFilterNames, false,
+                    Schemes.MAPRFS_SCHEME, true, path, fileFilters, fileFilterNames, true,
                     VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
               } else {
                 List<CustomVfsUiPanel> customPanels = fileChooserDialog.getCustomVfsUiPanels();
