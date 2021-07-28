@@ -62,12 +62,13 @@ public class S3FileNameParser extends AbstractFileNameParser {
       name.replace( name.indexOf( keys ), name.indexOf( keys ) + keys.length(), "" );
     }
 
+    String fullPath = name.toString();
     // Extract bucket name
     String bucketName = UriParser.extractFirstElement( name );
 
     if ( keys != null ) {
       bucketName = keys + bucketName;
     }
-    return new S3FileName( scheme, bucketName, name.toString(), fileType );
+    return new S3FileName( scheme, bucketName, name.toString().isEmpty() ? fullPath : name.toString(), fileType );
   }
 }
