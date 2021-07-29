@@ -45,30 +45,30 @@ public class S3FileNameParser extends AbstractFileNameParser {
   }
 
   public FileName parseUri( VfsComponentContext context, FileName base, String uri ) throws FileSystemException {
-    StringBuilder name = new StringBuilder();
+    StringBuilder buffer = new StringBuilder();
 
-    String scheme = UriParser.extractScheme( uri, name );
-    UriParser.canonicalizePath( name, 0, name.length(), this );
+    String scheme = UriParser.extractScheme( uri, buffer );
+    UriParser.canonicalizePath( buffer, 0, buffer.length(), this );
 
     // Normalize separators in the path
-    UriParser.fixSeparators( name );
+    UriParser.fixSeparators( buffer );
 
     // Normalise the path
-    FileType fileType = UriParser.normalisePath( name );
+    FileType fileType = UriParser.normalisePath( buffer );
 
     //URI includes credentials
-    String keys = S3Util.getFullKeysFromURI( name.toString() );
+    String keys = S3Util.getFullKeysFromURI( buffer.toString() );
     if ( keys != null ) {
-      name.replace( name.indexOf( keys ), name.indexOf( keys ) + keys.length(), "" );
+      buffer.replace( buffer.indexOf( keys ), buffer.indexOf( keys ) + keys.length(), "" );
     }
 
-    String fullPath = name.toString();
+    String path = buffer.toString();
     // Extract bucket name
-    String bucketName = UriParser.extractFirstElement( name );
+    String bucketName = UriParser.extractFirstElement( buffer );
 
     if ( keys != null ) {
       bucketName = keys + bucketName;
     }
-    return new S3FileName( scheme, bucketName, name.toString().isEmpty() ? fullPath : name.toString(), fileType );
+    return new S3FileName( scheme, bucketName, buffer.length() == 0 ? path : buffer.toString(), fileType );
   }
 }
