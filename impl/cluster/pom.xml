@@ -8,7 +8,7 @@
     <version>9.1.0.6-544</version>
   </parent>
   <artifactId>pentaho-big-data-impl-cluster</artifactId>
-  <version>9.1.0.6-544</version>
+  <version>9.1.0.6-CUST-253</version>
   <packaging>bundle</packaging>
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <description>a Pentaho open source project</description>
@@ -20,7 +20,7 @@
     <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>shim-api</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
+      <version>9.1.2020.09.00-CUST-253</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
@@ -31,7 +31,7 @@
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-core</artifactId>
-      <version>${pdi.version}</version>
+      <version>9.1.0.6-CUST-253</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -88,7 +88,7 @@
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-core</artifactId>
-      <version>${pdi.version}</version>
+      <version>9.1.0.6-CUST-253</version>
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>

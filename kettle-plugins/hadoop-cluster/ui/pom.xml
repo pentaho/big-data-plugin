@@ -10,7 +10,7 @@
   </parent>
 
   <artifactId>hadoop-cluster-ui</artifactId>
-  <version>9.1.0.6-544</version>
+  <version>9.1.0.6-CUST-253</version>
   <packaging>bundle</packaging>
 
   <name>Hadoop Cluster Plugin UI</name>
@@ -23,6 +23,7 @@
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-core</artifactId>
+      <version>9.1.0.6-CUST-253</version>
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
@@ -41,11 +42,12 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-platform-extensions</artifactId>
+      <version>9.1.0.6-544</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-platform-core</artifactId>
-      <version>${project.version}</version>
+      <version>9.1.0.6-544</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -57,7 +59,7 @@
     <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>shim-api</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
+      <version>9.1.2020.09.00-CUST-253</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -69,14 +71,17 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-i18n-bundle</artifactId>
+      <version>9.1.0.6-544</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-i18n-webservice-bundle</artifactId>
+      <version>9.1.0.6-544</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-impl-clusterTests</artifactId>
+      <version>9.1.0.6-544</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.swt</groupId>
@@ -130,13 +135,13 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-legacy</artifactId>
-      <version>${project.version}</version>
+      <version>9.1.0.6-544</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-legacy-core</artifactId>
-      <version>${project.version}</version>
+      <version>9.1.0.6-544</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
