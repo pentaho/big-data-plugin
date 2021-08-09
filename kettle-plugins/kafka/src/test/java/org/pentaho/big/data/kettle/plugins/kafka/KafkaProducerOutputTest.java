@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -83,7 +83,7 @@ public class KafkaProducerOutputTest {
 
     trans.startThreads();
     trans.waitUntilFinished();
-    Mockito.verify( kafkaProducer, Mockito.times( 4 ) ).send( new ProducerRecord<>( "kurt", "one", "winning" ) );
+    Mockito.verify( kafkaProducer, Mockito.times( 4 ) ).send( new ProducerRecord<>( "kurt", "one", "winning" ), step );
     Mockito.verify( kafkaProducer, Mockito.times( 1 ) ).close();
     assertEquals( 4, trans.getSteps().get( 1 ).step.getLinesOutput() );
   }
@@ -104,7 +104,7 @@ public class KafkaProducerOutputTest {
 
     trans.startThreads();
     trans.waitUntilFinished();
-    Mockito.verify( kafkaProducer, Mockito.times( 4 ) ).send( new ProducerRecord<>( "kurt", "winning" ) );
+    Mockito.verify( kafkaProducer, Mockito.times( 4 ) ).send( new ProducerRecord<>( "kurt", "winning" ), step );
     Mockito.verify( kafkaProducer, Mockito.times( 1 ) ).close();
     assertEquals( 4, trans.getSteps().get( 1 ).step.getLinesOutput() );
   }
@@ -125,7 +125,7 @@ public class KafkaProducerOutputTest {
 
     trans.startThreads();
     trans.waitUntilFinished();
-    Mockito.verify( kafkaProducer, Mockito.times( 4 ) ).send( new ProducerRecord<>( "akastenka", "msg" ) );
+    Mockito.verify( kafkaProducer, Mockito.times( 4 ) ).send( new ProducerRecord<>( "akastenka", "msg" ), step );
     Mockito.verify( kafkaProducer, Mockito.times( 1 ) ).close();
     assertEquals( 4, trans.getSteps().get( 1 ).step.getLinesOutput() );
   }
@@ -140,7 +140,7 @@ public class KafkaProducerOutputTest {
     KafkaProducerOutput step = (KafkaProducerOutput) combi.step;
 
     when( kafkaFactory.producer( any(), any(), any(), any() ) ).thenReturn( kafkaProducer );
-    when( kafkaProducer.send( any() ) ).then( ignore -> {
+    when( kafkaProducer.send( any(), any() ) ).then( ignore -> {
       trans.stopAll();
       return null; } );
 

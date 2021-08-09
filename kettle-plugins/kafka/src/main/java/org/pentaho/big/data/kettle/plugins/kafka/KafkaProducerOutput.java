@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,7 +22,9 @@
 
 package org.pentaho.big.data.kettle.plugins.kafka;
 
+import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.util.StringUtil;
@@ -36,7 +38,7 @@ import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 
 
-public class KafkaProducerOutput extends BaseStep implements StepInterface {
+public class KafkaProducerOutput extends BaseStep implements StepInterface, Callback {
 
   private static final Class<?> PKG = KafkaConsumerInputMeta.class;
   private KafkaProducerOutputMeta meta;
@@ -107,7 +109,7 @@ public class KafkaProducerOutput extends BaseStep implements StepInterface {
         r[ data.messageFieldIndex ] );
     }
 
-    data.kafkaProducer.send( producerRecord );
+    data.kafkaProducer.send( producerRecord, this );
     incrementLinesOutput();
 
     putRow( getInputRowMeta(), r ); // copy row to possible alternate rowset(s).
@@ -127,4 +129,21 @@ public class KafkaProducerOutput extends BaseStep implements StepInterface {
       data.kafkaProducer.close();
     }
   }
+
+  /**
+   * Callback for the Kafka producer, not to be called externally.  Used to log debug messages from successful sends
+   * and catch any exceptions from errors.
+   * @param metadata
+   * @param exception
+   */
+  @Override
+  public void onCompletion( RecordMetadata metadata, Exception exception ) {
+    if ( null != metadata && log.isDebug() ) {
+      logDebug( metadata.toString() );
+    } else if ( null != exception ) {
+      logError( BaseMessages.getString( PKG, "KafkaProducer.Error.CallbackException" ), exception );
+      stopAll();
+    }
+  }
+
 }
