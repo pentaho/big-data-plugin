@@ -1,6 +1,6 @@
 {
   "name": "@pentaho/big-data-plugin-hadoop-cluster",
-  "version": "9.1.0.6-544",
+  "version": "${project.version}",
   "description": "${project.description}",
   "paths": {
     "pentaho/big/data/plugin/hadoop-cluster": "/"
