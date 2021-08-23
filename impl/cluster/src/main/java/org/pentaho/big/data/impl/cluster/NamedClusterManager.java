@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -280,6 +280,9 @@ public class NamedClusterManager implements NamedClusterService {
       IMetaStore slaveMetastore = getSlaveServerMetastore();
       if ( slaveMetastore != null ) {
         namedCluster = searchMetastoreByName( namedClusterName, slaveMetastore );
+      }
+      if ( namedCluster != null ) {
+        metastore = slaveMetastore;
       }
     }
     loadSiteFilesIfNecessary( namedCluster, metastore );
