@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -37,6 +37,7 @@ import org.pentaho.di.core.attributes.metastore.EmbeddedMetaStore;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.osgi.api.NamedClusterSiteFile;
+import org.pentaho.di.core.osgi.impl.NamedClusterSiteFileImpl;
 import org.pentaho.di.core.plugins.LifecyclePluginType;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
@@ -65,6 +66,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 public class NamedClusterManager implements NamedClusterService {
 
@@ -80,6 +82,9 @@ public class NamedClusterManager implements NamedClusterService {
 
   private Map<String, Object> properties = new HashMap<>();
   private static final String LOCALHOST = "localhost";
+  private static final List<String> siteFileNames =
+    Arrays.asList( "hdfs-site.xml", "core-site.xml", "mapred-site.xml", "yarn-site.xml",
+      "hbase-site.xml", "hive-site.xml" );
 
   public BundleContext getBundleContext() {
     return bundleContext;
@@ -230,10 +235,10 @@ public class NamedClusterManager implements NamedClusterService {
   }
 
   /**
-   * This method lists the NamedClusters in the given IMetaStore.  If an exception is thrown when parsing the data for
-   * a given NamedCluster.  The exception will be added to the exceptionList, but list generation will continue.
+   * This method lists the NamedClusters in the given IMetaStore.  If an exception is thrown when parsing the data for a
+   * given NamedCluster.  The exception will be added to the exceptionList, but list generation will continue.
    *
-   * @param metastore the IMetaStore to operate with
+   * @param metastore     the IMetaStore to operate with
    * @param exceptionList As list to hold any exceptions that occur
    * @return the list of NamedClusters in the provided IMetaStore
    * @throws MetaStoreException
@@ -275,6 +280,9 @@ public class NamedClusterManager implements NamedClusterService {
       IMetaStore slaveMetastore = getSlaveServerMetastore();
       if ( slaveMetastore != null ) {
         namedCluster = searchMetastoreByName( namedClusterName, slaveMetastore );
+      }
+      if ( namedCluster != null ) {
+        metastore = slaveMetastore;
       }
     }
     loadSiteFilesIfNecessary( namedCluster, metastore );
@@ -446,23 +454,73 @@ public class NamedClusterManager implements NamedClusterService {
   }
 
   private void loadSiteFilesIfNecessary( NamedCluster namedCluster, IMetaStore metaStore ) {
-    if ( namedCluster != null && namedCluster.getSiteFiles().isEmpty() ) {
-      String rootDir = getNamedClusterConfigsRootDir( metaStore );
-      for ( String siteFileName : Arrays.asList( "hdfs-site.xml", "core-site.xml", "mapred-site.xml", "yarn-site.xml",
-        "hbase-site.xml", "hive-site.xml" ) ) {
-        String path = rootDir + File.separator + namedCluster.getName() + File.separator + siteFileName;
-        File file = new File( path );
-        if ( file.exists() ) {
-          try {
-            namedCluster.addSiteFile( siteFileName, FileUtils.readFileToString( file, StandardCharsets.UTF_8.toString() ) );
-          } catch ( IOException e ) {
-            log.logError( "An error occurred importing " + path + " into HadoopCluster " + namedCluster.getName(), e );
-          }
+    if ( namedCluster == null ) {
+      return; //Can't do anything without a cluster
+    }
+    if ( namedCluster.getSiteFiles().isEmpty() ) {
+      // This seeds the site files once if not already present - standard behavior
+      unconditionalAddOfSiteFiles( namedCluster, metaStore );
+      return;
+    }
+    if ( Boolean.parseBoolean( System.getProperties().getProperty( Const.KETTLE_AUTO_UPDATE_SITE_FILE ) ) ) {
+      // Special mode that tries to update site files by checking modification time of the file against what
+      // is stored in the named cluster
+      semiIntelligentSiteFileUpdate( namedCluster, metaStore );
+    }
+  }
+
+  private void unconditionalAddOfSiteFiles( NamedCluster namedCluster, IMetaStore metaStore ) {
+    String rootDir = getNamedClusterConfigsRootDir( metaStore );
+    for ( String siteFileName : siteFileNames ) {
+      String path = rootDir + File.separator + namedCluster.getName() + File.separator + siteFileName;
+      File file = new File( path );
+      if ( file.exists() ) {
+        try {
+          namedCluster.addSiteFile( new NamedClusterSiteFileImpl( siteFileName, file.lastModified(),
+            FileUtils.readFileToString( file, StandardCharsets.UTF_8.toString() ) ) );
+        } catch ( IOException e ) {
+          log.logError( "An error occurred importing " + path + " into HadoopCluster " + namedCluster.getName(), e );
         }
       }
-      if ( !namedCluster.getSiteFiles().isEmpty() ) {
-        autoUpdateMetastoreWithSiteFiles( namedCluster, metaStore );
+    }
+    if ( !namedCluster.getSiteFiles().isEmpty() ) {
+      autoUpdateMetastoreWithSiteFiles( namedCluster, metaStore );
+    }
+  }
+
+  private void semiIntelligentSiteFileUpdate( NamedCluster namedCluster, IMetaStore metaStore ) {
+    String rootDir = getNamedClusterConfigsRootDir( metaStore );
+    Map<String, NamedClusterSiteFile> map = namedCluster.getSiteFiles().stream().collect(
+      Collectors.toMap( NamedClusterSiteFile::getSiteFileName, namedClusterSiteFile -> namedClusterSiteFile ) );
+    List<NamedClusterSiteFile> newSiteFiles = new ArrayList<>();
+    List<String> missingFiles = new ArrayList<>();
+    for ( String siteFileName : siteFileNames ) {
+      String path = rootDir + File.separator + namedCluster.getName() + File.separator + siteFileName;
+      File file = new File( path );
+      if ( file.exists() && ( map.get( siteFileName ) == null || file.lastModified() != map.get( siteFileName )
+        .getSourceFileModificationTime() ) ) {
+        try {
+          newSiteFiles.add( new NamedClusterSiteFileImpl( siteFileName, file.lastModified(),
+            FileUtils.readFileToString( file, StandardCharsets.UTF_8.toString() ) ) );
+        } catch ( IOException e ) {
+          log.logError( "An error occurred importing " + path + " into HadoopCluster " + namedCluster.getName(), e );
+        }
+      } else {
+        //List of files where we need to retain the old site file if it exists
+        missingFiles.add( siteFileName );
       }
+    }
+    // If there is nothing new then we don't need to change anything
+    if ( !newSiteFiles.isEmpty() ) {
+      //Bring in the old files not present
+      for ( String siteFile : missingFiles ) {
+        if ( map.get( siteFile ) != null ) {
+          newSiteFiles.add( map.get( siteFile ) );
+        }
+      }
+      //newSiteFiles is complete, update the named cluster and write the metastore entry
+      namedCluster.setSiteFiles( newSiteFiles );
+      autoUpdateMetastoreWithSiteFiles( namedCluster, metaStore );
     }
   }
 
