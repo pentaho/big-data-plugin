@@ -1,8 +1,8 @@
-/*******************************************************************************
+/*! ******************************************************************************
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2021 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -68,6 +68,7 @@ public class ParquetOutput extends BaseStep implements StepInterface {
       if ( currentRow != null ) {
         RowMetaAndData row = new RowMetaAndData( getInputRowMeta(), currentRow );
         data.writer.write( row );
+        incrementLinesOutput();
         putRow( row.getRowMeta(), row.getData() ); // in case we want it to go further or DET...
         return true;
       } else {
@@ -150,6 +151,7 @@ public class ParquetOutput extends BaseStep implements StepInterface {
     data.output = null;
   }
 
+  @Override
   public boolean init( StepMetaInterface smi, StepDataInterface sdi ) {
     meta = (ParquetOutputMeta) smi;
     data = (ParquetOutputData) sdi;
