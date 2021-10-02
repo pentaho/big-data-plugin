@@ -6,7 +6,7 @@
   <parent>
     <artifactId>pentaho-big-data-impl-connections</artifactId>
     <groupId>pentaho</groupId>
-    <version>9.3.0.0-SNAPSHOT</version>
+    <version>9.3.0.0-208</version>
   </parent>
 
   <artifactId>pentaho-big-data-impl-connections-s3</artifactId>
@@ -19,7 +19,7 @@
     <maven-replacer-plugin.version>1.5.2</maven-replacer-plugin.version>
     <requirejs-text.version>2.0.10</requirejs-text.version>
     <require-css.version>0.1.8</require-css.version>
-    <pentaho-osgi-bundles.version>9.3.0.0-SNAPSHOT</pentaho-osgi-bundles.version>
+    <pentaho-osgi-bundles.version>9.3.0.0-208</pentaho-osgi-bundles.version>
   </properties>
 
   <dependencies>
