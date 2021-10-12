@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2021 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -174,6 +174,7 @@ public class ParquetOutputTest {
     // 3 rows to be outputted to an parquet file
     assertEquals( 3, rowsProcessed );
     verify( mockRowHandler, times( 3 ) ).putRow( rowMetaCaptor.capture(), dataCaptor.capture() );
+    verify( parquetOutput, times( 3 ) ).incrementLinesOutput();
     List<RowMeta> rowMetaCaptured = rowMetaCaptor.getAllValues();
     List<Object[]> dataCaptured = dataCaptor.getAllValues();
     for ( int rowNum = 0; rowNum < 3; rowNum++ ) {
