@@ -586,6 +586,10 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
       } catch ( Exception ex ) {
         throw new KettleException( BaseMessages
           .getString( PKG, "JobEntryHadoopTransJobExecutor.MapConfiguration.Error" ), ex );
+      } finally {
+        if ( transMeta != null ) {
+          transMeta.disposeEmbeddedMetastoreProvider();
+        }
       }
 
       jobBuilder.setMapperInfo( transConfig.getXML(), mapInputStepNameS, mapOutputStepNameS );
@@ -657,6 +661,10 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
         } catch ( Exception ex ) {
           throw new KettleException( BaseMessages.getString( PKG,
             "JobEntryHadoopTransJobExecutor.CombinerConfiguration.Error" ), ex );
+        } finally {
+          if ( transMeta != null ) {
+            transMeta.disposeEmbeddedMetastoreProvider();
+          }
         }
       }
 
@@ -682,6 +690,10 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
         } catch ( Exception ex ) {
           throw new KettleException( BaseMessages.getString( PKG,
             "JobEntryHadoopTransJobExecutor.ReducerConfiguration.Error" ), ex );
+        } finally {
+          if ( transMeta != null ) {
+            transMeta.disposeEmbeddedMetastoreProvider();
+          }
         }
 
         if ( getSuppressOutputOfKey() ) {
