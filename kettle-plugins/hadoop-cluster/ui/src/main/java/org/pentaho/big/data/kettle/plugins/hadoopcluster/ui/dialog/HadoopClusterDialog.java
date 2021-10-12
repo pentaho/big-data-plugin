@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2021 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -26,6 +26,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.BrowserFunction;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Shell;
+import org.pentaho.di.core.Const;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.ui.core.dialog.ThinDialog;
@@ -94,16 +95,22 @@ public class HadoopClusterDialog extends ThinDialog {
 
     new BrowserFunction( browser, "close" ) {
       @Override public Object function( Object[] arguments ) {
-        browser.dispose();
-        dialog.close();
-        dialog.dispose();
+        Runnable execute = () -> {
+          browser.dispose();
+          dialog.close();
+          dialog.dispose();
+        };
+        display.asyncExec( execute );
         return true;
       }
     };
 
     new BrowserFunction( browser, "setTitle" ) {
       @Override public Object function( Object[] arguments ) {
-        dialog.setText( (String) arguments[ 0 ] );
+        Runnable execute = () -> {
+          dialog.setText( (String) arguments[ 0 ] );
+        };
+        display.asyncExec( execute );
         return true;
       }
     };
@@ -144,6 +151,9 @@ public class HadoopClusterDialog extends ThinDialog {
       return getRepo().getUri()
         .orElseThrow( () -> new IllegalStateException( "Repo URI not defined" ) )
         .toString() + "/osgi" + path;
+    }
+    if ( Const.isRunningOnWebspoonMode() ) {
+      return System.getProperty( "KETTLE_CONTEXT_PATH", "" ) + "/osgi" + path;
     }
     String host;
     int port;

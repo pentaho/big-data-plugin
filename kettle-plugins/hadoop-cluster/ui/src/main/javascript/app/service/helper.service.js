@@ -182,6 +182,10 @@ define(
         } else {
           url += "?v=" + value;
         }
+        if (typeof getConnectionId == 'function') {
+          var cid = getConnectionId();
+          url += "&cid=" + cid;
+        }
         return url;
       }
     }
