@@ -67,6 +67,7 @@
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
       <version>${dependency.mockito.revision}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
   <build>

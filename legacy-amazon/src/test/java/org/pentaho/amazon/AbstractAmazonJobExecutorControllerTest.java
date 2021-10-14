@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -39,6 +39,7 @@ import org.pentaho.ui.xul.binding.BindingFactory;
 import org.pentaho.ui.xul.components.XulButton;
 import org.pentaho.ui.xul.util.AbstractModelList;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -54,6 +55,7 @@ import static org.mockito.Mockito.*;
  */
 @RunWith( PowerMockRunner.class )
 @PrepareForTest( { AbstractAmazonJobExecutorController.class, ClientFactoriesManager.class } )
+@PowerMockIgnore( "jdk.internal.reflect.*" )
 public class AbstractAmazonJobExecutorControllerTest {
 
   private AmazonHiveJobExecutorController jobExecutorController;

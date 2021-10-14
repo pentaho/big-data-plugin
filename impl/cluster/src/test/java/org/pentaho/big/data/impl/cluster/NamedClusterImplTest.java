@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*!
  * Pentaho Big Data
  * <p>
  * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
@@ -17,66 +17,65 @@
 
 package org.pentaho.big.data.impl.cluster;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.util.Map;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.vfs2.VFS;
+import org.apache.commons.vfs2.impl.StandardFileSystemManager;
+import org.apache.commons.vfs2.provider.UriParser;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
+import org.pentaho.di.core.encryption.Encr;
+import org.pentaho.di.core.encryption.TwoWayPasswordEncoderPluginType;
+import org.pentaho.di.core.exception.KettleValueException;
+import org.pentaho.di.core.osgi.api.NamedClusterSiteFile;
+import org.pentaho.di.core.osgi.impl.NamedClusterSiteFileImpl;
+import org.pentaho.di.core.plugins.PluginRegistry;
+import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.metastore.api.IMetaStore;
+import org.pentaho.metastore.api.security.Base64TwoWayPasswordEncoder;
+import org.pentaho.metastore.api.security.ITwoWayPasswordEncoder;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.vfs2.VFS;
-import org.apache.commons.vfs2.impl.StandardFileSystemManager;
-import org.apache.commons.vfs2.provider.UriParser;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.stubbing.Answer;
-import org.pentaho.di.core.encryption.Encr;
-import org.pentaho.di.core.encryption.TwoWayPasswordEncoderPluginType;
-import org.pentaho.di.core.osgi.api.NamedClusterSiteFile;
-import org.pentaho.di.core.osgi.impl.NamedClusterSiteFileImpl;
-import org.pentaho.di.core.plugins.PluginRegistry;
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.di.core.exception.KettleValueException;
-import org.pentaho.di.core.row.RowMetaInterface;
-import org.pentaho.di.core.variables.VariableSpace;
-import org.pentaho.metastore.api.IMetaStore;
-import org.pentaho.metastore.api.exceptions.MetaStoreException;
-import org.pentaho.metastore.api.security.Base64TwoWayPasswordEncoder;
-import org.pentaho.metastore.api.security.ITwoWayPasswordEncoder;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.util.Map;
 
 import static com.google.code.beanmatchers.BeanMatchers.hasValidBeanConstructor;
 import static com.google.code.beanmatchers.BeanMatchers.hasValidBeanEqualsFor;
 import static com.google.code.beanmatchers.BeanMatchers.hasValidGettersAndSetters;
 import static org.hamcrest.MatcherAssert.assertThat;
-
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-
-import static org.mockito.Mockito.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.AdditionalMatchers.or;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.validateMockitoUsage;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.doAnswer;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.spy;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.when;
+
 
 /**
  * Created by bryan on 7/14/15.
  */
-@RunWith( PowerMockRunner.class )
-@PrepareForTest( { UriParser.class, VFS.class } )
+@RunWith( MockitoJUnitRunner.class )
 public class NamedClusterImplTest {
   private static final String HDFS_PREFIX = "hdfs";
 
@@ -100,15 +99,19 @@ public class NamedClusterImplTest {
   private StandardFileSystemManager fsm;
   private String fileContents1;
   private String fileContents2;
+  private MockedStatic<VFS> vfsMockedStatic;
+  private MockedStatic<UriParser> uriParserMockedStatic;
 
   @Before
   public void setup() throws Exception {
     PluginRegistry.addPluginType( TwoWayPasswordEncoderPluginType.getInstance() );
     PluginRegistry.init( false );
     Encr.init( "Kettle" );
-    mockStatic( VFS.class );
-    mockStatic( UriParser.class );
-    spy( UriParser.class );
+    vfsMockedStatic = Mockito.mockStatic( VFS.class );
+    uriParserMockedStatic = Mockito.mockStatic( UriParser.class );
+    uriParserMockedStatic.when( () -> UriParser.encode( anyString(), any( char[].class ) ) ).thenCallRealMethod();
+    uriParserMockedStatic.when( () -> UriParser.decode( anyString() ) ).thenCallRealMethod();
+    uriParserMockedStatic.when( () -> UriParser.appendEncoded( any( StringBuilder.class ), anyString(), any( char[].class ) ) ).thenCallRealMethod();
 
     metaStore = mock( IMetaStore.class );
     variableSpace = mock( VariableSpace.class );
@@ -148,7 +151,14 @@ public class NamedClusterImplTest {
     namedCluster.addSiteFile( new NamedClusterSiteFileImpl( "hbase-site.xml", 11111L, fileContents2 ) );
 
     fsm = mock( StandardFileSystemManager.class );
-    when( VFS.getManager() ).thenReturn( fsm );
+    vfsMockedStatic.when( VFS::getManager ).thenReturn( fsm );
+  }
+
+  @After
+  public void cleanupMocks() {
+    vfsMockedStatic.close();
+    uriParserMockedStatic.close();
+    validateMockitoUsage();
   }
 
   @Test
@@ -197,7 +207,7 @@ public class NamedClusterImplTest {
   public void testArrayEnvironmentSubstitute() {
     String[] testVars = { "testVar" };
     String[] testVals = { "testVal" };
-    when( variableSpace.environmentSubstitute( testVars ) ).thenReturn( testVals );
+    Mockito.when( variableSpace.environmentSubstitute( testVars ) ).thenReturn( testVals );
     assertArrayEquals( testVals, namedCluster.environmentSubstitute( testVars ) );
   }
 
@@ -287,7 +297,7 @@ public class NamedClusterImplTest {
   }
 
   @Test
-  public void testGenerateURLNullParameters() throws Exception {
+  public void testGenerateURLNullParameters() {
     namedCluster.setName( null );
     String scheme = "testScheme";
     buildAppendEncodedUserPassMocks( namedClusterHdfsUsername, namedClusterHdfsPassword );
@@ -303,7 +313,7 @@ public class NamedClusterImplTest {
   }
 
   @Test
-  public void testGenerateURLHDFS() throws Exception {
+  public void testGenerateURLHDFS() {
     String scheme = "hdfs";
     String testHost = "testHost";
     String testPort = "9333";
@@ -319,7 +329,7 @@ public class NamedClusterImplTest {
   }
 
   @Test
-  public void testGenerateURLHDFSPort() throws MetaStoreException {
+  public void testGenerateURLHDFSPort() {
     String scheme = "hdfs";
     String testHost = "testHost";
     String testPort = "9333";
@@ -332,64 +342,62 @@ public class NamedClusterImplTest {
   }
 
   @Test
-  public void testCheckHdfsNameEmpty() throws MetaStoreException {
+  public void testCheckHdfsNameEmpty() {
     String testHost = "";
     namedCluster.setHdfsHost( " " + testHost + " " );
     assertEquals( true, namedCluster.isHdfsHostEmpty( null ) );
   }
 
   @Test
-  public void testGetHdfsNameParsed() throws MetaStoreException {
+  public void testGetHdfsNameParsed() {
     String testHost = "test";
     namedCluster.setHdfsHost( " " + testHost + " " );
     assertEquals( "test", namedCluster.getHostNameParsed( null ) );
   }
 
   @Test
-  public void testGetHdfsNameParsedFromVariable() throws MetaStoreException {
+  public void testGetHdfsNameParsedFromVariable() {
     String testHost = "${hdfsHost}";
     namedCluster.setHdfsHost( " " + testHost + " " );
     when( variableSpace.getVariable( "hdfsHost" ) ).thenReturn( "test" );
-    when( variableSpace.environmentSubstitute( namedCluster.getHdfsHost() ) ).thenReturn( "test" );
     assertEquals( "test", namedCluster.getHostNameParsed( variableSpace ) );
   }
 
   @Test
-  public void testGetHdfsNameParsedFromVariableNoVariableInSpace() throws MetaStoreException {
+  public void testGetHdfsNameParsedFromVariableNoVariableInSpace() {
     String testHost = "${hdfsHost}";
     namedCluster.setHdfsHost( " " + testHost + " " );
     assertEquals( null, namedCluster.getHostNameParsed( variableSpace ) );
   }
 
   @Test
-  public void testCheckHdfsNameNotEmpty() throws MetaStoreException {
+  public void testCheckHdfsNameNotEmpty() {
     String testHost = "test";
     namedCluster.setHdfsHost( " " + testHost + " " );
     assertEquals( false, namedCluster.isHdfsHostEmpty( null ) );
   }
 
   @Test
-  public void testCheckHdfsNameNull() throws MetaStoreException {
+  public void testCheckHdfsNameNull() {
     namedCluster.setHdfsHost( null );
     assertEquals( true, namedCluster.isHdfsHostEmpty( null ) );
   }
 
   @Test
-  public void testCheckHdfsNameVariableNull() throws MetaStoreException {
+  public void testCheckHdfsNameVariableNull() {
     namedCluster.setHdfsHost( "${hdfsHost}" );
     assertEquals( true, namedCluster.isHdfsHostEmpty( null ) );
   }
 
   @Test
-  public void testCheckHdfsNameVariableNotNull() throws MetaStoreException {
+  public void testCheckHdfsNameVariableNotNull() {
     namedCluster.setHdfsHost( "${hdfsHost}" );
     when( variableSpace.getVariable( "hdfsHost" ) ).thenReturn( "test" );
-    when( variableSpace.environmentSubstitute( namedCluster.getHdfsHost() ) ).thenReturn( "test" );
     assertEquals( false, namedCluster.isHdfsHostEmpty( variableSpace ) );
   }
 
   @Test
-  public void testProcessURLHostEmpty() throws MetaStoreException {
+  public void testProcessURLHostEmpty() {
     namedCluster.setHdfsHost( null );
     namedCluster.setStorageScheme( "hdfs" );
     String incomingURL = "${hdfsUrl}/test";
@@ -397,7 +405,7 @@ public class NamedClusterImplTest {
   }
 
   @Test
-  public void testProcessURLhdfsFullSubstitution() throws Exception {
+  public void testProcessURLhdfsFullSubstitution() {
     String pathBase = "//namedClusterHdfsUsername:namedClusterHdfsPassword@hostname:12340";
     String filePathInFileSystem = "/tmp/hdsfDemo.txt";
     namedCluster.setHdfsHost( "hostname" );
@@ -409,7 +417,7 @@ public class NamedClusterImplTest {
   }
 
   @Test
-  public void testProcessURLSubstitution_Gateway() throws MetaStoreException {
+  public void testProcessURLSubstitution_Gateway() {
     namedCluster.setUseGateway( true );
     String incomingURL = "/path";
     String expected = "hc://" + namedCluster.getName() + incomingURL;
@@ -418,7 +426,7 @@ public class NamedClusterImplTest {
   }
 
   @Test
-  public void testProcessURLWASBFullSubstitution() throws Exception {
+  public void testProcessURLWASBFullSubstitution() {
     String prefix = "wasb";
     String pathBase = "//namedClusterHdfsUsername:namedClusterHdfsPassword@hostname:12340";
     String filePathInFileSystem = "/tmp/hdsfDemo.txt";
@@ -432,7 +440,7 @@ public class NamedClusterImplTest {
   }
 
   @Test
-  public void testProcessURLHostVariableNull() throws MetaStoreException {
+  public void testProcessURLHostVariableNull() {
     namedCluster.setHdfsHost( "${hostUrl}" );
     namedCluster.setStorageScheme( "hdfs" );
     String incomingURL = "${hdfsUrl}/test";
@@ -440,7 +448,7 @@ public class NamedClusterImplTest {
   }
 
   @Test
-  public void testProcessURLHostVariableNotNull() throws Exception {
+  public void testProcessURLHostVariableNotNull() {
     namedCluster.setHdfsHost( "${hostUrl}" );
     namedCluster.setStorageScheme( HDFS_PREFIX );
     String hostPort = "1000";
@@ -460,7 +468,7 @@ public class NamedClusterImplTest {
   }
 
   @Test
-  public void testProcessCompleteClusterVariableReplacement() throws Exception {
+  public void testProcessCompleteClusterVariableReplacement() {
     String hostname = "hostname";
     String hostPort = "1000";
     String variableName = "hdfsUrl";
@@ -479,21 +487,21 @@ public class NamedClusterImplTest {
   }
 
   @Test
-  public void testProcessURLsubstitutionMaprFS_startsWithMaprfs() throws MetaStoreException {
+  public void testProcessURLsubstitutionMaprFS_startsWithMaprfs() {
     String incomingURL = "maprfs";
     namedCluster.setMapr( true );
     assertEquals( incomingURL, namedCluster.processURLsubstitution( incomingURL, metaStore, null ) );
   }
 
   @Test
-  public void testProcessURLsubstitutionMaprFS_startsWithNoMaprfs() throws MetaStoreException {
+  public void testProcessURLsubstitutionMaprFS_startsWithNoMaprfs() {
     String incomingURL = "path";
     namedCluster.setMapr( true );
     assertEquals( "maprfs://" + incomingURL, namedCluster.processURLsubstitution( incomingURL, metaStore, null ) );
   }
 
   @Test
-  public void testProcessURLsubstitutionNC() throws Exception {
+  public void testProcessURLsubstitutionNC() {
     String prefix = "hc";
     String pathWithoutPrefix = "//cluster/input/file.txt";
     String pathWithPrefix = prefix + ":" + pathWithoutPrefix;
@@ -504,7 +512,7 @@ public class NamedClusterImplTest {
   }
 
   @Test
-  public void testProcessURLSubstitutionNC_variable() throws Exception {
+  public void testProcessURLSubstitutionNC_variable() {
     String pathWithoutPrefix = "//" + namedClusterHdfsUsername + ":" + namedClusterHdfsPassword + "@"
       + namedClusterHdfsHost + ":" + namedClusterHdfsPort + "//ncUrl//test";
     String pathWithPrefix = HDFS_PREFIX + ":" + pathWithoutPrefix;
@@ -516,7 +524,7 @@ public class NamedClusterImplTest {
   }
 
   @Test
-  public void testGenerateURLHDFSNoPort() throws MetaStoreException {
+  public void testGenerateURLHDFSNoPort() {
     String scheme = "hdfs";
     String testHost = "testHost";
     namedCluster.setHdfsHost( " " + testHost + " " );
@@ -527,7 +535,7 @@ public class NamedClusterImplTest {
   }
 
   @Test
-  public void testGenerateURLHDFSVariableSpace() throws Exception {
+  public void testGenerateURLHDFSVariableSpace() {
     String schemeVar = "schemeVar";
     String testScheme = "hdfs";
     String hostVar = "hostVar";
@@ -559,7 +567,7 @@ public class NamedClusterImplTest {
   }
 
   @Test
-  public void testGenerateURLHDFSVariableSpace_noVariable() throws MetaStoreException {
+  public void testGenerateURLHDFSVariableSpace_noVariable() {
     String scheme = "hdfs";
     String hostVar = "hostVar";
     String portVar = "portVar";
@@ -638,35 +646,33 @@ public class NamedClusterImplTest {
   }
 
   private Answer buildSchemeAnswer( String prefix, String buildPath ) {
-    Answer extractSchemeAnswer = invocation -> {
+    return invocation -> {
       Object[] args = invocation.getArguments();
       ( (StringBuilder) args[2] ).append( buildPath );
       return prefix;
     };
-    return extractSchemeAnswer;
   }
 
   private Answer buildUrlEncodeAnswer( String value ) {
-    Answer urlEncodeAnswer = invocation -> {
+    return invocation -> {
       Object[] args = invocation.getArguments();
       ( (StringBuilder) args[0] ).append( (String) args[1] );
       return null;
     };
-    return urlEncodeAnswer;
   }
 
-  private void buildExtractSchemeMocks( String prefix, String fullPath, String pathWithoutPrefix ) throws Exception {
+  private void buildExtractSchemeMocks( String prefix, String fullPath, String pathWithoutPrefix ) {
     String[] schemes = { "hc", "hdfs", "maprfs", "wasb" };
     when( fsm.getSchemes() ).thenReturn( schemes );
-    doAnswer( buildSchemeAnswer( prefix, pathWithoutPrefix ) ).when( UriParser.class, "extractScheme",
-      eq( schemes ), eq( fullPath ), any( StringBuilder.class ) );
+    uriParserMockedStatic.when( () -> UriParser.extractScheme( eq( schemes ), eq( fullPath ), or( isNull(), any( StringBuilder.class ) ) ) )
+      .thenAnswer( buildSchemeAnswer( prefix, pathWithoutPrefix ) );
   }
 
-  private void buildAppendEncodedUserPassMocks( String username, String password ) throws Exception {
-    doAnswer( buildUrlEncodeAnswer( username ) ).when( UriParser.class, "appendEncoded",
-      any( StringBuilder.class ), eq( username ), any( char[].class ) );
-    doAnswer( buildUrlEncodeAnswer( password ) ).when( UriParser.class, "appendEncoded",
-      any( StringBuilder.class ), eq( password ), any( char[].class ) );
+  private void buildAppendEncodedUserPassMocks( String username, String password ) {
+    uriParserMockedStatic.when( () -> UriParser.appendEncoded( or( isNull(), any( StringBuilder.class ) ), eq( username ), any( char[].class ) ) )
+        .thenAnswer( buildUrlEncodeAnswer( username ) );
+    uriParserMockedStatic.when( () -> UriParser.appendEncoded( or( isNull(), any( StringBuilder.class ) ), eq( password ), any( char[].class ) ) )
+      .thenAnswer( buildUrlEncodeAnswer( password ) );
   }
 
   private String getSiteFileContents( NamedCluster nc, String siteFileName ) {

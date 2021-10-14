@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.pentaho.amazon.client.api.PricingClient;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -40,6 +41,7 @@ import java.util.List;
  */
 @RunWith( PowerMockRunner.class )
 @PrepareForTest( PricingClientImpl.class )
+@PowerMockIgnore( "jdk.internal.reflect.*" )
 public class PricingClientImplTest {
 
   private PricingClient pricingClient;

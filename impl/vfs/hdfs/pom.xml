@@ -13,6 +13,7 @@
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
+    <mockito.version>3.12.4</mockito.version>
   </properties>
   <dependencies>
     <dependency>
@@ -51,19 +52,16 @@
       <version>${dependency.junit.revision}</version>
     </dependency>
     <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-module-junit4</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-api-mockito</artifactId>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>${mockito.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
-      <version>${dependency.mockito.revision}</version>
+      <artifactId>mockito-inline</artifactId>
+      <version>${mockito.version}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>

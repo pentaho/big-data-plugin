@@ -33,6 +33,7 @@ import org.mockito.internal.util.reflection.Whitebox;
 import org.pentaho.amazon.hive.job.AmazonHiveJobExecutor;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -47,6 +48,7 @@ import static org.mockito.Mockito.when;
  */
 @RunWith( PowerMockRunner.class )
 @PrepareForTest( AmazonHiveJobExecutor.class )
+@PowerMockIgnore( "jdk.internal.reflect.*" )
 public class AbstractAmazonJobExecutorTest {
 
   @Rule

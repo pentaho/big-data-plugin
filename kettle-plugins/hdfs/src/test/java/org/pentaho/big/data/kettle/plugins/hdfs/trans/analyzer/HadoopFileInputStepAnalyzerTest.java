@@ -1,8 +1,8 @@
-/*******************************************************************************
+/*!
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018-2021 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,7 +25,7 @@ package org.pentaho.big.data.kettle.plugins.hdfs.trans.analyzer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.big.data.kettle.plugins.hdfs.trans.HadoopFileInputMeta;
 
 import static org.junit.Assert.assertFalse;
@@ -53,12 +53,12 @@ public class HadoopFileInputStepAnalyzerTest
   }
 
   @Test
-  public void testIsOutput() throws Exception {
+  public void testIsOutput() {
     assertFalse( analyzer.isOutput() );
   }
 
   @Test
-  public void testIsInput() throws Exception {
+  public void testIsInput() {
     assertTrue( analyzer.isInput() );
   }
 }
