@@ -1,5 +1,5 @@
 /*!
-* Copyright 2010 - 2019 Hitachi Vantara.  All rights reserved.
+* Copyright 2010 - 2021 Hitachi Vantara.  All rights reserved.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ package org.pentaho.s3.vfs;
 import org.apache.commons.vfs2.provider.FileNameParser;
 import org.junit.Test;
 
-import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 /**
  * created by: rfellows date:       5/25/12
@@ -30,7 +30,7 @@ public class S3FileNameParserIT {
   @Test
   public void testParseUri_withKeys() throws Exception {
     FileNameParser parser = S3FileNameParser.getInstance();
-    String origUri = "s3:///fooBucket/rcf-emr-staging";
+    String origUri = "s3:/fooBucket/rcf-emr-staging";
     S3FileName filename =
       (S3FileName) parser.parseUri( null, null, origUri );
 

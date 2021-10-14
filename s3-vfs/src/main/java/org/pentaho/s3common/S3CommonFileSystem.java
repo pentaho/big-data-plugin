@@ -55,7 +55,7 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
   private String awsAccessKeyCache;
   private String awsSecretKeyCache;
   private AmazonS3 client;
-  private Supplier<ConnectionManager> connectionManager = ConnectionManager::getInstance;
+  private final Supplier<ConnectionManager> connectionManager = ConnectionManager::getInstance;
   private Map<String, String> currentConnectionProperties;
   private FileSystemOptions currentFileSystemOptions;
 
@@ -91,11 +91,8 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
     if ( s3CommonFileSystemConfigBuilder.getName() == null ) {
       // Copy the connection properties
       Map<String, String> newConnectionProperties = new HashMap<>();
-      if ( defaultS3Connection.isPresent() ) {
-        for ( Map.Entry<String, String> entry : defaultS3Connection.get().getProperties().entrySet() ) {
-          newConnectionProperties.put( entry.getKey(), entry.getValue() );
-        }
-      }
+      defaultS3Connection
+              .ifPresent( connectionDetails -> newConnectionProperties.putAll( connectionDetails.getProperties() ) );
 
       // Have the default connection properties changed?
       if ( !newConnectionProperties.equals( currentConnectionProperties ) ) {
@@ -219,7 +216,7 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
       || S3Util.hasChanged( awsSecretKeyCache, System.getProperty( S3Util.SECRET_KEY_SYSTEM_PROPERTY ) ) );
   }
 
-  private boolean isRegionSet() {
+  protected boolean isRegionSet() {
     //region is set if explicitly set in env variable or configuration file is explicitly set
     if ( System.getenv( S3Util.AWS_REGION ) != null || System.getenv( S3Util.AWS_CONFIG_FILE ) != null ) {
       return true;

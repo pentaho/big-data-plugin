@@ -1,7 +1,7 @@
-/*******************************************************************************
+/*!
  * Pentaho Big Data
  * <p>
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
  * <p>
  * ******************************************************************************
  * <p>
@@ -20,9 +20,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
@@ -39,6 +40,7 @@ import org.apache.commons.vfs2.provider.FileNameParser;
 import org.apache.commons.vfs2.provider.url.UrlFileName;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.AdditionalMatchers;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.big.data.impl.vfs.hdfs.HDFSFileSystem;
@@ -52,35 +54,35 @@ import org.pentaho.metastore.api.exceptions.MetaStoreException;
 
 public class NamedClusterProviderTest {
 
-  private NamedClusterService ncService = mock( NamedClusterService.class );
+  private final NamedClusterService ncService = mock( NamedClusterService.class );
 
-  private MetastoreLocatorOsgi metastoreLocator = mock( MetastoreLocatorOsgi.class );
+  private final MetastoreLocatorOsgi metastoreLocator = mock( MetastoreLocatorOsgi.class );
 
-  private IMetaStore metastore = mock( IMetaStore.class );
+  private final IMetaStore metastore = mock( IMetaStore.class );
 
-  private NamedCluster nc = mock( NamedCluster.class );
+  private final NamedCluster nc = mock( NamedCluster.class );
 
-  private NamedCluster ncTemplate = mock( NamedCluster.class );
+  private final NamedCluster ncTemplate = mock( NamedCluster.class );
 
-  private HadoopFileSystemLocator hdfsLocator = mock( HadoopFileSystemLocator.class );
+  private final HadoopFileSystemLocator hdfsLocator = mock( HadoopFileSystemLocator.class );
 
-  private FileNameParser fileNameParser = mock( FileNameParser.class );
+  private final FileNameParser fileNameParser = mock( FileNameParser.class );
 
-  private DefaultFileSystemManager fileSystemManager = mock( DefaultFileSystemManager.class );
+  private final DefaultFileSystemManager fileSystemManager = mock( DefaultFileSystemManager.class );
 
-  private HadoopFileSystem hfs = mock( HadoopFileSystem.class );
+  private final HadoopFileSystem hfs = mock( HadoopFileSystem.class );
 
-  private String[] scheme = new String[] { "test" };
+  private final String[] scheme = new String[] { "test" };
 
-  private String ncName = "ncName";
-  private String path = "/samplePath";
+  private final String ncName = "ncName";
+  private final String path = "/samplePath";
 
   @Before
   public void setUp() throws MetaStoreException, ClusterInitializationException {
     when( ncService.read( eq( ncName ), eq( metastore ) ) ).thenReturn( nc );
     when( ncService.getClusterTemplate() ).thenReturn( ncTemplate );
-    when( ncTemplate.processURLsubstitution( anyString(), any( IMetaStore.class ), any( Variables.class ) ) ).thenReturn( "nc://" + ncName + path );
-    when( nc.processURLsubstitution( anyString(), any( IMetaStore.class ), any( Variables.class ) ) ).thenReturn( "nc://" + ncName + path );
+    when( ncTemplate.processURLsubstitution( anyString(), AdditionalMatchers.or( any( IMetaStore.class ), isNull() ), any( Variables.class ) ) ).thenReturn( "nc://" + ncName + path );
+    when( nc.processURLsubstitution( anyString(), AdditionalMatchers.or( any( IMetaStore.class ), isNull() ), any( Variables.class ) ) ).thenReturn( "nc://" + ncName + path );
     when( hdfsLocator.getHadoopFilesystem( any( NamedCluster.class ), any( URI.class ) ) ).thenReturn( hfs );
   }
 
@@ -103,7 +105,7 @@ public class NamedClusterProviderTest {
   }
 
   @Test
-  public void testGetConfigBuilder() throws FileSystemException, MetaStoreException {
+  public void testGetConfigBuilder() throws FileSystemException {
     NamedClusterProvider provider = new  NamedClusterProvider( hdfsLocator, ncService, fileSystemManager, fileNameParser, scheme, metastoreLocator );
     FileSystemConfigBuilder builder = provider.getConfigBuilder();
     assertNotNull( builder );
@@ -111,7 +113,7 @@ public class NamedClusterProviderTest {
   }
 
   @Test
-  public void testDoCreateFileSystem() throws FileSystemException, MetaStoreException, ClusterInitializationException {
+  public void testDoCreateFileSystem() throws FileSystemException, ClusterInitializationException {
     when( metastoreLocator.getMetastore() ).thenReturn( metastore );
 
     UrlFileName name = new UrlFileName( "hc", ncName, 0, 0, null, null, path, null, null );

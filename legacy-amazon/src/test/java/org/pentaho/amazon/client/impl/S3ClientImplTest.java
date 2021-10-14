@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -54,7 +54,7 @@ import java.util.zip.GZIPOutputStream;
 
 @RunWith( PowerMockRunner.class )
 @PrepareForTest( S3ClientImpl.class )
-@PowerMockIgnore( "javax.management.*" )
+@PowerMockIgnore( { "javax.management.*", "jdk.internal.reflect.*" } )
 public class S3ClientImplTest {
 
   @Rule
@@ -156,23 +156,15 @@ public class S3ClientImplTest {
   }
 
   private void createGzArchive() throws Exception {
-    FileInputStream fileInputStream = null;
-    FileOutputStream fileOutputStream = null;
-    GZIPOutputStream gzipOutputStream = null;
 
-    try {
-      fileInputStream = new FileInputStream( logFileName );
-      fileOutputStream = new FileOutputStream( gzArchName );
-      gzipOutputStream = new GZIPOutputStream( fileOutputStream );
+    try ( FileInputStream fileInputStream = new FileInputStream( logFileName );
+         FileOutputStream fileOutputStream = new FileOutputStream( gzArchName );
+         GZIPOutputStream gzipOutputStream = new GZIPOutputStream( fileOutputStream ) ) {
       byte[] buffer = new byte[ 1024 ];
       int len;
       while ( ( len = fileInputStream.read( buffer ) ) != -1 ) {
         gzipOutputStream.write( buffer, 0, len );
       }
-    } finally {
-      gzipOutputStream.close();
-      fileOutputStream.close();
-      fileInputStream.close();
     }
   }
 }

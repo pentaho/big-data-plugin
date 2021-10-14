@@ -1,7 +1,7 @@
-/*******************************************************************************
+/*!
  * Pentaho Big Data
  * <p/>
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
  * <p/>
  * ******************************************************************************
  * <p/>
@@ -28,7 +28,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.metastore.MetaStoreConst;
 import org.pentaho.di.repository.Repository;
@@ -45,9 +44,10 @@ import java.net.URL;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.AdditionalMatchers.or;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -64,9 +64,8 @@ public class HadoopFileOutputMetaTest {
   public static final String ENTRY_TAG_NAME = "entry";
   public static final String EMBEDDED_XML = "embed";
   public static final String NAMED_CLUSTER_TAG = "NamedCluster";
-  private static Logger logger = Logger.getLogger( HadoopFileOutputMetaTest.class );
+  private static final Logger logger = Logger.getLogger( HadoopFileOutputMetaTest.class );
   // for message resolution
-  private static Class<?> MessagePKG = HadoopFileOutputMeta.class;
   private NamedClusterService namedClusterService;
   private RuntimeTestActionService runtimeTestActionService;
   private RuntimeTester runtimeTester;
@@ -81,7 +80,7 @@ public class HadoopFileOutputMetaTest {
   }
 
   @Test
-  public void testProcessedUrl() throws Exception {
+  public void testProcessedUrl() {
     String sourceConfigurationName = "scName";
     String desiredUrl = "desiredUrl";
     String url = "url";
@@ -91,19 +90,18 @@ public class HadoopFileOutputMetaTest {
     assertTrue( null == hadoopFileOutputMeta.getProcessedUrl( metaStore, null ) );
     hadoopFileOutputMeta.setSourceConfigurationName( sourceConfigurationName );
     NamedCluster nc = mock( NamedCluster.class );
-    when( namedClusterService.getNamedClusterByName( eq( sourceConfigurationName ), (IMetaStore) anyObject() ) )
+    when( namedClusterService.getNamedClusterByName( eq( sourceConfigurationName ), any()) )
       .thenReturn( null );
     assertEquals( url, hadoopFileOutputMeta.getProcessedUrl( metaStore, url ) );
-    when( namedClusterService.getNamedClusterByName( eq( sourceConfigurationName ), (IMetaStore) anyObject() ) )
+    when( namedClusterService.getNamedClusterByName( eq( sourceConfigurationName ), any()) )
       .thenReturn( nc );
-    when( nc.processURLsubstitution( eq( url ), (IMetaStore) anyObject(), (VariableSpace) anyObject() ) )
+    when( nc.processURLsubstitution( eq( url ), any(), any()) )
       .thenReturn( desiredUrl );
     assertEquals( desiredUrl, hadoopFileOutputMeta.getProcessedUrl( metaStore, url ) );
   }
 
   @Test
-  public void testProcessedUrlUsingEmbeddedCluster() throws Exception {
-    String sourceConfigurationName = "scName";
+  public void testProcessedUrlUsingEmbeddedCluster() {
     String desiredUrl = "desiredUrl";
     String url = "url";
     HadoopFileOutputMeta hadoopFileOutputMeta = new HadoopFileOutputMeta( namedClusterService, runtimeTestActionService,
@@ -140,7 +138,7 @@ public class HadoopFileOutputMetaTest {
     Element clusterNameElement = getChildElementByTagName( fileElement, HadoopFileInputMeta.SOURCE_CONFIGURATION_NAME );
     assertEquals( TEST_CLUSTER_NAME, clusterNameElement.getValue() );
     //check that saveSource is called from TextFileOutputMeta
-    verify( spy, times( 1 ) ).saveSource( any( StringBuilder.class ), any( String.class ) );
+    verify( spy, times( 1 ) ).saveSource( any( StringBuilder.class ), or( any( String.class ), isNull() ) );
   }
 
   public Node getChildElementByTagName( String fileName ) throws Exception {
@@ -153,7 +151,7 @@ public class HadoopFileOutputMetaTest {
     }
   }
 
-  public static Element getChildElementByTagName( Element element, String tagName ) throws Exception {
+  public static Element getChildElementByTagName( Element element, String tagName ) {
     return (Element) element.getContent( new ElementFilter( tagName ) ).get( 0 );
   }
 
@@ -169,7 +167,7 @@ public class HadoopFileOutputMetaTest {
     //create spy to check whether saveSource now is called from readData
     spy.readData( node );
     assertEquals( TEST_CLUSTER_NAME, hadoopFileOutputMeta.getSourceConfigurationName() );
-    verify( spy, times( 1 ) ).loadSource( any( Node.class ), any( IMetaStore.class ) );
+    verify( spy, times( 1 ) ).loadSource( any( Node.class ), or( any( IMetaStore.class ), isNull() ) );
   }
 
   @Test
@@ -181,12 +179,12 @@ public class HadoopFileOutputMetaTest {
     when( namedClusterService.getNamedClusterByName( TEST_CLUSTER_NAME, mockMetaStore ) )
       .thenReturn( mockNamedCluster );
     Repository mockRep = mock( Repository.class );
-    when( mockRep.getStepAttributeString( anyObject(), eq( "source_configuration_name" ) ) ).thenReturn(
+    when( mockRep.getStepAttributeString( any(), eq( "source_configuration_name" ) ) ).thenReturn(
       TEST_CLUSTER_NAME );
     HadoopFileOutputMeta hadoopFileOutputMeta =
       new HadoopFileOutputMeta( namedClusterService, runtimeTestActionService, runtimeTester );
     hadoopFileOutputMeta.setSourceConfigurationName( TEST_CLUSTER_NAME );
-    when( mockRep.getStepAttributeString( anyObject(), eq( "file_name" ) ) ).thenReturn( "Bad Url In Repo" );
+    when( mockRep.getStepAttributeString( any(), eq( "file_name" ) ) ).thenReturn( "Bad Url In Repo" );
 
     assertEquals( URL_FROM_CLUSTER, hadoopFileOutputMeta.loadSourceRep( mockRep, null, mockMetaStore ) );
   }
@@ -211,7 +209,7 @@ public class HadoopFileOutputMetaTest {
     // getting from file node cluster attribute value
     assertEquals( EMBEDDED_XML, clusterElement.getValue() );
     // check that saveSource is called from TextFileOutputMeta
-    verify( spy, times( 1 ) ).saveSource( any( StringBuilder.class ), any( String.class ) );
+    verify( spy, times( 1 ) ).saveSource( any( StringBuilder.class ), or( any( String.class ), isNull() ) );
   }
 
 

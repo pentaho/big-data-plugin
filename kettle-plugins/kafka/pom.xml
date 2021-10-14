@@ -171,14 +171,6 @@
         <dependency>
           <groupId>pentaho</groupId>
           <artifactId>pentaho-metaverse-core</artifactId>
-          <classifier>tests</classifier>
-          <type>test-jar</type>
-          <version>${pdi.version}</version>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>pentaho</groupId>
-          <artifactId>pentaho-metaverse-core</artifactId>
           <version>${pdi.version}</version>
           <scope>test</scope>
         </dependency>

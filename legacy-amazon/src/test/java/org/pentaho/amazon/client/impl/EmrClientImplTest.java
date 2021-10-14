@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -39,13 +39,13 @@ import org.mockito.Mockito;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.pentaho.amazon.hive.job.AmazonHiveJobExecutor;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.times;
 
 /**
@@ -53,6 +53,7 @@ import static org.mockito.Mockito.times;
  */
 @RunWith( PowerMockRunner.class )
 @PrepareForTest( EmrClientImpl.class )
+@PowerMockIgnore( "jdk.internal.reflect.*" )
 public class EmrClientImplTest {
 
   private EmrClientImpl emrClient;
@@ -170,11 +171,6 @@ public class EmrClientImplTest {
     String mainClass = "";
     String bootstrapActions = "";
 
-    List<String> stepArgs = new ArrayList<>();
-    stepArgs.add( "--" );
-    stepArgs.add( "bucket" );
-    stepArgs.add( "s3://test" );
-
     RunJobFlowRequest mockJobFlowRequest = Mockito.mock( RunJobFlowRequest.class );
 
     PowerMockito.doReturn( "s-15PK2NMVIPRPF" ).when( emrClient, "getCurrentlyRunningStepId" );
@@ -233,8 +229,6 @@ public class EmrClientImplTest {
   @Test
   public void testStopSteps_whenLeaveClusterAlive() throws Exception {
 
-    boolean expectedStopSteps = true;
-
     Whitebox.setInternalState( emrClient, "alive", true );
 
     PowerMockito.doNothing().when( emrClient, "terminateJobFlows" );
@@ -244,13 +238,11 @@ public class EmrClientImplTest {
 
     PowerMockito.verifyPrivate( emrClient, times( 0 ) ).invoke( "terminateJobFlows" );
     PowerMockito.verifyPrivate( emrClient, times( 1 ) ).invoke( "cancelStepExecution" );
-    Assert.assertEquals( expectedStopSteps, stopSteps );
+    Assert.assertEquals( true, stopSteps );
   }
 
   @Test
   public void testStopSteps_whenNotLeaveClusterAlive() throws Exception {
-
-    boolean expectedStopSteps = false;
 
     Whitebox.setInternalState( emrClient, "alive", false );
 
@@ -261,18 +253,13 @@ public class EmrClientImplTest {
 
     PowerMockito.verifyPrivate( emrClient, times( 1 ) ).invoke( "terminateJobFlows" );
     PowerMockito.verifyPrivate( emrClient, times( 0 ) ).invoke( "cancelStepExecution" );
-    Assert.assertEquals( expectedStopSteps, stopSteps );
+    Assert.assertEquals( false, stopSteps );
   }
 
   @Test
   public void testRemoveLineBreaks_whenBootstrapActionStringIsNull(){
-
-    String bootstrapStringWithBreaks = null;
-    String expectedString = null;
-
-    String resultBootstrapString = emrClient.removeLineBreaks( bootstrapStringWithBreaks );
-
-    Assert.assertEquals( expectedString, resultBootstrapString );
+    String resultBootstrapString = EmrClientImpl.removeLineBreaks( null );
+    Assert.assertEquals( null, resultBootstrapString );
   }
 
   @Test
@@ -281,7 +268,7 @@ public class EmrClientImplTest {
     String bootstrapStringWithBreaks = "  ";
     String expectedString = "";
 
-    String resultBootstrapString = emrClient.removeLineBreaks( bootstrapStringWithBreaks );
+    String resultBootstrapString = EmrClientImpl.removeLineBreaks( bootstrapStringWithBreaks );
 
     Assert.assertEquals( expectedString, resultBootstrapString );
   }
@@ -292,7 +279,7 @@ public class EmrClientImplTest {
     String bootstrapStringWithBreaks = "";
     String expectedString = "";
 
-    String resultBootstrapString = emrClient.removeLineBreaks( bootstrapStringWithBreaks );
+    String resultBootstrapString = EmrClientImpl.removeLineBreaks( bootstrapStringWithBreaks );
 
     Assert.assertEquals( expectedString, resultBootstrapString );
   }
@@ -303,7 +290,7 @@ public class EmrClientImplTest {
     String bootstrapStringWithBreaks = " --bootstrap-action\n \"s3://hive-input/copymyfile.sh\" --args\n\n   s3://hive-input/input1/weblogs_small.txt   \n   ";
     String expectedString = "--bootstrap-action \"s3://hive-input/copymyfile.sh\" --args s3://hive-input/input1/weblogs_small.txt";
 
-    String resultBootstrapString = emrClient.removeLineBreaks( bootstrapStringWithBreaks );
+    String resultBootstrapString = EmrClientImpl.removeLineBreaks( bootstrapStringWithBreaks );
 
     Assert.assertEquals( expectedString, resultBootstrapString );
   }
@@ -314,7 +301,7 @@ public class EmrClientImplTest {
     String bootstrapStringWithBreaks = "--bootstrap-action \"s3://hive-input/copymyfile.sh\" --args s3://hive-input/input1/weblogs_small.txt";
     String expectedString = "--bootstrap-action \"s3://hive-input/copymyfile.sh\" --args s3://hive-input/input1/weblogs_small.txt";
 
-    String resultBootstrapString = emrClient.removeLineBreaks( bootstrapStringWithBreaks );
+    String resultBootstrapString = EmrClientImpl.removeLineBreaks( bootstrapStringWithBreaks );
 
     Assert.assertEquals( expectedString, resultBootstrapString );
   }
