@@ -88,6 +88,37 @@
       <artifactId>jackson-jaxrs-json-provider</artifactId>
       <scope>provided</scope>
     </dependency>
+    <!--
+    Fix for karaf wiring exception in Pentaho Server caused by DTE changes related to:
+    https://hv-eng.atlassian.net/browse/TAP-5183
+    If this causes future problems in DTE then it will be necessary to reevaluate
+    where the org.pentaho.di.ui.repo.endpoints.WebSpoonFilter resides. Probably
+    move it to "core-ui" as "repositories-plugin-core" is not available in karaf at the Pentaho Server
+    -->
+    <dependency>
+      <groupId>org.pentaho.di.plugins</groupId>
+      <artifactId>repositories-plugin-core</artifactId>
+      <version>${pdi.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.ops4j.pax.web</groupId>
+      <artifactId>pax-web-spi</artifactId>
+      <version>${pax-web.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.ops4j.pax.swissbox</groupId>
+      <artifactId>pax-swissbox-core</artifactId>
+      <version>1.7.1</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
+      <version>4.1</version>
+    </dependency>
+    <!--END OF CHANGES-->
     <dependency>
       <groupId>javax.ws.rs</groupId>
       <artifactId>javax.ws.rs-api</artifactId>
@@ -215,6 +246,21 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+            <!--
+            Fix for karaf wiring exception in Pentaho Server caused by DTE changes related to:
+            https://hv-eng.atlassian.net/browse/TAP-5183
+            If this causes future problems in DTE then it will be necessary to reevaluate
+            where the org.pentaho.di.ui.repo.endpoints.WebSpoonFilter resides. Probably
+            move it to "core-ui" as "repositories-plugin-core" is not available in karaf at the Pentaho Server
+            -->
+            <Export-Package>org.pentaho.di.ui.repo,
+              org.pentaho.di.ui.repo.endpoints,
+              org.pentaho.di.ui.repo.model,
+              org.ops4j.pax.web.service.spi.util,
+              org.apache.commons.collections4.*,
+              org.ops4j.pax.swissbox.core,
+              org.ops4j.lang,
+              org.pentaho.di.ui.repo.*</Export-Package>
             <Import-Package>org.pentaho.di.osgi,
               org.pentaho.di.core.plugins,
               org.pentaho.di.core.extension,
