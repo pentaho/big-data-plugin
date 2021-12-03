@@ -80,7 +80,7 @@ public class ImpalaDatabaseDialect extends Hive2DatabaseDialect {
       return urlBuffer.toString();
     }
 
-    urlBuffer.append( ";auth=noSasl" );
+    // urlBuffer.append( ";auth=noSasl" );
     return urlBuffer.toString();
   }
 
