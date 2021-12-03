@@ -7,12 +7,12 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-bundles</artifactId>
-    <version>9.3.0.0-SNAPSHOT</version>
+    <version>9.3.0.0-273</version>
   </parent>
 
   <groupId>pentaho</groupId>
   <artifactId>pentaho-s3-vfs</artifactId>
-  <version>9.3.0.0-SNAPSHOT</version>
+  <version>9.3.0.0-273</version>
   <packaging>jar</packaging>
 
   <licenses>
@@ -29,7 +29,7 @@
     <!-- pentaho dependencies -->
     <kettle.core.version>${project.version}</kettle.core.version>
     <kettle.engine.version>${project.version}</kettle.engine.version>
-    <encryption-support.version>9.3.0.0-SNAPSHOT</encryption-support.version>
+    <encryption-support.version>9.3.0.0-273</encryption-support.version>
 
     <!-- License Configuration -->
     <license.licenseName>apache_v2</license.licenseName>
