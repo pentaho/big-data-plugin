@@ -161,7 +161,7 @@
         <include>org.hibernate:hibernate-ehcache</include>
         <include>org.ini4j:ini4j</include>
         <include>org.pentaho:json</include>
-        <include>log4j:log4j</include>
+        <include>org.apache.logging.log4j:log4j-core</include>
         <include>org.mnode.mstor:mstor</include>
         <include>org.mvel:mvel2</include>
         <include>org.odftoolkit:odfdom-java</include>
@@ -173,7 +173,7 @@
         <include>org.samba.jcifs:jcifs</include>
         <include>org.scannotation:scannotation</include>
         <include>org.slf4j:slf4j-api</include>
-        <include>org.slf4j:slf4j-log4j12</include>
+        <include>org.apache.logging.log4j:log4j-slf4j-impl</include>
         <include>org.snmp4j:snmp4j</include>
         <include>org.springframework.security:spring-security-core</include>
         <include>org.springframework:spring-core</include>
@@ -218,7 +218,6 @@
         <include>pentaho:simple-jndi</include>
         <include>org.pentaho:pentaho-encryption-support</include>
         <include>org.pentaho.reporting.engine:classic-core</include>
-        <include>pentaho:salesforce-partner</include>
         <include>pentaho:pentaho-service-coordinator</include>
         <include>rhino:js</include>
         <include>rome:rome</include>

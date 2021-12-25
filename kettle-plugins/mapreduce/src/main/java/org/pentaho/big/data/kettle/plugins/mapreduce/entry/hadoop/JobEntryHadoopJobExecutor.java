@@ -23,18 +23,14 @@
 package org.pentaho.big.data.kettle.plugins.mapreduce.entry.hadoop;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Appender;
 import org.pentaho.big.data.kettle.plugins.mapreduce.DialogClassUtil;
 import org.pentaho.big.data.kettle.plugins.mapreduce.entry.NamedClusterLoadSaveUtil;
 import org.pentaho.big.data.kettle.plugins.mapreduce.entry.UserDefinedItem;
 import org.pentaho.big.data.kettle.plugins.mapreduce.entry.pmr.JobEntryHadoopTransJobExecutor;
-import org.pentaho.hadoop.shim.api.mapreduce.MapReduceJobAdvanced;
-import org.pentaho.hadoop.shim.api.mapreduce.MapReduceJobBuilder;
-import org.pentaho.hadoop.shim.api.mapreduce.MapReduceJobSimple;
-import org.pentaho.hadoop.shim.api.mapreduce.MapReduceService;
-import org.pentaho.hadoop.shim.api.mapreduce.TaskCompletionEvent;
 import org.pentaho.di.cluster.SlaveServer;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Result;
@@ -43,28 +39,43 @@ import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
-import org.pentaho.di.core.logging.Log4jFileAppender;
-import org.pentaho.di.core.logging.LogWriter;
+import org.pentaho.di.core.logging.LogLevel;
+import org.pentaho.di.core.logging.log4j.Log4jKettleLayout;
 import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.entry.JobEntryBase;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.mapreduce.MapReduceJobAdvanced;
+import org.pentaho.hadoop.shim.api.mapreduce.MapReduceJobBuilder;
+import org.pentaho.hadoop.shim.api.mapreduce.MapReduceJobSimple;
+import org.pentaho.hadoop.shim.api.mapreduce.MapReduceService;
+import org.pentaho.hadoop.shim.api.mapreduce.TaskCompletionEvent;
 import org.pentaho.metastore.api.IMetaStore;
+import org.pentaho.platform.api.util.LogUtil;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Node;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @JobEntry( id = "HadoopJobExecutorPlugin", image = "HDE.svg", name = "HadoopJobExecutorPlugin.Name",
@@ -109,6 +120,29 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
   private String numMapTasks = "1";
   private String numReduceTasks = "1";
   private List<UserDefinedItem> userDefined = new ArrayList<UserDefinedItem>();
+  FileObject file;
+  /**
+   * Maps Kettle LogLevels to Log4j Levels
+   */
+  public static final Map<LogLevel, Level> LOG_LEVEL_MAP;
+
+  static {
+    EnumMap<LogLevel, Level> map = new EnumMap<>( LogLevel.class );
+    map.put( LogLevel.BASIC, Level.INFO );
+    map.put( LogLevel.MINIMAL, Level.INFO );
+    map.put( LogLevel.DEBUG, Level.DEBUG );
+    map.put( LogLevel.ERROR, Level.ERROR );
+    map.put( LogLevel.DETAILED, Level.INFO );
+    map.put( LogLevel.ROWLEVEL, Level.DEBUG );
+    map.put( LogLevel.NOTHING, Level.OFF );
+    LOG_LEVEL_MAP = Collections.unmodifiableMap( map );
+  }
+
+  private Level getLog4jLevel( LogLevel level ) {
+    Level log4jLevel = LOG_LEVEL_MAP.get( level );
+    return log4jLevel != null ? log4jLevel : Level.INFO;
+  }
+
 
   public JobEntryHadoopJobExecutor( NamedClusterService namedClusterService,
                                     RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester,
@@ -298,12 +332,15 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
   public Result execute( final Result result, int arg1 ) throws KettleException {
     result.setNrErrors( 0 );
 
-    Log4jFileAppender appender = null;
+    Appender appender = null;
     String logFileName = "pdi-" + this.getName(); //$NON-NLS-1$
 
     try {
-      appender = LogWriter.createFileAppender( logFileName, true, false );
-      LogWriter.getInstance().addAppender( appender );
+      file = KettleVFS.createTempFile( logFileName, ".log", System.getProperty( "java.io.tmpdir" ) );
+      appender =  LogUtil.makeAppender( logFileName,
+        new OutputStreamWriter( KettleVFS.getOutputStream( file, true ),
+          StandardCharsets.UTF_8 ), new Log4jKettleLayout( StandardCharsets.UTF_8, true ) );
+      LogUtil.addAppender( appender, LogManager.getLogger( "org.pentaho.di.job.Job" ), getLog4jLevel( parentJob.getLogLevel() ) );
       log.setLogLevel( parentJob.getLogLevel() );
     } catch ( Exception e ) {
       logError( BaseMessages
@@ -475,11 +512,10 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
     }
 
     if ( appender != null ) {
-      LogWriter.getInstance().removeAppender( appender );
-      appender.close();
+      LogUtil.removeAppender( appender, LogManager.getLogger() );
 
       ResultFile resultFile =
-        new ResultFile( ResultFile.FILE_TYPE_LOG, appender.getFile(), parentJob.getJobname(), getName() );
+        new ResultFile( ResultFile.FILE_TYPE_LOG, file, parentJob.getJobname(), getName() );
       result.getResultFiles().put( resultFile.getFile().toString(), resultFile );
     }
 
@@ -790,10 +826,12 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
     }
   }
 
+  @Override
   public boolean evaluates() {
     return true;
   }
 
+  @Override
   public boolean isUnconditional() {
     return true;
   }
