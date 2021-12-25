@@ -22,8 +22,8 @@
 
 package org.pentaho.big.data.kettle.plugins.sqoop;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.Logger;
 
 import java.io.PrintStream;
 

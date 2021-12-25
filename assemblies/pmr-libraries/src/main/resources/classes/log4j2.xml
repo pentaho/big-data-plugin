@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Configuration status="Warn">
+
+    <Appenders>
+
+        <RollingFile name="PENTAHOFILE"
+                     fileName="logs/pdi.log"
+                     filePattern="pdi_%d{MM-dd-yyyy}-%i.log"
+                     append="false">
+            <PatternLayout>
+                <Pattern>%d %-5p [%c] %m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <OnStartupTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="20 MB" />
+                <TimeBasedTriggeringPolicy interval="1"/>
+            </Policies>
+        </RollingFile>
+
+        <Console name="PENTAHOCONSOLE">
+            <PatternLayout>
+                <Pattern>%d{ABSOLUTE} %-5p [%c{1}] %m%n</Pattern>
+            </PatternLayout>
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <Logger>
+            <Logger name="pentaho" level="info" additivity="false">
+                <appender-ref ref="PENTAHOFILE" />
+            </Logger>
+            <Root level="info">
+                <appender-ref ref="PENTAHOCONSOLE" />
+            </Root>
+        </Logger>
+    </Loggers>
+</Configuration>

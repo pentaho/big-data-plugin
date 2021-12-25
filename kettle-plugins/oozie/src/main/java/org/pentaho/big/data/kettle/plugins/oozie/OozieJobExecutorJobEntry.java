@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -38,7 +38,6 @@ import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocat
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.job.AbstractJobEntry;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
-import org.pentaho.big.data.kettle.plugins.job.JobEntryUtils;
 import org.pentaho.big.data.kettle.plugins.job.PropertyEntry;
 import org.pentaho.bigdata.api.oozie.OozieJobInfo;
 import org.pentaho.bigdata.api.oozie.OozieService;

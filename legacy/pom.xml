@@ -178,11 +178,6 @@
       <version>${jline.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.pentaho.di.plugins</groupId>
-      <artifactId>kettle-log4j-core</artifactId>
-      <version>${pdi.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.apache.thrift</groupId>
       <artifactId>libthrift</artifactId>
     </dependency>
