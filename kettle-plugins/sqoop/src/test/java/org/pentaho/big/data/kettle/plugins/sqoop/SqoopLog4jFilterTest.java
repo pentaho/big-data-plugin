@@ -21,8 +21,8 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.sqoop;
 
-import org.apache.log4j.spi.Filter;
-import org.apache.log4j.spi.LoggingEvent;
+import org.apache.logging.log4j.core.Filter;
+import org.apache.logging.log4j.core.LogEvent;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -35,12 +35,12 @@ public class SqoopLog4jFilterTest {
   public void decide() {
     String goodLog = "goodLog";
     String badLog = "badLog";
-    LoggingEvent goodEvent = mock( LoggingEvent.class );
-    when( goodEvent.getMDC( "logChannelId" ) ).thenReturn( goodLog );
-    LoggingEvent badEvent = mock( LoggingEvent.class );
-    when( badEvent.getMDC( "logChannelId" ) ).thenReturn( badLog );
+    LogEvent goodEvent = mock( LogEvent.class );
+    when( goodEvent.getContextData().getValue( "logChannelId" ) ).thenReturn( goodLog );
+    LogEvent badEvent = mock( LogEvent.class );
+    when( badEvent.getContextData().getValue( "logChannelId" ) ).thenReturn( badLog );
     Filter f = new SqoopLog4jFilter( goodLog );
-    assertEquals( Filter.NEUTRAL, f.decide( goodEvent ) );
-    assertEquals( Filter.DENY, f.decide( badEvent ) );
+    assertEquals( Filter.Result.NEUTRAL, f.filter( goodEvent ) );
+    assertEquals( Filter.Result.DENY, f.filter( badEvent ) );
   }
 }

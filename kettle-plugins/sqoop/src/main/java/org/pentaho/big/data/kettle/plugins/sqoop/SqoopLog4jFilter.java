@@ -21,21 +21,23 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.sqoop;
 
-import org.apache.log4j.spi.Filter;
-import org.apache.log4j.spi.LoggingEvent;
+import org.apache.logging.log4j.core.LogEvent;
+import org.apache.logging.log4j.core.filter.AbstractFilter;
 
 
-public class SqoopLog4jFilter extends Filter {
+
+public class SqoopLog4jFilter extends AbstractFilter {
   String logChannelId;
 
   public SqoopLog4jFilter( String logChannelId ) {
     this.logChannelId = logChannelId;
   }
 
-  @Override public int decide( LoggingEvent event ) {
-    if ( logChannelId.equals( event.getMDC( "logChannelId" ) ) ) {
-      return Filter.NEUTRAL;
+  @Override
+  public Result filter(LogEvent event) {
+    if ( logChannelId.equals( event.getContextData().getValue( "logChannelId" ) ) ) {
+      return Result.NEUTRAL;
     }
-    return Filter.DENY;
+    return Result.DENY;
   }
 }

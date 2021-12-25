@@ -399,7 +399,7 @@
             <DynamicImport-Package>*</DynamicImport-Package>
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
             <Import-Package>
-              org.apache.avro.*;resolution:=optional,org.slf4j.*,org.apache.log4j.*
+              org.apache.avro.*;resolution:=optional,org.slf4j.*,org.apache.logging.log4j.*
             </Import-Package>
             <Export-Package>
               org.pentaho.di.core.namedcluster,

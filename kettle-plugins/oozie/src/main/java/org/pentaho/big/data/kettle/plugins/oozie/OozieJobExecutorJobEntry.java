@@ -40,7 +40,6 @@ import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.job.AbstractJobEntry;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
-import org.pentaho.big.data.kettle.plugins.job.JobEntryUtils;
 import org.pentaho.big.data.kettle.plugins.job.PropertyEntry;
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.annotations.JobEntry;

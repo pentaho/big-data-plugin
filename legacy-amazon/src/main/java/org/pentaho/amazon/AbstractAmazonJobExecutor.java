@@ -27,6 +27,9 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.auth.StaticUserAuthenticator;
 import org.apache.commons.vfs2.impl.DefaultFileSystemConfigBuilder;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Appender;
 import org.pentaho.amazon.client.ClientFactoriesManager;
 import org.pentaho.amazon.client.ClientType;
 import org.pentaho.amazon.client.api.EmrClient;
@@ -36,13 +39,20 @@ import org.pentaho.di.core.Result;
 import org.pentaho.di.core.ResultFile;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
-import org.pentaho.di.core.logging.Log4jFileAppender;
-import org.pentaho.di.core.logging.LogWriter;
+import org.pentaho.di.core.logging.LogLevel;
+import org.pentaho.di.core.logging.log4j.Log4jKettleLayout;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.platform.api.util.LogUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.Charset;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Aliaksandr_Zhuk on 1/31/2018.
@@ -51,18 +61,42 @@ public abstract class AbstractAmazonJobExecutor extends AbstractAmazonJobEntry {
 
   private static Class<?> PKG = AbstractAmazonJobExecutor.class;
 
-  private Log4jFileAppender appender = null;
+  private Appender appender = null;
   private S3Client s3Client;
   protected EmrClient emrClient;
   protected String key;
   protected int numInsts = 2;
+  FileObject file;
+  /**
+   * Maps Kettle LogLevels to Log4j Levels
+   */
+  public static Map<LogLevel, Level> LOG_LEVEL_MAP;
+
+  static {
+    Map<LogLevel, Level> map = new HashMap<LogLevel, Level>();
+    map.put( LogLevel.BASIC, Level.INFO );
+    map.put( LogLevel.MINIMAL, Level.INFO );
+    map.put( LogLevel.DEBUG, Level.DEBUG );
+    map.put( LogLevel.ERROR, Level.ERROR );
+    map.put( LogLevel.DETAILED, Level.INFO );
+    map.put( LogLevel.ROWLEVEL, Level.DEBUG );
+    map.put( LogLevel.NOTHING, Level.OFF );
+    LOG_LEVEL_MAP = Collections.unmodifiableMap( map );
+  }
+
+  private Level getLog4jLevel( LogLevel level ) {
+    Level log4jLevel = LOG_LEVEL_MAP.get( level );
+    return log4jLevel != null ? log4jLevel : Level.INFO;
+  }
 
   public void setupLogFile() {
     String logFileName = "pdi-" + this.getName();
     try {
-      appender = LogWriter.createFileAppender( logFileName, true, false );
-      LogWriter.getInstance().addAppender( appender );
-      log.setLogLevel( parentJob.getLogLevel() );
+      file = KettleVFS.createTempFile( logFileName, ".log", System.getProperty( "java.io.tmpdir" ) );
+      appender =  LogUtil.makeAppender( logFileName,
+              new OutputStreamWriter( KettleVFS.getOutputStream( file, true ),
+                      Charset.forName( "utf-8" ) ), new Log4jKettleLayout( true ) );
+      LogUtil.addAppender( appender, LogManager.getLogger(), getLog4jLevel(parentJob.getLogLevel()) );
     } catch ( Exception e ) {
       logError( BaseMessages.getString( PKG,
         "AbstractAmazonJobExecutor.FailedToOpenLogFile", logFileName, e.toString() ) );
@@ -277,11 +311,9 @@ public abstract class AbstractAmazonJobExecutor extends AbstractAmazonJobEntry {
     }
 
     if ( appender != null ) {
-      LogWriter.getInstance().removeAppender( appender );
-      appender.close();
-
+      LogUtil.removeAppender(appender, LogManager.getLogger());
       ResultFile resultFile =
-        new ResultFile( ResultFile.FILE_TYPE_LOG, appender.getFile(), parentJob.getJobname(), getName() );
+        new ResultFile( ResultFile.FILE_TYPE_LOG, file, parentJob.getJobname(), getName() );
       result.getResultFiles().put( resultFile.getFile().toString(), resultFile );
     }
     return result;
