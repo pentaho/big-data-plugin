@@ -31,6 +31,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.ThreadContext;
 import org.apache.logging.log4j.core.Appender;
+import org.pentaho.big.data.kettle.plugins.job.JobEntryUtils;
 import org.pentaho.big.data.kettle.plugins.job.PropertyEntry;
 import org.pentaho.di.core.logging.log4j.Log4jKettleLayout;
 import org.pentaho.hadoop.shim.api.HadoopClientServices;
