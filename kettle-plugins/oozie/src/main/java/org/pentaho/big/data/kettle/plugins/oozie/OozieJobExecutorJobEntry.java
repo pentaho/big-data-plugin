@@ -32,6 +32,7 @@ import java.util.Properties;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
+import org.pentaho.big.data.kettle.plugins.job.JobEntryUtils;
 import org.pentaho.hadoop.shim.api.HadoopClientServices;
 import org.pentaho.hadoop.shim.api.HadoopClientServicesException;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
