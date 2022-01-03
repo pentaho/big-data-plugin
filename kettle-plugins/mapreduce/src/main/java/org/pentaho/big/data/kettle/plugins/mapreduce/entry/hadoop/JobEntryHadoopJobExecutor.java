@@ -71,7 +71,10 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @JobEntry( id = "HadoopJobExecutorPlugin", image = "HDE.svg", name = "HadoopJobExecutorPlugin.Name",
@@ -335,7 +338,7 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
       file = KettleVFS.createTempFile( logFileName, ".log", System.getProperty( "java.io.tmpdir" ) );
       appender =  LogUtil.makeAppender( logFileName,
               new OutputStreamWriter( KettleVFS.getOutputStream( file, true ),
-                      Charset.forName( "utf-8" ) ), new Log4jKettleLayout( true ) );
+                      Charset.forName( "utf-8" ) ), new Log4jKettleLayout( Charset.forName( "utf-8" ), true ) );
       LogUtil.addAppender( appender, LogManager.getLogger(), getLog4jLevel(parentJob.getLogLevel()) );
       log.setLogLevel( parentJob.getLogLevel() );
     } catch ( Exception e ) {
