@@ -26,7 +26,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
-import org.apache.commons.lang.CharSet;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -64,6 +63,7 @@ import org.w3c.dom.Node;
 
 import java.io.StringWriter;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
@@ -203,16 +203,16 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
    */
   @SuppressWarnings( "deprecation" )
   public void attachLoggingAppenders() {
-    sqoopToKettleAppender = LogUtil.makeAppender("sqoop-logger", new StringWriter(),
-            new SqoopLog4jFilter( log.getLogChannelId() ), new Log4jKettleLayout(Charset.forName( "utf-8" ), true));
-    ThreadContext.put("logChannelId", log.getLogChannelId());
-      // Redirect all stderr logging to the first log to monitor so it shows up in the Kettle LogChannel
-    Logger sqoopLogger = LogManager.getLogger(LOGS_TO_MONITOR[0]);
+    sqoopToKettleAppender = LogUtil.makeAppender( "sqoop-logger", new StringWriter(),
+      new SqoopLog4jFilter( log.getLogChannelId() ), new Log4jKettleLayout( StandardCharsets.UTF_8, true ) );
+    ThreadContext.put( "logChannelId", log.getLogChannelId() );
+    // Redirect all stderr logging to the first log to monitor so it shows up in the Kettle LogChannel
+    Logger sqoopLogger = LogManager.getLogger( LOGS_TO_MONITOR[ 0 ] );
     if ( sqoopLogger != null ) {
       stdErrProxy = new LoggingProxy( System.err, sqoopLogger, Level.INFO );
       System.setErr( stdErrProxy );
     }
-    LogUtil.addAppender(sqoopToKettleAppender, sqoopLogger, Level.INFO);
+    LogUtil.addAppender( sqoopToKettleAppender, sqoopLogger, Level.INFO );
   }
 
   /**

@@ -23,6 +23,7 @@ package org.pentaho.big.data.kettle.plugins.sqoop;
 
 import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.LogEvent;
+import org.apache.logging.log4j.util.ReadOnlyStringMap;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -36,9 +37,13 @@ public class SqoopLog4jFilterTest {
     String goodLog = "goodLog";
     String badLog = "badLog";
     LogEvent goodEvent = mock( LogEvent.class );
-    when( goodEvent.getContextData().getValue( "logChannelId" ) ).thenReturn( goodLog );
+    ReadOnlyStringMap goodContextData = mock( ReadOnlyStringMap.class );
+    when( goodContextData.getValue( "logChannelId" ) ).thenReturn( goodLog );
+    when( goodEvent.getContextData() ).thenReturn( goodContextData );
     LogEvent badEvent = mock( LogEvent.class );
-    when( badEvent.getContextData().getValue( "logChannelId" ) ).thenReturn( badLog );
+    ReadOnlyStringMap badContextData = mock( ReadOnlyStringMap.class );
+    when( badContextData.getValue( "logChannelId" ) ).thenReturn( badLog );
+    when( badEvent.getContextData() ).thenReturn( badContextData );
     Filter f = new SqoopLog4jFilter( goodLog );
     assertEquals( Filter.Result.NEUTRAL, f.filter( goodEvent ) );
     assertEquals( Filter.Result.DENY, f.filter( badEvent ) );
