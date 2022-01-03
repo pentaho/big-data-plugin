@@ -587,7 +587,7 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
       file = KettleVFS.createTempFile( logFileName, ".log", System.getProperty( "java.io.tmpdir" ) );
       appender =  LogUtil.makeAppender( logFileName,
               new OutputStreamWriter( KettleVFS.getOutputStream( file, true ),
-                      Charset.forName( "utf-8" ) ), new Log4jKettleLayout( true ) );
+                      Charset.forName( "utf-8" ) ), new Log4jKettleLayout(  Charset.forName( "utf-8" ), true ) );
       LogUtil.addAppender( appender, LogManager.getLogger(), getLog4jLevel(parentJob.getLogLevel()) );
 
 
