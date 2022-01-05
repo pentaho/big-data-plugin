@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -43,6 +43,7 @@ import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.core.logging.log4j.KettleLogChannelAppender;
 import org.pentaho.di.core.logging.log4j.Log4jKettleLayout;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.i18n.BaseMessages;
@@ -61,7 +62,6 @@ import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Node;
 
-import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -200,10 +200,8 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   /**
    * Attach a log appender to all Loggers used by Sqoop so we can redirect the output to Kettle's logging facilities.
    */
-  @SuppressWarnings( "deprecation" )
   public void attachLoggingAppenders() {
-    sqoopToKettleAppender = LogUtil.makeAppender( "sqoop-logger", new StringWriter(),
-      new SqoopLog4jFilter( log.getLogChannelId() ), new Log4jKettleLayout( StandardCharsets.UTF_8, true ) );
+    sqoopToKettleAppender = new KettleLogChannelAppender( log, new Log4jKettleLayout( StandardCharsets.UTF_8, true ) );
     ThreadContext.put( "logChannelId", log.getLogChannelId() );
     // Redirect all stderr logging to the first log to monitor so it shows up in the Kettle LogChannel
     Logger sqoopLogger = LogManager.getLogger( LOGS_TO_MONITOR[ 0 ] );
@@ -220,8 +218,8 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   public void removeLoggingAppenders() {
     try {
       if ( sqoopToKettleAppender != null ) {
-        Logger sqoopLogger = LogManager.getLogger(LOGS_TO_MONITOR[0]);
-        LogUtil.removeAppender(sqoopToKettleAppender, sqoopLogger);
+        Logger sqoopLogger = LogManager.getLogger( LOGS_TO_MONITOR[0] );
+        LogUtil.removeAppender( sqoopToKettleAppender, sqoopLogger );
         sqoopToKettleAppender = null;
       }
       if ( stdErrProxy != null ) {
