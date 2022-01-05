@@ -1,18 +1,16 @@
-<?xml version="1.0"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-  xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-bundles</artifactId>
-    <version>9.3.0.0-SNAPSHOT</version>
+    <version>9.3.0.0-6</version>
   </parent>
 
   <groupId>pentaho</groupId>
   <artifactId>pentaho-s3-vfs</artifactId>
-  <version>9.3.0.0-SNAPSHOT</version>
+  <version>9.3.0.0-6</version>
   <packaging>jar</packaging>
 
   <licenses>
@@ -29,7 +27,7 @@
     <!-- pentaho dependencies -->
     <kettle.core.version>${project.version}</kettle.core.version>
     <kettle.engine.version>${project.version}</kettle.engine.version>
-    <encryption-support.version>9.3.0.0-SNAPSHOT</encryption-support.version>
+    <encryption-support.version>9.3.0.0-6</encryption-support.version>
 
     <!-- License Configuration -->
     <license.licenseName>apache_v2</license.licenseName>
