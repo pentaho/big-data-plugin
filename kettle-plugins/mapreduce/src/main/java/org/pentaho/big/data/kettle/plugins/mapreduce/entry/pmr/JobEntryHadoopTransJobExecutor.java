@@ -83,6 +83,7 @@ import org.w3c.dom.Node;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -152,10 +153,10 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
   /**
    * Maps Kettle LogLevels to Log4j Levels
    */
-  public static Map<LogLevel, Level> LOG_LEVEL_MAP;
+  public static final Map<LogLevel, Level> LOG_LEVEL_MAP;
 
   static {
-    Map<LogLevel, Level> map = new HashMap<LogLevel, Level>();
+    EnumMap<LogLevel, Level> map = new EnumMap<>( LogLevel.class );
     map.put( LogLevel.BASIC, Level.INFO );
     map.put( LogLevel.MINIMAL, Level.INFO );
     map.put( LogLevel.DEBUG, Level.DEBUG );
@@ -586,9 +587,9 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
     try {
       file = KettleVFS.createTempFile( logFileName, ".log", System.getProperty( "java.io.tmpdir" ) );
       appender =  LogUtil.makeAppender( logFileName,
-              new OutputStreamWriter( KettleVFS.getOutputStream( file, true ),
-                      Charset.forName( "utf-8" ) ), new Log4jKettleLayout(  Charset.forName( "utf-8" ), true ) );
-      LogUtil.addAppender( appender, LogManager.getLogger(), getLog4jLevel(parentJob.getLogLevel()) );
+        new OutputStreamWriter( KettleVFS.getOutputStream( file, true ),
+          StandardCharsets.UTF_8 ), new Log4jKettleLayout( StandardCharsets.UTF_8, true ) );
+      LogUtil.addAppender( appender, LogManager.getLogger( "org.pentaho.di.trans.Trans" ), getLog4jLevel( parentJob.getLogLevel() ) );
 
 
       log.setLogLevel( parentJob.getLogLevel() );
