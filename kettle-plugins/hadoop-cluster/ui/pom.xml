@@ -264,6 +264,7 @@
             <Import-Package>org.pentaho.di.osgi,
               org.pentaho.di.core.plugins,
               org.pentaho.di.core.extension,
+              org.pentaho.di.webspoon;resolution:=optional,
               *</Import-Package>
             <Provide-Capability>
               org.pentaho.webpackage;root=/app
