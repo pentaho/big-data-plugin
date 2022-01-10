@@ -63,7 +63,6 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <commons-database.version>9.3.0.0-SNAPSHOT</commons-database.version>
     <dependency.jackson.revision>1.5.2</dependency.jackson.revision>
-    <pentaho-reporting.version>9.3.0.0-SNAPSHOT</pentaho-reporting.version>
     <dependency.libthrift.revision>0.6</dependency.libthrift.revision>
     <dependency.commands.revision>3.3.0-I20070605-0010</dependency.commands.revision>
     <publish-sonar-phase></publish-sonar-phase>
@@ -80,7 +79,6 @@
     <aws-java-sdk.version>1.11.275</aws-java-sdk.version>
     <dependency.hamcrest.revision>1.3</dependency.hamcrest.revision>
     <commons-xul.version>9.3.0.0-SNAPSHOT</commons-xul.version>
-    <pentaho-osgi-bundles.version>9.3.0.0-SNAPSHOT</pentaho-osgi-bundles.version>
     <platform.version>9.3.0.0-SNAPSHOT</platform.version>
     <pentaho-karaf.version>9.3.0.0-SNAPSHOT</pentaho-karaf.version>
     <pentaho-metaverse.version>9.3.0.0-SNAPSHOT</pentaho-metaverse.version>
