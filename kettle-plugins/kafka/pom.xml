@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-kettle-plugins</artifactId>
-    <version>9.3.0.0-SNAPSHOT</version>
+    <version>9.3.0.0-24</version>
   </parent>
   <artifactId>pentaho-big-data-kettle-plugins-kafka</artifactId>
-  <version>9.3.0.0-SNAPSHOT</version>
+  <version>9.3.0.0-24</version>
   <packaging>bundle</packaging>
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <description>a Pentaho open source project</description>
@@ -16,8 +15,8 @@
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
     <!-- Dependency versions -->
-    <pentaho-metaverse.version>9.3.0.0-SNAPSHOT</pentaho-metaverse.version>
-    <pentaho-mongodb-plugin.version>9.3.0.0-SNAPSHOT</pentaho-mongodb-plugin.version>
+    <pentaho-metaverse.version>9.3.0.0-24</pentaho-metaverse.version>
+    <pentaho-mongodb-plugin.version>9.3.0.0-24</pentaho-mongodb-plugin.version>
     <dependency.org.powermock.version>1.6.0</dependency.org.powermock.version>
     <dependency.com.tinkerpop.frames.version>2.5.0</dependency.com.tinkerpop.frames.version>
     <dependency.com.tinkerpop.blueprints.version>2.6.0</dependency.com.tinkerpop.blueprints.version>
