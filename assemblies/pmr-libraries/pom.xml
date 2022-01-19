@@ -850,11 +850,6 @@
       <version>${commons-xul.version}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>salesforce-partner</artifactId>
-      <version>24.0</version>
-    </dependency>
-    <dependency>
       <groupId>rhino</groupId>
       <artifactId>js</artifactId>
       <version>1.7R3</version>
