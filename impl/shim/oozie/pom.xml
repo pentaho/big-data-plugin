@@ -30,8 +30,8 @@
     </dependency>
     <!-- Only needed for runtime testing -->
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -92,7 +92,7 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-            <Import-Package>!org.pentaho.oozie.shim.api,!org.apache.oozie.*,!org.apache.hadoop.*,!org.pentaho.di.core.hadoop.*,!org.pentaho.hadoop.*,!org.pentaho.yarn.*,!org.apache.log4j,*</Import-Package>
+            <Import-Package>!org.pentaho.oozie.shim.api,!org.apache.oozie.*,!org.apache.hadoop.*,!org.pentaho.di.core.hadoop.*,!org.pentaho.hadoop.*,!org.pentaho.yarn.*,!org.apache.logging.log4j,!org.apache.log4j,*</Import-Package>
           </instructions>
         </configuration>
       </plugin>

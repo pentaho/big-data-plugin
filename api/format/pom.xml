@@ -33,7 +33,7 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-            <Import-Package>!org.pentaho.hbase.shim.api,!org.pentaho.hbase.shim.spi,!org.apache.hadoop.*,!org.pentaho.di.core.hadoop.*,!org.pentaho.hadoop.*,!org.pentaho.yarn.*,!org.apache.log4j,*</Import-Package>
+            <Import-Package>!org.pentaho.hbase.shim.api,!org.pentaho.hbase.shim.spi,!org.apache.hadoop.*,!org.pentaho.di.core.hadoop.*,!org.pentaho.hadoop.*,!org.pentaho.yarn.*,!org.apache.logging.log4j,!org.apache.log4j,*</Import-Package>
           </instructions>
         </configuration>
       </plugin>

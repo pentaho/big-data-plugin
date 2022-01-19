@@ -55,7 +55,6 @@ import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.platform.api.util.LogUtil;
-import org.pentaho.platform.engine.core.system.PentahoSystem;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Node;

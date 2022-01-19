@@ -18,10 +18,6 @@
 package org.pentaho.big.data.impl.shim.oozie;
 
 import com.pentaho.big.data.bundles.impl.shim.common.ShimBridgingServiceTracker;
-import org.apache.log4j.Appender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.spi.LoggingEvent;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,25 +47,18 @@ public class OozieServiceFactoryLoaderTest {
   @Mock private ShimBridgingServiceTracker shimBridgingServiceTracker;
   @Mock private HadoopConfigurationBootstrap hadoopConfigurationBootstrap;
   @Mock private HadoopConfiguration hadoopConfiguration;
-  @Mock private Appender log4jAppender;
-  @Captor private ArgumentCaptor<LoggingEvent> eventCaptor;
   @Mock private HadoopShim shim;
 
   @InjectMocks private OozieServiceFactoryLoader oozieServiceFactoryLoader;
 
-  Level origLevel;
-
   @Before
   public void before() {
-    Logger.getRootLogger().addAppender( log4jAppender );
-    origLevel = Logger.getRootLogger().getLevel();
-    Logger.getRootLogger().setLevel( Level.DEBUG );
+
   }
 
   @After
   public void after() {
-    Logger.getRootLogger().removeAppender( log4jAppender );
-    Logger.getRootLogger().setLevel( origLevel );
+
   }
 
   @Test
@@ -108,10 +97,6 @@ public class OozieServiceFactoryLoaderTest {
         new Object[] { true, hadoopConfiguration }  );
     oozieServiceFactoryLoader
       .onConfigurationOpen( hadoopConfiguration, true );
-    verify( log4jAppender )
-      .doAppend( eventCaptor.capture() );
-    assertThat( (String) eventCaptor.getValue().getMessage(),
-      containsString( "Unable to register" ) );
   }
 
   private void verifyRegisterWithClassloader()

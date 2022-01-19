@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -23,84 +23,90 @@
 package org.pentaho.big.data.impl.shim.pig;
 
 import org.apache.commons.vfs2.FileObject;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.WriterAppender;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.Appender;
+import org.pentaho.di.core.logging.log4j.Log4jKettleLayout;
 import org.pentaho.di.core.Const;
-import org.pentaho.di.core.logging.KettleLogChannelAppender;
-import org.pentaho.di.core.logging.Log4jFileAppender;
-import org.pentaho.di.core.logging.Log4jKettleLayout;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.logging.LogLevel;
-import org.pentaho.di.core.logging.LogWriter;
+import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.platform.api.util.LogUtil;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by bryan on 10/1/15.
  */
 public class WriterAppenderManager implements Closeable {
   private static final Class<?> PKG = WriterAppenderManager.class;
-  private final Log4jFileAppender appender;
-  private final WriterAppender pigToKettleAppender;
-  private final LogWriter logWriter;
+  private Appender appender;
+  private final Appender pigToKettleAppender;
+  private FileObject file;
 
-  public WriterAppenderManager( LogChannelInterface logChannelInterface, LogLevel logLevel, String name ) {
-    this( logChannelInterface, logLevel, name, LogWriter.getInstance() );
+  /**
+   * Maps Kettle LogLevels to Log4j Levels
+   */
+  public static Map<LogLevel, Level> LOG_LEVEL_MAP;
+
+  static {
+    Map<LogLevel, Level> map = new HashMap<LogLevel, Level>();
+    map.put( LogLevel.BASIC, Level.INFO );
+    map.put( LogLevel.MINIMAL, Level.INFO );
+    map.put( LogLevel.DEBUG, Level.DEBUG );
+    map.put( LogLevel.ERROR, Level.ERROR );
+    map.put( LogLevel.DETAILED, Level.INFO );
+    map.put( LogLevel.ROWLEVEL, Level.DEBUG );
+    map.put( LogLevel.NOTHING, Level.OFF );
+    LOG_LEVEL_MAP = Collections.unmodifiableMap( map );
   }
 
-  public WriterAppenderManager( LogChannelInterface logChannelInterface, LogLevel logLevel, String name,
-                                LogWriter logWriter ) {
+
+  public WriterAppenderManager( LogChannelInterface logChannelInterface, LogLevel logLevel, String name ) {
     // Set up an appender that will send all pig log messages to Kettle's log
     // via logBasic().
     KettleLoggingPrintWriter klps = new KettleLoggingPrintWriter( logChannelInterface );
-    pigToKettleAppender = new WriterAppender( new Log4jKettleLayout( true ), klps );
-
-    Logger pigLogger = Logger.getLogger( "org.apache.pig" );
+    pigToKettleAppender =  LogUtil.makeAppender( "pig-kettle-appender",  klps, new Log4jKettleLayout( Charset.forName( "utf-8" ), true ) );
+    Logger pigLogger = LogManager.getLogger("org.apache.pig" );
     Level log4jLevel = getLog4jLevel( logLevel );
-    pigLogger.setLevel( log4jLevel );
+    LogUtil.setLevel(pigLogger, log4jLevel);
     String logFileName = "pdi-" + name; //$NON-NLS-1$
-    Log4jFileAppender appender = null;
-    this.logWriter = logWriter;
     try {
-      appender = LogWriter.createFileAppender( logFileName, true, false );
-      logWriter.addAppender( appender );
-      logChannelInterface.setLogLevel( logLevel );
-      if ( pigLogger != null ) {
-        pigLogger.addAppender( pigToKettleAppender );
-      }
+      file = KettleVFS.createTempFile( logFileName, ".log", System.getProperty( "java.io.tmpdir" ) );
+      appender =  LogUtil.makeAppender( logFileName,
+              new OutputStreamWriter( KettleVFS.getOutputStream( file, true ),
+                      Charset.forName( "utf-8" ) ), new Log4jKettleLayout( Charset.forName( "utf-8" ), true) );
+      LogUtil.addAppender( appender, LogManager.getLogger(), log4jLevel );
+      LogUtil.addAppender( pigToKettleAppender, LogManager.getLogger(), log4jLevel );
     } catch ( Exception e ) {
       logChannelInterface.logError( BaseMessages
         .getString( PKG, "JobEntryPigScriptExecutor.FailedToOpenLogFile", logFileName, e.toString() ) ); //$NON-NLS-1$
       logChannelInterface.logError( Const.getStackTracker( e ) );
     }
-    this.appender = appender;
   }
 
   private Level getLog4jLevel( LogLevel level ) {
-    // KettleLogChannelAppender does not exists in Kette core, so we'll use it from kettle5-log4j-plugin.
-    Level log4jLevel = KettleLogChannelAppender.LOG_LEVEL_MAP.get( level );
+    Level log4jLevel = LOG_LEVEL_MAP.get( level );
     return log4jLevel != null ? log4jLevel : Level.INFO;
   }
 
   @Override public void close() throws IOException {
     // remove the file appender from kettle logging
     if ( appender != null ) {
-      logWriter.removeAppender( appender );
-      appender.close();
-    }
-
-    Logger pigLogger = Logger.getLogger( "org.apache.pig" );
-    if ( pigLogger != null && pigToKettleAppender != null ) {
-      pigLogger.removeAppender( pigToKettleAppender );
-      pigToKettleAppender.close();
+      LogUtil.removeAppender( appender, LogManager.getLogger() );
     }
   }
 
   public FileObject getFile() {
-    return appender == null ? null : appender.getFile();
+    return file;
   }
 
   public static class Factory {
