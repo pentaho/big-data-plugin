@@ -18,7 +18,8 @@
 package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 
 import org.apache.commons.vfs2.provider.URLFileName;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
@@ -50,8 +51,6 @@ import java.util.HashMap;
 import java.util.Locale;
 
 import static org.junit.Assert.assertEquals;
-
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
@@ -72,7 +71,7 @@ public class HadoopFileInputMetaTest {
   public static final String SAMPLE_HADOOP_FILE_INPUT_STEP = "sample-hadoop-file-input-step.xml";
   public static final String TEST_FILE_NAME = "test-file-name";
   public static final String TEST_FOLDER_NAME = "test-folder-name";
-  private static Logger logger = Logger.getLogger( HadoopFileInputMetaTest.class );
+  private static Logger logger = LogManager.getLogger( HadoopFileInputMetaTest.class );
   // for message resolution
   private NamedClusterService namedClusterService;
   private RuntimeTestActionService runtimeTestActionService;

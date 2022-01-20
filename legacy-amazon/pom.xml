@@ -179,12 +179,6 @@
       <version>${jline.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.pentaho.di.plugins</groupId>
-      <artifactId>kettle-log4j-core</artifactId>
-      <version>${pdi.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>libthrift</groupId>
       <artifactId>libthrift</artifactId>
       <version>${libthrift.version}</version>
@@ -366,6 +360,12 @@
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
+      <artifactId>pentaho-platform-api</artifactId>
+      <version>${platform.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
       <artifactId>pentaho-platform-core</artifactId>
       <version>${platform.version}</version>
       <scope>provided</scope>
@@ -416,7 +416,7 @@
             <DynamicImport-Package>*</DynamicImport-Package>
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
             <Import-Package>
-              org.apache.avro.*;resolution:=optional,org.slf4j.*,org.apache.log4j.*
+              org.apache.avro.*;resolution:=optional,org.slf4j.*,org.apache.logging.log4j.*
             </Import-Package>
             <Export-Package>
               org.pentaho.di.core.namedcluster,
