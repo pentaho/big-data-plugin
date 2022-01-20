@@ -79,7 +79,7 @@
           <instructions>
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
             <DynamicImport-Package>com.cloudera.impala.jdbc41</DynamicImport-Package>
-            <Import-Package>!com.pentaho.big.data.bundles.impl.shim.hbase,!org.pentaho.hbase.shim.api,!org.pentaho.hbase.shim.spi,!org.apache.hadoop.*,!org.pentaho.di.core.hadoop.*,!org.pentaho.hadoop.*,!org.pentaho.yarn.*,!org.apache.log4j,!org.pentaho.hadoop.hbase.factory,!org.pentaho.hbase.*,org.pentaho.di.osgi,org.pentaho.di.core.plugins,org.pentaho.hadoop.shim.api.jdbc,org.pentaho.hadoop.shim.api.cluster,*</Import-Package>
+            <Import-Package>!com.pentaho.big.data.bundles.impl.shim.hbase,!org.pentaho.hbase.shim.api,!org.pentaho.hbase.shim.spi,!org.apache.hadoop.*,!org.pentaho.di.core.hadoop.*,!org.pentaho.hadoop.*,!org.pentaho.yarn.*,!org.apache.logging.log4j,!org.pentaho.hadoop.hbase.factory,!org.pentaho.hbase.*,org.pentaho.di.osgi,org.pentaho.di.core.plugins,org.pentaho.hadoop.shim.api.jdbc,org.pentaho.hadoop.shim.api.cluster,*</Import-Package>
             <Bundle-Activator>org.pentaho.big.data.kettle.plugins.hive.Activator</Bundle-Activator>
           </instructions>
         </configuration>
