@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p/>
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  * <p/>
  * ******************************************************************************
  * <p/>
@@ -18,7 +18,8 @@
 package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 
 import org.apache.commons.vfs2.provider.URLFileName;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
@@ -71,7 +72,7 @@ public class HadoopFileInputMetaTest {
   public static final String SAMPLE_HADOOP_FILE_INPUT_STEP = "sample-hadoop-file-input-step.xml";
   public static final String TEST_FILE_NAME = "test-file-name";
   public static final String TEST_FOLDER_NAME = "test-folder-name";
-  private static Logger logger = Logger.getLogger( HadoopFileInputMetaTest.class );
+  private static Logger logger = LogManager.getLogger( HadoopFileInputMetaTest.class );
   // for message resolution
   private NamedClusterService namedClusterService;
   private RuntimeTestActionService runtimeTestActionService;

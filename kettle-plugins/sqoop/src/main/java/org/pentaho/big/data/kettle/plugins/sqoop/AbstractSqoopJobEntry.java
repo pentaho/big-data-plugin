@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -26,9 +26,11 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
-import org.apache.log4j.Appender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.ThreadContext;
+import org.apache.logging.log4j.core.Appender;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
@@ -44,17 +46,20 @@ import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.core.logging.log4j.KettleLogChannelAppender;
+import org.pentaho.di.core.logging.log4j.Log4jKettleLayout;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.metastore.api.IMetaStore;
+import org.pentaho.platform.api.util.LogUtil;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
-import org.slf4j.MDC;
 import org.w3c.dom.Node;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -181,31 +186,16 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   /**
    * Attach a log appender to all Loggers used by Sqoop so we can redirect the output to Kettle's logging facilities.
    */
-  @SuppressWarnings( "deprecation" )
   public void attachLoggingAppenders() {
-    sqoopToKettleAppender = new org.pentaho.di.core.logging.KettleLogChannelAppender( log );
-    sqoopToKettleAppender.addFilter( new SqoopLog4jFilter( log.getLogChannelId() ) );
-    MDC.put( "logChannelId", log.getLogChannelId() );
-    try {
-      // Redirect all stderr logging to the first log to monitor so it shows up in the Kettle LogChannel
-      Logger sqoopLogger = JobEntryUtils.findLogger( LOGS_TO_MONITOR[0] );
-      if ( sqoopLogger != null ) {
-        stdErrProxy = new LoggingProxy( System.err, sqoopLogger, Level.ERROR );
-        System.setErr( stdErrProxy );
-      }
-      JobEntryUtils.attachAppenderTo( sqoopToKettleAppender, getLogLevel(), logLevelCache, LOGS_TO_MONITOR );
-    } catch ( Exception ex ) {
-      logMinimal( getString( "ErrorAttachingLogging" ) );
-      logDebug( Throwables.getStackTraceAsString( ex ) );
-
-      // Attempt to clean up logging if we failed
-      try {
-        JobEntryUtils.removeAppenderFrom( sqoopToKettleAppender, logLevelCache, LOGS_TO_MONITOR );
-      } catch ( Exception e ) {
-        // Ignore any exceptions while trying to clean up
-      }
-      sqoopToKettleAppender = null;
+    sqoopToKettleAppender = new KettleLogChannelAppender( log, new Log4jKettleLayout( StandardCharsets.UTF_8, true ) );
+    ThreadContext.put( "logChannelId", log.getLogChannelId() );
+    // Redirect all stderr logging to the first log to monitor so it shows up in the Kettle LogChannel
+    Logger sqoopLogger = LogManager.getLogger( LOGS_TO_MONITOR[ 0 ] );
+    if ( sqoopLogger != null ) {
+      stdErrProxy = new LoggingProxy( System.err, sqoopLogger, Level.INFO );
+      System.setErr( stdErrProxy );
     }
+    LogUtil.addAppender( sqoopToKettleAppender, sqoopLogger, Level.INFO );
   }
 
   /**
@@ -214,7 +204,8 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   public void removeLoggingAppenders() {
     try {
       if ( sqoopToKettleAppender != null ) {
-        JobEntryUtils.removeAppenderFrom( sqoopToKettleAppender, logLevelCache, LOGS_TO_MONITOR );
+        Logger sqoopLogger = LogManager.getLogger( LOGS_TO_MONITOR[0] );
+        LogUtil.removeAppender( sqoopToKettleAppender, sqoopLogger );
         sqoopToKettleAppender = null;
       }
       if ( stdErrProxy != null ) {

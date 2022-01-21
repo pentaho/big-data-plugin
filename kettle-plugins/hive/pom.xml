@@ -56,6 +56,12 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-platform-api</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>org.osgi</groupId>
       <artifactId>org.osgi.core</artifactId>
     </dependency>
@@ -83,7 +89,7 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-            <Import-Package>!com.pentaho.big.data.bundles.impl.shim.hbase,!org.pentaho.hbase.shim.api,!org.pentaho.hbase.shim.spi,!org.apache.hadoop.*,!org.pentaho.di.core.hadoop.*,!org.pentaho.hadoop.*,!org.pentaho.yarn.*,!org.apache.log4j,!org.pentaho.hadoop.hbase.factory,!org.pentaho.hbase.*,org.pentaho.di.osgi,org.pentaho.di.core.plugins,*</Import-Package>
+            <Import-Package>!com.pentaho.big.data.bundles.impl.shim.hbase,!org.pentaho.hbase.shim.api,!org.pentaho.hbase.shim.spi,!org.apache.hadoop.*,!org.pentaho.di.core.hadoop.*,!org.pentaho.hadoop.*,!org.pentaho.yarn.*,!org.apache.logging.log4j,!org.apache.log4j,!org.pentaho.hadoop.hbase.factory,!org.pentaho.hbase.*,org.pentaho.di.osgi,org.pentaho.di.core.plugins,*</Import-Package>
             <Bundle-Activator>org.pentaho.big.data.kettle.plugins.hive.Activator</Bundle-Activator>
           </instructions>
         </configuration>
