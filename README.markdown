@@ -9,7 +9,7 @@ It's a maven build, so `mvn clean install` is a typical default for a local buil
 
 Pre-requisites
 ---------------
-JDK 8 in your path.
+JDK 11 in your path.
 Maven 3.3.9 in your path.
 This [settings.xml](https://raw.githubusercontent.com/pentaho/maven-parent-poms/master/maven-support-files/settings.xml)
 
