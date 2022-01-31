@@ -164,7 +164,7 @@
   </property>
   <property>
     <name>hadoop.ssl.enabled.protocols</name>
-    <value>TLSv1,TLSv1.1,TLSv1.2</value>
+    <value>TLSv1.1,TLSv1.2,TLSv1.3</value>
     <final>false</final>
     <source>Dataproc Cluster Properties</source>
   </property>
