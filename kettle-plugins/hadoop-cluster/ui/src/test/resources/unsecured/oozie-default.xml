@@ -2762,7 +2762,7 @@
 
     <property>
         <name>oozie.https.include.protocols</name>
-        <value>TLSv1,SSLv2Hello,TLSv1.1,TLSv1.2</value>
+        <value>TLSv1.1,TLSv1.2,TLSv1.3</value>
         <description>
             Enabled TLS protocols.
         </description>
