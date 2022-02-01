@@ -31,6 +31,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.ThreadContext;
 import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.Filter;
 import org.pentaho.big.data.kettle.plugins.job.AbstractJobEntry;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryUtils;
@@ -202,6 +203,7 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
    */
   public void attachLoggingAppenders() {
     sqoopToKettleAppender = new KettleLogChannelAppender( log, new Log4jKettleLayout( StandardCharsets.UTF_8, true ) );
+    Filter filter = new SqoopLog4jFilter( log.getLogChannelId() );
     ThreadContext.put( "logChannelId", log.getLogChannelId() );
     // Redirect all stderr logging to the first log to monitor so it shows up in the Kettle LogChannel
     Logger sqoopLogger = LogManager.getLogger( LOGS_TO_MONITOR[ 0 ] );
@@ -209,7 +211,7 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
       stdErrProxy = new LoggingProxy( System.err, sqoopLogger, Level.INFO );
       System.setErr( stdErrProxy );
     }
-    LogUtil.addAppender( sqoopToKettleAppender, sqoopLogger, Level.INFO );
+    LogUtil.addAppender( sqoopToKettleAppender, sqoopLogger, Level.INFO, filter );
   }
 
   /**
