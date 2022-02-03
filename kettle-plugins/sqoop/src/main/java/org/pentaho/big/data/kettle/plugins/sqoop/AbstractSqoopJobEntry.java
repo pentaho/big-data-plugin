@@ -95,11 +95,6 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   private String[] LOGS_TO_MONITOR = new String[] { "org.apache.sqoop", "org.apache.hadoop", "com.pentaho.big.data.bundles.impl.shim.sqoop.knox" };
 
   /**
-   * Cache for the levels of loggers we changed so we can revert them when we remove our appender
-   */
-  private final Map<String, Level> logLevelCache;
-
-  /**
    * Declare the Sqoop tool used in this job entry.
    * 
    * @return the name of the sqoop tool to use, e.g. "import"
@@ -113,7 +108,6 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
     this.namedClusterServiceLocator = namedClusterServiceLocator;
     this.runtimeTestActionService = runtimeTestActionService;
     this.runtimeTester = runtimeTester;
-    logLevelCache = Maps.newHashMap();
   }
 
   @Override
@@ -192,12 +186,14 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
     Filter filter = new SqoopLog4jFilter( log.getLogChannelId() );
     ThreadContext.put( "logChannelId", log.getLogChannelId() );
     // Redirect all stderr logging to the first log to monitor so it shows up in the Kettle LogChannel
-    Logger sqoopLogger = LogManager.getLogger( LOGS_TO_MONITOR[ 0 ] );
-    if ( sqoopLogger != null ) {
-      stdErrProxy = new LoggingProxy( System.err, sqoopLogger, Level.INFO );
-      System.setErr( stdErrProxy );
+    for ( String s : LOGS_TO_MONITOR ) {
+      Logger sqoopLogger = LogManager.getLogger( s );
+      if ( sqoopLogger != null && null == stdErrProxy ) {
+        stdErrProxy = new LoggingProxy( System.err, sqoopLogger, Level.INFO );
+        System.setErr( stdErrProxy );
+      }
+      LogUtil.addAppender( sqoopToKettleAppender, sqoopLogger, Level.INFO, filter );
     }
-    LogUtil.addAppender( sqoopToKettleAppender, sqoopLogger, Level.INFO, filter );
   }
 
   /**
@@ -206,8 +202,10 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   public void removeLoggingAppenders() {
     try {
       if ( sqoopToKettleAppender != null ) {
-        Logger sqoopLogger = LogManager.getLogger( LOGS_TO_MONITOR[0] );
-        LogUtil.removeAppender( sqoopToKettleAppender, sqoopLogger );
+        for ( String s : LOGS_TO_MONITOR ) {
+          Logger sqoopLogger = LogManager.getLogger( s );
+          LogUtil.removeAppender( sqoopToKettleAppender, sqoopLogger );
+        }
         sqoopToKettleAppender = null;
       }
       if ( stdErrProxy != null ) {
