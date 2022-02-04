@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.impl.shim.pig;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.bigdata.api.pig.PigResult;
@@ -49,6 +50,8 @@ public class PigServiceImpl implements PigService {
   private final PigShim pigShim;
   private final HadoopShim hadoopShim;
   private final WriterAppenderManager.Factory writerAppenderManagerFactory;
+  @VisibleForTesting
+  public static final String[] PIG_LOGGERS = new String[] { "org.apache.pig" };
 
   public PigServiceImpl( NamedCluster namedCluster, PigShim pigShim, HadoopShim hadoopShim ) {
     this( namedCluster, pigShim, hadoopShim, new WriterAppenderManager.Factory() );
@@ -72,7 +75,7 @@ public class PigServiceImpl implements PigService {
                                   LogLevel logLevel ) {
     FileObject appenderFile = null;
     try ( WriterAppenderManager appenderManager = writerAppenderManagerFactory.create( logChannelInterface, logLevel,
-      name ) ) {
+      name, PIG_LOGGERS ) ) {
       appenderFile = appenderManager.getFile();
       Configuration configuration = hadoopShim.createConfiguration();
       if ( executionMode != ExecutionMode.LOCAL ) {
