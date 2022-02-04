@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -52,6 +52,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+
 /**
  * Created by bryan on 10/1/15.
  */
@@ -78,7 +79,7 @@ public class PigServiceImplTest {
     logLevel = LogLevel.DETAILED;
     testName = "testName";
     variableSpace = mock( VariableSpace.class );
-    when( writerAppenderManagerFactory.create( logChannelInterface, logLevel, testName ) ).thenReturn(
+    when( writerAppenderManagerFactory.create( logChannelInterface, logLevel, testName, PigServiceImpl.PIG_LOGGERS ) ).thenReturn(
       writerAppenderManager );
     pigService = new PigServiceImpl( namedCluster, pigShim, hadoopShim, writerAppenderManagerFactory );
   }
