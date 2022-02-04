@@ -873,7 +873,7 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
     }
 
     if ( appender != null ) {
-      LogUtil.removeAppender( appender, LogManager.getLogger());
+      LogUtil.removeAppender( appender, LogManager.getLogger( "org.pentaho.di.trans.Trans" ) );
       ResultFile resultFile =
         new ResultFile( ResultFile.FILE_TYPE_LOG, file, parentJob.getJobname(), getName() );
       result.getResultFiles().put( resultFile.getFile().toString(), resultFile );
