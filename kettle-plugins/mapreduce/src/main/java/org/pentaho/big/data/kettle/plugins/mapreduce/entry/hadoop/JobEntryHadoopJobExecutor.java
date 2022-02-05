@@ -512,7 +512,7 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
     }
 
     if ( appender != null ) {
-      LogUtil.removeAppender( appender, LogManager.getLogger() );
+      LogUtil.removeAppender( appender, LogManager.getLogger( "org.pentaho.di.job.Job" ) );
 
       ResultFile resultFile =
         new ResultFile( ResultFile.FILE_TYPE_LOG, file, parentJob.getJobname(), getName() );
