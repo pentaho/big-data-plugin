@@ -22,30 +22,14 @@
 
 package org.pentaho.big.data.kettle.plugins.mapreduce.entry.pmr;
 
-import org.apache.commons.vfs2.FileObject;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.core.Appender;
-import org.pentaho.di.core.logging.LogLevel;
-import org.pentaho.di.core.logging.log4j.Log4jKettleLayout;
-import org.pentaho.di.core.vfs.KettleVFS;
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.mapreduce.DialogClassUtil;
 import org.pentaho.big.data.kettle.plugins.mapreduce.entry.NamedClusterLoadSaveUtil;
 import org.pentaho.big.data.kettle.plugins.mapreduce.entry.UserDefinedItem;
 import org.pentaho.big.data.kettle.plugins.mapreduce.step.exit.HadoopExitMeta;
-import org.pentaho.hadoop.shim.api.mapreduce.MapReduceJobAdvanced;
-import org.pentaho.hadoop.shim.api.mapreduce.MapReduceJobBuilder;
-import org.pentaho.hadoop.shim.api.mapreduce.MapReduceService;
-import org.pentaho.hadoop.shim.api.mapreduce.PentahoMapReduceJobBuilder;
-import org.pentaho.hadoop.shim.api.mapreduce.TaskCompletionEvent;
 import org.pentaho.di.cluster.SlaveServer;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.ObjectLocationSpecificationMethod;
 import org.pentaho.di.core.Result;
-import org.pentaho.di.core.ResultFile;
 import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
@@ -74,17 +58,23 @@ import org.pentaho.di.trans.TransExecutionConfiguration;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.TransMeta.TransformationType;
 import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.mapreduce.MapReduceJobAdvanced;
+import org.pentaho.hadoop.shim.api.mapreduce.MapReduceJobBuilder;
+import org.pentaho.hadoop.shim.api.mapreduce.MapReduceService;
+import org.pentaho.hadoop.shim.api.mapreduce.PentahoMapReduceJobBuilder;
+import org.pentaho.hadoop.shim.api.mapreduce.TaskCompletionEvent;
 import org.pentaho.metastore.api.IMetaStore;
-import org.pentaho.platform.api.util.LogUtil;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Node;
 
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -149,28 +139,6 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
   private List<UserDefinedItem> userDefined = new ArrayList<UserDefinedItem>();
   private final RuntimeTester runtimeTester;
   private final RuntimeTestActionService runtimeTestActionService;
-  FileObject file;
-  /**
-   * Maps Kettle LogLevels to Log4j Levels
-   */
-  public static final Map<LogLevel, Level> LOG_LEVEL_MAP;
-
-  static {
-    EnumMap<LogLevel, Level> map = new EnumMap<>( LogLevel.class );
-    map.put( LogLevel.BASIC, Level.INFO );
-    map.put( LogLevel.MINIMAL, Level.INFO );
-    map.put( LogLevel.DEBUG, Level.DEBUG );
-    map.put( LogLevel.ERROR, Level.ERROR );
-    map.put( LogLevel.DETAILED, Level.INFO );
-    map.put( LogLevel.ROWLEVEL, Level.DEBUG );
-    map.put( LogLevel.NOTHING, Level.OFF );
-    LOG_LEVEL_MAP = Collections.unmodifiableMap( map );
-  }
-
-  private Level getLog4jLevel( LogLevel level ) {
-    Level log4jLevel = LOG_LEVEL_MAP.get( level );
-    return log4jLevel != null ? log4jLevel : Level.INFO;
-  }
 
   public JobEntryHadoopTransJobExecutor( NamedClusterService namedClusterService,
                                          RuntimeTestActionService runtimeTestActionService,
@@ -581,24 +549,6 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
 
     result.setNrErrors( 0 );
 
-    Appender appender = null;
-    String logFileName = "pdi-" + this.getName(); //$NON-NLS-1$
-
-    try {
-      file = KettleVFS.createTempFile( logFileName, ".log", System.getProperty( "java.io.tmpdir" ) );
-      appender =  LogUtil.makeAppender( logFileName,
-        new OutputStreamWriter( KettleVFS.getOutputStream( file, true ),
-          StandardCharsets.UTF_8 ), new Log4jKettleLayout( StandardCharsets.UTF_8, true ) );
-      LogUtil.addAppender( appender, LogManager.getLogger( "org.pentaho.di.trans.Trans" ), getLog4jLevel( parentJob.getLogLevel() ) );
-
-
-      log.setLogLevel( parentJob.getLogLevel() );
-    } catch ( Exception e ) {
-      logError( BaseMessages.getString( PKG,
-        "JobEntryHadoopTransJobExecutor.FailedToOpenLogFile", logFileName, e.toString() ) ); //$NON-NLS-1$
-      logError( Const.getStackTracker( e ) );
-    }
-
     try {
 
       MapReduceService mapReduceService = namedClusterServiceLocator.getService( namedCluster, MapReduceService.class );
@@ -870,13 +820,6 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
       result.setNrErrors( 1 );
       result.setResult( false );
       logError( Const.NVL( t.getMessage(), "" ), t );
-    }
-
-    if ( appender != null ) {
-      LogUtil.removeAppender( appender, LogManager.getLogger( "org.pentaho.di.trans.Trans" ) );
-      ResultFile resultFile =
-        new ResultFile( ResultFile.FILE_TYPE_LOG, file, parentJob.getJobname(), getName() );
-      result.getResultFiles().put( resultFile.getFile().toString(), resultFile );
     }
 
     return result;
