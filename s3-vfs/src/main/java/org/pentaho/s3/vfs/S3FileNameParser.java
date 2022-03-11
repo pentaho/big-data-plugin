@@ -69,6 +69,7 @@ public class S3FileNameParser extends AbstractFileNameParser {
     if ( keys != null ) {
       bucketName = keys + bucketName;
     }
-    return new S3FileName( scheme, bucketName, buffer.length() == 0 ? path : buffer.toString(), fileType );
+
+    return new S3FileName( scheme, bucketName, path, fileType );
   }
 }

@@ -75,6 +75,6 @@ public class S3FileName extends AbstractFileName {
     // s3:///bucket/example.txt.  In our VFS, this is handled the same, in CLS 3 slashes do not resolve appropriately.
     // For consistency, the code here changes so that we will end up with 2 slashes.
     buffer.append( ":/" );
-    buffer.append( bucketId );
+    //buffer.append( bucketId );
   }
 }
