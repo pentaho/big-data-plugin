@@ -31,6 +31,12 @@ public class S3FileName extends AbstractFileName {
 
   private String bucketId;
   private String bucketRelativePath;
+  private String keys;
+
+  public S3FileName( String scheme, String bucketId, String path, FileType type,String keys ) {
+    this( scheme, bucketId, path, type );
+    this.keys = keys;
+  }
 
   public S3FileName( String scheme, String bucketId, String path, FileType type ) {
     super( scheme, path, type );
@@ -75,6 +81,8 @@ public class S3FileName extends AbstractFileName {
     // s3:///bucket/example.txt.  In our VFS, this is handled the same, in CLS 3 slashes do not resolve appropriately.
     // For consistency, the code here changes so that we will end up with 2 slashes.
     buffer.append( ":/" );
-    //buffer.append( bucketId );
+    if(keys != null) {
+      buffer.append( bucketId );
+    }
   }
 }
