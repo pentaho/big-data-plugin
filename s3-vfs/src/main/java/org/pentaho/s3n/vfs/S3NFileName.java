@@ -31,6 +31,12 @@ public class S3NFileName extends AbstractFileName {
 
   private String bucketId;
   private String bucketRelativePath;
+  private String keys;
+
+  public S3NFileName( String scheme, String bucketId, String path, FileType type, String keys ) {
+    this( scheme, bucketId, path, type );
+    this.keys = keys;
+  }
 
   public S3NFileName( String scheme, String bucketId, String path, FileType type ) {
     super( scheme, path, type );
@@ -69,6 +75,8 @@ public class S3NFileName extends AbstractFileName {
   protected void appendRootUri( StringBuilder buffer, boolean addPassword ) {
     buffer.append( getScheme() );
     buffer.append( "://" );
-    buffer.append( bucketId );
+    if ( keys != null ) {
+      buffer.append( bucketId );
+    }
   }
 }
