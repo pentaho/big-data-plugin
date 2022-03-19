@@ -25,6 +25,7 @@
     <version.for.license>${project.version}</version.for.license>
     <js.project.list>requirejs,requirejs-text,angular,require-css,angular-i18n</js.project.list>
     <pentaho-osgi-bundles.version>9.2.0.0-SNAPSHOT</pentaho-osgi-bundles.version>
+    <platform.version>${project.version}</platform.version>
     <cxf.karaf.version>3.0.13</cxf.karaf.version>
     <requirejs-text.version>2.0.10</requirejs-text.version>
     <require-css.version>0.1.8</require-css.version>
@@ -62,7 +63,7 @@
       <dependency>
         <groupId>pentaho</groupId>
         <artifactId>pentaho-platform-extensions</artifactId>
-        <version>${project.version}</version>
+        <version>${platform.version}</version>
         <scope>provided</scope>
         <exclusions>
           <exclusion>
@@ -74,7 +75,7 @@
       <dependency>
         <groupId>pentaho</groupId>
         <artifactId>pentaho-i18n-bundle</artifactId>
-        <version>${project.version}</version>
+        <version>${pentaho-osgi-bundles.version}</version>
         <scope>provided</scope>
         <exclusions>
           <exclusion>
@@ -86,7 +87,7 @@
       <dependency>
         <groupId>pentaho</groupId>
         <artifactId>pentaho-i18n-webservice-bundle</artifactId>
-        <version>${project.version}</version>
+        <version>${pentaho-osgi-bundles.version}</version>
         <scope>provided</scope>
         <exclusions>
           <exclusion>
