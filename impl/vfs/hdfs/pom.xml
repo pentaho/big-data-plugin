@@ -13,6 +13,7 @@
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
+    <metastore.version>${project.version}</metastore.version>
   </properties>
   <dependencies>
     <dependency>
@@ -34,7 +35,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>metastore</artifactId>
-      <version>${project.version}</version>
+      <version>${metastore.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
