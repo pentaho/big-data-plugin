@@ -17,6 +17,7 @@
     <rxjava.version>2.2.3</rxjava.version>
     <jsch.version>0.1.54</jsch.version>
     <encryption-support.version>9.3.0.0-SNAPSHOT</encryption-support.version>
+    <pdi-osgi-bridge.version>9.3.0.0-SNAPSHOT</pdi-osgi-bridge.version>
   </properties>
   <dependencies>
     <dependency>
@@ -787,7 +788,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pdi-osgi-bridge-core</artifactId>
-      <version>${dependency.pdi-osgi-bridge-core.revision}</version>
+      <version>${pdi-osgi-bridge.version}</version>
     </dependency>
     <dependency>
       <groupId>org.osgi</groupId>
