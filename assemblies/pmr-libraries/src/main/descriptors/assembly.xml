@@ -68,6 +68,8 @@
         <include>commons-validator:commons-validator</include>
         <include>org.apache.commons:commons-configuration2</include>
         <include>org.apache.commons:commons-vfs2</include>
+        <include>org.apache.logging.log4j:log4j-core</include>
+        <include>org.apache.logging.log4j:log4j-api</include>
         <include>com.sun.jersey.contribs:jersey-apache-client</include>
         <include>com.sun.jersey:jersey-bundle</include>
         <include>com.sun.jersey:jersey-client</include>
