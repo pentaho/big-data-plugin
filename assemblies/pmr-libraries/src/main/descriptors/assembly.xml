@@ -86,7 +86,7 @@
         <include>ftp4che:ftp4che</include>
         <include>georss-rome:georss-rome</include>
         <include>infobright:infobright-core</include>
-        <include>janino:janino</include>
+        <include>org.codehaus.janino:janino</include>
         <include>javacup:javacup</include>
         <include>javadbf:javadbf</include>
         <include>org.javassist:javassist</include>
