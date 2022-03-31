@@ -68,6 +68,8 @@
         <include>commons-validator:commons-validator</include>
         <include>org.apache.commons:commons-configuration2</include>
         <include>org.apache.commons:commons-vfs2</include>
+        <include>org.apache.logging.log4j:log4j-core</include>
+        <include>org.apache.logging.log4j:log4j-api</include>
         <include>com.sun.jersey.contribs:jersey-apache-client</include>
         <include>com.sun.jersey:jersey-bundle</include>
         <include>com.sun.jersey:jersey-client</include>
@@ -84,7 +86,8 @@
         <include>ftp4che:ftp4che</include>
         <include>georss-rome:georss-rome</include>
         <include>infobright:infobright-core</include>
-        <include>janino:janino</include>
+        <include>org.codehaus.janino:janino</include>
+        <include>org.codehaus.janino:commons-compiler</include>
         <include>javacup:javacup</include>
         <include>javadbf:javadbf</include>
         <include>org.javassist:javassist</include>
