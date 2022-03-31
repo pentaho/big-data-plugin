@@ -87,6 +87,7 @@
         <include>georss-rome:georss-rome</include>
         <include>infobright:infobright-core</include>
         <include>org.codehaus.janino:janino</include>
+        <include>org.codehaus.janino:commons-compiler</include>
         <include>javacup:javacup</include>
         <include>javadbf:javadbf</include>
         <include>org.javassist:javassist</include>
