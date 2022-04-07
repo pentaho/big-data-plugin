@@ -1,5 +1,5 @@
 /*!
-* Copyright 2010 - 2019 Hitachi Vantara.  All rights reserved.
+* Copyright 2010 - 2022 Hitachi Vantara.  All rights reserved.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ public class S3NFileNameTest {
     assertEquals( expectedUri, fileName.getURI() );
 
     fileName = new S3NFileName( SCHEME, "FooBucket", "/FooBucket/FooFolder", FileType.FOLDER );
-    expectedUri = SCHEME + "://FooBucket/FooBucket/" + "FooFolder";
+    expectedUri = SCHEME + ":///FooBucket/" + "FooFolder";
     assertEquals( expectedUri, fileName.getURI() );
   }
 
