@@ -286,7 +286,12 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
         rep.saveStepAttribute( transformationId, stepId, i, PRECISION, field.getPrecision() );
         rep.saveStepAttribute( transformationId, stepId, i, SCALE, field.getScale() );
         rep.saveStepAttribute( transformationId, stepId, i, NULLABLE, Boolean.toString( field.getAllowNull() ) );
-        rep.saveStepAttribute( transformationId, stepId, i, DEFAULT, field.getDefaultValue() );
+        String defaultValue = field.getDefaultValue();
+        int length = defaultValue.length();
+        if(length>0)
+          rep.saveStepAttribute( transformationId, stepId, i, DEFAULT, defaultValue );
+        else
+          rep.saveStepAttribute( transformationId, stepId, i, DEFAULT, null );
       }
       super.saveRep( rep, metaStore, transformationId, stepId );
       rep.saveStepAttribute( transformationId, stepId, FieldNames.COMPRESSION, compressionType );
