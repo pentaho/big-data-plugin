@@ -61,6 +61,8 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
 
   private static final Class<?> PKG = AvroOutputMetaBase.class;
 
+  private static final String DEFAULT = "default";
+
   @Injection( name = "FILENAME" ) private String filename;
 
   @InjectionDeep
@@ -280,7 +282,8 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
         rep.saveStepAttribute( id_transformation, id_step, i, "precision", field.getPrecision() );
         rep.saveStepAttribute( id_transformation, id_step, i, "scale", field.getScale() );
         rep.saveStepAttribute( id_transformation, id_step, i, "nullable", Boolean.toString( field.getAllowNull() ) );
-        rep.saveStepAttribute( id_transformation, id_step, i, "default", field.getDefaultValue() );
+        String defaultValue = StringUtil.isEmpty( field.getDefaultValue() ) ? null : field.getDefaultValue();
+        rep.saveStepAttribute( id_transformation, id_step, i, DEFAULT, defaultValue );
       }
       super.saveRep( rep, metaStore, id_transformation, id_step );
       rep.saveStepAttribute( id_transformation, id_step, FieldNames.COMPRESSION, compressionType );
