@@ -72,7 +72,7 @@ import java.util.concurrent.TimeUnit;
   description = "HadoopJobExecutorPlugin.Description",
   categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
   i18nPackageName = "org.pentaho.big.data.kettle.plugins.mapreduce",
-  documentationUrl = " https://pentaho-community.atlassian.net/wiki/display/EAI/Hadoop+Job+Executor" )
+  documentationUrl = "https://pentaho-community.atlassian.net/wiki/display/EAI/Hadoop+Job+Executor" )
 public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable, JobEntryInterface {
   private static final String DEFAULT_LOGGING_INTERVAL = "60";
   public static final String CLUSTER_NAME = "cluster_name";
