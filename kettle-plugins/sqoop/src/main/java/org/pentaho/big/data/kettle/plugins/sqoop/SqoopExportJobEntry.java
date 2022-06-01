@@ -46,7 +46,7 @@ import java.util.List;
 @JobEntry( id = "SqoopExport", name = "Sqoop.Export.PluginName", description = "Sqoop.Export.PluginDescription",
     categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData", image = "sqoop-export.svg",
     i18nPackageName = "org.pentaho.di.job.entries.sqoop", version = "1",
-    documentationUrl = "http://wiki.pentaho.com/display/EAI/Sqoop+Export" )
+    documentationUrl = " https://pentaho-community.atlassian.net/wiki/display/EAI/Sqoop+Export" )
 public class SqoopExportJobEntry extends AbstractSqoopJobEntry<SqoopExportConfig> implements
     ProvidesDatabaseConnectionInformation {
 
