@@ -34,7 +34,7 @@ The 0.7.7-SNAPSHOT property version for the jacoco-maven-plugin is defined in se
 
 Further Reading
 ---------------
-Additional documentation is available on the Community wiki: [Big Data Plugin for Java Developers]( https://pentaho-community.atlassian.net/wiki/display/BAD/Getting+Started+for+Java+Developers)
+Additional documentation is available on the Community wiki: [Big Data Plugin for Java Developers](https://pentaho-community.atlassian.net/wiki/display/BAD/Getting+Started+for+Java+Developers)
 
 License
 -------
