@@ -69,7 +69,7 @@ import java.util.Map;
   description = "HadoopPigScriptExecutorPlugin.Description",
   categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
   i18nPackageName = "org.pentaho.di.job.entries.pig",
-  documentationUrl = " https://pentaho-community.atlassian.net/wiki/display/EAI/Pig+Script+Executor" )
+  documentationUrl = "https://pentaho-community.atlassian.net/wiki/display/EAI/Pig+Script+Executor" )
 public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable, JobEntryInterface {
   public static final Class<?> PKG = JobEntryPigScriptExecutor.class; // for i18n purposes, needed by Translator2!!
 

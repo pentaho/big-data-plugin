@@ -62,7 +62,7 @@ import org.pentaho.runtime.test.action.RuntimeTestActionService;
 @JobEntry( id = "OozieJobExecutor", name = "Oozie.JobExecutor.PluginName",
   description = "Oozie.JobExecutor.PluginDescription",
   categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData", image = "oozie-job-executor.svg",
-  documentationUrl = " https://pentaho-community.atlassian.net/wiki/display/EAI/Oozie+Job+Executor",
+  documentationUrl = "https://pentaho-community.atlassian.net/wiki/display/EAI/Oozie+Job+Executor",
   i18nPackageName = "org.pentaho.di.job.entries.oozie", version = "1" )
 public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorConfig> implements Cloneable,
   JobEntryInterface {
