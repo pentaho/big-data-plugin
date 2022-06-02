@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p>
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  * <p>
  * ******************************************************************************
  * <p>
@@ -16,13 +16,6 @@
  ******************************************************************************/
 package org.pentaho.big.data.impl.vfs.hdfs.nc;
 
-import java.net.URI;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileSystem;
 import org.apache.commons.vfs2.FileSystemConfigBuilder;
@@ -31,32 +24,41 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.FileNameParser;
 import org.apache.commons.vfs2.provider.GenericFileName;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.big.data.impl.vfs.hdfs.HDFSFileProvider;
-import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.core.osgi.api.VfsEmbeddedFileSystemCloser;
+import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.vfs.KettleVFS;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
+import org.pentaho.metastore.locator.api.MetastoreLocator;
+
+import java.net.URI;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by dstepanov on 11/05/17.
  */
 public class NamedClusterProvider extends HDFSFileProvider implements VfsEmbeddedFileSystemCloser {
 
-  private MetastoreLocatorOsgi metaStoreService;
+  private MetastoreLocator metaStoreService;
   private Map<String, Set<FileSystem>> cacheEntries =
-    Collections.synchronizedMap( new HashMap<String, Set<FileSystem>>() );
+    Collections.synchronizedMap( new HashMap<>() );
 
   public NamedClusterProvider( HadoopFileSystemLocator hadoopFileSystemLocator,
                                NamedClusterService namedClusterService,
                                FileNameParser fileNameParser,
                                String[] schemes,
-                               MetastoreLocatorOsgi metaStore ) throws FileSystemException {
+                               MetastoreLocator metaStore ) throws FileSystemException {
     this(
         hadoopFileSystemLocator,
         namedClusterService,
@@ -69,15 +71,14 @@ public class NamedClusterProvider extends HDFSFileProvider implements VfsEmbedde
   public NamedClusterProvider( HadoopFileSystemLocator hadoopFileSystemLocator,
                                NamedClusterService namedClusterService,
                                FileNameParser fileNameParser,
-                               String schema,
-                               MetastoreLocatorOsgi metaStore ) throws FileSystemException {
+                               String schema ) throws FileSystemException {
     this(
         hadoopFileSystemLocator,
         namedClusterService,
         (DefaultFileSystemManager) KettleVFS.getInstance().getFileSystemManager(),
         fileNameParser,
         new String[] { schema },
-        metaStore );
+        null );
   }
 
 
@@ -86,9 +87,17 @@ public class NamedClusterProvider extends HDFSFileProvider implements VfsEmbedde
                                DefaultFileSystemManager fileSystemManager,
                                FileNameParser fileNameParser,
                                String[] schemes,
-                               MetastoreLocatorOsgi metaStore ) throws FileSystemException {
+                               MetastoreLocator metaStore ) throws FileSystemException {
     super( hadoopFileSystemLocator, namedClusterService, fileSystemManager, fileNameParser, schemes, metaStore );
     this.metaStoreService = metaStore;
+    if ( this.metaStoreService == null ) {
+      try {
+        Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
+        this.metaStoreService = metastoreLocators.stream().findFirst().get();
+      } catch ( Exception e ) {
+        logger.error( "Error getting MetastoreLocator", e );
+      }
+    }
   }
 
 

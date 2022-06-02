@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p>
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  * <p>
  * ******************************************************************************
  * <p>
@@ -20,13 +20,13 @@ package org.pentaho.big.data.impl.vfs.hdfs.nc;
 import org.apache.commons.vfs2.FileSystem;
 import org.apache.commons.vfs2.FileSystemConfigBuilder;
 import org.apache.commons.vfs2.FileSystemOptions;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.big.data.impl.vfs.hdfs.HDFSFileSystem;
-import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.core.vfs.configuration.KettleGenericFileSystemConfigBuilder;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
+import org.pentaho.metastore.locator.api.MetastoreLocator;
 
 import java.util.List;
 
@@ -34,14 +34,14 @@ public class NamedClusterConfigBuilder extends KettleGenericFileSystemConfigBuil
 
   private static final NamedClusterConfigBuilder BUILDER = new NamedClusterConfigBuilder();
   private static final String EMBEDDED_METASTORE_KEY_PROPERTY = "embeddedMetaStoreKey";
-  private final MetastoreLocatorOsgi metastoreLocator;
+  private final MetastoreLocator metastoreLocator;
   private final NamedClusterService namedClusterService;
 
   public NamedClusterConfigBuilder() {
     this( null, null );
   }
 
-  public NamedClusterConfigBuilder( MetastoreLocatorOsgi metastoreLocator, NamedClusterService namedClusterService ) {
+  public NamedClusterConfigBuilder( MetastoreLocator metastoreLocator, NamedClusterService namedClusterService ) {
     this.metastoreLocator = metastoreLocator;
     this.namedClusterService = namedClusterService;
   }
@@ -53,7 +53,7 @@ public class NamedClusterConfigBuilder extends KettleGenericFileSystemConfigBuil
     return BUILDER;
   }
 
-  public static FileSystemConfigBuilder getInstance( MetastoreLocatorOsgi metastoreLocator,  NamedClusterService namedClusterService ) {
+  public static FileSystemConfigBuilder getInstance( MetastoreLocator metastoreLocator, NamedClusterService namedClusterService ) {
     return new NamedClusterConfigBuilder( metastoreLocator, namedClusterService );
   }
 

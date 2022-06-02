@@ -34,9 +34,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.InOrder;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.encryption.TwoWayPasswordEncoderPluginType;
@@ -48,9 +47,9 @@ import org.pentaho.di.core.osgi.impl.NamedClusterSiteFileImpl;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.ui.spoon.Spoon;
-import org.pentaho.hadoop.shim.api.core.ShimIdentifierInterface;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.core.ShimIdentifierInterface;
 import org.pentaho.metastore.stores.delegate.DelegatingMetaStore;
 import org.pentaho.runtime.test.RuntimeTestStatus;
 
@@ -64,24 +63,20 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.never;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClusterManager.PLACEHOLDER_VALUE;
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel.NAME_KEY;
 
@@ -111,7 +106,6 @@ public class HadoopClusterManagerTest {
 
   @Before public void setup() throws Exception {
     KettleLogStore.setLogChannelInterfaceFactory( logChannelFactory );
-    when( logChannelFactory.create( any(), any() ) ).thenReturn( logChannel );
     when( logChannelFactory.create( any() ) ).thenReturn( logChannel );
 
     PluginRegistry.addPluginType( TwoWayPasswordEncoderPluginType.getInstance() );
@@ -126,17 +120,12 @@ public class HadoopClusterManagerTest {
     when( cdhShim.getVersion() ).thenReturn( "5.14" );
     when( internalShim.getId() ).thenReturn( "apache" );
     when( internalShim.getVendor() ).thenReturn( "apache" );
-    when( internalShim.getVersion() ).thenReturn( "3.1" );
     when( maprShim.getVendor() ).thenReturn( "MapR" );
-    when( maprShim.getVersion() ).thenReturn( "4.6" );
     when( maprShim.getId() ).thenReturn( "mapr46" );
     when( namedClusterService.getClusterTemplate() ).thenReturn( namedCluster );
-    when( spoon.getMetaStore() ).thenReturn( metaStore );
     when( namedCluster.getName() ).thenReturn( ncTestName );
     when( namedClusterService.getNamedClusterByName( ncTestName, metaStore ) ).thenReturn( namedCluster );
     when( namedCluster.getShimIdentifier() ).thenReturn( "cdh514" );
-    when( namedClusterService.contains( ncTestName, metaStore ) ).thenReturn( false );
-    when( namedClusterService.contains( "existingName", metaStore ) ).thenReturn( true );
     when( namedClusterService.getNamedClusterByName( knoxNC, metaStore ) ).thenReturn( knoxNamedCluster );
     when( knoxNamedCluster.isUseGateway() ).thenReturn( true );
     when( knoxNamedCluster.getGatewayPassword() ).thenReturn( "password" );
@@ -462,7 +451,6 @@ public class HadoopClusterManagerTest {
 
     FileItemStream fileItemStream = mock( FileItemStream.class );
     when( fileItemStream.getFieldName() ).thenReturn( driverFile.getName() );
-    when( fileItemStream.getName() ).thenReturn( driverFile.getName() );
     when( fileItemStream.openStream() ).thenReturn( new FileInputStream( driverFile ) );
 
     JSONObject response = hadoopClusterManager.installDriver( fileItemStream );
@@ -477,10 +465,6 @@ public class HadoopClusterManagerTest {
     RuntimeTestStatus runtimeTestStatus = mock( RuntimeTestStatus.class );
     when( namedClusterService.getNamedClusterByName( ncTestName, this.metaStore ) ).thenReturn( namedCluster );
     when( runtimeTestStatus.isDone() ).thenReturn( true );
-    when( namedCluster.getOozieUrl() ).thenReturn( "" );
-    when( namedCluster.getKafkaBootstrapServers() ).thenReturn( "" );
-    when( namedCluster.getZooKeeperHost() ).thenReturn( "" );
-    when( namedCluster.getJobTrackerHost() ).thenReturn( "" );
 
     hadoopClusterManager.onProgress( runtimeTestStatus );
     Object[] categories = (Object[]) hadoopClusterManager.runTests( null, ncTestName );

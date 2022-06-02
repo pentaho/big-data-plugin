@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -24,10 +24,6 @@ package org.pentaho.big.data.kettle.plugins.kafka;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
-import org.pentaho.hadoop.shim.api.jaas.JaasConfigService;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.ObjectLocationSpecificationMethod;
 import org.pentaho.di.core.annotations.Step;
@@ -38,10 +34,13 @@ import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionDeep;
 import org.pentaho.di.core.injection.InjectionSupported;
+import org.pentaho.di.core.namedcluster.NamedClusterManager;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
+import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -57,11 +56,12 @@ import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.trans.streaming.common.BaseStreamStepMeta;
 import org.pentaho.metastore.api.IMetaStore;
+import org.pentaho.metastore.locator.api.MetastoreLocator;
 import org.pentaho.metaverse.api.analyzer.kettle.annotations.Metaverse;
-import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.w3c.dom.Node;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -171,14 +171,22 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
 
   private KafkaFactory kafkaFactory;
 
-  private NamedClusterService namedClusterService;
+  private NamedClusterManager namedClusterService = NamedClusterManager.getInstance();
 
   private MetastoreLocator metastoreLocator;
 
-  private NamedClusterServiceLocator namedClusterServiceLocator;
+  //private NamedClusterServiceLocator namedClusterServiceLocator;
 
   public KafkaConsumerInputMeta() {
     super(); // allocate BaseStepMeta
+
+    try {
+      Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
+      this.metastoreLocator = metastoreLocators.stream().findFirst().get();
+    } catch ( Exception e ) {
+      getLog().logError( "Error getting MetastoreLocator", e );
+    }
+
     kafkaFactory = KafkaFactory.defaultFactory();
     keyField = new KafkaConsumerField(
       KafkaConsumerField.Name.KEY,
@@ -417,6 +425,7 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
   @Metaverse.Node ( name = KAFKA_SERVER_METAVERSE, type = KAFKA_SERVER_METAVERSE )
   @Metaverse.Property ( name = KAFKA_SERVER_METAVERSE, parentNodeName = KAFKA_SERVER_METAVERSE )
   public String getBootstrapServers() {
+    Preconditions.checkState( DIRECT.equals( getConnectionType() ) || KafkaDialogHelper.isKarafEnabled(), "OSGi not available; must use Direct connection type" );
     if ( DIRECT.equals( getConnectionType() ) ) {
       return getDirectBootstrapServers();
     }
@@ -551,7 +560,7 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     this.kafkaFactory = kafkaFactory;
   }
 
-  public NamedClusterService getNamedClusterService() {
+  public NamedClusterManager getNamedClusterService() {
     return namedClusterService;
   }
 
@@ -567,7 +576,7 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     return metastoreLocator;
   }
 
-  public void setNamedClusterService( NamedClusterService namedClusterService ) {
+  public void setNamedClusterService( NamedClusterManager namedClusterService ) {
     this.namedClusterService = namedClusterService;
   }
 
@@ -579,27 +588,31 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     return autoCommit;
   }
 
-  public Optional<JaasConfigService> getJaasConfigService() {
-    if ( DIRECT.equals( getConnectionType() ) ) {
-      return Optional.empty();
-    }
-    try {
-      return Optional.ofNullable( namedClusterServiceLocator.getService(
-        namedClusterService.getNamedClusterByName( parentStepMeta.getParentTransMeta().environmentSubstitute( getClusterName() ), getMetastoreLocator().getMetastore() ),
-        JaasConfigService.class ) );
-    } catch ( Exception e ) {
-      getLog().logDebug( "problem getting jaas config", e );
-      return Optional.empty();
-    }
-  }
+  /*
+     Per https://jira.pentaho.com/browse/PDI-19585 this capability was never reproduced when the multishim
+     capability was added.  It has been missing since Pentaho 9.0.
+   */
+//  public Optional<JaasConfigService> getJaasConfigService() {
+//    if ( DIRECT.equals( getConnectionType() ) ) {
+//      return Optional.empty();
+//    }
+//    try {
+//      return Optional.ofNullable( namedClusterServiceLocator.getService(
+//        namedClusterService.getNamedClusterByName( parentStepMeta.getParentTransMeta().environmentSubstitute( getClusterName() ), getMetastoreLocator().getMetastore() ),
+//        JaasConfigService.class ) );
+//    } catch ( Exception e ) {
+//      getLog().logDebug( "problem getting jaas config", e );
+//      return Optional.empty();
+//    }
+//  }
 
-  public NamedClusterServiceLocator getNamedClusterServiceLocator() {
-    return namedClusterServiceLocator;
-  }
-
-  public void setNamedClusterServiceLocator( NamedClusterServiceLocator namedClusterServiceLocator ) {
-    this.namedClusterServiceLocator = namedClusterServiceLocator;
-  }
+//  public NamedClusterServiceLocator getNamedClusterServiceLocator() {
+//    return namedClusterServiceLocator;
+//  }
+//
+//  public void setNamedClusterServiceLocator( NamedClusterServiceLocator namedClusterServiceLocator ) {
+//    this.namedClusterServiceLocator = namedClusterServiceLocator;
+//  }
 
   public void setMetastoreLocator( MetastoreLocator metastoreLocator ) {
     this.metastoreLocator = metastoreLocator;

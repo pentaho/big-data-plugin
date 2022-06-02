@@ -38,10 +38,6 @@
     </cm:default-properties>
   </cm:property-placeholder>
 
-  <reference id="metastoreLocator"
-             interface="org.pentaho.osgi.metastore.locator.api.MetastoreLocator"
-             availability="optional"/>
-
   <reference id="namedClusterService"
              interface="org.pentaho.hadoop.shim.api.cluster.NamedClusterService"/>
 
@@ -77,7 +73,6 @@
   <jaxrs:server address="/hadoop-cluster" id="browser-endpoint">
     <jaxrs:serviceBeans>
       <bean class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClusterEndpoints">
-        <argument ref="metastoreLocator"/>
         <argument ref="namedClusterService"/>
         <argument ref="runtimeTester"/>
         <argument value="${internal.shim}"/>
@@ -89,7 +84,7 @@
     </jaxrs:extensionMappings>
     <jaxrs:providers>
       <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider"/>
-      <bean class="org.pentaho.di.ui.repo.endpoints.WebSpoonFilter"/>
+      <bean class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.WebSpoonFilter"/>
     </jaxrs:providers>
   </jaxrs:server>
 

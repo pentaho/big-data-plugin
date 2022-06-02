@@ -18,6 +18,7 @@
   <properties>
     <maven-replacer-plugin.version>1.5.2</maven-replacer-plugin.version>
     <platform.version>9.4.0.0-SNAPSHOT</platform.version>
+    <mockito4.version>4.0.0</mockito4.version>
   </properties>
 
   <dependencies>
@@ -34,7 +35,7 @@
       <artifactId>kettle-engine</artifactId>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>org.pentaho.di.plugins</groupId>
       <artifactId>pentaho-metastore-locator-api</artifactId>
       <version>${pdi.version}</version>
       <scope>provided</scope>
@@ -87,19 +88,6 @@
       <!--this is required by OSGi bean declared in src/main/resources-filtered/OSGI-INF/blueprint/blueprint.xml-->
       <groupId>com.fasterxml.jackson.jaxrs</groupId>
       <artifactId>jackson-jaxrs-json-provider</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <!--
-    Fix for karaf wiring exception in Pentaho Server caused by DTE changes related to:
-    https://hv-eng.atlassian.net/browse/TAP-5183
-    If this causes future problems in DTE then it will be necessary to reevaluate
-    where the org.pentaho.di.ui.repo.endpoints.WebSpoonFilter resides. Probably
-    move it to "core-ui" as "repositories-plugin-core" is not available in karaf at the Pentaho Server
-    -->
-    <dependency>
-      <groupId>org.pentaho.di.plugins</groupId>
-      <artifactId>repositories-plugin-core</artifactId>
-      <version>${pdi.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -188,8 +176,14 @@
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
-      <version>${dependency.mockito.revision}</version>
+      <artifactId>mockito-core</artifactId>
+      <version>${mockito4.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-inline</artifactId>
+      <version>${mockito4.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -254,14 +248,15 @@
             where the org.pentaho.di.ui.repo.endpoints.WebSpoonFilter resides. Probably
             move it to "core-ui" as "repositories-plugin-core" is not available in karaf at the Pentaho Server
             -->
-            <Export-Package>org.pentaho.di.ui.repo,
-              org.pentaho.di.ui.repo.endpoints,
-              org.pentaho.di.ui.repo.model,
+            <!--
+            Update: WebSpoonFilter was moved to this package; removing references to org.pentaho.di.ui.repo package
+            since no such package should be in karaf now.
+            -->
+            <Export-Package>
               org.ops4j.pax.web.service.spi.util,
               org.apache.commons.collections4.*,
               org.ops4j.pax.swissbox.core,
-              org.ops4j.lang,
-              org.pentaho.di.ui.repo.*</Export-Package>
+              org.ops4j.lang</Export-Package>
             <Import-Package>org.pentaho.di.osgi,
               org.pentaho.di.core.plugins,
               org.pentaho.di.core.extension,

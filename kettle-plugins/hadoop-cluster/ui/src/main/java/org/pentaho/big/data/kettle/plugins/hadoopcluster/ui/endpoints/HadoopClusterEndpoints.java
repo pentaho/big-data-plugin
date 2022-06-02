@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019-2021 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -32,10 +32,13 @@ import org.json.simple.JSONObject;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
 import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.di.ui.spoon.Spoon;
-import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
+import org.pentaho.metastore.locator.api.MetastoreLocator;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.runtime.test.RuntimeTester;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -51,6 +54,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +67,7 @@ public class HadoopClusterEndpoints {
     KettleLogStore.getLogChannelInterfaceFactory().create( "HadoopClusterEndpoints" );
   private final Supplier<Spoon> spoonSupplier = Spoon::getInstance;
   private final NamedClusterService namedClusterService;
-  private final MetastoreLocator metastoreLocator;
+  private MetastoreLocator metastoreLocator;
   private final RuntimeTester runtimeTester;
   private final String internalShim;
   private final boolean secureEnabled;
@@ -86,10 +90,15 @@ public class HadoopClusterEndpoints {
     }
   }
 
-  public HadoopClusterEndpoints( MetastoreLocator metastoreLocator, NamedClusterService namedClusterService,
+  public HadoopClusterEndpoints( NamedClusterService namedClusterService,
                                  RuntimeTester runtimeTester, String internalShim, boolean secureEnabled ) {
     this.namedClusterService = namedClusterService;
-    this.metastoreLocator = metastoreLocator;
+    try {
+      Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
+      this.metastoreLocator = metastoreLocators.stream().findFirst().get();
+    } catch ( Exception e ) {
+      log.logError( "Error getting MetastoreLocator", e );
+    }
     this.runtimeTester = runtimeTester;
     this.internalShim = internalShim;
     this.secureEnabled = secureEnabled;
