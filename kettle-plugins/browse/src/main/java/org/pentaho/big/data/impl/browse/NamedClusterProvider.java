@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -31,9 +31,12 @@ import org.pentaho.big.data.impl.browse.model.NamedClusterDirectory;
 import org.pentaho.big.data.impl.browse.model.NamedClusterFile;
 import org.pentaho.big.data.impl.browse.model.NamedClusterTree;
 import org.pentaho.di.core.exception.KettleFileException;
+import org.pentaho.di.core.service.PluginServiceLoader;
+import org.pentaho.di.core.service.ServiceProvider;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.plugins.fileopensave.api.providers.BaseFileProvider;
 import org.pentaho.di.plugins.fileopensave.api.providers.File;
+import org.pentaho.di.plugins.fileopensave.api.providers.FileProvider;
 import org.pentaho.di.plugins.fileopensave.api.providers.Tree;
 import org.pentaho.di.plugins.fileopensave.api.providers.Utils;
 import org.pentaho.di.plugins.fileopensave.api.providers.exception.FileException;
@@ -41,13 +44,17 @@ import org.pentaho.di.plugins.fileopensave.api.providers.exception.FileNotFoundE
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
+@ServiceProvider( id = "NamedClusterProvider", description = "Provides access to the NamedClusterProvider service", provides = FileProvider.class )
 public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
 
   public static final String NAME = "Hadoop Clusters";
@@ -56,10 +63,16 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
 
   private NamedClusterService namedClusterManager;
   private MetastoreLocator metastoreLocator;
+  private Logger logger = LoggerFactory.getLogger( NamedClusterProvider.class );
 
-  public NamedClusterProvider( NamedClusterService namedClusterManager, MetastoreLocator metastoreLocator ) {
+  public NamedClusterProvider( NamedClusterService namedClusterManager ) {
     this.namedClusterManager = namedClusterManager;
-    this.metastoreLocator = metastoreLocator;
+    try {
+      Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
+      this.metastoreLocator = metastoreLocators.stream().findFirst().get();
+    } catch ( Exception e ) {
+      logger.warn( "Error getting MetastoreLocator", e );
+    }
   }
 
   @Override public String getName() {

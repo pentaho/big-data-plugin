@@ -7,11 +7,9 @@
 
   <bean id="NamedClusterProvider" scope="singleton" class="org.pentaho.big.data.impl.browse.NamedClusterProvider">
     <argument ref="namedClusterManager" />
-    <argument ref="metastoreLocator" />
   </bean>
 
   <service id="NamedClusterProviderService" ref="NamedClusterProvider" interface="org.pentaho.di.plugins.fileopensave.api.providers.FileProvider"/>
-  <reference id="metastoreLocator" interface="org.pentaho.osgi.metastore.locator.api.MetastoreLocator"/>
   <reference id="namedClusterManager" interface="org.pentaho.hadoop.shim.api.cluster.NamedClusterService"/>
 
 </blueprint>

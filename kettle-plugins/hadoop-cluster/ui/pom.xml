@@ -18,6 +18,7 @@
   <properties>
     <maven-replacer-plugin.version>1.5.2</maven-replacer-plugin.version>
     <platform.version>9.4.0.0-SNAPSHOT</platform.version>
+    <mockito4.version>4.0.0</mockito4.version>
   </properties>
 
   <dependencies>
@@ -188,8 +189,14 @@
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
-      <version>${dependency.mockito.revision}</version>
+      <artifactId>mockito-core</artifactId>
+      <version>${mockito4.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-inline</artifactId>
+      <version>${mockito4.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
