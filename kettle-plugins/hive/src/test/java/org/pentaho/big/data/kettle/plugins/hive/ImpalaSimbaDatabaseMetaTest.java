@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -29,11 +29,13 @@ import java.util.Map;
 import org.hamcrest.collection.IsMapContaining;
 import org.hamcrest.collection.IsMapWithSize;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.hadoop.shim.api.jdbc.DriverLocator;
 import org.pentaho.di.core.database.DatabaseMeta;
 
@@ -55,6 +57,11 @@ public class ImpalaSimbaDatabaseMetaTest {
   @Mock Driver driver;
   @InjectMocks ImpalaSimbaDatabaseMeta impalaSimbaDatabaseMeta;
   private String impalaSimbaDatabaseMetaURL;
+
+  @BeforeClass
+  public static void initLogs() {
+    KettleLogStore.init();
+  }
 
   @Before
   public void setup() throws Throwable {

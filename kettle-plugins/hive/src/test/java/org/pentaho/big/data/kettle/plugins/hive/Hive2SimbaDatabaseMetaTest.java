@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -23,13 +23,15 @@
 package org.pentaho.big.data.kettle.plugins.hive;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.pentaho.hadoop.shim.api.jdbc.DriverLocator;
 import org.pentaho.di.core.database.DatabaseMeta;
+import org.pentaho.di.core.logging.KettleLogStore;
+import org.pentaho.hadoop.shim.api.jdbc.DriverLocator;
 
 import java.sql.Driver;
 import java.util.Arrays;
@@ -47,6 +49,11 @@ public class Hive2SimbaDatabaseMetaTest {
   @Mock Driver driver;
   @InjectMocks Hive2SimbaDatabaseMeta hive2SimbaDatabaseMeta;
   private String hive2SimbaDatabaseMetaURL;
+
+  @BeforeClass
+  public static void initLogs() {
+    KettleLogStore.init();
+  }
 
   @Before
   public void setup() throws Throwable {

@@ -30,7 +30,7 @@ import org.pentaho.di.core.logging.LogChannelInterfaceFactory;
 import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.metastore.stores.delegate.DelegatingMetaStore;
-import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
+import org.pentaho.metastore.locator.api.MetastoreLocator;
 import org.pentaho.runtime.test.RuntimeTester;
 
 import java.io.File;
