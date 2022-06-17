@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -21,14 +21,18 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.hive;
 
+import com.google.common.annotations.VisibleForTesting;
+import org.pentaho.di.core.logging.LogChannel;
+import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.jdbc.DriverLocator;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
-import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
+import org.pentaho.metastore.locator.api.MetastoreLocator;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -46,7 +50,20 @@ public class Hive2DatabaseMeta extends DatabaseMetaWithVersion {
   protected NamedClusterService namedClusterService;
   protected MetastoreLocator metastoreLocator;
 
-  public Hive2DatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService,
+  //OSGi constructor
+  public Hive2DatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService ) {
+    super( driverLocator );
+    this.namedClusterService = namedClusterService;
+    try {
+      Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
+      this.metastoreLocator = metastoreLocators.stream().findFirst().get();
+    } catch ( Exception e ) {
+      LogChannel.GENERAL.logError( "Error getting MetastoreLocator", e );
+    }
+  }
+
+  @VisibleForTesting
+  protected Hive2DatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService,
                             MetastoreLocator metastoreLocator ) {
     super( driverLocator );
     this.namedClusterService = namedClusterService;

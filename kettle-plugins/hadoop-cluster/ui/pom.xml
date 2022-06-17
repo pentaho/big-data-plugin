@@ -35,7 +35,7 @@
       <artifactId>kettle-engine</artifactId>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>org.pentaho.di.plugins</groupId>
       <artifactId>pentaho-metastore-locator-api</artifactId>
       <version>${pdi.version}</version>
       <scope>provided</scope>

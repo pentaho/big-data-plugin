@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p>
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  * <p>
  * ******************************************************************************
  * <p>
@@ -22,7 +22,7 @@ import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.jdbc.DriverLocator;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
-import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
+import org.pentaho.metastore.locator.api.MetastoreLocator;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.pentaho.big.data.kettle.plugins.hive.SimbaUrl.KRB_HOST_FQDN;
@@ -37,6 +37,10 @@ abstract class BaseSimbaDatabaseMeta extends Hive2DatabaseMeta {
   BaseSimbaDatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService,
                          MetastoreLocator metastoreLocator ) {
     super( driverLocator, namedClusterService, metastoreLocator );
+  }
+
+  BaseSimbaDatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService ) {
+    super( driverLocator, namedClusterService );
   }
 
   protected abstract String getJdbcPrefix();
