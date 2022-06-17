@@ -555,7 +555,7 @@
     <dependency>
       <groupId>org.drools</groupId>
       <artifactId>drools-core</artifactId>
-      <version>6.4.0.Final</version>
+      <version>7.60.0.Final</version>
     </dependency>
     <dependency>
       <groupId>org.eobjects.sassyreader</groupId>
