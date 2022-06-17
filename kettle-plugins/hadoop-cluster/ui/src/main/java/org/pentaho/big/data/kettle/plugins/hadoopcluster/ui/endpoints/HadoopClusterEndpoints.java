@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019-2021 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -34,7 +34,7 @@ import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.di.ui.spoon.Spoon;
-import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
+import org.pentaho.metastore.locator.api.MetastoreLocator;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.slf4j.Logger;
@@ -74,7 +74,6 @@ public class HadoopClusterEndpoints {
   private static final String MOD_DATE_FILENAME_PREFIX = "mod-";
   private static final String FILE_CONTENT_FILENAME_PREFIX = "file-";
   private static final String ZERO = "0";
-  private Logger logger = LoggerFactory.getLogger( HadoopClusterEndpoints.class );
 
   enum FileType {
     CONFIGURATION( "configuration" ),
@@ -98,7 +97,7 @@ public class HadoopClusterEndpoints {
       Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
       this.metastoreLocator = metastoreLocators.stream().findFirst().get();
     } catch ( Exception e ) {
-      logger.warn( "Error getting MetastoreLocator", e );
+      log.logError( "Error getting MetastoreLocator", e );
     }
     this.runtimeTester = runtimeTester;
     this.internalShim = internalShim;

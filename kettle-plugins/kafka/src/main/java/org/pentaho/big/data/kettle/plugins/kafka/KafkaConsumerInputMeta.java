@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -24,6 +24,8 @@ package org.pentaho.big.data.kettle.plugins.kafka;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import org.pentaho.di.core.logging.LogChannel;
+import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
@@ -58,10 +60,11 @@ import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.trans.streaming.common.BaseStreamStepMeta;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metaverse.api.analyzer.kettle.annotations.Metaverse;
-import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
+import org.pentaho.metastore.locator.api.MetastoreLocator;
 import org.w3c.dom.Node;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -179,6 +182,14 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
 
   public KafkaConsumerInputMeta() {
     super(); // allocate BaseStepMeta
+
+    try {
+      Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
+      this.metastoreLocator = metastoreLocators.stream().findFirst().get();
+    } catch ( Exception e ) {
+      getLog().logError( "Error getting MetastoreLocator", e );
+    }
+
     kafkaFactory = KafkaFactory.defaultFactory();
     keyField = new KafkaConsumerField(
       KafkaConsumerField.Name.KEY,
