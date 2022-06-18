@@ -5,12 +5,12 @@
   <parent>
     <artifactId>pentaho-big-data-kettle-plugins</artifactId>
     <groupId>pentaho</groupId>
-    <version>9.4.0.0-SNAPSHOT</version>
+    <version>9.4.0.0-115</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>pentaho-big-data-kettle-plugins-browse</artifactId>
-  <version>9.4.0.0-SNAPSHOT</version>
+  <version>9.4.0.0-115</version>
   <packaging>bundle</packaging>
 
   <dependencies>
