@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p/>
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  * <p/>
  * ******************************************************************************
  * <p/>
@@ -17,6 +17,7 @@
 
 package org.pentaho.big.data.kettle.plugins.hive;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.jdbc.DriverLocator;
 import org.pentaho.di.core.Const;
@@ -25,7 +26,7 @@ import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
-import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
+import org.pentaho.metastore.locator.api.MetastoreLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,9 +44,15 @@ public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInt
 
   private static final Logger logChannel = LoggerFactory.getLogger( ImpalaDatabaseMeta.class );
 
-  public ImpalaDatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService,
+  @VisibleForTesting
+  ImpalaDatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService,
                              MetastoreLocator metastoreLocator ) {
     super( driverLocator, namedClusterService,  metastoreLocator );
+  }
+
+  // OSGi constructor
+  public ImpalaDatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService ) {
+    super( driverLocator, namedClusterService );
   }
 
   @Override
