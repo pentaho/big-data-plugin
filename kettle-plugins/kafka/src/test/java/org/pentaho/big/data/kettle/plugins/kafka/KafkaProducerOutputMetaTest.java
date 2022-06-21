@@ -23,10 +23,12 @@
 package org.pentaho.big.data.kettle.plugins.kafka;
 
 import org.hamcrest.Matchers;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
@@ -78,6 +80,11 @@ public class KafkaProducerOutputMetaTest {
   @Mock Repository rep;
   @Mock NamedClusterService namedClusterService;
   @Mock MetastoreLocator metastoreLocator;
+
+  @Before
+  public void setup() {
+    KettleLogStore.init();
+  }
 
   @Test
   public void testLoadsFieldsFromXml() throws Exception {

@@ -39,7 +39,7 @@ public class ImpalaSimbaDatabaseMeta extends BaseSimbaDatabaseMeta {
   protected static final int DEFAULT_PORT = 21050;
   protected static final String SOCKET_TIMEOUT_OPTION = "SocketTimeout";
 
-  ImpalaSimbaDatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService ) {
+  public ImpalaSimbaDatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService ) {
     super( driverLocator, namedClusterService );
   }
 
