@@ -35,10 +35,6 @@
     <bundle>mvn:pentaho/pentaho-osgi-utils-impl/${pentaho-osgi-bundles.version}</bundle>
     <bundle>mvn:pentaho/pdi-osgi-bridge-activator/${pdi-osgi-bridge.version}</bundle>
     <bundle>mvn:pentaho/pentaho-blueprint-collection-utils/${pentaho-osgi-bundles.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-kettle-repository-locator-api/${pentaho-osgi-bundles.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-metastore-locator-api/${pentaho-osgi-bundles.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-metastore-locator-impl-local/${pentaho-osgi-bundles.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-metastore-locator-impl-repository/${pentaho-osgi-bundles.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-cluster/${project.version}</bundle>
     <configfile finalname="/etc/pentaho.big.data.impl.cluster.cfg">
       mvn:pentaho/pentaho-osgi-config/${pentaho-karaf.version}/cfg/pentaho-big-data-impl-cluster

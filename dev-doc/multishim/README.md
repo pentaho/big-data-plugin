@@ -40,7 +40,7 @@ Limited context services (vfs, jdbc)
 
 We need a reference to the active MetaStore and the named cluster name in order to load a NamedCluster.
 
-As far as locating the active metastore, [metastore locator bundles](https://github.com/pentaho/pentaho-osgi-bundles/tree/master/pentaho-metastore-locator) will allow us to determine the right one.  We will probably need to flush out several more scenarios and implementations though.
+As far as locating the active metastore, [metastore locator plugin](https://github.com/pentaho/pentaho-kettle/tree/master/plugins/metastore-locator) will allow us to determine the right one.  We will probably need to flush out several more scenarios and implementations though.
 
 We will somehow need to embed the named cluster name in the URL both to determine which shim to use as well as to associate other named cluster settings with VFS and JDBC connections once we add them.
 
