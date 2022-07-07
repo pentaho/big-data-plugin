@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  * <p>
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  * <p>
  * ******************************************************************************
  * <p>
@@ -23,29 +23,30 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
-import org.pentaho.di.core.variables.Variables;
-import org.pentaho.di.trans.TransMeta;
-import org.pentaho.di.trans.step.StepMeta;
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
-import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.big.data.kettle.plugins.hbase.LogInjector;
 import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.NamedClusterLoadSaveUtil;
 import org.pentaho.big.data.kettle.plugins.hbase.ServiceStatus;
-import org.pentaho.hadoop.shim.api.hbase.HBaseService;
-import org.pentaho.hadoop.shim.api.hbase.mapping.Mapping;
-import org.pentaho.hadoop.shim.api.hbase.mapping.MappingFactory;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.logging.LoggingBuffer;
+import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
+import org.pentaho.di.trans.TransMeta;
+import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.steps.loadsave.MemoryRepository;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.hbase.HBaseService;
+import org.pentaho.hadoop.shim.api.hbase.mapping.Mapping;
+import org.pentaho.hadoop.shim.api.hbase.mapping.MappingFactory;
 import org.pentaho.metastore.api.IMetaStore;
+import org.pentaho.metastore.locator.api.MetastoreLocator;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 
@@ -54,19 +55,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@RunWith( org.mockito.runners.MockitoJUnitRunner.class )
+@RunWith( MockitoJUnitRunner.class )
 public class HBaseOutputMetaTest {
 
   @Mock NamedClusterService namedClusterService;
@@ -75,7 +76,7 @@ public class HBaseOutputMetaTest {
   @Mock RuntimeTester runtimeTester;
   @Mock NamedClusterLoadSaveUtil namedClusterLoadSaveUtil;
   @Mock NamedCluster namedCluster;
-  @Mock MetastoreLocatorOsgi metastoreLocatorOsgi;
+  @Mock MetastoreLocator metastoreLocatorOsgi;
 
   @Mock Repository rep;
   @Mock IMetaStore metaStore;
@@ -138,10 +139,8 @@ public class HBaseOutputMetaTest {
   @Test
   public void testApplyInjectionDefinitionNull() throws Exception {
     HBaseOutputMeta hBaseOutputMetaSpy = Mockito.spy( this.hBaseOutputMeta );
-    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class, null ) ).thenReturn( hBaseService );
     hBaseOutputMetaSpy.setMappingDefinition( null );
     hBaseOutputMetaSpy.setNamedCluster( namedCluster );
-    Mockito.doReturn( null ).when( hBaseOutputMetaSpy ).getMapping( any(), any() );
 
     hBaseOutputMetaSpy.getXML();
     verify( hBaseOutputMetaSpy, times( 0 ) ).getMapping( any(), any() );
@@ -240,7 +239,6 @@ public class HBaseOutputMetaTest {
     when( mockStepMeta.getParentTransMeta() ).thenReturn( mockTransMeta );
     when( metastoreLocatorOsgi.getExplicitMetastore( "key" ) ).thenReturn( metaStore );
     when( namedClusterService.getNamedClusterByName( "ClusterName", metaStore ) ).thenReturn( embeddedNamedCluster );
-    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class, "key" ) ).thenReturn( hBaseService );
 
     hBaseOutputMeta.applyInjection( new Variables() );
     assertEquals( embeddedNamedCluster, hBaseOutputMeta.getNamedCluster() );

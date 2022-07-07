@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,10 +25,11 @@ package org.pentaho.big.data.kettle.plugins.hbase.output;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.pentaho.big.data.kettle.plugins.hbase.NamedClusterLoadSaveUtil;
+import org.pentaho.di.core.injection.BaseMetadataInjectionTest;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
-import org.pentaho.di.core.injection.BaseMetadataInjectionTest;
-import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
+import org.pentaho.metastore.locator.api.MetastoreLocator;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 
@@ -40,9 +41,10 @@ public class HBaseOutputMetaInjectionTest extends BaseMetadataInjectionTest<HBas
     NamedClusterServiceLocator namedClusterServiceLocator = Mockito.mock( NamedClusterServiceLocator.class );
     RuntimeTestActionService runtimeTestActionService = Mockito.mock( RuntimeTestActionService.class );
     RuntimeTester runtimeTester = Mockito.mock( RuntimeTester.class );
-    MetastoreLocatorOsgi metaStore = Mockito.mock( MetastoreLocatorOsgi.class );
+    MetastoreLocator metaStore = Mockito.mock( MetastoreLocator.class );
 
-    setup( new HBaseOutputMeta( namedClusterService, namedClusterServiceLocator, runtimeTestActionService, runtimeTester, metaStore ) );
+    setup( new HBaseOutputMeta( namedClusterService, namedClusterServiceLocator, runtimeTestActionService, runtimeTester, new NamedClusterLoadSaveUtil(),
+      metaStore ) );
   }
 
   @Test

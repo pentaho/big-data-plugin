@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -24,6 +24,8 @@ package org.pentaho.big.data.kettle.plugins.hbase.input;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.pentaho.big.data.kettle.plugins.hbase.HbaseUtil;
+import org.pentaho.di.core.logging.LogChannel;
+import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
@@ -74,11 +76,13 @@ import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.metastore.api.IMetaStore;
+import org.pentaho.metastore.locator.api.MetastoreLocator;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Node;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -101,7 +105,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   private final NamedClusterService namedClusterService;
   private final NamedClusterServiceLocator namedClusterServiceLocator;
   private final RuntimeTestActionService runtimeTestActionService;
-  private MetastoreLocatorOsgi metaStoreService;
+  private MetastoreLocator metaStoreService;
   private final RuntimeTester runtimeTester;
 
   protected NamedCluster namedCluster;
@@ -185,13 +189,29 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   public HBaseInputMeta( NamedClusterService namedClusterService,
                          NamedClusterServiceLocator namedClusterServiceLocator,
-                         RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester, MetastoreLocatorOsgi metaStore ) {
+                         RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester ) {
     this.namedClusterService = namedClusterService;
     this.namedClusterServiceLocator = namedClusterServiceLocator;
     this.runtimeTestActionService = runtimeTestActionService;
     this.runtimeTester = runtimeTester;
     namedClusterLoadSaveUtil = new NamedClusterLoadSaveUtil();
-    this.metaStoreService = metaStore;
+    try {
+      Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
+      this.metaStoreService = metastoreLocators.stream().findFirst().get();
+    } catch ( Exception e ) {
+      getLog().logError( "Error getting MetastoreLocator", e );
+    }
+  }
+
+  HBaseInputMeta( NamedClusterService namedClusterService,
+                         NamedClusterServiceLocator namedClusterServiceLocator,
+                         RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester, MetastoreLocator metastoreLocator ) {
+    this.namedClusterService = namedClusterService;
+    this.namedClusterServiceLocator = namedClusterServiceLocator;
+    this.runtimeTestActionService = runtimeTestActionService;
+    this.runtimeTester = runtimeTester;
+    namedClusterLoadSaveUtil = new NamedClusterLoadSaveUtil();
+    this.metaStoreService = metastoreLocator;
   }
 
   /**
