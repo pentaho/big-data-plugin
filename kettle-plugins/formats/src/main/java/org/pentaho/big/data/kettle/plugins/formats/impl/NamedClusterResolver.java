@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -24,26 +24,33 @@ package org.pentaho.big.data.kettle.plugins.formats.impl;
 
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.logging.LogChannelInterface;
-import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
+import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
+import org.pentaho.metastore.locator.api.MetastoreLocator;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collection;
 import java.util.Optional;
 
 public class NamedClusterResolver {
 
   private final NamedClusterServiceLocator namedClusterServiceLocator;
   private final NamedClusterService namedClusterService;
-  private MetastoreLocatorOsgi metaStoreService;
+  private MetastoreLocator metaStoreService;
 
   public NamedClusterResolver( NamedClusterServiceLocator namedClusterServiceLocator,
-                               NamedClusterService namedClusterService, MetastoreLocatorOsgi metaStore ) {
+                               NamedClusterService namedClusterService ) {
     this.namedClusterServiceLocator = namedClusterServiceLocator;
     this.namedClusterService = namedClusterService;
-    this.metaStoreService = metaStore;
+    try {
+      Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
+      this.metaStoreService = metastoreLocators.stream().findFirst().get();
+    } catch ( Exception e ) {
+      LOG.logError( "Error getting MetastoreLocator", e );
+    }
   }
 
   private static final LogChannelInterface LOG = LogChannel.GENERAL;

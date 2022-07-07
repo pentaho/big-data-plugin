@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p>
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  * <p>
  * ******************************************************************************
  * <p>
@@ -25,20 +25,20 @@ import org.apache.commons.vfs2.provider.GenericFileName;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
-import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
+import org.pentaho.metastore.locator.api.MetastoreLocator;
 
 import java.net.URI;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by bryan on 8/7/15.
@@ -49,7 +49,7 @@ public class HDFSFileProviderTest {
   private DefaultFileSystemManager defaultFileSystemManager;
   private HDFSFileProvider hdfsFileProvider;
   private NamedCluster namedCluster;
-  private MetastoreLocatorOsgi metaStoreLocator;
+  private MetastoreLocator metaStoreLocator;
   private FileNameParser fileNameParser;
 
   @Before
@@ -59,7 +59,7 @@ public class HDFSFileProviderTest {
     namedCluster = mock( NamedCluster.class );
     when( namedClusterService.getClusterTemplate() ).thenReturn( namedCluster );
     defaultFileSystemManager = mock( DefaultFileSystemManager.class );
-    metaStoreLocator = mock( MetastoreLocatorOsgi.class );
+    metaStoreLocator = mock( MetastoreLocator.class );
     fileNameParser = mock( FileNameParser.class );
     hdfsFileProvider = new HDFSFileProvider(
       hadoopFileSystemLocator, namedClusterService, defaultFileSystemManager,
