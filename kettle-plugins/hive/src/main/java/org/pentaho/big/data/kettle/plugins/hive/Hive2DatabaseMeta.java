@@ -31,6 +31,8 @@ import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.locator.api.MetastoreLocator;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.List;
@@ -49,6 +51,7 @@ public class Hive2DatabaseMeta extends DatabaseMetaWithVersion {
   protected static final String DRIVER_CLASS_NAME = "org.apache.hive.jdbc.HiveDriver";
   protected NamedClusterService namedClusterService;
   protected MetastoreLocator metastoreLocator;
+  private Logger logger = LoggerFactory.getLogger( Hive2DatabaseMeta.class );
 
   //OSGi constructor
   public Hive2DatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService ) {
@@ -58,7 +61,7 @@ public class Hive2DatabaseMeta extends DatabaseMetaWithVersion {
       Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
       this.metastoreLocator = metastoreLocators.stream().findFirst().get();
     } catch ( Exception e ) {
-      LogChannel.GENERAL.logError( "Error getting MetastoreLocator", e );
+      logger.error( "Error getting metastore locator", e );
     }
   }
 

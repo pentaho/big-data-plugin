@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -21,34 +21,19 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.formats.impl.avro.input;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputField;
+import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.plugins.Plugin;
-import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginMainClassType;
 import org.pentaho.di.core.plugins.PluginRegistry;
@@ -57,11 +42,31 @@ import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaPluginType;
 import org.pentaho.di.core.row.value.ValueMetaString;
+import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.hadoop.shim.api.format.AvroSpec;
 import org.pentaho.metastore.api.IMetaStore;
+import org.pentaho.metastore.locator.api.MetastoreLocator;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith( MockitoJUnitRunner.class )
 public class AvroInputMetaTest {
@@ -73,7 +78,7 @@ public class AvroInputMetaTest {
   private NamedClusterService namedClusterService;
 
   @Mock
-  private MetastoreLocatorOsgi metaStoreLocator;
+  private MetastoreLocator metaStoreLocator;
 
   @Mock
   private StepMeta nextStep;
@@ -107,10 +112,14 @@ public class AvroInputMetaTest {
 
   @Before
   public void setUp() throws KettlePluginException {
-    NamedClusterResolver namedClusterResolver = new NamedClusterResolver( namedClusterServiceLocator,
-      namedClusterService, metaStoreLocator );
+    Collection<MetastoreLocator> metastoreLocatorCollection = new ArrayList<>();
+    metastoreLocatorCollection.add( metaStoreLocator );
+    NamedClusterResolver namedClusterResolver;
+    try ( MockedStatic<PluginServiceLoader> pluginServiceLoaderMockedStatic = Mockito.mockStatic( PluginServiceLoader.class ) ) {
+      pluginServiceLoaderMockedStatic.when( () -> PluginServiceLoader.loadServices( MetastoreLocator.class ) ).thenReturn( metastoreLocatorCollection );
+      namedClusterResolver = new NamedClusterResolver( namedClusterServiceLocator, namedClusterService );
+    }
     meta = new AvroInputMeta( namedClusterResolver );
-    when( field.getAvroType() ).thenReturn( AvroSpec.DataType.STRING );
     when( field.getPentahoType() ).thenReturn( ValueMetaInterface.TYPE_STRING );
 
     Map<Class<?>, String> classMap = new HashMap<Class<?>, String>();
@@ -145,7 +154,7 @@ public class AvroInputMetaTest {
   public void testGetFields_theNameWasUpdatedByVariables() throws KettleStepException {
     meta.setInputFields( Arrays.asList( field ) );
     meta.getFields( rowMeta, origin, info, nextStep, space, repository, metaStore );
-    verify( space ).environmentSubstitute( anyString() );
+    verify( space ).environmentSubstitute( nullable( String.class ) );
   }
 
   @Test

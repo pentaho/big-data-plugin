@@ -10,7 +10,6 @@
     <argument ref="namedClusterServiceLocator"/>
     <argument ref="runtimeTestActionService"/>
     <argument ref="runtimeTester"/>
-    <argument ref="metastoreLocatorOsgi"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
   </bean>
   <bean id="hBaseOutputMeta" class="org.pentaho.big.data.kettle.plugins.hbase.output.HBaseOutputMeta" scope="prototype">
@@ -18,7 +17,6 @@
     <argument ref="namedClusterServiceLocator"/>
     <argument ref="runtimeTestActionService"/>
     <argument ref="runtimeTester"/>
-    <argument ref="metastoreLocatorOsgi"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
   </bean>
   <bean id="hBaseRowDecoderMeta" class="org.pentaho.big.data.kettle.plugins.hbase.rowdecoder.HBaseRowDecoderMeta" scope="prototype">
@@ -26,7 +24,6 @@
     <argument ref="namedClusterService"/>
     <argument ref="runtimeTestActionService"/>
     <argument ref="runtimeTester"/>
-    <argument ref="metastoreLocatorOsgi"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
   </bean>
 
@@ -34,5 +31,4 @@
   <reference id="namedClusterServiceLocator" interface="org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator"/>
   <reference id="runtimeTester" interface="org.pentaho.runtime.test.RuntimeTester"/>
   <reference id="runtimeTestActionService" interface="org.pentaho.runtime.test.action.RuntimeTestActionService"/>
-  <reference id="metastoreLocatorOsgi" interface="org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi"/>
 </blueprint>

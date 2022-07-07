@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2020-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -26,17 +26,19 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.big.data.kettle.plugins.formats.avro.output.AvroOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.logging.LogLevel;
-import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaString;
+import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.RowHandler;
@@ -49,15 +51,18 @@ import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.hadoop.shim.api.format.AvroSpec;
 import org.pentaho.hadoop.shim.api.format.FormatService;
 import org.pentaho.hadoop.shim.api.format.IPentahoAvroOutputFormat;
+import org.pentaho.metastore.locator.api.MetastoreLocator;
 import org.pentaho.reporting.libraries.base.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -84,7 +89,7 @@ public class AvroOutputTest {
   @Mock
   private NamedClusterService mockNamedClusterService;
   @Mock
-  private MetastoreLocatorOsgi mockMetaStoreLocator;
+  private MetastoreLocator mockMetaStoreLocator;
   @Mock
   private FormatService mockFormatService;
   @Mock
@@ -111,8 +116,13 @@ public class AvroOutputTest {
     currentAvroRow = 0;
     setDataInputRows();
     setAvroOutputRows();
-    NamedClusterResolver namedClusterResolver =
-      new NamedClusterResolver( mockNamedClusterServiceLocator, mockNamedClusterService, mockMetaStoreLocator );
+    Collection<MetastoreLocator> metastoreLocatorCollection = new ArrayList<>();
+    metastoreLocatorCollection.add( mockMetaStoreLocator );
+    NamedClusterResolver namedClusterResolver;
+    try ( MockedStatic<PluginServiceLoader> pluginServiceLoaderMockedStatic = Mockito.mockStatic( PluginServiceLoader.class ) ) {
+      pluginServiceLoaderMockedStatic.when( () -> PluginServiceLoader.loadServices( MetastoreLocator.class ) ).thenReturn( metastoreLocatorCollection );
+      namedClusterResolver = new NamedClusterResolver( mockNamedClusterServiceLocator, mockNamedClusterService );
+    }
     avroOutputMeta = new AvroOutputMeta( namedClusterResolver );
     avroOutputMeta.setFilename( OUTPUT_FILE_NAME );
     avroOutputMeta.setOutputFields( avroOutputFields );
@@ -122,7 +132,6 @@ public class AvroOutputTest {
     when( mockStepMeta.getName() ).thenReturn( OUTPUT_STEP_NAME );
     when( mockTransMeta.findStep( OUTPUT_STEP_NAME ) ).thenReturn( mockStepMeta );
     when( mockTransMeta.getNamedClusterEmbedManager() ).thenReturn( namedClusterEmbedManager );
-    when( mockTrans.isRunning() ).thenReturn( true );
 
     try {
       when( mockRowHandler.getRow() ).thenAnswer( answer -> returnNextAvroRow() );
@@ -133,7 +142,7 @@ public class AvroOutputTest {
     when( mockFormatService.createOutputFormat( IPentahoAvroOutputFormat.class,
       avroOutputMeta.getNamedClusterResolver().resolveNamedCluster( avroOutputMeta.getFilename() ) ) )
       .thenReturn( mockPentahoAvroOutputFormat );
-    when( mockNamedClusterServiceLocator.getService( any( NamedCluster.class ), any( Class.class ) ) )
+    when( mockNamedClusterServiceLocator.getService( nullable( NamedCluster.class ), any( Class.class ) ) )
       .thenReturn( mockFormatService );
     when( mockPentahoAvroOutputFormat.createRecordWriter() ).thenReturn( mockPentahoAvroRecordWriter );
 
@@ -215,7 +224,6 @@ public class AvroOutputTest {
 
   private void setAvroOutputRows() {
     AvroOutputField avroOutputField = mock( AvroOutputField.class );
-    when( avroOutputField.getAvroType() ).thenReturn( AvroSpec.DataType.STRING );
     when( avroOutputField.getPentahoFieldName() ).thenReturn( "StringName" );
     avroOutputFields =  new ArrayList<>();
     avroOutputFields.add( avroOutputField );
