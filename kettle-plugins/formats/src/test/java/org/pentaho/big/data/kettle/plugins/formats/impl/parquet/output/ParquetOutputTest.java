@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019-2021 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -28,42 +28,47 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.pentaho.big.data.kettle.plugins.formats.parquet.output.ParquetOutputField;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
+import org.pentaho.big.data.kettle.plugins.formats.parquet.output.ParquetOutputField;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.logging.LogLevel;
-import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaString;
-import org.pentaho.di.trans.step.RowHandler;
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
+import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
+import org.pentaho.di.trans.step.RowHandler;
 import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.steps.named.cluster.NamedClusterEmbedManager;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.hadoop.shim.api.format.FormatService;
 import org.pentaho.hadoop.shim.api.format.IPentahoParquetOutputFormat;
 import org.pentaho.hadoop.shim.api.format.ParquetSpec;
+import org.pentaho.metastore.locator.api.MetastoreLocator;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -95,7 +100,7 @@ public class ParquetOutputTest {
   @Mock
   private NamedClusterService mockNamedClusterService;
   @Mock
-  private MetastoreLocatorOsgi mockMetaStoreLocator;
+  private MetastoreLocator mockMetaStoreLocator;
   @Mock
   private FormatService mockFormatService;
   @Mock
@@ -122,20 +127,22 @@ public class ParquetOutputTest {
     currentParquetRow = 0;
     setDataInputRows();
     setParquetOutputRows();
-    NamedClusterResolver namedClusterResolver =
-      new NamedClusterResolver( mockNamedClusterServiceLocator, mockNamedClusterService, mockMetaStoreLocator );
+    Collection<MetastoreLocator> metastoreLocatorCollection = new ArrayList<>();
+    metastoreLocatorCollection.add( mockMetaStoreLocator );
+    NamedClusterResolver namedClusterResolver;
+    try ( MockedStatic<PluginServiceLoader> pluginServiceLoaderMockedStatic = Mockito.mockStatic( PluginServiceLoader.class ) ) {
+      pluginServiceLoaderMockedStatic.when( () -> PluginServiceLoader.loadServices( MetastoreLocator.class ) ).thenReturn( metastoreLocatorCollection );
+      namedClusterResolver = new NamedClusterResolver( mockNamedClusterServiceLocator, mockNamedClusterService );
+    }
     parquetOutputMeta = new ParquetOutputMeta( namedClusterResolver );
     parquetOutputMeta.setFilename( OUTPUT_FILE_NAME );
     parquetOutputMeta.setOverrideOutput( true );
     parquetOutputMeta.setOutputFields( parquetOutputFields );
 
     parquetOutputMeta.setParentStepMeta( mockStepMeta );
-    when( mockStepMeta.getParentTransMeta() ).thenReturn( mockTransMeta );
     when( mockStepMeta.getName() ).thenReturn( OUTPUT_STEP_NAME );
-    when( mockTransMeta.getName() ).thenReturn( OUTPUT_TRANS_NAME );
     when( mockTransMeta.findStep( OUTPUT_STEP_NAME ) ).thenReturn( mockStepMeta );
     when( mockTransMeta.findStep( OUTPUT_STEP_NAME ) ).thenReturn( mockStepMeta );
-    when( mockTrans.isRunning() ).thenReturn( true );
 
     try {
       when( mockRowHandler.getRow() ).thenAnswer( answer -> returnNextParquetRow() );
@@ -146,7 +153,7 @@ public class ParquetOutputTest {
     when( mockFormatService.createOutputFormat( IPentahoParquetOutputFormat.class,
       parquetOutputMeta.getNamedClusterResolver().resolveNamedCluster( parquetOutputMeta.getFilename() ) ) )
       .thenReturn( mockPentahoParquetOutputFormat );
-    when( mockNamedClusterServiceLocator.getService( any( NamedCluster.class ), any( Class.class ) ) )
+    when( mockNamedClusterServiceLocator.getService( nullable( NamedCluster.class ), any( Class.class ) ) )
       .thenReturn( mockFormatService );
     when( mockPentahoParquetOutputFormat.createRecordWriter() ).thenReturn( mockPentahoParquetRecordWriter );
 
@@ -248,8 +255,6 @@ public class ParquetOutputTest {
 
   private void setParquetOutputRows() {
     ParquetOutputField parquetOutputField = mock( ParquetOutputField.class );
-    when( parquetOutputField.getParquetType() ).thenReturn( ParquetSpec.DataType.BINARY );
-    when( parquetOutputField.getPentahoFieldName() ).thenReturn( "StringName" );
     parquetOutputFields =  new ArrayList<>();
     parquetOutputFields.add( parquetOutputField );
   }

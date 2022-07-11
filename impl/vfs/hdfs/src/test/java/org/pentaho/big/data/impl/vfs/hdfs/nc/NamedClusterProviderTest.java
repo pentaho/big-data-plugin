@@ -1,7 +1,7 @@
 /*!
  * Pentaho Big Data
  * <p>
- * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  * <p>
  * ******************************************************************************
  * <p>
@@ -16,22 +16,6 @@
  ******************************************************************************/
 package org.pentaho.big.data.impl.vfs.hdfs.nc;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.never;
-
-import java.net.URI;
-
 import org.apache.commons.vfs2.FileSystem;
 import org.apache.commons.vfs2.FileSystemConfigBuilder;
 import org.apache.commons.vfs2.FileSystemException;
@@ -41,22 +25,38 @@ import org.apache.commons.vfs2.provider.url.UrlFileName;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.AdditionalMatchers;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.big.data.impl.vfs.hdfs.HDFSFileSystem;
-import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
-import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.core.variables.Variables;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystem;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
+import org.pentaho.metastore.locator.api.MetastoreLocator;
+
+import java.net.URI;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class NamedClusterProviderTest {
 
   private final NamedClusterService ncService = mock( NamedClusterService.class );
 
-  private final MetastoreLocatorOsgi metastoreLocator = mock( MetastoreLocatorOsgi.class );
+  private final MetastoreLocator metastoreLocator = mock( MetastoreLocator.class );
 
   private final IMetaStore metastore = mock( IMetaStore.class );
 

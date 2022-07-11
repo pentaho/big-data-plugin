@@ -8,7 +8,6 @@
   <bean id="namedClusterResolver" class="org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver" scope="singleton">
     <argument ref="namedClusterServiceLocator"/>
     <argument ref="namedClusterService"/>
-    <argument ref="metastoreLocatorOsgi"/>
   </bean>
   <bean id="parquetOutputMeta" class="org.pentaho.big.data.kettle.plugins.formats.impl.parquet.output.ParquetOutputMeta" scope="prototype">
     <argument ref="namedClusterResolver"/>
@@ -39,6 +38,5 @@
   <reference id="namedClusterServiceLocator" interface="org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator"/>
   <reference id="runtimeTester" interface="org.pentaho.runtime.test.RuntimeTester"/>
   <reference id="runtimeTestActionService" interface="org.pentaho.runtime.test.action.RuntimeTestActionService"/>
-  <reference id="metastoreLocatorOsgi" interface="org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi"/>
 
 </blueprint>
