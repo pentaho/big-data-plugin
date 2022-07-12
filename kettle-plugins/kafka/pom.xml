@@ -17,7 +17,6 @@
     <publish-sonar-phase>site</publish-sonar-phase>
     <!-- Dependency versions -->
     <pentaho-metaverse.version>9.4.0.0-SNAPSHOT</pentaho-metaverse.version>
-    <pentaho-mongodb-plugin.version>9.4.0.0-SNAPSHOT</pentaho-mongodb-plugin.version>
     <dependency.org.powermock.version>1.6.0</dependency.org.powermock.version>
     <dependency.com.tinkerpop.frames.version>2.5.0</dependency.com.tinkerpop.frames.version>
     <dependency.com.tinkerpop.blueprints.version>2.6.0</dependency.com.tinkerpop.blueprints.version>
@@ -126,12 +125,6 @@
     <dependency>
       <groupId>org.powermock</groupId>
       <artifactId>powermock-api-mockito</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-mongodb-plugin</artifactId>
-      <version>${pentaho-mongodb-plugin.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
