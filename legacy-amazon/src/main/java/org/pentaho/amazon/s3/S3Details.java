@@ -23,8 +23,11 @@
 package org.pentaho.amazon.s3;
 
 import com.amazonaws.regions.Regions;
+import org.eclipse.swt.widgets.Composite;
 import org.pentaho.di.connections.annotations.Encrypted;
 import org.pentaho.di.connections.vfs.VFSConnectionDetails;
+import org.pentaho.di.connections.vfs.VFSDetailsComposite;
+import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.metastore.persist.MetaStoreAttribute;
 import org.pentaho.metastore.persist.MetaStoreElementType;
 import org.pentaho.s3.vfs.S3FileProvider;
@@ -35,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 @MetaStoreElementType( name = "Amazon S3 Connection", description = "Defines the connection details for an Amazon S3 connection" )
 public class S3Details implements VFSConnectionDetails {
+  VFSDetailsComposite vfsDetailsComposite;
 
   public static final String CONNECTION_TYPE_AWS = "0";
   public static final String CONNECTION_TYPE_MINIO = "1";
@@ -62,10 +66,12 @@ public class S3Details implements VFSConnectionDetails {
   @MetaStoreAttribute private String endpoint;
 
   @MetaStoreAttribute private String pathStyleAccess;
+  @MetaStoreAttribute private String pathStyleAccessVariable;
 
   @MetaStoreAttribute private String signatureVersion;
 
   @MetaStoreAttribute private String defaultS3Config;
+  @MetaStoreAttribute private String defaultS3ConfigVariable;
 
   @MetaStoreAttribute private String connectionType;
 
@@ -85,6 +91,7 @@ public class S3Details implements VFSConnectionDetails {
     return description;
   }
 
+  @Override
   public void setDescription( String description ) {
     this.description = description;
   }
@@ -201,6 +208,22 @@ public class S3Details implements VFSConnectionDetails {
     this.connectionType = connectionType;
   }
 
+  public String getPathStyleAccessVariable() {
+    return pathStyleAccessVariable;
+  }
+
+  public void setPathStyleAccessVariable( String pathStyleAccessVariable ) {
+    this.pathStyleAccessVariable = pathStyleAccessVariable;
+  }
+
+  public String getDefaultS3ConfigVariable() {
+    return defaultS3ConfigVariable;
+  }
+
+  public void setDefaultS3ConfigVariable( String defaultS3ConfigVariable ) {
+    this.defaultS3ConfigVariable = defaultS3ConfigVariable;
+  }
+
   @Override public Map<String, String> getProperties() {
     Map<String, String> props = new HashMap<>();
     props.put( "name", getName() );
@@ -220,5 +243,23 @@ public class S3Details implements VFSConnectionDetails {
     props.put( "connectionType", getConnectionType() );
 
     return props;
+  }
+
+  @Override
+  public Object openDialog( Object wCompositeWrapper, Object props ) {
+    if ( wCompositeWrapper instanceof Composite && props instanceof PropsUI ) {
+      vfsDetailsComposite = new S3DetailComposite( (Composite) wCompositeWrapper, this, (PropsUI) props );
+      vfsDetailsComposite.open();
+      return vfsDetailsComposite;
+    }
+    return null;
+  }
+
+  @Override
+  public void closeDialog() {
+    if ( vfsDetailsComposite != null ) {
+      vfsDetailsComposite.close();
+      vfsDetailsComposite = null;
+    }
   }
 }
