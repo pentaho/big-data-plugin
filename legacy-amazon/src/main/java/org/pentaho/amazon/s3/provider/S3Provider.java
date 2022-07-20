@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -46,6 +46,8 @@ import org.pentaho.di.connections.vfs.VFSRoot;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.core.row.value.ValueMetaBase;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.s3.vfs.S3FileProvider;
@@ -69,10 +71,10 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
   private static final String ACCESS_KEY_SECRET_KEY = "0";
   private static final String CREDENTIALS_FILE = "1";
   public static final String NAME = "Amazon S3";
-  private Supplier<ConnectionManager> connectionManagerSupplier = ConnectionManager::getInstance;
+  private final Supplier<ConnectionManager> connectionManagerSupplier = ConnectionManager::getInstance;
 
-  private Supplier<VariableSpace> variableSpace = Variables::getADefaultVariableSpace;
-  private LogChannelInterface log = new LogChannel( this );
+  private final Supplier<VariableSpace> variableSpace = Variables::getADefaultVariableSpace;
+  private final LogChannelInterface log = new LogChannel( this );
 
   @Override
   public Class<S3Details> getClassType() {
@@ -152,7 +154,8 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
             removeDefault.setAccessKey( Encr.decryptPasswordOptionallyEncrypted( removeDefault.getAccessKey() ) );
             removeDefault.setSecretKey( Encr.decryptPasswordOptionallyEncrypted( removeDefault.getSecretKey() ) );
             removeDefault.setSessionToken( Encr.decryptPasswordOptionallyEncrypted( removeDefault.getSessionToken() ) );
-            removeDefault.setCredentialsFile( Encr.decryptPasswordOptionallyEncrypted( removeDefault.getCredentialsFile() ) );
+            removeDefault.setCredentialsFile(
+              Encr.decryptPasswordOptionallyEncrypted( removeDefault.getCredentialsFile() ) );
             removeDefault.setDefaultS3Config( "false" );
             connectionManagerSupplier.get().save( removeDefault );
           }
@@ -202,7 +205,9 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
     String profileName = getVar( s3Details.getProfileName(), variableSpace.get() );
 
     String endpoint = getVar( s3Details.getEndpoint(), variableSpace.get() );
-    String pathStyleAccess = getVar( s3Details.getPathStyleAccess(), variableSpace.get() );
+    String pathStyleAccess =
+      getBooleanStringOfVariable( s3Details.getPathStyleAccessVariable(), s3Details.getPathStyleAccess(),
+        variableSpace.get() );
     String signatureVersion = getVar( s3Details.getSignatureVersion(), variableSpace.get() );
     boolean access = ( pathStyleAccess == null ) || Boolean.parseBoolean( pathStyleAccess );
 
@@ -226,7 +231,8 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
         .enableForceGlobalBucketAccess().withRegion( regions ).build();
     } else if ( awsCredentialsProvider != null && !S3Util.isEmpty( s3Details.getEndpoint() ) ) {
       ClientConfiguration clientConfiguration = new ClientConfiguration();
-      clientConfiguration.setSignerOverride( S3Util.isEmpty( signatureVersion ) ? S3Util.SIGNATURE_VERSION_SYSTEM_PROPERTY : signatureVersion );
+      clientConfiguration.setSignerOverride(
+        S3Util.isEmpty( signatureVersion ) ? S3Util.SIGNATURE_VERSION_SYSTEM_PROPERTY : signatureVersion );
       return AmazonS3ClientBuilder.standard()
         .withEndpointConfiguration( new AwsClientBuilder.EndpointConfiguration( endpoint, regions.getName() ) )
         .withPathStyleAccessEnabled( access )
@@ -243,4 +249,20 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
     }
     return value;
   }
+
+  private String getBooleanStringOfVariable( String variableName, String defaultValue, VariableSpace space ) {
+    return String.valueOf( getBooleanValueOfVariable( variableName, defaultValue, space ) );
+  }
+
+  private boolean getBooleanValueOfVariable( String variableName, String defaultValue, VariableSpace space ) {
+    if ( !Utils.isEmpty( variableName ) ) {
+      String value = space.environmentSubstitute( variableName );
+      if ( !Utils.isEmpty( value ) ) {
+        Boolean b = ValueMetaBase.convertStringToBoolean( value );
+        return b != null && b;
+      }
+    }
+    return Objects.equals( Boolean.TRUE, ValueMetaBase.convertStringToBoolean( defaultValue ) );
+  }
+
 }
