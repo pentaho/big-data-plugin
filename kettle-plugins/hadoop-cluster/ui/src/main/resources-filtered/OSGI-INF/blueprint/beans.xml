@@ -84,7 +84,7 @@
     </jaxrs:extensionMappings>
     <jaxrs:providers>
       <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider"/>
-      <bean class="org.pentaho.di.ui.repo.endpoints.WebSpoonFilter"/>
+      <bean class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.WebSpoonFilter"/>
     </jaxrs:providers>
   </jaxrs:server>
 

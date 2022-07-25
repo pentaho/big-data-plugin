@@ -51,7 +51,6 @@
   </feature>
 
   <feature name="pentaho-big-data-impl-connections" version="1.0">
-    <bundle>mvn:pentaho/pentaho-big-data-impl-connections-s3/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-browse/${project.version}</bundle>
   </feature>
 
