@@ -30,6 +30,7 @@ import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.amazon.AbstractAmazonJobExecutor;
+import org.pentaho.amazon.client.api.S3Client;
 import org.pentaho.di.cluster.SlaveServer;
 import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.di.core.database.DatabaseMeta;
@@ -42,7 +43,6 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.metastore.api.IMetaStore;
-import org.pentaho.s3.vfs.S3FileProvider;
 import org.w3c.dom.Node;
 
 /**
@@ -267,12 +267,12 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobExecutor {
    */
   public String buildFilename( String filename ) {
     filename = environmentSubstitute( filename );
-    if ( filename.startsWith( S3FileProvider.SCHEME ) ) {
+    if ( filename.startsWith( S3Client.SCHEME ) ) {
       String authPart =
         filename
-          .substring( S3FileProvider.SCHEME.length() + 3, filename.indexOf( "@s3" ) ).replaceAll( "\\+", "%2B" )
+          .substring( S3Client.SCHEME.length() + 3, filename.indexOf( "@s3" ) ).replaceAll( "\\+", "%2B" )
           .replaceAll( "/", "%2F" );
-      filename = S3FileProvider.SCHEME + "://" + authPart + "@s3" + filename
+      filename = S3Client.SCHEME + "://" + authPart + "@s3" + filename
         .substring( filename.indexOf( "@s3" ) + 3 );
     }
     return filename;

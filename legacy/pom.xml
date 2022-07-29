@@ -38,11 +38,6 @@
   <dependencies>
     <dependency>
       <groupId>pentaho</groupId>
-      <artifactId>pentaho-s3-vfs</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-legacy-core</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
