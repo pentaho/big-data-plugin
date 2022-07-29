@@ -25,7 +25,10 @@ import org.pentaho.s3common.S3CommonFileProvider;
 public class S3FileProvider extends S3CommonFileProvider {
 
   /**
-   * The scheme this provider was designed to support
+   * The scheme this provider was designed to support.
+   * <p> Copied to </p>
+   * @module legacy-amazon
+   * @interface S3Client.java
    */
   public static final String SCHEME = "s3";
 

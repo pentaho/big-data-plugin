@@ -86,7 +86,6 @@ import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.di.ui.trans.step.TableItemInsertListener;
-import org.pentaho.di.ui.vfs.VfsFileChooserHelper;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 import java.nio.charset.Charset;

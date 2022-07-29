@@ -38,6 +38,7 @@ import org.pentaho.amazon.client.ClientFactoriesManager;
 import org.pentaho.amazon.client.ClientType;
 import org.pentaho.amazon.client.api.AimClient;
 import org.pentaho.amazon.client.api.PricingClient;
+import org.pentaho.amazon.client.api.S3Client;
 import org.pentaho.amazon.s3.S3VfsFileChooserHelper;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
@@ -56,7 +57,6 @@ import org.pentaho.di.ui.core.database.dialog.tags.ExtTextbox;
 import org.pentaho.di.ui.core.gui.WindowProperty;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.util.HelpUtils;
-import org.pentaho.s3.vfs.S3FileProvider;
 import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.XulException;
 import org.pentaho.ui.xul.binding.Binding;
@@ -765,7 +765,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
       warnings.add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.JobFlowName.Error" ) );
     }
 
-    String s3Protocol = S3FileProvider.SCHEME + "://";
+    String s3Protocol = S3Client.SCHEME + "://";
     String sdir = getVariableSpace().environmentSubstitute( stagingDir );
     if ( StringUtil.isEmpty( getStagingDir() ) ) {
       warnings.add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.StagingDir.Error" ) );

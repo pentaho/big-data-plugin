@@ -25,7 +25,6 @@ package org.pentaho.amazon.s3;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.eclipse.swt.widgets.Shell;
 import org.pentaho.di.core.variables.VariableSpace;
-import org.pentaho.di.ui.vfs.VfsFileChooserHelper;
 import org.pentaho.s3a.vfs.S3AFileProvider;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
