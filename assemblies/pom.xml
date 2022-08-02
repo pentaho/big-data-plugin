@@ -33,6 +33,7 @@
         <module>samples</module>
         <module>pmr-libraries</module>
         <module>legacy-plugin</module>
+        <module>s3-vfs</module>
       </modules>
     </profile>
 

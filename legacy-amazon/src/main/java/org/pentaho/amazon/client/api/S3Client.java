@@ -29,6 +29,13 @@ import java.io.File;
  */
 public interface S3Client {
 
+  /**
+   * Copied from
+   * @class S3FileProvider.java
+   * @module s3-vfs
+   */
+  String SCHEME = "s3";
+
   void createBucketIfNotExists( String stagingBucketName );
 
   void deleteObjectFromBucket( String stagingBucketName, String key );
