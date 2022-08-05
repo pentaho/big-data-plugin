@@ -28,17 +28,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
-import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
-import org.pentaho.hadoop.shim.api.jaas.JaasConfigService;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.ProgressMonitorListener;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.namedcluster.NamedClusterManager;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.StepPluginType;
 import org.pentaho.di.core.variables.Variables;
@@ -483,10 +480,13 @@ public class KafkaConsumerInputMetaTest {
 
   @Test
   public void testReadsBootstrapServersFromNamedCluster() {
+    String resourcesDir = getClass().getResource( "/abortSub.ktr" ).getPath();
+    String oldKarafHome = System.getProperty( "karaf.home" );
+    System.setProperty( "karaf.home", resourcesDir );
     NamedCluster namedCluster = mock( NamedCluster.class );
     when( namedCluster.getKafkaBootstrapServers() ).thenReturn( "server:11111" );
 
-    NamedClusterService namedClusterService = mock( NamedClusterService.class );
+    NamedClusterManager namedClusterService = mock( NamedClusterManager.class );
     when( namedClusterService.getNamedClusterByName( eq( "my_cluster" ), any( IMetaStore.class ) ) )
       .thenReturn( namedCluster );
 
@@ -506,52 +506,57 @@ public class KafkaConsumerInputMetaTest {
     assertEquals( "server:11111", meta.getBootstrapServers() );
     meta.setConnectionType( DIRECT );
     assertEquals( "directHost:123", meta.getBootstrapServers() );
+    System.setProperty( "karaf.home", null != oldKarafHome ? oldKarafHome : "" );
   }
 
-  @Test
-  public void testGetJaasConfig() throws Exception {
-    NamedClusterServiceLocator namedClusterLocator = mock( NamedClusterServiceLocator.class );
-    NamedClusterService namedClusterService = mock( NamedClusterService.class );
-    JaasConfigService jaasConfigService = mock( JaasConfigService.class );
-    NamedCluster namedCluster = mock( NamedCluster.class );
-    when( metastoreLocator.getMetastore() ).thenReturn( metastore );
-    when( namedClusterService.getNamedClusterByName( "kurtsCluster", metastore ) ).thenReturn( namedCluster );
-    when( namedClusterLocator.getService( namedCluster, JaasConfigService.class ) ).thenReturn( jaasConfigService );
-    KafkaConsumerInputMeta inputMeta = new KafkaConsumerInputMeta();
-    inputMeta.setNamedClusterServiceLocator( namedClusterLocator );
-    inputMeta.setNamedClusterService( namedClusterService );
-    inputMeta.setClusterName( "${clusterName}" );
-    inputMeta.setMetastoreLocator( metastoreLocator );
-    inputMeta.setConnectionType( CLUSTER );
-
-    TransMeta transMeta = mock( TransMeta.class );
-    when( transMeta.environmentSubstitute( "${clusterName}" ) ).thenReturn( "kurtsCluster" );
-    StepMeta stepMeta = new StepMeta();
-    stepMeta.setParentTransMeta( transMeta );
-    inputMeta.setParentStepMeta( stepMeta );
-
-    assertEquals( jaasConfigService, inputMeta.getJaasConfigService().get() );
-    inputMeta.setConnectionType( DIRECT );
-    assertFalse( inputMeta.getJaasConfigService().isPresent() );
-  }
-
-  @Test
-  public void testGetJaasConfigException() throws Exception {
-    NamedClusterServiceLocator namedClusterLocator = mock( NamedClusterServiceLocator.class );
-    NamedClusterService namedClusterService = mock( NamedClusterService.class );
-    NamedCluster namedCluster = mock( NamedCluster.class );
-    when( metastoreLocator.getMetastore() ).thenReturn( metastore );
-    when( namedClusterService.getNamedClusterByName( "kurtsCluster", metastore ) ).thenReturn( namedCluster );
-    when( namedClusterLocator.getService( namedCluster, JaasConfigService.class ) )
-      .thenThrow( new ClusterInitializationException( new Exception( "oops" ) ) );
-    KafkaConsumerInputMeta inputMeta = new KafkaConsumerInputMeta();
-    inputMeta.setNamedClusterServiceLocator( namedClusterLocator );
-    inputMeta.setNamedClusterService( namedClusterService );
-    inputMeta.setClusterName( "kurtsCluster" );
-    inputMeta.setMetastoreLocator( metastoreLocator );
-    inputMeta.setConnectionType( CLUSTER );
-    assertFalse( inputMeta.getJaasConfigService().isPresent() );
-  }
+    /*
+     Per https://jira.pentaho.com/browse/PDI-19585 this capability was never reproduced when the multishim
+     capability was added.  It has been missing since Pentaho 9.0.
+   */
+//  @Test
+//  public void testGetJaasConfig() throws Exception {
+//    NamedClusterServiceLocator namedClusterLocator = mock( NamedClusterServiceLocator.class );
+//    NamedClusterService namedClusterService = mock( NamedClusterService.class );
+//    JaasConfigService jaasConfigService = mock( JaasConfigService.class );
+//    NamedCluster namedCluster = mock( NamedCluster.class );
+//    when( metastoreLocator.getMetastore() ).thenReturn( metastore );
+//    when( namedClusterService.getNamedClusterByName( "kurtsCluster", metastore ) ).thenReturn( namedCluster );
+//    when( namedClusterLocator.getService( namedCluster, JaasConfigService.class ) ).thenReturn( jaasConfigService );
+//    KafkaConsumerInputMeta inputMeta = new KafkaConsumerInputMeta();
+//    inputMeta.setNamedClusterServiceLocator( namedClusterLocator );
+//    inputMeta.setNamedClusterService( namedClusterService );
+//    inputMeta.setClusterName( "${clusterName}" );
+//    inputMeta.setMetastoreLocator( metastoreLocator );
+//    inputMeta.setConnectionType( CLUSTER );
+//
+//    TransMeta transMeta = mock( TransMeta.class );
+//    when( transMeta.environmentSubstitute( "${clusterName}" ) ).thenReturn( "kurtsCluster" );
+//    StepMeta stepMeta = new StepMeta();
+//    stepMeta.setParentTransMeta( transMeta );
+//    inputMeta.setParentStepMeta( stepMeta );
+//
+//    assertEquals( jaasConfigService, inputMeta.getJaasConfigService().get() );
+//    inputMeta.setConnectionType( DIRECT );
+//    assertFalse( inputMeta.getJaasConfigService().isPresent() );
+//  }
+//
+//  @Test
+//  public void testGetJaasConfigException() throws Exception {
+//    NamedClusterServiceLocator namedClusterLocator = mock( NamedClusterServiceLocator.class );
+//    NamedClusterService namedClusterService = mock( NamedClusterService.class );
+//    NamedCluster namedCluster = mock( NamedCluster.class );
+//    when( metastoreLocator.getMetastore() ).thenReturn( metastore );
+//    when( namedClusterService.getNamedClusterByName( "kurtsCluster", metastore ) ).thenReturn( namedCluster );
+//    when( namedClusterLocator.getService( namedCluster, JaasConfigService.class ) )
+//      .thenThrow( new ClusterInitializationException( new Exception( "oops" ) ) );
+//    KafkaConsumerInputMeta inputMeta = new KafkaConsumerInputMeta();
+//    inputMeta.setNamedClusterServiceLocator( namedClusterLocator );
+//    inputMeta.setNamedClusterService( namedClusterService );
+//    inputMeta.setClusterName( "kurtsCluster" );
+//    inputMeta.setMetastoreLocator( metastoreLocator );
+//    inputMeta.setConnectionType( CLUSTER );
+//    assertFalse( inputMeta.getJaasConfigService().isPresent() );
+//  }
 
   @Test
   public void testDirecIsDefault() {

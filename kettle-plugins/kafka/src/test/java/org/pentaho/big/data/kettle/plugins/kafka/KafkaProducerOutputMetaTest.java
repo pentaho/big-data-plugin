@@ -28,14 +28,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.pentaho.di.core.logging.KettleLogStore;
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
-import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
-import org.pentaho.hadoop.shim.api.jaas.JaasConfigService;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.attributes.metastore.EmbeddedMetaStore;
+import org.pentaho.di.core.logging.KettleLogStore;
+import org.pentaho.di.core.namedcluster.NamedClusterManager;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.repository.StringObjectId;
@@ -54,7 +51,6 @@ import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
@@ -78,7 +74,7 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.
 public class KafkaProducerOutputMetaTest {
   @Mock IMetaStore metastore;
   @Mock Repository rep;
-  @Mock NamedClusterService namedClusterService;
+  @Mock NamedClusterManager namedClusterService;
   @Mock MetastoreLocator metastoreLocator;
 
   @Before
@@ -248,10 +244,13 @@ public class KafkaProducerOutputMetaTest {
 
   @Test
   public void testReadsBootstrapServersFromNamedCluster() {
+    String resourcesDir = getClass().getResource( "/abortSub.ktr" ).getPath();
+    String oldKarafHome = System.getProperty( "karaf.home" );
+    System.setProperty( "karaf.home", resourcesDir );
     NamedCluster namedCluster = mock( NamedCluster.class );
     when( namedCluster.getKafkaBootstrapServers() ).thenReturn( "server:11111" );
 
-    NamedClusterService namedClusterService = mock( NamedClusterService.class );
+    NamedClusterManager namedClusterService = mock( NamedClusterManager.class );
     when( namedClusterService.getNamedClusterByName( eq( "my_cluster" ), any( IMetaStore.class ) ) )
         .thenReturn( namedCluster );
 
@@ -268,15 +267,19 @@ public class KafkaProducerOutputMetaTest {
     meta.setParentStepMeta( stepMeta );
 
     assertThat( meta.getBootstrapServers(), is( "server:11111" ) );
+    System.setProperty( "karaf.home", null != oldKarafHome ? oldKarafHome : "" );
   }
 
   @Test
   public void testLooksForEmbeddedMetastore() {
+    String resourcesDir = getClass().getResource( "/abortSub.ktr" ).getPath();
+    String oldKarafHome = System.getProperty( "karaf.home" );
+    System.setProperty( "karaf.home", resourcesDir );
     NamedCluster namedCluster = mock( NamedCluster.class );
     when( namedCluster.getKafkaBootstrapServers() ).thenReturn( "server:11111" );
 
     EmbeddedMetaStore embeddedMetaStore = mock( EmbeddedMetaStore.class );
-    NamedClusterService namedClusterService = mock( NamedClusterService.class );
+    NamedClusterManager namedClusterService = mock( NamedClusterManager.class );
     when( namedClusterService.getNamedClusterByName( "my_cluster", embeddedMetaStore ) )
       .thenReturn( namedCluster );
 
@@ -296,41 +299,46 @@ public class KafkaProducerOutputMetaTest {
 
     assertThat( meta.getBootstrapServers(), is( "server:11111" ) );
     verify( namedClusterService ).getNamedClusterByName( "my_cluster", metastore );
+    System.setProperty( "karaf.home", null != oldKarafHome ? oldKarafHome : "" );
   }
 
-  @Test
-  public void testGetJaasConfig() throws Exception {
-    NamedClusterServiceLocator namedClusterLocator = mock( NamedClusterServiceLocator.class );
-    NamedClusterService namedClusterService = mock( NamedClusterService.class );
-    JaasConfigService jaasConfigService = mock( JaasConfigService.class );
-    NamedCluster namedCluster =  mock( NamedCluster.class );
-    when( metastoreLocator.getMetastore() ).thenReturn( metastore );
-    when( namedClusterService.getNamedClusterByName( "kurtsCluster", metastore ) ).thenReturn( namedCluster );
-    when( namedClusterLocator.getService( namedCluster, JaasConfigService.class ) ).thenReturn( jaasConfigService );
-    KafkaProducerOutputMeta inputMeta = new KafkaProducerOutputMeta();
-    inputMeta.setNamedClusterServiceLocator( namedClusterLocator );
-    inputMeta.setNamedClusterService( namedClusterService );
-    inputMeta.setClusterName( "kurtsCluster" );
-    inputMeta.setMetastoreLocator( metastoreLocator );
-    assertEquals( jaasConfigService, inputMeta.getJaasConfigService().get() );
-  }
-
-  @Test
-  public void testGetJaasConfigException() throws Exception {
-    NamedClusterServiceLocator namedClusterLocator = mock( NamedClusterServiceLocator.class );
-    NamedClusterService namedClusterService = mock( NamedClusterService.class );
-    NamedCluster namedCluster =  mock( NamedCluster.class );
-    when( metastoreLocator.getMetastore() ).thenReturn( metastore );
-    when( namedClusterService.getNamedClusterByName( "kurtsCluster", metastore ) ).thenReturn( namedCluster );
-    when( namedClusterLocator.getService( namedCluster, JaasConfigService.class ) )
-      .thenThrow( new ClusterInitializationException( new Exception( "oops" ) ) );
-    KafkaProducerOutputMeta inputMeta = new KafkaProducerOutputMeta();
-    inputMeta.setNamedClusterServiceLocator( namedClusterLocator );
-    inputMeta.setNamedClusterService( namedClusterService );
-    inputMeta.setClusterName( "kurtsCluster" );
-    inputMeta.setMetastoreLocator( metastoreLocator );
-    assertFalse( inputMeta.getJaasConfigService().isPresent() );
-  }
+   /*
+     Per https://jira.pentaho.com/browse/PDI-19585 this capability was never reproduced when the multishim
+     capability was added.  It has been missing since Pentaho 9.0.
+   */
+//  @Test
+//  public void testGetJaasConfig() throws Exception {
+//    NamedClusterServiceLocator namedClusterLocator = mock( NamedClusterServiceLocator.class );
+//    NamedClusterManager namedClusterService = mock( NamedClusterManager.class );
+//    JaasConfigService jaasConfigService = mock( JaasConfigService.class );
+//    NamedCluster namedCluster =  mock( NamedCluster.class );
+//    when( metastoreLocator.getMetastore() ).thenReturn( metastore );
+//    when( namedClusterService.getNamedClusterByName( "kurtsCluster", metastore ) ).thenReturn( namedCluster );
+//    when( namedClusterLocator.getService( namedCluster, JaasConfigService.class ) ).thenReturn( jaasConfigService );
+//    KafkaProducerOutputMeta inputMeta = new KafkaProducerOutputMeta();
+//    inputMeta.setNamedClusterServiceLocator( namedClusterLocator );
+//    inputMeta.setNamedClusterService( namedClusterService );
+//    inputMeta.setClusterName( "kurtsCluster" );
+//    inputMeta.setMetastoreLocator( metastoreLocator );
+//    assertEquals( jaasConfigService, inputMeta.getJaasConfigService().get() );
+//  }
+//
+//  @Test
+//  public void testGetJaasConfigException() throws Exception {
+//    NamedClusterServiceLocator namedClusterLocator = mock( NamedClusterServiceLocator.class );
+//    NamedClusterService namedClusterService = mock( NamedClusterService.class );
+//    NamedCluster namedCluster =  mock( NamedCluster.class );
+//    when( metastoreLocator.getMetastore() ).thenReturn( metastore );
+//    when( namedClusterService.getNamedClusterByName( "kurtsCluster", metastore ) ).thenReturn( namedCluster );
+//    when( namedClusterLocator.getService( namedCluster, JaasConfigService.class ) )
+//      .thenThrow( new ClusterInitializationException( new Exception( "oops" ) ) );
+//    KafkaProducerOutputMeta inputMeta = new KafkaProducerOutputMeta();
+//    inputMeta.setNamedClusterServiceLocator( namedClusterLocator );
+//    inputMeta.setNamedClusterService( namedClusterService );
+//    inputMeta.setClusterName( "kurtsCluster" );
+//    inputMeta.setMetastoreLocator( metastoreLocator );
+//    assertFalse( inputMeta.getJaasConfigService().isPresent() );
+//  }
 
   @Test
   public void testDirectIsDefault() {

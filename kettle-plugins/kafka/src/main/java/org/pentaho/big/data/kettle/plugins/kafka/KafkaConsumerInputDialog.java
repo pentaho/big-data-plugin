@@ -205,6 +205,7 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
       }
     } );
     props.setLook( wbCluster );
+    wbCluster.setEnabled( KafkaDialogHelper.isKarafEnabled() );
 
     Label environmentSeparator = new Label( wConnectionGroup, SWT.SEPARATOR | SWT.VERTICAL );
     FormData fdenvironmentSeparator = new FormData();
@@ -285,6 +286,8 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
     wSetupComp.setLayoutData( fdSetupComp );
     wSetupComp.layout();
     wSetupTab.setControl( wSetupComp );
+
+    toggleVisibility( !KafkaDialogHelper.isKarafEnabled() );
   }
 
   private void toggleVisibility( final boolean isDirect ) {
@@ -530,7 +533,7 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
 
       KafkaDialogHelper kdh = new KafkaDialogHelper(
         wClusterName, cvar, wbCluster, wBootstrapServers, kafkaFactory,
-        consumerMeta.getNamedClusterService(), consumerMeta.getNamedClusterServiceLocator(),
+        consumerMeta.getNamedClusterService(), // consumerMeta.getNamedClusterServiceLocator(),
         consumerMeta.getMetastoreLocator(), optionsTable,
         meta.getParentStepMeta() );
       kdh.clusterNameChanged( e );
