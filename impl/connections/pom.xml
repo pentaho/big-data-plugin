@@ -6,7 +6,7 @@
   <parent>
     <artifactId>pentaho-big-data-impl</artifactId>
     <groupId>pentaho</groupId>
-    <version>9.4.0.0-SNAPSHOT</version>
+    <version>9.4.0.0-174</version>
   </parent>
   <artifactId>pentaho-big-data-impl-connections</artifactId>
   <packaging>pom</packaging>
