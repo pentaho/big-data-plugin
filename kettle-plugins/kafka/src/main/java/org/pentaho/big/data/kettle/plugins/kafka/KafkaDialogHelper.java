@@ -32,9 +32,8 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.TableItem;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.di.core.exception.KettleStepException;
+import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.util.StringUtil;
@@ -45,6 +44,7 @@ import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.metastore.locator.api.MetastoreLocator;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -62,9 +62,9 @@ public class KafkaDialogHelper {
   private Button wbCluster;
   private TextVar wBootstrapServers;
   private KafkaFactory kafkaFactory;
-  private NamedClusterService namedClusterService;
+  private NamedClusterManager namedClusterService;
   private MetastoreLocator metastoreLocator;
-  private NamedClusterServiceLocator namedClusterServiceLocator;
+  //private NamedClusterServiceLocator namedClusterServiceLocator;
   private TableView optionsTable;
   private StepMeta parentMeta;
 
@@ -73,8 +73,7 @@ public class KafkaDialogHelper {
   // less parameters in the constructor
   @SuppressWarnings( "squid:S00107" )
   KafkaDialogHelper( ComboVar wClusterName, ComboVar wTopic, Button wbCluster, TextVar wBootstrapServers,
-                            KafkaFactory kafkaFactory, NamedClusterService namedClusterService,
-                            NamedClusterServiceLocator namedClusterServiceLocator, MetastoreLocator metastoreLocator,
+                            KafkaFactory kafkaFactory, NamedClusterManager namedClusterService, MetastoreLocator metastoreLocator,
                             TableView optionsTable, StepMeta parentMeta ) {
     this.wClusterName = wClusterName;
     this.wTopic = wTopic;
@@ -83,7 +82,7 @@ public class KafkaDialogHelper {
     this.kafkaFactory = kafkaFactory;
     this.namedClusterService = namedClusterService;
     this.metastoreLocator = metastoreLocator;
-    this.namedClusterServiceLocator = namedClusterServiceLocator;
+    //this.namedClusterServiceLocator = namedClusterServiceLocator;
     this.optionsTable = optionsTable;
     this.parentMeta = parentMeta;
   }
@@ -127,7 +126,7 @@ public class KafkaDialogHelper {
     try {
       KafkaConsumerInputMeta localMeta = new KafkaConsumerInputMeta();
       localMeta.setNamedClusterService( namedClusterService );
-      localMeta.setNamedClusterServiceLocator( namedClusterServiceLocator );
+      //localMeta.setNamedClusterServiceLocator( namedClusterServiceLocator );
       localMeta.setMetastoreLocator( metastoreLocator );
       localMeta.setConnectionType( isCluster ? CLUSTER : DIRECT );
       localMeta.setClusterName( clusterName );
@@ -189,5 +188,13 @@ public class KafkaDialogHelper {
       }
     }
     return advancedConfig;
+  }
+
+  public static boolean isKarafEnabled() {
+    String karafHome = System.getProperty( "karaf.home" );
+    if ( null != karafHome && !karafHome.isEmpty() ) {
+      return (new File( karafHome )).exists();
+    }
+    return false;
   }
 }
