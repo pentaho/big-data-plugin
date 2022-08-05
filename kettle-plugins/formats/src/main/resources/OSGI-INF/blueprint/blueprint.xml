@@ -17,14 +17,6 @@
     <argument ref="namedClusterResolver"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
   </bean>
-  <bean id="avroOutputMeta" class="org.pentaho.big.data.kettle.plugins.formats.impl.avro.output.AvroOutputMeta" scope="prototype">
-    <argument ref="namedClusterResolver"/>
-    <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
-  </bean>
-  <bean id="avroInputMeta" class="org.pentaho.big.data.kettle.plugins.formats.impl.avro.input.AvroInputMeta" scope="prototype">
-    <argument ref="namedClusterResolver"/>
-    <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
-  </bean>
   <bean id="orcInputMeta" class="org.pentaho.big.data.kettle.plugins.formats.impl.orc.input.OrcInputMeta" scope="prototype">
     <argument ref="namedClusterResolver"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
