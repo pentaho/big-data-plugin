@@ -75,7 +75,6 @@
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-sqoop/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-hive/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-spark/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-kafka/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-formats-meta/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-formats/${project.version}</bundle>
   </feature>

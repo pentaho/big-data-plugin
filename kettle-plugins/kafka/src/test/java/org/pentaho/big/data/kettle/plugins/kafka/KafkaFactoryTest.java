@@ -22,38 +22,37 @@
 
 package org.pentaho.big.data.kettle.plugins.kafka;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.function.Function;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.config.SaslConfigs;
 import org.apache.kafka.common.serialization.DoubleDeserializer;
 import org.apache.kafka.common.serialization.DoubleSerializer;
 import org.apache.kafka.common.serialization.LongDeserializer;
 import org.apache.kafka.common.serialization.LongSerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
-import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
-import org.pentaho.hadoop.shim.api.jaas.JaasConfigService;
+import org.pentaho.di.core.logging.KettleLogStore;
+import org.pentaho.di.core.namedcluster.NamedClusterManager;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.locator.api.MetastoreLocator;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.function.Function;
 
 import static org.mockito.Mockito.when;
 
@@ -61,9 +60,9 @@ import static org.mockito.Mockito.when;
 public class KafkaFactoryTest {
   @Mock Function<Map<String, Object>, Consumer> consumerFun;
   @Mock Function<Map<String, Object>, Producer<Object, Object>> producerFun;
-  @Mock NamedClusterService namedClusterService;
-  @Mock NamedClusterServiceLocator namedClusterServiceLocator;
-  @Mock JaasConfigService jaasConfigService;
+  @Mock NamedClusterManager namedClusterService;
+//  @Mock NamedClusterServiceLocator namedClusterServiceLocator;
+//  @Mock JaasConfigService jaasConfigService;
   @Mock MetastoreLocator metastoreLocator;
   @Mock IMetaStore metastore;
   @Mock NamedCluster namedCluster;
@@ -71,14 +70,19 @@ public class KafkaFactoryTest {
   KafkaConsumerInputMeta inputMeta;
   KafkaProducerOutputMeta outputMeta;
   StepMeta stepMeta;
+  String oldKarafHome;
 
   @Before
-  public void setUp() throws ClusterInitializationException {
+  public void setUp() {
+    KettleLogStore.init();
+    String resourcesDir = getClass().getResource( "/abortSub.ktr" ).getPath();
+    oldKarafHome = System.getProperty( "karaf.home" );
+    System.setProperty( "karaf.home", resourcesDir );
     when( metastoreLocator.getMetastore() ).thenReturn( metastore );
     when( namedCluster.getKafkaBootstrapServers() ).thenReturn( "server:1234" );
     when( namedClusterService.getNamedClusterByName( "some_cluster", metastore ) ).thenReturn( namedCluster );
-    when( namedClusterServiceLocator.getService( namedCluster, JaasConfigService.class ) )
-      .thenReturn( jaasConfigService );
+//    when( namedClusterServiceLocator.getService( namedCluster, JaasConfigService.class ) )
+//      .thenReturn( jaasConfigService );
     when( transMeta.environmentSubstitute( "${clusterName}" ) ).thenReturn( "some_cluster" );
 
     inputMeta = new KafkaConsumerInputMeta();
@@ -98,6 +102,10 @@ public class KafkaFactoryTest {
     outputMeta.setParentStepMeta( stepMeta );
   }
 
+  @After public void tearDown() {
+    System.setProperty( "karaf.home", null != oldKarafHome ? oldKarafHome : "" );
+  }
+
   @Test
   public void testMapsConsumers() {
     ArrayList<String> topicList = new ArrayList<>();
@@ -107,7 +115,7 @@ public class KafkaFactoryTest {
 
     inputMeta.setKeyField( new KafkaConsumerField( KafkaConsumerField.Name.KEY, "key" ) );
     inputMeta.setMessageField( new KafkaConsumerField( KafkaConsumerField.Name.MESSAGE, "msg" ) );
-    inputMeta.setNamedClusterServiceLocator( namedClusterServiceLocator );
+//    inputMeta.setNamedClusterServiceLocator( namedClusterServiceLocator );
     inputMeta.setAutoCommit( false );
 
     Map<String, String> advancedConfig = new LinkedHashMap<>();
@@ -115,7 +123,7 @@ public class KafkaFactoryTest {
     advancedConfig.put( "advanced.config2", "advancedPropertyValue2" );
     inputMeta.setConfig( advancedConfig );
 
-    when( jaasConfigService.isKerberos() ).thenReturn( false );
+//    when( jaasConfigService.isKerberos() ).thenReturn( false );
 
     new KafkaFactory( consumerFun, producerFun ).consumer( inputMeta, Function.identity() );
     Map<String, Object> expectedMap = new HashMap<>();
@@ -139,8 +147,8 @@ public class KafkaFactoryTest {
 
     inputMeta.setKeyField( new KafkaConsumerField( KafkaConsumerField.Name.KEY, "key", KafkaConsumerField.Type.Integer ) );
     inputMeta.setMessageField( new KafkaConsumerField( KafkaConsumerField.Name.MESSAGE, "msg", KafkaConsumerField.Type.Number ) );
-    inputMeta.setNamedClusterServiceLocator( namedClusterServiceLocator );
-    when( jaasConfigService.isKerberos() ).thenReturn( false );
+//    inputMeta.setNamedClusterServiceLocator( namedClusterServiceLocator );
+//    when( jaasConfigService.isKerberos() ).thenReturn( false );
 
     new KafkaFactory( consumerFun, producerFun ).consumer( inputMeta, Function.identity(), inputMeta.getKeyField().getOutputType(),
       inputMeta.getMessageField().getOutputType() );
@@ -156,13 +164,13 @@ public class KafkaFactoryTest {
   @Test
   public void testMapsConsumersWithVariables() {
     inputMeta.setConsumerGroup( "${consumerGroup}" );
-    inputMeta.setNamedClusterServiceLocator( namedClusterServiceLocator );
+//    inputMeta.setNamedClusterServiceLocator( namedClusterServiceLocator );
 
     Map<String, String> advancedConfig = new LinkedHashMap<>();
     advancedConfig.put( "advanced.variable", "${advanced.var}" );
     inputMeta.setConfig( advancedConfig );
 
-    when( jaasConfigService.isKerberos() ).thenReturn( false );
+//    when( jaasConfigService.isKerberos() ).thenReturn( false );
 
     Variables variables = new Variables();
     variables.setVariable( "server", "server:1234" );
@@ -185,14 +193,14 @@ public class KafkaFactoryTest {
     outputMeta.setClientId( "client" );
     outputMeta.setKeyField( "key" );
     outputMeta.setMessageField( "msg" );
-    outputMeta.setNamedClusterServiceLocator( namedClusterServiceLocator );
+//    outputMeta.setNamedClusterServiceLocator( namedClusterServiceLocator );
 
     Map<String, String> advancedConfig = new LinkedHashMap<>();
     advancedConfig.put( "advanced.config1", "advancedPropertyValue1" );
     advancedConfig.put( "advanced.config2", "advancedPropertyValue2" );
     outputMeta.setConfig( advancedConfig );
 
-    when( jaasConfigService.isKerberos() ).thenReturn( false );
+//    when( jaasConfigService.isKerberos() ).thenReturn( false );
 
     new KafkaFactory( consumerFun, producerFun ).producer( outputMeta, Function.identity() );
     Map<String, Object> expectedMap = new HashMap<>();
@@ -212,8 +220,8 @@ public class KafkaFactoryTest {
     outputMeta.setClientId( "client" );
     outputMeta.setKeyField( "key" );
     outputMeta.setMessageField( "msg" );
-    outputMeta.setNamedClusterServiceLocator( namedClusterServiceLocator );
-    when( jaasConfigService.isKerberos() ).thenReturn( false );
+//    outputMeta.setNamedClusterServiceLocator( namedClusterServiceLocator );
+//    when( jaasConfigService.isKerberos() ).thenReturn( false );
 
     new KafkaFactory( consumerFun, producerFun ).producer( outputMeta, Function.identity(),
       KafkaConsumerField.Type.Integer, KafkaConsumerField.Type.Number );
@@ -228,13 +236,13 @@ public class KafkaFactoryTest {
   @Test
   public void testMapsProducersWithVariables() {
     outputMeta.setClientId( "${client}" );
-    outputMeta.setNamedClusterServiceLocator( namedClusterServiceLocator );
+//    outputMeta.setNamedClusterServiceLocator( namedClusterServiceLocator );
 
     Map<String, String> advancedConfig = new LinkedHashMap<>();
     advancedConfig.put( "advanced.variable", "${advanced.var}" );
     outputMeta.setConfig( advancedConfig );
 
-    when( jaasConfigService.isKerberos() ).thenReturn( false );
+//    when( jaasConfigService.isKerberos() ).thenReturn( false );
 
     Variables variables = new Variables();
     variables.setVariable( "server", "server:1234" );
@@ -255,8 +263,8 @@ public class KafkaFactoryTest {
   @Test
   public void testNullMetaPropertiesResultInEmptyString() {
     outputMeta.setClusterName( null );
-    outputMeta.setNamedClusterServiceLocator( namedClusterServiceLocator );
-    when( jaasConfigService.isKerberos() ).thenReturn( false );
+//    outputMeta.setNamedClusterServiceLocator( namedClusterServiceLocator );
+//    when( jaasConfigService.isKerberos() ).thenReturn( false );
     Variables variables = new Variables();
 
     new KafkaFactory( consumerFun, producerFun ).producer( outputMeta, variables::environmentSubstitute );
@@ -268,28 +276,32 @@ public class KafkaFactoryTest {
     Mockito.verify( producerFun ).apply( expectedMap  );
   }
 
-  @Test
-  public void testProvidesJaasConfig() {
-    ArrayList<String> topicList = new ArrayList<>();
-    topicList.add( "topic" );
-    inputMeta.setTopics( topicList );
-    inputMeta.setConsumerGroup( "cg" );
-
-    inputMeta.setKeyField( new KafkaConsumerField( KafkaConsumerField.Name.KEY, "key" ) );
-    inputMeta.setMessageField( new KafkaConsumerField( KafkaConsumerField.Name.MESSAGE, "msg" ) );
-    inputMeta.setNamedClusterServiceLocator( namedClusterServiceLocator );
-    when( jaasConfigService.isKerberos() ).thenReturn( true );
-    when( jaasConfigService.getJaasConfig() ).thenReturn( "some jaas config" );
-
-    new KafkaFactory( consumerFun, producerFun ).consumer( inputMeta, Function.identity() );
-    Map<String, Object> expectedMap = new HashMap<>();
-    expectedMap.put( ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "server:1234" );
-    expectedMap.put( ConsumerConfig.GROUP_ID_CONFIG, "cg" );
-    expectedMap.put( ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class );
-    expectedMap.put( ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class );
-    expectedMap.put( SaslConfigs.SASL_JAAS_CONFIG, "some jaas config" );
-    expectedMap.put( ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true );
-    expectedMap.put( "security.protocol", "SASL_PLAINTEXT" );
-    Mockito.verify( consumerFun ).apply( expectedMap  );
-  }
+   /*
+     Per https://jira.pentaho.com/browse/PDI-19585 this capability was never reproduced when the multishim
+     capability was added.  It has been missing since Pentaho 9.0.
+   */
+//  @Test
+//  public void testProvidesJaasConfig() {
+//    ArrayList<String> topicList = new ArrayList<>();
+//    topicList.add( "topic" );
+//    inputMeta.setTopics( topicList );
+//    inputMeta.setConsumerGroup( "cg" );
+//
+//    inputMeta.setKeyField( new KafkaConsumerField( KafkaConsumerField.Name.KEY, "key" ) );
+//    inputMeta.setMessageField( new KafkaConsumerField( KafkaConsumerField.Name.MESSAGE, "msg" ) );
+//    inputMeta.setNamedClusterServiceLocator( namedClusterServiceLocator );
+//    when( jaasConfigService.isKerberos() ).thenReturn( true );
+//    when( jaasConfigService.getJaasConfig() ).thenReturn( "some jaas config" );
+//
+//    new KafkaFactory( consumerFun, producerFun ).consumer( inputMeta, Function.identity() );
+//    Map<String, Object> expectedMap = new HashMap<>();
+//    expectedMap.put( ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "server:1234" );
+//    expectedMap.put( ConsumerConfig.GROUP_ID_CONFIG, "cg" );
+//    expectedMap.put( ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class );
+//    expectedMap.put( ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class );
+//    expectedMap.put( SaslConfigs.SASL_JAAS_CONFIG, "some jaas config" );
+//    expectedMap.put( ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true );
+//    expectedMap.put( "security.protocol", "SASL_PLAINTEXT" );
+//    Mockito.verify( consumerFun ).apply( expectedMap  );
+//  }
 }
