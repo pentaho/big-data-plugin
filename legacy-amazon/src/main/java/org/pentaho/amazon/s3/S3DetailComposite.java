@@ -38,6 +38,7 @@ public class S3DetailComposite implements VFSDetailsComposite {
   private static final String[] AUTH_TYPE_CHOICES = new String[] { "Access Key/Secret Key", "Credentials File" };
   private static final int TEXT_VAR_FLAGS = SWT.SINGLE | SWT.LEFT | SWT.BORDER;
   private final String[] regionChoices;
+  private boolean initializingUiForFirstTime = true;
   private CCombo wS3ConnectionType;
   private CCombo wAuthType;
 
@@ -80,6 +81,7 @@ public class S3DetailComposite implements VFSDetailsComposite {
     wS3ConnectionType = createCCombo( wlTitle, 200, wComposite );
     wS3ConnectionType.setItems( S3_CONNECTION_TYPE_CHOICES );
     wS3ConnectionType.select( Integer.parseInt( Const.NVL( details.getConnectionType(), "0" ) ) );
+
 
     // This composite will fill dynamically based on connection type and auth type
     wBottomHalf = new Composite( wComposite, SWT.NONE );
@@ -163,6 +165,7 @@ public class S3DetailComposite implements VFSDetailsComposite {
       Rectangle r = wComposite.getParent().getClientArea();
       wComposite.setSize( r.width, r.height );
     } );
+    initializingUiForFirstTime = false;
     return wComposite;
   }
 
@@ -172,10 +175,10 @@ public class S3DetailComposite implements VFSDetailsComposite {
   }
 
   private void setupBottomHalf( int s3ConnectionType, int authType ) {
-    if ( s3ConnectionType != stringToInteger( details.getConnectionType() ) ) {
+    if ( initializingUiForFirstTime || s3ConnectionType != stringToInteger( details.getConnectionType() ) ) {
       details.setConnectionType( String.valueOf( s3ConnectionType ) );
     }
-    if ( authType != stringToInteger( details.getAuthType() ) ) {
+    if ( initializingUiForFirstTime || authType != stringToInteger( details.getAuthType() ) ) {
       details.setAuthType( String.valueOf( authType ) );
     }
 

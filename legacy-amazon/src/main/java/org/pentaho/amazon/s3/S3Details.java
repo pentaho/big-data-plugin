@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -27,6 +27,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.pentaho.di.connections.annotations.Encrypted;
 import org.pentaho.di.connections.vfs.VFSConnectionDetails;
 import org.pentaho.di.connections.vfs.VFSDetailsComposite;
+import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.metastore.persist.MetaStoreAttribute;
 import org.pentaho.metastore.persist.MetaStoreElementType;
@@ -39,6 +40,7 @@ import java.util.Map;
 @MetaStoreElementType( name = "Amazon S3 Connection", description = "Defines the connection details for an Amazon S3 connection" )
 public class S3Details implements VFSConnectionDetails {
   VFSDetailsComposite vfsDetailsComposite;
+  VariableSpace space;
 
   public static final String CONNECTION_TYPE_AWS = "0";
   public static final String CONNECTION_TYPE_MINIO = "1";
@@ -261,5 +263,13 @@ public class S3Details implements VFSConnectionDetails {
       vfsDetailsComposite.close();
       vfsDetailsComposite = null;
     }
+  }
+
+  @Override public VariableSpace getSpace() {
+    return space;
+  }
+
+  @Override public void setSpace( VariableSpace space ) {
+    this.space = space;
   }
 }
