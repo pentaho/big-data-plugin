@@ -16,6 +16,7 @@
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
     <mockito.version>3.12.4</mockito.version>
+    <platform.version>9.4.0.0-SNAPSHOT</platform.version>
   </properties>
   <dependencies>
     <dependency>
@@ -50,6 +51,12 @@
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-ui-swt</artifactId>
       <version>${pdi.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-platform-core</artifactId>
+      <version>${platform.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
