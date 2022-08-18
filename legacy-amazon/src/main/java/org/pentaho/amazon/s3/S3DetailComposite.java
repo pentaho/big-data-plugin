@@ -38,6 +38,7 @@ public class S3DetailComposite implements VFSDetailsComposite {
   private static final String[] AUTH_TYPE_CHOICES = new String[] { "Access Key/Secret Key", "Credentials File" };
   private static final int TEXT_VAR_FLAGS = SWT.SINGLE | SWT.LEFT | SWT.BORDER;
   private final String[] regionChoices;
+  private boolean initializingUiForFirstTime = true;
   private CCombo wS3ConnectionType;
   private CCombo wAuthType;
 
@@ -76,10 +77,11 @@ public class S3DetailComposite implements VFSDetailsComposite {
     Label wlTitle = helper.createTitleLabel( wComposite, "ConnectionDialog.s3.Details.Title", skipControls );
 
     // S3 Connection Type
-    createLabel( "ConnectionDialog.s3.ConnectionType.Label", wlTitle, wComposite );
-    wS3ConnectionType = createCCombo( wlTitle, 200, wComposite );
+    Label wlConnectionType = createLabel( "ConnectionDialog.s3.ConnectionType.Label", wlTitle, wComposite );
+    wS3ConnectionType = createCCombo( wlConnectionType, 200, wComposite );
     wS3ConnectionType.setItems( S3_CONNECTION_TYPE_CHOICES );
     wS3ConnectionType.select( Integer.parseInt( Const.NVL( details.getConnectionType(), "0" ) ) );
+
 
     // This composite will fill dynamically based on connection type and auth type
     wBottomHalf = new Composite( wComposite, SWT.NONE );
@@ -117,9 +119,6 @@ public class S3DetailComposite implements VFSDetailsComposite {
     skipControls.add( wWidgetHolder );
 
     setupBottomHalf();
-
-    helper.adjustPlacement( wComposite, skipControls );
-    helper.adjustPlacement( wBottomHalf, skipControls );
 
     // Set the data
     populateWidgets();
@@ -163,6 +162,7 @@ public class S3DetailComposite implements VFSDetailsComposite {
       Rectangle r = wComposite.getParent().getClientArea();
       wComposite.setSize( r.width, r.height );
     } );
+    initializingUiForFirstTime = false;
     return wComposite;
   }
 
@@ -172,10 +172,10 @@ public class S3DetailComposite implements VFSDetailsComposite {
   }
 
   private void setupBottomHalf( int s3ConnectionType, int authType ) {
-    if ( s3ConnectionType != stringToInteger( details.getConnectionType() ) ) {
+    if ( initializingUiForFirstTime || s3ConnectionType != stringToInteger( details.getConnectionType() ) ) {
       details.setConnectionType( String.valueOf( s3ConnectionType ) );
     }
-    if ( authType != stringToInteger( details.getAuthType() ) ) {
+    if ( initializingUiForFirstTime || authType != stringToInteger( details.getAuthType() ) ) {
       details.setAuthType( String.valueOf( authType ) );
     }
 
@@ -214,8 +214,6 @@ public class S3DetailComposite implements VFSDetailsComposite {
       default:
 
     }
-    helper.adjustPlacement( wComposite, skipControls );
-    helper.adjustPlacement( wBottomHalf, skipControls );
 
     wBottomHalf.layout();
     wComposite.pack();
@@ -237,7 +235,7 @@ public class S3DetailComposite implements VFSDetailsComposite {
   }
 
   private Label createLabel( String key, Control topWidget, Composite composite ) {
-    return helper.createLabel( composite, SWT.RIGHT | SWT.WRAP, key, topWidget );
+    return helper.createLabel( composite, SWT.LEFT | SWT.WRAP, key, topWidget );
   }
 
   private PasswordTextVar createStandbyPasswordTextVar() {
@@ -269,12 +267,10 @@ public class S3DetailComposite implements VFSDetailsComposite {
   }
 
   private void moveWidgetToBottomHalf( Control targetWidget, String labelKey, Control topWidget, int width ) {
-    createLabel( labelKey, topWidget, wBottomHalf );
+    Label lbl = createLabel( labelKey, topWidget, wBottomHalf );
     targetWidget.setParent( wBottomHalf );
     props.setLook( targetWidget );
-    FormData formData = helper.getFormDataField( topWidget );
-    formData.left = new FormAttachment( helper.getMaxLabelWidth() + helper.getMargin() * 2 );
-    targetWidget.setLayoutData( helper.getFormDataField( topWidget, width ) );
+    targetWidget.setLayoutData( helper.getFormDataField( lbl, width ) );
   }
 
   @Override

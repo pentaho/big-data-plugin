@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,7 +22,7 @@
 
 package org.pentaho.big.data.impl.browse;
 
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
@@ -31,6 +31,7 @@ import org.pentaho.big.data.impl.browse.model.NamedClusterDirectory;
 import org.pentaho.big.data.impl.browse.model.NamedClusterFile;
 import org.pentaho.big.data.impl.browse.model.NamedClusterTree;
 import org.pentaho.di.core.exception.KettleFileException;
+import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.plugins.fileopensave.api.providers.BaseFileProvider;
 import org.pentaho.di.plugins.fileopensave.api.providers.File;
@@ -99,7 +100,7 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
     return namedClusterTree;
   }
 
-  @Override public List<NamedClusterFile> getFiles( NamedClusterFile file, String filters ) throws FileException {
+  @Override public List<NamedClusterFile> getFiles( NamedClusterFile file, String filters, VariableSpace space ) throws FileException {
     FileObject fileObject;
     try {
       fileObject = KettleVFS.getFileObject( file.getPath() );
@@ -165,7 +166,7 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
     return files;
   }
 
-  @Override public List<NamedClusterFile> delete( List<NamedClusterFile> files ) throws FileException {
+  @Override public List<NamedClusterFile> delete( List<NamedClusterFile> files, VariableSpace space ) throws FileException {
     List<NamedClusterFile> deletedFiles = new ArrayList<>();
     for ( NamedClusterFile file : files ) {
       try {
@@ -180,7 +181,7 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
     return deletedFiles;
   }
 
-  @Override public NamedClusterFile add( NamedClusterFile folder ) throws FileException {
+  @Override public NamedClusterFile add( NamedClusterFile folder, VariableSpace space ) throws FileException {
     try {
       FileObject fileObject = KettleVFS.getFileObject( folder.getPath() );
       fileObject.createFolder();
@@ -192,7 +193,7 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
     return null;
   }
 
-  @Override public NamedClusterFile getFile( NamedClusterFile file ) {
+  @Override public NamedClusterFile getFile( NamedClusterFile file, VariableSpace space ) {
     try {
       FileObject fileObject = KettleVFS.getFileObject( file.getPath() );
       if ( fileObject.getType().equals( FileType.FOLDER ) ) {
@@ -206,7 +207,7 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
     return null;
   }
 
-  @Override public boolean fileExists( NamedClusterFile dir, String path ) throws FileException {
+  @Override public boolean fileExists( NamedClusterFile dir, String path, VariableSpace space ) throws FileException {
     path = sanitizeName( dir, path );
     try {
       FileObject fileObject = KettleVFS.getFileObject( path );
@@ -216,7 +217,7 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
     }
   }
 
-  @Override public String getNewName( NamedClusterFile destDir, String newPath ) throws FileException {
+  @Override public String getNewName( NamedClusterFile destDir, String newPath, VariableSpace space ) throws FileException {
     String extension = Utils.getExtension( newPath );
     String parent = Utils.getParent( newPath );
     String name = Utils.getName( newPath ).replace( "." + extension, "" );
@@ -241,12 +242,12 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
     return file1 instanceof NamedClusterFile && file2 instanceof NamedClusterFile;
   }
 
-  @Override public NamedClusterFile rename( NamedClusterFile file, String newPath, boolean overwrite )
+  @Override public NamedClusterFile rename( NamedClusterFile file, String newPath, boolean overwrite, VariableSpace space )
     throws FileException {
     return doMove( file, newPath, overwrite );
   }
 
-  @Override public NamedClusterFile copy( NamedClusterFile file, String toPath, boolean b )
+  @Override public NamedClusterFile copy( NamedClusterFile file, String toPath, boolean b, VariableSpace space )
     throws FileException {
     try {
       FileObject fileObject = KettleVFS.getFileObject( file.getPath() );
@@ -262,7 +263,7 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
     }
   }
 
-  @Override public NamedClusterFile move( NamedClusterFile namedClusterFile, String s, boolean b )
+  @Override public NamedClusterFile move( NamedClusterFile namedClusterFile, String s, boolean b, VariableSpace space )
     throws FileException {
     return null;
   }
@@ -285,7 +286,7 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
     }
   }
 
-  @Override public InputStream readFile( NamedClusterFile file ) throws FileException {
+  @Override public InputStream readFile( NamedClusterFile file, VariableSpace space ) throws FileException {
     try {
       FileObject fileObject = KettleVFS.getFileObject( file.getPath() );
       return fileObject.getContent().getInputStream();
@@ -295,8 +296,8 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
   }
 
   @Override
-  public NamedClusterFile writeFile( InputStream inputStream, NamedClusterFile destDir, String path, boolean overwrite )
-    throws FileException {
+  public NamedClusterFile writeFile( InputStream inputStream, NamedClusterFile destDir, String path, boolean overwrite,
+                                     VariableSpace space ) throws FileException {
     FileObject fileObject = null;
     try {
       fileObject = KettleVFS.getFileObject( path );

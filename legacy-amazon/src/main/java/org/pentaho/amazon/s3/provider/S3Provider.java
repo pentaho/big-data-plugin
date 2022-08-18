@@ -73,7 +73,6 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
   public static final String NAME = "Amazon S3";
   private final Supplier<ConnectionManager> connectionManagerSupplier = ConnectionManager::getInstance;
 
-  private final Supplier<VariableSpace> variableSpace = Variables::getADefaultVariableSpace;
   private final LogChannelInterface log = new LogChannel( this );
 
   @Override
@@ -83,20 +82,21 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
 
   @Override
   public FileSystemOptions getOpts( S3Details s3Details ) {
+    VariableSpace space = getSpace( s3Details );
     S3CommonFileSystemConfigBuilder s3CommonFileSystemConfigBuilder =
       new S3CommonFileSystemConfigBuilder( new FileSystemOptions() );
-    s3CommonFileSystemConfigBuilder.setName( s3Details.getName() );
-    s3CommonFileSystemConfigBuilder.setAccessKey( s3Details.getAccessKey() );
-    s3CommonFileSystemConfigBuilder.setSecretKey( s3Details.getSecretKey() );
-    s3CommonFileSystemConfigBuilder.setSessionToken( s3Details.getSessionToken() );
-    s3CommonFileSystemConfigBuilder.setRegion( s3Details.getRegion() );
-    s3CommonFileSystemConfigBuilder.setCredentialsFile( s3Details.getCredentialsFilePath() );
-    s3CommonFileSystemConfigBuilder.setProfileName( s3Details.getProfileName() );
-    s3CommonFileSystemConfigBuilder.setEndpoint( s3Details.getEndpoint() );
-    s3CommonFileSystemConfigBuilder.setPathStyleAccess( s3Details.getPathStyleAccess() );
-    s3CommonFileSystemConfigBuilder.setSignatureVersion( s3Details.getSignatureVersion() );
-    s3CommonFileSystemConfigBuilder.setDefaultS3Config( s3Details.getDefaultS3Config() );
-    s3CommonFileSystemConfigBuilder.setConnectionType( s3Details.getConnectionType() );
+    s3CommonFileSystemConfigBuilder.setName( getVar( s3Details.getName(), space ) );
+    s3CommonFileSystemConfigBuilder.setAccessKey( getVar( s3Details.getAccessKey(), space ) );
+    s3CommonFileSystemConfigBuilder.setSecretKey( getVar( s3Details.getSecretKey(), space ) );
+    s3CommonFileSystemConfigBuilder.setSessionToken( getVar( s3Details.getSessionToken(), space ) );
+    s3CommonFileSystemConfigBuilder.setRegion( getVar( s3Details.getRegion(), space ) );
+    s3CommonFileSystemConfigBuilder.setCredentialsFile( getVar( s3Details.getCredentialsFilePath(), space ) );
+    s3CommonFileSystemConfigBuilder.setProfileName( getVar( s3Details.getProfileName(), space ) );
+    s3CommonFileSystemConfigBuilder.setEndpoint( getVar( s3Details.getEndpoint(), space ) );
+    s3CommonFileSystemConfigBuilder.setPathStyleAccess( getVar( s3Details.getPathStyleAccess(), space ) );
+    s3CommonFileSystemConfigBuilder.setSignatureVersion( getVar( s3Details.getSignatureVersion(), space ) );
+    s3CommonFileSystemConfigBuilder.setDefaultS3Config( getVar( s3Details.getDefaultS3Config(), space ) );
+    s3CommonFileSystemConfigBuilder.setConnectionType( getVar( s3Details.getConnectionType(), space ) );
     return s3CommonFileSystemConfigBuilder.getFileSystemOptions();
   }
 
@@ -106,9 +106,10 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
   }
 
   @Override public List<VFSRoot> getLocations( S3Details s3Details ) {
+    VariableSpace space = getSpace( s3Details );
     List<VFSRoot> buckets = new ArrayList<>();
     try {
-      AmazonS3 s3 = getAmazonS3( s3Details );
+      AmazonS3 s3 = getAmazonS3( s3Details, space );
       if ( s3 != null ) {
         for ( Bucket bucket : s3.listBuckets() ) {
           buckets.add( new VFSRoot( bucket.getName(), bucket.getCreationDate() ) );
@@ -135,8 +136,9 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
   }
 
   @Override public boolean test( S3Details s3Details ) {
+    VariableSpace space = getSpace( s3Details );
     s3Details = prepare( s3Details );
-    AmazonS3 amazonS3 = getAmazonS3( s3Details );
+    AmazonS3 amazonS3 = getAmazonS3( s3Details, space );
     ClassLoader cl = Thread.currentThread().getContextClassLoader();
     try {
       // make sure that sax parsing classes are loaded from this cl.
@@ -147,16 +149,21 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
       List<? extends ConnectionDetails> connections =
         connectionManagerSupplier.get().getConnectionDetailsByScheme( S3FileProvider.SCHEME );
 
-      if ( s3Details.getDefaultS3Config() != null && s3Details.getDefaultS3Config().equalsIgnoreCase( "true" ) ) {
+      if ( getBooleanValueOfVariable( space, s3Details.getDefaultS3ConfigVariable(),
+        s3Details.getDefaultS3Config() ) ) {
         for ( ConnectionDetails details : connections ) {
           if ( !s3Details.getName().equalsIgnoreCase( details.getName() ) ) {
             S3Details removeDefault = (S3Details) details;
-            removeDefault.setAccessKey( Encr.decryptPasswordOptionallyEncrypted( removeDefault.getAccessKey() ) );
-            removeDefault.setSecretKey( Encr.decryptPasswordOptionallyEncrypted( removeDefault.getSecretKey() ) );
-            removeDefault.setSessionToken( Encr.decryptPasswordOptionallyEncrypted( removeDefault.getSessionToken() ) );
+            removeDefault.setAccessKey( Encr.decryptPasswordOptionallyEncrypted(
+              getVar( removeDefault.getAccessKey(), space ) ) );
+            removeDefault.setSecretKey( Encr.decryptPasswordOptionallyEncrypted(
+              getVar( removeDefault.getSecretKey(), space ) ) );
+            removeDefault.setSessionToken(
+              Encr.decryptPasswordOptionallyEncrypted( getVar( removeDefault.getSessionToken(), space ) ) );
             removeDefault.setCredentialsFile(
-              Encr.decryptPasswordOptionallyEncrypted( removeDefault.getCredentialsFile() ) );
+              Encr.decryptPasswordOptionallyEncrypted( getVar( removeDefault.getCredentialsFile(), space ) ) );
             removeDefault.setDefaultS3Config( "false" );
+            removeDefault.setDefaultS3ConfigVariable( null );
             connectionManagerSupplier.get().save( removeDefault );
           }
         }
@@ -176,8 +183,9 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
   }
 
   @Override public S3Details prepare( S3Details s3Details ) {
+    VariableSpace space = getSpace( s3Details );
     if ( s3Details.getAuthType().equals( CREDENTIALS_FILE ) ) {
-      String credetialsFilePath = getVar( s3Details.getCredentialsFilePath(), variableSpace.get() );
+      String credetialsFilePath = getVar( s3Details.getCredentialsFilePath(), space );
       if ( credetialsFilePath != null ) {
         try ( BufferedReader reader = Files.newBufferedReader( Paths.get( credetialsFilePath ) ) ) {
           StringBuilder builder = new StringBuilder();
@@ -194,25 +202,25 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
     return s3Details;
   }
 
-  private AmazonS3 getAmazonS3( S3Details s3Details ) {
+  private AmazonS3 getAmazonS3( S3Details s3Details, VariableSpace space ) {
     AWSCredentials awsCredentials;
     AWSCredentialsProvider awsCredentialsProvider = null;
 
-    String accessKey = getVar( s3Details.getAccessKey(), variableSpace.get() );
-    String secretKey = getVar( s3Details.getSecretKey(), variableSpace.get() );
-    String sessionToken = getVar( s3Details.getSessionToken(), variableSpace.get() );
-    String credentialsFilePath = getVar( s3Details.getCredentialsFilePath(), variableSpace.get() );
-    String profileName = getVar( s3Details.getProfileName(), variableSpace.get() );
+    String accessKey = getVar( s3Details.getAccessKey(), space );
+    String secretKey = getVar( s3Details.getSecretKey(), space );
+    String sessionToken = getVar( s3Details.getSessionToken(), space );
+    String credentialsFilePath = getVar( s3Details.getCredentialsFilePath(), space );
+    String profileName = getVar( s3Details.getProfileName(), space );
 
-    String endpoint = getVar( s3Details.getEndpoint(), variableSpace.get() );
+    String endpoint = getVar( s3Details.getEndpoint(), space );
     String pathStyleAccess =
       getBooleanStringOfVariable( s3Details.getPathStyleAccessVariable(), s3Details.getPathStyleAccess(),
-        variableSpace.get() );
-    String signatureVersion = getVar( s3Details.getSignatureVersion(), variableSpace.get() );
+        space );
+    String signatureVersion = getVar( s3Details.getSignatureVersion(), space );
     boolean access = ( pathStyleAccess == null ) || Boolean.parseBoolean( pathStyleAccess );
 
     if ( s3Details.getAuthType().equals( ACCESS_KEY_SECRET_KEY ) ) {
-      if ( S3Util.isEmpty( s3Details.getSessionToken() ) ) {
+      if ( S3Util.isEmpty( getVar( s3Details.getSessionToken(), space ) ) ) {
         awsCredentials = new BasicAWSCredentials( accessKey, secretKey );
       } else {
         awsCredentials =
@@ -224,12 +232,13 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
       ProfilesConfigFile profilesConfigFile = new ProfilesConfigFile( credentialsFilePath );
       awsCredentialsProvider = new ProfileCredentialsProvider( profilesConfigFile, profileName );
     }
-    Regions regions =
-      !S3Util.isEmpty( s3Details.getRegion() ) ? Regions.fromName( s3Details.getRegion() ) : Regions.DEFAULT_REGION;
-    if ( awsCredentialsProvider != null && S3Util.isEmpty( s3Details.getEndpoint() ) ) {
+    String region = getVar( s3Details.getRegion(), space );
+    String endPoint = getVar( s3Details.getEndpoint(), space );
+    Regions regions = !S3Util.isEmpty( region ) ? Regions.fromName( region ) : Regions.DEFAULT_REGION;
+    if ( awsCredentialsProvider != null && S3Util.isEmpty( endPoint ) ) {
       return AmazonS3ClientBuilder.standard().withCredentials( awsCredentialsProvider )
         .enableForceGlobalBucketAccess().withRegion( regions ).build();
-    } else if ( awsCredentialsProvider != null && !S3Util.isEmpty( s3Details.getEndpoint() ) ) {
+    } else if ( awsCredentialsProvider != null && !S3Util.isEmpty( endPoint ) ) {
       ClientConfiguration clientConfiguration = new ClientConfiguration();
       clientConfiguration.setSignerOverride(
         S3Util.isEmpty( signatureVersion ) ? S3Util.SIGNATURE_VERSION_SYSTEM_PROPERTY : signatureVersion );
@@ -243,26 +252,8 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
     return null;
   }
 
-  private String getVar( String value, VariableSpace variableSpace ) {
-    if ( variableSpace != null ) {
-      return variableSpace.environmentSubstitute( value );
-    }
-    return value;
-  }
-
   private String getBooleanStringOfVariable( String variableName, String defaultValue, VariableSpace space ) {
-    return String.valueOf( getBooleanValueOfVariable( variableName, defaultValue, space ) );
-  }
-
-  private boolean getBooleanValueOfVariable( String variableName, String defaultValue, VariableSpace space ) {
-    if ( !Utils.isEmpty( variableName ) ) {
-      String value = space.environmentSubstitute( variableName );
-      if ( !Utils.isEmpty( value ) ) {
-        Boolean b = ValueMetaBase.convertStringToBoolean( value );
-        return b != null && b;
-      }
-    }
-    return Objects.equals( Boolean.TRUE, ValueMetaBase.convertStringToBoolean( defaultValue ) );
+    return String.valueOf( getBooleanValueOfVariable( space, variableName, defaultValue ) );
   }
 
 }
