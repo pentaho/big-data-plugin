@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p>
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  * <p>
  * ******************************************************************************
  * <p>
@@ -28,13 +28,14 @@ import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.AbstractOriginatingFileProvider;
 import org.apache.commons.vfs2.provider.FileNameParser;
 import org.apache.commons.vfs2.provider.GenericFileName;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.big.data.impl.vfs.hdfs.nc.NamedClusterConfigBuilder;
-import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
+import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.di.core.vfs.KettleVFS;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
+import org.pentaho.metastore.locator.api.MetastoreLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +47,7 @@ import java.util.Collections;
 public class HDFSFileProvider extends AbstractOriginatingFileProvider {
 
   protected static Logger logger = LoggerFactory.getLogger( HDFSFileProvider.class );
-  private MetastoreLocatorOsgi metaStoreService;
+  private MetastoreLocator metaStoreService;
   /**
    * The scheme this provider was designed to support
    */
@@ -75,7 +76,7 @@ public class HDFSFileProvider extends AbstractOriginatingFileProvider {
 
   @Deprecated
   public HDFSFileProvider( HadoopFileSystemLocator hadoopFileSystemLocator,
-                           NamedClusterService namedClusterService, MetastoreLocatorOsgi metaStore )
+                           NamedClusterService namedClusterService, MetastoreLocator metaStore )
     throws FileSystemException {
     this( hadoopFileSystemLocator, namedClusterService,
       (DefaultFileSystemManager) KettleVFS.getInstance().getFileSystemManager(), metaStore );
@@ -83,28 +84,36 @@ public class HDFSFileProvider extends AbstractOriginatingFileProvider {
 
   @Deprecated
   public HDFSFileProvider( HadoopFileSystemLocator hadoopFileSystemLocator, NamedClusterService namedClusterService,
-                           DefaultFileSystemManager fileSystemManager, MetastoreLocatorOsgi metaStore )
+                           DefaultFileSystemManager fileSystemManager, MetastoreLocator metaStore )
     throws FileSystemException {
     this( hadoopFileSystemLocator, namedClusterService, fileSystemManager, HDFSFileNameParser.getInstance(),
       new String[] { SCHEME, MAPRFS }, metaStore );
   }
 
   public HDFSFileProvider( HadoopFileSystemLocator hadoopFileSystemLocator, NamedClusterService namedClusterService,
-                           FileNameParser fileNameParser, String schema, MetastoreLocatorOsgi metaStore )
+                           FileNameParser fileNameParser, String schema )
     throws FileSystemException {
     this( hadoopFileSystemLocator, namedClusterService,
       (DefaultFileSystemManager) KettleVFS.getInstance().getFileSystemManager(),
-      fileNameParser, new String[] { schema }, metaStore );
+      fileNameParser, new String[] { schema }, null );
   }
 
   public HDFSFileProvider( HadoopFileSystemLocator hadoopFileSystemLocator, NamedClusterService namedClusterService,
                            DefaultFileSystemManager fileSystemManager, FileNameParser fileNameParser, String[] schemes,
-                           MetastoreLocatorOsgi metaStore )
+                           MetastoreLocator metaStore )
     throws FileSystemException {
     super();
     this.hadoopFileSystemLocator = hadoopFileSystemLocator;
     this.namedClusterService = namedClusterService;
     this.metaStoreService = metaStore;
+    if ( this.metaStoreService == null ) {
+      try {
+        Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
+        this.metaStoreService = metastoreLocators.stream().findFirst().get();
+      } catch ( Exception e ) {
+        logger.error( "Error getting MetastoreLocator", e );
+      }
+    }
     setFileNameParser( fileNameParser );
     fileSystemManager.addProvider( schemes, this );
   }

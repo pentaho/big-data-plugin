@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -23,10 +23,9 @@
 package org.pentaho.big.data.kettle.plugins.hive;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.jdbc.DriverLocator;
-import org.pentaho.di.core.database.DatabaseMeta;
-import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 
 // Intenionally disabled.  The Simba Hive driver is currently unsupported.
 //@DatabaseMetaPlugin( type = "HIVE2SIMBA", typeDescription = "Hadoop Hive 2 with Simba Driver" )
@@ -38,9 +37,8 @@ public class Hive2SimbaDatabaseMeta extends BaseSimbaDatabaseMeta {
   @VisibleForTesting static final int DEFAULT_PORT = 10000;
 
 
-  public Hive2SimbaDatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService,
-                                 MetastoreLocator metastoreLocator ) {
-    super( driverLocator, namedClusterService, metastoreLocator );
+  public Hive2SimbaDatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService ) {
+    super( driverLocator, namedClusterService );
   }
 
   @Override protected String getJdbcPrefix() {

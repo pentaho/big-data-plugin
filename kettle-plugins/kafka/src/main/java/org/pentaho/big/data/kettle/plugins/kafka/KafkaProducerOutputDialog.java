@@ -295,6 +295,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
       }
     } );
     props.setLook( wbCluster );
+    wbCluster.setEnabled( KafkaDialogHelper.isKarafEnabled() );
 
     Label environmentSeparator = new Label( wConnectionGroup, SWT.SEPARATOR | SWT.VERTICAL );
     FormData fdenvironmentSeparator = new FormData();
@@ -380,7 +381,8 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
       event -> {
         KafkaDialogHelper kafkaDialogHelper = new KafkaDialogHelper(
           wClusterName, wTopic, wbCluster, wBootstrapServers, kafkaFactory, meta.getNamedClusterService(),
-          meta.getNamedClusterServiceLocator(), meta.getMetastoreLocator(), optionsTable, meta.getParentStepMeta() );
+          //meta.getNamedClusterServiceLocator(),
+          meta.getMetastoreLocator(), optionsTable, meta.getParentStepMeta() );
         kafkaDialogHelper.clusterNameChanged( event );
       } );
 
@@ -432,6 +434,8 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     wSetupComp.setLayoutData( fdSetupComp );
     wSetupComp.layout();
     wSetupTab.setControl( wSetupComp );
+
+    toggleConnectionType( !KafkaDialogHelper.isKarafEnabled() );
   }
 
   private void toggleConnectionType( final boolean isDirect ) {

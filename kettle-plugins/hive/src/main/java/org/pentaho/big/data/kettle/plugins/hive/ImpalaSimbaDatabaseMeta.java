@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,14 +22,13 @@
 
 package org.pentaho.big.data.kettle.plugins.hive;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.jdbc.DriverLocator;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
-import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.jdbc.DriverLocator;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @DatabaseMetaPlugin( type = "IMPALASIMBA", typeDescription = "Cloudera Impala" )
 public class ImpalaSimbaDatabaseMeta extends BaseSimbaDatabaseMeta {
@@ -40,9 +39,8 @@ public class ImpalaSimbaDatabaseMeta extends BaseSimbaDatabaseMeta {
   protected static final int DEFAULT_PORT = 21050;
   protected static final String SOCKET_TIMEOUT_OPTION = "SocketTimeout";
 
-  public ImpalaSimbaDatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService,
-                                  MetastoreLocator metastoreLocator ) {
-    super( driverLocator, namedClusterService,  metastoreLocator );
+  public ImpalaSimbaDatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService ) {
+    super( driverLocator, namedClusterService );
   }
 
   @Override protected String getJdbcPrefix() {

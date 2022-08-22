@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,24 +22,12 @@
 
 package org.pentaho.big.data.kettle.plugins.hbase.rowdecoder;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.swt.widgets.Shell;
-import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
-import org.pentaho.di.core.row.value.ValueMetaBase;
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
-import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.NamedClusterLoadSaveUtil;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingUtils;
-import org.pentaho.hadoop.shim.api.hbase.HBaseService;
-import org.pentaho.hadoop.shim.api.hbase.mapping.Mapping;
-import org.pentaho.hadoop.shim.api.hbase.meta.HBaseValueMetaInterface;
 import org.pentaho.di.core.CheckResult;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.annotations.Step;
@@ -50,8 +38,11 @@ import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionDeep;
 import org.pentaho.di.core.injection.InjectionSupported;
+import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.row.value.ValueMetaBase;
+import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
@@ -64,10 +55,23 @@ import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.hbase.HBaseService;
+import org.pentaho.hadoop.shim.api.hbase.mapping.Mapping;
+import org.pentaho.hadoop.shim.api.hbase.meta.HBaseValueMetaInterface;
 import org.pentaho.metastore.api.IMetaStore;
+import org.pentaho.metastore.locator.api.MetastoreLocator;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Node;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.pentaho.di.core.CheckResult.TYPE_RESULT_ERROR;
 import static org.pentaho.di.core.CheckResult.TYPE_RESULT_OK;
@@ -105,7 +109,7 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
   @InjectionDeep
   protected MappingDefinition mappingDefinition;
 
-  private MetastoreLocatorOsgi metaStoreService;
+  private MetastoreLocator metaStoreService;
   private final NamedClusterServiceLocator namedClusterServiceLocator;
   private final NamedClusterService namedClusterService;
   private final RuntimeTestActionService runtimeTestActionService;
@@ -115,8 +119,20 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
 
   public HBaseRowDecoderMeta( NamedClusterServiceLocator namedClusterServiceLocator,
                               NamedClusterService namedClusterService,
-                              RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester,
-                              MetastoreLocatorOsgi metaStore ) {
+                              RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester ) {
+    this( namedClusterServiceLocator, namedClusterService, runtimeTestActionService, runtimeTester, null );
+    try {
+      Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
+      this.metaStoreService = metastoreLocators.stream().findFirst().get();
+    } catch ( Exception e ) {
+      logError( "Error getting MetastoreLocator", e );
+    }
+  }
+
+  @VisibleForTesting
+  HBaseRowDecoderMeta( NamedClusterServiceLocator namedClusterServiceLocator,
+                              NamedClusterService namedClusterService,
+                              RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester, MetastoreLocator metaStore ) {
     this.namedClusterServiceLocator = namedClusterServiceLocator;
     this.namedClusterService = namedClusterService;
     this.runtimeTestActionService = runtimeTestActionService;

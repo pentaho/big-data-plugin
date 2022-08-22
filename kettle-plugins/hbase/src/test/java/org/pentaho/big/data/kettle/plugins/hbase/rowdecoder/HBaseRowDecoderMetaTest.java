@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,13 +25,13 @@ package org.pentaho.big.data.kettle.plugins.hbase.rowdecoder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
+import org.pentaho.di.core.row.RowMeta;
+import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.hadoop.shim.api.hbase.mapping.Mapping;
 import org.pentaho.hadoop.shim.api.hbase.meta.HBaseValueMetaInterface;
-import org.pentaho.di.core.row.RowMeta;
-import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.metastore.locator.api.MetastoreLocator;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 
@@ -64,7 +64,7 @@ public class HBaseRowDecoderMetaTest {
   public void setup() {
     hbRowDecoderMeta =
       new HBaseRowDecoderMeta( mock( NamedClusterServiceLocator.class ), mock( NamedClusterService.class ), mock(
-        RuntimeTestActionService.class ), mock( RuntimeTester.class ), mock( MetastoreLocatorOsgi.class ) );
+        RuntimeTestActionService.class ), mock( RuntimeTester.class ), mock( MetastoreLocator.class ) );
     rowMeta = new RowMeta();
   }
 

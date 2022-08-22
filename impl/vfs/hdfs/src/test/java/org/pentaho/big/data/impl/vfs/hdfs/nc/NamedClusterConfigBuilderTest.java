@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p>
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  * <p>
  * ******************************************************************************
  * <p>
@@ -17,30 +17,29 @@
 
 package org.pentaho.big.data.impl.vfs.hdfs.nc;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.never;
+import org.apache.commons.vfs2.FileSystemConfigBuilder;
+import org.junit.Before;
+import org.junit.Test;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.metastore.api.IMetaStore;
+import org.pentaho.metastore.api.exceptions.MetaStoreException;
+import org.pentaho.metastore.locator.api.MetastoreLocator;
 
 import java.util.Arrays;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.eq;
-
-import org.apache.commons.vfs2.FileSystemConfigBuilder;
-import org.junit.Before;
-import org.junit.Test;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.metastore.api.IMetaStore;
-import org.pentaho.metastore.api.exceptions.MetaStoreException;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class NamedClusterConfigBuilderTest {
 
   private NamedClusterService namedClusterService = mock( NamedClusterService.class );
 
-  private MetastoreLocatorOsgi metastoreLocator = mock( MetastoreLocatorOsgi.class );
+  private MetastoreLocator metastoreLocator = mock( MetastoreLocator.class );
 
   private IMetaStore metastore = mock( IMetaStore.class );
 

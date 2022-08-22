@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2020-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -27,17 +27,19 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LogLevel;
-import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaBoolean;
 import org.pentaho.di.core.row.value.ValueMetaInteger;
 import org.pentaho.di.core.row.value.ValueMetaString;
+import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.RowHandler;
@@ -49,17 +51,20 @@ import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.hadoop.shim.api.format.FormatService;
 import org.pentaho.hadoop.shim.api.format.IPentahoInputFormat;
 import org.pentaho.hadoop.shim.api.format.IPentahoParquetInputFormat;
+import org.pentaho.metastore.locator.api.MetastoreLocator;
 
 import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -85,7 +90,7 @@ public class ParquetInputTest {
   @Mock
   private NamedClusterService mockNamedClusterService;
   @Mock
-  private MetastoreLocatorOsgi mockMetaStoreLocator;
+  private MetastoreLocator mockMetaStoreLocator;
   @Mock
   private FormatService mockFormatService;
   @Mock
@@ -113,28 +118,26 @@ public class ParquetInputTest {
     currentParquetInputRow = 0;
     setInputRows();
     setParquetRows();
-    NamedClusterResolver namedClusterResolver =
-      new NamedClusterResolver( mockNamedClusterServiceLocator, mockNamedClusterService, mockMetaStoreLocator );
+    Collection<MetastoreLocator> metastoreLocatorCollection = new ArrayList<>();
+    metastoreLocatorCollection.add( mockMetaStoreLocator );
+    NamedClusterResolver namedClusterResolver;
+    try ( MockedStatic<PluginServiceLoader> pluginServiceLoaderMockedStatic = Mockito.mockStatic( PluginServiceLoader.class ) ) {
+      pluginServiceLoaderMockedStatic.when( () -> PluginServiceLoader.loadServices( MetastoreLocator.class ) ).thenReturn( metastoreLocatorCollection );
+      namedClusterResolver = new NamedClusterResolver( mockNamedClusterServiceLocator, mockNamedClusterService );
+    }
     parquetInputMeta = new ParquetInputMeta( namedClusterResolver );
     parquetInputMeta.inputFiles.fileName = new String[1];
     parquetInputMeta.setFilename( INPUT_STREAM_FIELD_NAME );
 
     parquetInputMeta.setParentStepMeta( mockStepMeta );
-    when( mockStepMeta.getParentTransMeta() ).thenReturn( mockTransMeta );
     when( mockStepMeta.getName() ).thenReturn( INPUT_STEP_NAME );
     when( mockTransMeta.findStep( INPUT_STEP_NAME ) ).thenReturn( mockStepMeta );
-    when( mockTrans.isRunning() ).thenReturn( true );
-    try {
-      when( mockRowHandler.getRow() ).thenAnswer( answer -> returnNextInputRow() );
-    } catch ( KettleException e ) {
-      e.printStackTrace();
-    }
 
     parquetInputData.input = mockPentahoParquetInputFormat;
     when( mockFormatService.createInputFormat( IPentahoParquetInputFormat.class,
       parquetInputMeta.getNamedClusterResolver().resolveNamedCluster( parquetInputMeta.getFilename() ) ) )
       .thenReturn( mockPentahoParquetInputFormat );
-    when( mockNamedClusterServiceLocator.getService( any( NamedCluster.class ), any( Class.class ) ) )
+    when( mockNamedClusterServiceLocator.getService( nullable( NamedCluster.class ), any( Class.class ) ) )
       .thenReturn( mockFormatService );
     when( mockPentahoParquetInputFormat.createRecordReader( mockPentahoInputSplit ) ).thenReturn( mockPentahoParquetRecordReader );
     when( mockPentahoParquetRecordReader.iterator() ).thenReturn( new ParquetInputTest.ParquetRecordIterator() );

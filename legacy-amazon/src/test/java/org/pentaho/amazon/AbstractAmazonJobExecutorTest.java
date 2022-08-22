@@ -25,6 +25,7 @@ package org.pentaho.amazon;
 import com.amazonaws.auth.AWSCredentials;
 import org.apache.commons.vfs2.FileObject;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -32,6 +33,7 @@ import org.junit.runner.RunWith;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.pentaho.amazon.hive.job.AmazonHiveJobExecutor;
 import org.pentaho.di.core.vfs.KettleVFS;
+import org.pentaho.di.junit.rules.RestorePDIEngineEnvironment;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -50,6 +52,7 @@ import static org.mockito.Mockito.when;
 @PrepareForTest( AmazonHiveJobExecutor.class )
 @PowerMockIgnore( "jdk.internal.reflect.*" )
 public class AbstractAmazonJobExecutorTest {
+  @ClassRule public static RestorePDIEngineEnvironment env = new RestorePDIEngineEnvironment();
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();

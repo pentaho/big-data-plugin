@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -39,15 +39,14 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.verification.VerificationMode;
 import org.pentaho.di.core.Const;
-import org.pentaho.di.core.logging.LogLevel;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.logging.LogChannelInterfaceFactory;
+import org.pentaho.di.core.logging.LogLevel;
+import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.StepPluginType;
 import org.pentaho.di.core.row.RowMetaInterface;
@@ -60,7 +59,7 @@ import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepStatus;
 import org.pentaho.di.trans.steps.abort.AbortMeta;
-import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
+import org.pentaho.metastore.locator.api.MetastoreLocator;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -137,8 +136,8 @@ public class KafkaConsumerInputTest {
     when( logChannelFactory.create( any(), any() ) ).thenReturn( logChannel );
     when( logChannelFactory.create( any() ) ).thenReturn( logChannel );
 
-    NamedClusterService namedClusterService = mock( NamedClusterService.class );
-    NamedClusterServiceLocator namedClusterServiceLocator = mock( NamedClusterServiceLocator.class );
+    NamedClusterManager namedClusterService = mock( NamedClusterManager.class );
+    //NamedClusterServiceLocator namedClusterServiceLocator = mock( NamedClusterServiceLocator.class );
     MetastoreLocator metastoreLocator = mock( MetastoreLocator.class );
 
     meta = new KafkaConsumerInputMeta();
@@ -149,7 +148,7 @@ public class KafkaConsumerInputTest {
     meta.setTransformationPath( getClass().getResource( "/consumerSub.ktr" ).getPath() );
     meta.setBatchSize( "10" );
     meta.setNamedClusterService( namedClusterService );
-    meta.setNamedClusterServiceLocator( namedClusterServiceLocator );
+    //meta.setNamedClusterServiceLocator( namedClusterServiceLocator );
     meta.setMetastoreLocator( metastoreLocator );
 
     data = new KafkaConsumerInputData();

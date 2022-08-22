@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -21,32 +21,17 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.hbase.mapping;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.same;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.hbase.HBaseConnectionException;
 import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition.MappingColumn;
+import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.hadoop.shim.api.hbase.ByteConversionUtil;
 import org.pentaho.hadoop.shim.api.hbase.HBaseConnection;
 import org.pentaho.hadoop.shim.api.hbase.HBaseService;
@@ -54,10 +39,26 @@ import org.pentaho.hadoop.shim.api.hbase.mapping.Mapping;
 import org.pentaho.hadoop.shim.api.hbase.mapping.MappingFactory;
 import org.pentaho.hadoop.shim.api.hbase.meta.HBaseValueMetaInterface;
 import org.pentaho.hadoop.shim.api.hbase.meta.HBaseValueMetaInterfaceFactory;
-import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.logging.LogChannelInterface;
-import org.pentaho.di.core.row.ValueMetaInterface;
-import org.pentaho.di.core.variables.VariableSpace;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Tatsiana_Kasiankova
@@ -278,13 +279,13 @@ public class MappingUtilsTest {
     HBaseValueMetaInterface keyValueMeta = mock( HBaseValueMetaInterface.class );
     when( keyValueMeta.isString() ).thenReturn( true );
     when(
-      valueMetaInterfaceFactory.createHBaseValueMetaInterface( anyString(), anyString(), same( KEY_STRING ),
+      valueMetaInterfaceFactory.createHBaseValueMetaInterface( nullable( String.class ), nullable( String.class ), same( KEY_STRING ),
         anyInt(), anyInt(), anyInt() ) ).thenReturn( keyValueMeta );
 
     HBaseValueMetaInterface valueValueMeta = mock( HBaseValueMetaInterface.class );
     when( keyValueMeta.isString() ).thenReturn( true );
     when(
-      valueMetaInterfaceFactory.createHBaseValueMetaInterface( anyString(), anyString(), same( VALUE_STRING ),
+      valueMetaInterfaceFactory.createHBaseValueMetaInterface( nullable( String.class ), nullable( String.class ), same( VALUE_STRING ),
         anyInt(), anyInt(), anyInt() ) ).thenReturn( valueValueMeta );
 
     MappingFactory mappingFactory = mock( MappingFactory.class );
@@ -304,7 +305,7 @@ public class MappingUtilsTest {
     HBaseValueMetaInterfaceFactory valueMetaInterfaceFactory = mock( HBaseValueMetaInterfaceFactory.class );
     when( hBaseService.getHBaseValueMetaInterfaceFactory() ).thenReturn( valueMetaInterfaceFactory );
     when(
-      valueMetaInterfaceFactory.createHBaseValueMetaInterface( anyString(), anyString(), anyString(), anyInt(),
+      valueMetaInterfaceFactory.createHBaseValueMetaInterface( nullable( String.class ), nullable( String.class ), anyString(), anyInt(),
         anyInt(), anyInt() ) ).thenAnswer( new Answer<HBaseValueMetaInterface>() {
 
           @Override
