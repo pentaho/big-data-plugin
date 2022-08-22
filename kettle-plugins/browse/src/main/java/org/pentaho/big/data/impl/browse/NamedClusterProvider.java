@@ -33,15 +33,14 @@ import org.pentaho.big.data.impl.browse.model.NamedClusterTree;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.service.PluginServiceLoader;
-import org.pentaho.di.core.service.ServiceProvider;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.plugins.fileopensave.api.providers.BaseFileProvider;
 import org.pentaho.di.plugins.fileopensave.api.providers.File;
-import org.pentaho.di.plugins.fileopensave.api.providers.FileProvider;
 import org.pentaho.di.plugins.fileopensave.api.providers.Tree;
 import org.pentaho.di.plugins.fileopensave.api.providers.Utils;
 import org.pentaho.di.plugins.fileopensave.api.providers.exception.FileException;
 import org.pentaho.di.plugins.fileopensave.api.providers.exception.FileNotFoundException;
+import org.pentaho.di.plugins.fileopensave.api.providers.exception.ProviderServiceInterface;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.locator.api.MetastoreLocator;
@@ -55,7 +54,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-@ServiceProvider( id = "NamedClusterProvider", description = "Provides access to the NamedClusterProvider service", provides = FileProvider.class )
 public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
 
   public static final String NAME = "Hadoop Clusters";
@@ -72,7 +70,13 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
       Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
       this.metastoreLocator = metastoreLocators.stream().findFirst().get();
     } catch ( Exception e ) {
-      logger.warn( "Error getting MetastoreLocator", e );
+      logger.error( "Error getting MetastoreLocator", e );
+    }
+    try {
+      Collection<ProviderServiceInterface> providerServiceInterfaces = PluginServiceLoader.loadServices( ProviderServiceInterface.class );
+      providerServiceInterfaces.stream().findFirst().get().addProviderService( this );
+    } catch ( Exception e ) {
+      logger.error( "Error registering Hadoop Clusters file provider", e );
     }
   }
 
