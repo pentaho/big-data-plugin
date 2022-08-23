@@ -84,12 +84,6 @@
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
-      <artifactId>pentaho-metastore-locator-api</artifactId>
-      <version>${pentaho-osgi-bundles.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-impl-cluster</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
