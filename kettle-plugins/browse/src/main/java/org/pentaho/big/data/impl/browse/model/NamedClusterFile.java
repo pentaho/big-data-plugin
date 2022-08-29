@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2022 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -60,5 +60,19 @@ public class NamedClusterFile extends BaseEntity implements File {
     return namedClusterFile;
   }
 
+  @Override public boolean equals( Object obj ) {
+    // If the object is compared with itself then return true
+    if ( obj == this ) {
+      return true;
+    }
+
+    if ( !( obj instanceof NamedClusterFile ) ) {
+      return false;
+    }
+
+    NamedClusterFile compare = (NamedClusterFile) obj;
+    return compare.getProvider().equals( getProvider() )
+      && ( ( compare.getPath() == null && getPath() == null ) || compare.getPath().equals( getPath() ) );
+  }
 
 }
