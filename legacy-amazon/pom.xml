@@ -49,12 +49,6 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-s3-vfs</artifactId>
-      <version>${project.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>org.apache.oozie</groupId>
       <artifactId>oozie-client</artifactId>
       <version>${oozie.version}</version>
