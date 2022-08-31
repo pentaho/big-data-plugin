@@ -37,6 +37,8 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.Bucket;
 import org.apache.commons.vfs2.FileSystemOptions;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.MessageBox;
 import org.pentaho.amazon.s3.S3Details;
 import org.pentaho.amazon.s3.S3Util;
 import org.pentaho.di.connections.ConnectionDetails;
@@ -44,12 +46,14 @@ import org.pentaho.di.connections.ConnectionManager;
 import org.pentaho.di.connections.vfs.BaseVFSConnectionProvider;
 import org.pentaho.di.connections.vfs.VFSRoot;
 import org.pentaho.di.core.encryption.Encr;
+import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
+import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.s3.vfs.S3FileProvider;
 import org.pentaho.s3common.S3CommonFileSystemConfigBuilder;
 
@@ -135,7 +139,7 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
     return S3FileProvider.SCHEME;
   }
 
-  @Override public boolean test( S3Details s3Details ) {
+  @Override public boolean test( S3Details s3Details ) throws KettleException {
     VariableSpace space = getSpace( s3Details );
     s3Details = prepare( s3Details );
     AmazonS3 amazonS3 = getAmazonS3( s3Details, space );
@@ -182,12 +186,12 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
     }
   }
 
-  @Override public S3Details prepare( S3Details s3Details ) {
+  @Override public S3Details prepare( S3Details s3Details ) throws KettleException {
     VariableSpace space = getSpace( s3Details );
     if ( s3Details.getAuthType().equals( CREDENTIALS_FILE ) ) {
-      String credetialsFilePath = getVar( s3Details.getCredentialsFilePath(), space );
-      if ( credetialsFilePath != null ) {
-        try ( BufferedReader reader = Files.newBufferedReader( Paths.get( credetialsFilePath ) ) ) {
+      String credentialsFilePath = getVar( s3Details.getCredentialsFilePath(), space );
+      if ( credentialsFilePath != null ) {
+        try ( BufferedReader reader = Files.newBufferedReader( Paths.get( credentialsFilePath ) ) ) {
           StringBuilder builder = new StringBuilder();
           String currentLine;
           while ( ( currentLine = reader.readLine() ) != null ) {
@@ -195,7 +199,7 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
           }
           s3Details.setCredentialsFile( builder.toString() );
         } catch ( IOException e ) {
-          return null;
+          throw new KettleException( "Could not read file ", e );
         }
       }
     }

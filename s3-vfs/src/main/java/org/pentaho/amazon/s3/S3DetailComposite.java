@@ -1,3 +1,24 @@
+/*******************************************************************************
+ *
+ * Pentaho Big Data
+ *
+ * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
 package org.pentaho.amazon.s3;
 
 import org.eclipse.swt.SWT;
@@ -21,6 +42,7 @@ import org.pentaho.di.ui.core.widget.CheckBoxVar;
 import org.pentaho.di.ui.core.widget.ComboVar;
 import org.pentaho.di.ui.core.widget.FileChooserVar;
 import org.pentaho.di.ui.core.widget.PasswordTextVar;
+import org.pentaho.di.ui.core.widget.PasswordVisibleTextVar;
 import org.pentaho.di.ui.core.widget.TextVar;
 
 import java.util.Arrays;
@@ -46,9 +68,9 @@ public class S3DetailComposite implements VFSDetailsComposite {
   private Composite wWidgetHolder;
 
   private ComboVar wRegion;
-  private PasswordTextVar wAccessKey;
-  private PasswordTextVar wSecretKey;
-  private PasswordTextVar wSessionToken;
+  private PasswordVisibleTextVar wAccessKey;
+  private PasswordVisibleTextVar wSecretKey;
+  private PasswordVisibleTextVar wSessionToken;
   private CheckBoxVar wDefaultS3Config;
   private TextVar wProfileName;
   private FileChooserVar wCredentialsFilePath;
@@ -105,9 +127,9 @@ public class S3DetailComposite implements VFSDetailsComposite {
     wRegion = createStandbyComboVar();
     wRegion.setItems( regionChoices );
     wRegion.select( 0 );
-    wAccessKey = createStandbyPasswordTextVar();
-    wSecretKey = createStandbyPasswordTextVar();
-    wSessionToken = createStandbyPasswordTextVar();
+    wAccessKey = createStandbyPasswordVisibleTextVar();
+    wSecretKey = createStandbyPasswordVisibleTextVar();
+    wSessionToken = createStandbyPasswordVisibleTextVar();
     wDefaultS3Config = createStandByCheckBoxVar();
     wProfileName = createStandByTextVar();
     wCredentialsFilePath = new FileChooserVar( variableSpace, wWidgetHolder, TEXT_VAR_FLAGS, "Browse File" );
@@ -146,6 +168,8 @@ public class S3DetailComposite implements VFSDetailsComposite {
         details.setDefaultS3Config( Boolean.toString( wDefaultS3Config.getSelection() ) );
       }
     } );
+    wDefaultS3Config.getTextVar().addModifyListener(
+      modifyEvent -> details.setDefaultS3ConfigVariable( wDefaultS3Config.getVariableName() ) );
     wCredentialsFilePath.addModifyListener(
       modifyEvent -> details.setCredentialsFilePath( wCredentialsFilePath.getText() ) );
     wProfileName.addModifyListener( modifyEvent -> details.setProfileName( wProfileName.getText() ) );
@@ -157,6 +181,8 @@ public class S3DetailComposite implements VFSDetailsComposite {
         details.setPathStyleAccess( Boolean.toString( wPathStyleAccess.getSelection() ) );
       }
     } );
+    wPathStyleAccess.getTextVar().addModifyListener(
+      modifyEvent -> details.setPathStyleAccessVariable( wPathStyleAccess.getVariableName() ) );
 
     wComposite.getParent().addListener( SWT.Resize, arg0 -> {
       Rectangle r = wComposite.getParent().getClientArea();
@@ -226,12 +252,14 @@ public class S3DetailComposite implements VFSDetailsComposite {
     wSecretKey.setText( Const.NVL( details.getSecretKey(), "" ) );
     wSessionToken.setText( Const.NVL( details.getSessionToken(), "" ) );
     wDefaultS3Config.setSelection( Boolean.parseBoolean( Const.NVL( details.getDefaultS3Config(), "false" ) ) );
+    wDefaultS3Config.setVariableName( Const.NVL( details.getDefaultS3ConfigVariable(), "" ) );
     wRegion.select( computeComboIndex( Const.NVL( details.getRegion(), regionChoices[ 0 ] ), regionChoices ) );
     wProfileName.setText( Const.NVL( details.getProfileName(), "" ) );
     wCredentialsFilePath.setText( Const.NVL( details.getCredentialsFilePath(), "" ) );
     wEndpoint.setText( Const.NVL( details.getEndpoint(), "" ) );
     wSignatureVersion.setText( Const.NVL( details.getSignatureVersion(), "" ) );
     wPathStyleAccess.setSelection( Boolean.parseBoolean( Const.NVL( details.getPathStyleAccess(), "false" ) ) );
+    wPathStyleAccess.setVariableName( Const.NVL( details.getPathStyleAccessVariable(), "" ) );
   }
 
   private Label createLabel( String key, Control topWidget, Composite composite ) {
@@ -240,6 +268,10 @@ public class S3DetailComposite implements VFSDetailsComposite {
 
   private PasswordTextVar createStandbyPasswordTextVar() {
     return new PasswordTextVar( variableSpace, wWidgetHolder, TEXT_VAR_FLAGS );
+  }
+
+  private PasswordVisibleTextVar createStandbyPasswordVisibleTextVar() {
+    return new PasswordVisibleTextVar( variableSpace, wWidgetHolder, TEXT_VAR_FLAGS );
   }
 
   private TextVar createStandByTextVar() {
