@@ -25,6 +25,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -34,9 +35,11 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.pentaho.di.connections.vfs.VFSDetailsComposite;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.vfs.connections.ui.dialog.VFSDetailsCompositeHelper;
+import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.widget.CheckBoxVar;
 import org.pentaho.di.ui.core.widget.ComboVar;
@@ -158,6 +161,7 @@ public class S3DetailComposite implements VFSDetailsComposite {
         details.setRegion( wRegion.getText() );
       }
     } );
+    wRegion.addModifyListener( modifyEvent -> details.setRegion( wRegion.getText() ) );
     wAccessKey.addModifyListener( modifyEvent -> details.setAccessKey( wAccessKey.getText() ) );
     wSecretKey.addModifyListener( modifyEvent -> details.setSecretKey( wSecretKey.getText() ) );
     wSessionToken.addModifyListener(
@@ -184,17 +188,14 @@ public class S3DetailComposite implements VFSDetailsComposite {
     wPathStyleAccess.getTextVar().addModifyListener(
       modifyEvent -> details.setPathStyleAccessVariable( wPathStyleAccess.getVariableName() ) );
 
-    wComposite.getParent().addListener( SWT.Resize, arg0 -> {
-      Rectangle r = wComposite.getParent().getClientArea();
-      wComposite.setSize( r.width, r.height );
-    } );
+    helper.setupCompositeResizeListener( wComposite );
     initializingUiForFirstTime = false;
     return wComposite;
   }
 
   private void setupBottomHalf() {
-    setupBottomHalf( computeComboIndex( wS3ConnectionType.getText(), S3_CONNECTION_TYPE_CHOICES ),
-      computeComboIndex( wAuthType.getText(), AUTH_TYPE_CHOICES ) );
+    setupBottomHalf( computeComboIndex( wS3ConnectionType.getText(), S3_CONNECTION_TYPE_CHOICES, 0 ),
+      computeComboIndex( wAuthType.getText(), AUTH_TYPE_CHOICES, 0 ) );
   }
 
   private void setupBottomHalf( int s3ConnectionType, int authType ) {
@@ -213,7 +214,7 @@ public class S3DetailComposite implements VFSDetailsComposite {
       }
     }
 
-    switch ( s3ConnectionType * 10 + authType ) {
+    switch( s3ConnectionType * 10 + authType ) {
       case 0: // Amazon with Access Key
         moveWidgetToBottomHalf( wAuthType, "ConnectionDialog.s3.AuthType.Label", null, 200 );
         moveWidgetToBottomHalf( wRegion, "ConnectionDialog.s3.Region.Label", wAuthType, 200 );
@@ -243,6 +244,7 @@ public class S3DetailComposite implements VFSDetailsComposite {
 
     wBottomHalf.layout();
     wComposite.pack();
+    helper.updateScrollableRegion( wComposite );
   }
 
   private void populateWidgets() {
@@ -253,7 +255,12 @@ public class S3DetailComposite implements VFSDetailsComposite {
     wSessionToken.setText( Const.NVL( details.getSessionToken(), "" ) );
     wDefaultS3Config.setSelection( Boolean.parseBoolean( Const.NVL( details.getDefaultS3Config(), "false" ) ) );
     wDefaultS3Config.setVariableName( Const.NVL( details.getDefaultS3ConfigVariable(), "" ) );
-    wRegion.select( computeComboIndex( Const.NVL( details.getRegion(), regionChoices[ 0 ] ), regionChoices ) );
+    int regionIndex = computeComboIndex( Const.NVL( details.getRegion(), regionChoices[ 0 ] ), regionChoices, -1 );
+    if ( regionIndex != -1 ) {
+      wRegion.select( regionIndex );
+    } else {
+      wRegion.setText( details.getRegion() );
+    }
     wProfileName.setText( Const.NVL( details.getProfileName(), "" ) );
     wCredentialsFilePath.setText( Const.NVL( details.getCredentialsFilePath(), "" ) );
     wEndpoint.setText( Const.NVL( details.getEndpoint(), "" ) );
@@ -271,7 +278,7 @@ public class S3DetailComposite implements VFSDetailsComposite {
   }
 
   private PasswordVisibleTextVar createStandbyPasswordVisibleTextVar() {
-    return new PasswordVisibleTextVar( variableSpace, wWidgetHolder, TEXT_VAR_FLAGS );
+    return new PasswordVisibleTextVar( variableSpace, wWidgetHolder, SWT.LEFT | SWT.BORDER );
   }
 
   private TextVar createStandByTextVar() {
@@ -318,10 +325,18 @@ public class S3DetailComposite implements VFSDetailsComposite {
     return Integer.parseInt( Const.NVL( value, "0" ) );
   }
 
-  private int computeComboIndex( String targetValue, String[] choices ) {
+  private int computeComboIndex( String targetValue, String[] choices, int notFoundReturnValue ) {
     return IntStream.range( 0, choices.length )
       .filter( i -> choices[ i ].equals( targetValue ) )
-      .findFirst().orElse( 0 );
+      .findFirst().orElse( notFoundReturnValue );
+  }
+
+  public String validate() {
+    int regionIndex = computeComboIndex( Const.NVL( details.getRegion(), regionChoices[ 0 ] ), regionChoices, -1 );
+    if ( regionIndex == -1 && !StringUtil.isVariable( details.getRegion() ) ) {
+      return BaseMessages.getString( PKG, "ConnectionDialog.s3.Validate.badRegionText" );
+    }
+    return null;
   }
 
 }
