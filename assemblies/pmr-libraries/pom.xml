@@ -112,7 +112,12 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>17.0</version>
+      <version>28.1-jre</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>failureaccess</artifactId>
+      <version>1.0.1</version>
     </dependency>
     <dependency>
       <groupId>com.healthmarketscience.jackcess</groupId>
