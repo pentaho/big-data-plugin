@@ -236,8 +236,8 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
 
   @Override public String getNewName( NamedClusterFile destDir, String newPath, VariableSpace space ) throws FileException {
     String extension = Utils.getExtension( newPath );
-    String parent = Utils.getParent( newPath );
-    String name = Utils.getName( newPath ).replace( "." + extension, "" );
+    String parent = Utils.getParent( newPath, "/" );
+    String name = Utils.getName( newPath, "/" ).replace( "." + extension, "" );
     int i = 1;
     String testName = sanitizeName( destDir, newPath );
     try {
