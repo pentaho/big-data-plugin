@@ -1049,6 +1049,12 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+      <groupId>org.pentaho.di.plugins</groupId>
+      <artifactId>pentaho-metastore-locator-api</artifactId>
+      <version>${pdi.version}</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
