@@ -238,6 +238,7 @@
         <include>org.mortbay.jetty:servlet-api</include>
         <include>pentaho:pentaho-metaverse-api</include>
         <include>org.apache.avro:avro-mapred</include>
+        <include>org.pentaho.di.plugins:pentaho-metastore-locator-api</include>
       </includes>
     </dependencySet>
   </dependencySets>
