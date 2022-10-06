@@ -239,6 +239,7 @@
         <include>pentaho:pentaho-metaverse-api</include>
         <include>org.apache.avro:avro-mapred</include>
         <include>org.pentaho.di.plugins:pentaho-metastore-locator-api</include>
+        <include>org.pentaho.di.plugins:pentaho-kettle-repository-locator-api</include>
       </includes>
     </dependencySet>
   </dependencySets>
