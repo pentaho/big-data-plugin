@@ -989,6 +989,10 @@
       <version>${log4j.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+    </dependency>
+    <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-platform-api</artifactId>
       <version>${platform.version}</version>
