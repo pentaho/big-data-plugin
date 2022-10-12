@@ -82,7 +82,10 @@
   <feature name="pentaho-hadoop-cluster-ui" version="1.0">
     <bundle>mvn:org.pentaho.di.plugins/core-ui/${project.version}</bundle>
     <bundle>mvn:pentaho/hadoop-cluster-ui/${project.version}</bundle>
+    <bundle>pentaho-webjars:mvn:org.webjars.bower/angular/${angular.version}</bundle>
     <bundle>pentaho-webjars:mvn:org.webjars.bower/angular-animate/${angular.version}</bundle>
+    <bundle>pentaho-webjars:mvn:org.webjars.bower/angular-i18n/${angular.version}</bundle>
+    <bundle>pentaho-webjars:mvn:org.webjars.bower/requirejs-text/${requirejs-text.version}</bundle>
     <bundle>pentaho-webjars:mvn:org.webjars.npm/uirouter__core/${uirouter-core.version}</bundle>
     <bundle>pentaho-webjars:mvn:org.webjars.npm/uirouter__angularjs/${uirouter-angularjs.version}</bundle>
     <bundle>pentaho-webjars:mvn:org.webjars.npm/jquery/${jquery.version}</bundle>

@@ -86,6 +86,7 @@
     <thoughtworks.paranamer.version>2.7</thoughtworks.paranamer.version>
     <dependency.commons-httpclient.revision>3.1</dependency.commons-httpclient.revision>
     <powermock.version>1.7.3</powermock.version>
+    <requirejs-text.version>2.0.10</requirejs-text.version>
   </properties>
 
   <dependencyManagement>
