@@ -1,5 +1,5 @@
 /*!
- * Copyright 2010 - 2020 Hitachi Vantara.  All rights reserved.
+ * Copyright 2010 - 2022 Hitachi Vantara.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class S3CommonFileObject extends AbstractFileObject {
+public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFileSystem> {
 
   private static final Logger logger = LoggerFactory.getLogger( S3CommonFileObject.class );
   public static final String DELIMITER = "/";
@@ -71,6 +71,32 @@ public abstract class S3CommonFileObject extends AbstractFileObject {
     closeS3Object();
     S3Object streamS3Object = getS3Object();
     return new S3CommonFileInputStream( streamS3Object.getObjectContent(), streamS3Object );
+  }
+
+
+  @Override public void createFile() throws FileSystemException {
+    //PDI-19598: Copied from super.createFile() but it was had a way to force the file creation on S3
+    synchronized (fileSystem) {
+      try {
+        // VFS-210: We do not want to trunc any existing file, checking for its existence is
+        // still required
+        if (exists() && !isFile()) {
+          throw new FileSystemException("vfs.provider/create-file.error", super.getName());
+        }
+
+        if (!exists()) {
+          OutputStream outputStream = getOutputStream();
+          //Force to write an empty array to force file creation on S3 bucket
+          outputStream.write( new byte[]{} );
+          outputStream.close();
+          endOutput();
+        }
+      } catch (final RuntimeException re) {
+        throw re;
+      } catch (final Exception e) {
+        throw new FileSystemException("vfs.provider/create-file.error", super.getName(), e);
+      }
+    }
   }
 
   @Override
