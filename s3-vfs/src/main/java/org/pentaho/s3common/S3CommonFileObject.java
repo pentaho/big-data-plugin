@@ -75,26 +75,26 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
 
 
   @Override public void createFile() throws FileSystemException {
-    //PDI-19598: Copied from super.createFile() but it was had a way to force the file creation on S3
-    synchronized (fileSystem) {
+    //PDI-19598: Copied from super.createFile() but it was a way to force the file creation on S3
+    synchronized ( fileSystem ) {
       try {
         // VFS-210: We do not want to trunc any existing file, checking for its existence is
         // still required
-        if (exists() && !isFile()) {
-          throw new FileSystemException("vfs.provider/create-file.error", super.getName());
+        if ( exists() && !isFile() ) {
+          throw new FileSystemException( "vfs.provider/create-file.error", super.getName() );
         }
 
-        if (!exists()) {
+        if ( !exists() ) {
           OutputStream outputStream = getOutputStream();
           //Force to write an empty array to force file creation on S3 bucket
-          outputStream.write( new byte[]{} );
+          outputStream.write( new byte[] {} );
           outputStream.close();
           endOutput();
         }
-      } catch (final RuntimeException re) {
+      } catch ( final RuntimeException re ) {
         throw re;
-      } catch (final Exception e) {
-        throw new FileSystemException("vfs.provider/create-file.error", super.getName(), e);
+      } catch ( final Exception e ) {
+        throw new FileSystemException( "vfs.provider/create-file.error", super.getName(), e );
       }
     }
   }
