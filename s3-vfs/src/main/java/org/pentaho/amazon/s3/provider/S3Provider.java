@@ -37,8 +37,6 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.Bucket;
 import org.apache.commons.vfs2.FileSystemOptions;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.MessageBox;
 import org.pentaho.amazon.s3.S3Details;
 import org.pentaho.amazon.s3.S3Util;
 import org.pentaho.di.connections.ConnectionDetails;
@@ -49,11 +47,7 @@ import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.logging.LogChannelInterface;
-import org.pentaho.di.core.row.value.ValueMetaBase;
-import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
-import org.pentaho.di.core.variables.Variables;
-import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.s3.vfs.S3FileProvider;
 import org.pentaho.s3common.S3CommonFileSystemConfigBuilder;
 
@@ -121,6 +115,7 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
       }
     } catch ( Exception e ) {
       log.logError( e.getMessage(), e );
+      throw e;
     }
     return buckets;
   }
