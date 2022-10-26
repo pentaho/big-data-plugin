@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.impl.browse.model;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.pentaho.big.data.impl.browse.NamedClusterProvider;
@@ -71,8 +72,9 @@ public class NamedClusterFile extends BaseEntity implements File {
     }
 
     NamedClusterFile compare = (NamedClusterFile) obj;
+    // This comparison depends on `getProvider()` to always return a hardcoded value
     return compare.getProvider().equals( getProvider() )
-      && ( ( compare.getPath() == null && getPath() == null ) || compare.getPath().equals( getPath() ) );
+      && StringUtils.equals( compare.getPath(), getPath() );
   }
 
 }
