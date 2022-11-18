@@ -5,10 +5,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-assemblies</artifactId>
-    <version>9.5.0.0-SNAPSHOT</version>
+    <version>9.5.0.0-45</version>
   </parent>
   <artifactId>pentaho-s3-vfs-plugin</artifactId>
-  <version>9.5.0.0-SNAPSHOT</version>
+  <version>9.5.0.0-45</version>
   <packaging>pom</packaging>
   <licenses>
     <license>
