@@ -6,23 +6,10 @@
     <artifactId>pentaho-big-data-bundles</artifactId>
     <version>9.5.0.0-SNAPSHOT</version>
   </parent>
-  <artifactId>pentaho-big-data-kettle-plugins</artifactId>
+  <artifactId>pentaho-big-data-kettle-classic-plugins</artifactId>
   <version>9.5.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <modules>
-    <module>common</module>
-    <module>hdfs</module>
-    <module>mapreduce</module>
-    <module>pig</module>
-    <module>guiTestActionHandlers</module>
-    <module>oozie</module>
-    <module>hbase-meta</module>
-    <module>hbase</module>
-    <module>sqoop</module>
-    <module>hive</module>
-    <module>spark</module>
-    <module>kafka</module>
-    <module>hadoop-cluster</module>
-    <module>browse</module>
+    <module>formats</module>
   </modules>
 </project>
