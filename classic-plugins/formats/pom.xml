@@ -25,7 +25,7 @@
   </licenses>
 
   <modules>
-    <module>assemblies</module>
     <module>core</module>
+    <module>assemblies</module>
   </modules>
 </project>
