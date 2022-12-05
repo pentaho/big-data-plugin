@@ -23,19 +23,6 @@
     <jface.version>3.22.0</jface.version>
   </properties>
 
-  <build>
-    <resources>
-      <resource>
-        <directory>src/main/resources</directory>
-        <filtering>false</filtering>
-      </resource>
-      <resource>
-        <directory>src/main/resources-filtered</directory>
-        <filtering>true</filtering>
-      </resource>
-    </resources>
-  </build>
-
   <dependencies>
     <dependency>
       <groupId>org.codehaus.jackson</groupId>

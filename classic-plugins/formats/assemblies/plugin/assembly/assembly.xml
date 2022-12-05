@@ -18,7 +18,7 @@
       <useProjectArtifact>false</useProjectArtifact>
       <outputDirectory>big-data-formats-plugin</outputDirectory>
       <includes>
-        <include>big-data-formats:pdi-big-data-formats-core:jar</include>
+        <include>pentaho:pdi-big-data-formats-core:jar</include>
       </includes>
     </dependencySet>
   </dependencySets>
