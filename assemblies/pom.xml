@@ -35,6 +35,7 @@
         <module>legacy-plugin</module>
         <module>s3-vfs</module>
         <module>kafka-plugin</module>
+        <module>classic-plugins</module>
       </modules>
     </profile>
 
