@@ -21,5 +21,15 @@
         <include>pentaho:pdi-big-data-formats-core:jar</include>
       </includes>
     </dependencySet>
+    <dependencySet>
+      <scope>runtime</scope>
+      <useProjectArtifact>false</useProjectArtifact>
+      <outputDirectory>lib</outputDirectory>
+      <includes>
+        <include>pentaho-kettle:kettle-engine</include>
+        <include>pentaho-kettle:kettle-core</include>
+        <include>org.pentaho:shim-api</include>
+      </includes>
+    </dependencySet>
   </dependencySets>
 </assembly>
