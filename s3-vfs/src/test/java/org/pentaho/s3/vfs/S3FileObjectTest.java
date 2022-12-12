@@ -278,6 +278,13 @@ public class S3FileObjectTest {
   }
 
   @Test
+  public void testDoGetLastModifiedTimeWhenNoLastModifiedDateIsAvailable() throws Exception {
+    s3FileObjectFileSpy.doAttach();
+    when( s3ObjectMetadata.getLastModified() ).thenReturn( new Date(0L) );
+    assertEquals( 0L, s3FileObjectFileSpy.doGetLastModifiedTime() );
+  }
+
+  @Test
   public void testListChildrenNotRoot() throws FileSystemException {
     fileSystemSpy.init();
     FileObject[] children = s3FileObjectBucketSpy.getChildren();
