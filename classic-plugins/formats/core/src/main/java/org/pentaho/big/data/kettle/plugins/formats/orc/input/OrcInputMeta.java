@@ -50,8 +50,10 @@ import org.pentaho.di.trans.step.StepMeta;
 } )
 public class OrcInputMeta extends OrcInputMetaBase {
 
-  private final NamedClusterResolver namedClusterResolver;
-
+  private NamedClusterResolver namedClusterResolver = null;
+  public OrcInputMeta() {
+    super();
+  }
   public OrcInputMeta( NamedClusterResolver namedClusterResolver ) {
     this.namedClusterResolver = namedClusterResolver;
   }

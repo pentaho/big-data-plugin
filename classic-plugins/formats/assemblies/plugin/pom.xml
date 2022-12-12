@@ -16,7 +16,8 @@
   <name>PDI Big Data Formats Plugin Distribution</name>
 
   <properties>
-    <project.revision>9.5.0.0-SNAPSHOT</project.revision>
+    <resources.directory>${project.basedir}/src/main/resources</resources.directory>
+    <assembly.dir>${project.build.directory}/assembly</assembly.dir>
   </properties>
 
   <dependencies>
@@ -27,28 +28,4 @@
       <scope>runtime</scope>
     </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>create-archive</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <descriptors>
-                <descriptor>assembly/assembly.xml</descriptor>
-              </descriptors>
-              <appendAssemblyId>false</appendAssemblyId>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
 </project>
-

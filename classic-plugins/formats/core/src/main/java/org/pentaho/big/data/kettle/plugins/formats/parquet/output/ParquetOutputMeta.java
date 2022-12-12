@@ -41,8 +41,11 @@ import org.pentaho.di.trans.step.StepMeta;
 } )
 public class ParquetOutputMeta extends ParquetOutputMetaBase {
 
-  private final NamedClusterResolver namedClusterResolver;
+  private NamedClusterResolver namedClusterResolver;
 
+  public ParquetOutputMeta() {
+    super();
+  }
   public ParquetOutputMeta( NamedClusterResolver namedClusterResolver ) {
     this.namedClusterResolver = namedClusterResolver;
   }

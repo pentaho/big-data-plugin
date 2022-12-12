@@ -9,8 +9,6 @@
     <version>9.5.0.0-SNAPSHOT</version>
   </parent>
 
-  <packaging>jar</packaging>
-
   <artifactId>pdi-big-data-formats-core</artifactId>
 
   <name>PDI Big Data Formats Plugin Core</name>
@@ -23,17 +21,30 @@
     <jface.version>3.22.0</jface.version>
   </properties>
 
+  <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+      </resource>
+      <resource>
+        <directory>src/main/resources-filtered</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+  </build>
+
   <dependencies>
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-engine</artifactId>
       <version>${pdi.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
+<!--      <exclusions>-->
+<!--        <exclusion>-->
+<!--          <groupId>*</groupId>-->
+<!--          <artifactId>*</artifactId>-->
+<!--        </exclusion>-->
+<!--      </exclusions>-->
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
@@ -150,14 +161,4 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <build>
-    <resources>
-      <resource>
-        <filtering>true</filtering>
-        <directory>src/main/resources</directory>
-      </resource>
-    </resources>
-  </build>
-
 </project>

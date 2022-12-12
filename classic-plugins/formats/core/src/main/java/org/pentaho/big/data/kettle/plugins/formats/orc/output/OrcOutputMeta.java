@@ -38,8 +38,11 @@ import org.pentaho.di.trans.step.StepMeta;
 @InjectionSupported( localizationPrefix = "OrcOutput.Injection.", groups = {"FIELDS"} )
 public class OrcOutputMeta extends OrcOutputMetaBase {
 
-  private final NamedClusterResolver namedClusterResolver;
+  private NamedClusterResolver namedClusterResolver;
 
+  public OrcOutputMeta() {
+    super();
+  }
   public OrcOutputMeta( NamedClusterResolver namedClusterResolver ) {
     this.namedClusterResolver = namedClusterResolver;
   }
