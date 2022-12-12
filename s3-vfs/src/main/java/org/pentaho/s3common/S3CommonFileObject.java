@@ -330,7 +330,13 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
 
   @Override
   public long doGetLastModifiedTime() {
-    return s3ObjectMetadata.getLastModified().getTime();
+    if ( s3ObjectMetadata != null && s3ObjectMetadata.getLastModified() != null ) {
+      return s3ObjectMetadata.getLastModified().getTime();
+    } else {
+      // In some case s3 system might not return modified time.
+      logger.info( "No last modified date is available for this object" );
+      return 0L;
+    }
   }
 
   @Override
