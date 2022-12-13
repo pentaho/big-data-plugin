@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <artifactId>pentaho-big-data-kettle-classic-plugins</artifactId>
+    <groupId>pentaho</groupId>
+    <version>9.5.0.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>big-data-formats</artifactId>
+  <packaging>pom</packaging>
+
+  <name>PDI Big Data Formats Plugin</name>
+
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+      <comments>A business-friendly OSS license</comments>
+    </license>
+  </licenses>
+
+  <modules>
+    <module>core</module>
+    <module>assemblies</module>
+  </modules>
+</project>
