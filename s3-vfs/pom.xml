@@ -12,7 +12,7 @@
 
   <groupId>pentaho</groupId>
   <artifactId>pentaho-s3-vfs</artifactId>
-  <version>9.3.0.0-428</version>
+  <version>9.3.0.0-CUST-271</version>
   <packaging>jar</packaging>
 
   <licenses>
