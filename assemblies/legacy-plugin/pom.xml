@@ -8,7 +8,7 @@
     <version>9.3.0.0-428</version>
   </parent>
   <artifactId>pentaho-big-data-plugin</artifactId>
-  <version>9.3.0.0-428</version>
+  <version>9.3.0.0-CUST-271</version>
   <packaging>pom</packaging>
   <licenses>
     <license>
@@ -48,17 +48,17 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-legacy</artifactId>
-      <version>${project.version}</version>
+      <version>9.3.0.0-428</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-legacy-amazon</artifactId>
-      <version>${project.version}</version>
+      <version>9.3.0.0-428</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-s3-vfs</artifactId>
-      <version>${project.version}</version>
+      <version>9.3.0.0-CUST-271</version>
     </dependency>
     <dependency>
       <groupId>org.apache.oozie</groupId>
@@ -281,7 +281,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-assemblies-pmr-libraries</artifactId>
-      <version>${project.version}</version>
+      <version>9.3.0.0-428</version>
       <type>zip</type>
       <classifier>plugin</classifier>
     </dependency>
