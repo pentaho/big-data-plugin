@@ -86,6 +86,17 @@ public class NamedClusterManager implements NamedClusterService {
     Arrays.asList( "hdfs-site.xml", "core-site.xml", "mapred-site.xml", "yarn-site.xml",
       "hbase-site.xml", "hive-site.xml" );
 
+  private static NamedClusterManager namedClusterManager;
+
+  //private NamedClusterManager() { }
+
+  public static NamedClusterService getInstance() {
+    if ( namedClusterManager == null ) {
+      namedClusterManager = new NamedClusterManager();
+    }
+    return namedClusterManager;
+  }
+
   public BundleContext getBundleContext() {
     return bundleContext;
   }

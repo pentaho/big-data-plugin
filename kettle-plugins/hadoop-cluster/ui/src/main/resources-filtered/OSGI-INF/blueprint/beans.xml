@@ -38,9 +38,6 @@
     </cm:default-properties>
   </cm:property-placeholder>
 
-  <reference id="namedClusterService"
-             interface="org.pentaho.hadoop.shim.api.cluster.NamedClusterService"/>
-
   <bean id="HadoopClusterDelegate" scope="singleton"
         class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDelegate"/>
 
@@ -52,7 +49,6 @@
   <bean id="HadoopClusterPopupMenuExtension" scope="singleton"
         class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.tree.HadoopClusterPopupMenuExtension">
     <argument ref="HadoopClusterDelegate"/>
-    <argument ref="namedClusterService"/>
     <argument value="${internal.shim}"/>
     <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType"/>
   </bean>
@@ -73,7 +69,6 @@
   <jaxrs:server address="/hadoop-cluster" id="browser-endpoint">
     <jaxrs:serviceBeans>
       <bean class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClusterEndpoints">
-        <argument ref="namedClusterService"/>
         <argument ref="runtimeTester"/>
         <argument value="${internal.shim}"/>
         <argument value="${secure.enabled}"/>

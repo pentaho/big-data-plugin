@@ -87,7 +87,7 @@ public class HadoopClusterEndpointsTest {
         .thenReturn( providerCollection );
 
       HadoopClusterEndpoints hce =
-        new HadoopClusterEndpoints( namedClusterService, runtimeTester, internalShim, secureEnabled );
+        new HadoopClusterEndpoints( runtimeTester, internalShim, secureEnabled );
 
       List<CachedFileItemStream> cachedFileItemStreams =
         hce.copyAndUnzip( fileItemStream, HadoopClusterEndpoints.FileType.CONFIGURATION,

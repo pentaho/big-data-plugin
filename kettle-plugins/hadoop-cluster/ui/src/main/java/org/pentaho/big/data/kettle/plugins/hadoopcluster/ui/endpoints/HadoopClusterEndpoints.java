@@ -29,6 +29,7 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
 import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.logging.LogChannelInterface;
@@ -90,9 +91,8 @@ public class HadoopClusterEndpoints {
     }
   }
 
-  public HadoopClusterEndpoints( NamedClusterService namedClusterService,
-                                 RuntimeTester runtimeTester, String internalShim, boolean secureEnabled ) {
-    this.namedClusterService = namedClusterService;
+  public HadoopClusterEndpoints( RuntimeTester runtimeTester, String internalShim, boolean secureEnabled ) {
+    this.namedClusterService = NamedClusterManager.getInstance();
     try {
       Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
       this.metastoreLocator = metastoreLocators.stream().findFirst().get();

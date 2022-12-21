@@ -37,6 +37,7 @@ import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClus
 import org.pentaho.di.core.extension.ExtensionPoint;
 import org.pentaho.di.core.extension.ExtensionPointInterface;
 import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.Repository;
@@ -79,9 +80,9 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
   private NamedCluster lastNamedCluster;
 
   public HadoopClusterPopupMenuExtension( HadoopClusterDelegate hadoopClusterDelegate,
-                                          NamedClusterService namedClusterService, String internalShim ) {
+                                          String internalShim ) {
     this.hadoopClusterDelegate = hadoopClusterDelegate;
-    this.namedClusterService = namedClusterService;
+    this.namedClusterService = NamedClusterManager.getInstance();
     this.internalShim = internalShim;
   }
 
