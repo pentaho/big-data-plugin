@@ -8,7 +8,7 @@
     <version>9.3.0.0-428</version>
   </parent>
   <artifactId>pentaho-big-data-plugin</artifactId>
-  <version>9.3.0.0-CUST-271</version>
+  <version>9.3.0.0-CUST-272</version>
   <packaging>pom</packaging>
   <licenses>
     <license>
@@ -58,7 +58,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-s3-vfs</artifactId>
-      <version>9.3.0.0-CUST-271</version>
+      <version>9.3.0.0-CUST-272</version>
     </dependency>
     <dependency>
       <groupId>org.apache.oozie</groupId>

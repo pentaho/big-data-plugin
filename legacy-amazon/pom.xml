@@ -9,7 +9,7 @@
   </parent>
   <artifactId>pentaho-big-data-legacy-amazon</artifactId>
   <packaging>bundle</packaging>
-  <version>9.3.0.0-CUST-271</version>
+  <version>9.3.0.0-CUST-272</version>
   <licenses>
     <license>
       <name>Apache License, Version 2.0</name>
@@ -45,7 +45,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-s3-vfs</artifactId>
-      <version>9.3.0.0-CUST-271</version>
+      <version>9.3.0.0-CUST-272</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
