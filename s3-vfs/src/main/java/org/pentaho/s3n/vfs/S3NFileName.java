@@ -1,5 +1,5 @@
 /*!
-* Copyright 2010 - 2018 Hitachi Vantara.  All rights reserved.
+* Copyright 2010 - 2022 Hitachi Vantara.  All rights reserved.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -53,7 +53,8 @@ public class S3NFileName extends AbstractFileName {
     }
   }
 
-  @Override public String getURI() {
+  @Override
+  public String getURI() {
     final StringBuilder buffer = new StringBuilder();
     appendRootUri( buffer, false );
     buffer.append( getPath() );
@@ -68,15 +69,17 @@ public class S3NFileName extends AbstractFileName {
     return bucketRelativePath;
   }
 
+  @Override
   public FileName createName( String absPath, FileType type ) {
     return new S3NFileName( getScheme(), bucketId, absPath, type );
   }
 
+  @Override
   protected void appendRootUri( StringBuilder buffer, boolean addPassword ) {
     buffer.append( getScheme() );
-    buffer.append( "://" );
+    buffer.append( ":/" );
     if ( keys != null ) {
-      buffer.append( bucketId );
+      buffer.append('/').append( bucketId );
     }
   }
 }
