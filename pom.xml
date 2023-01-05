@@ -154,6 +154,7 @@
         <module>api</module>
         <module>impl</module>
         <module>s3-vfs</module>
+        <module>classic-plugins</module>
       </modules>
     </profile>
     <profile>
