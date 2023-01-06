@@ -590,7 +590,7 @@
     <dependency>
       <groupId>org.ini4j</groupId>
       <artifactId>ini4j</artifactId>
-      <version>0.5.4</version>
+      <version>${ini4j.version}</version>
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
