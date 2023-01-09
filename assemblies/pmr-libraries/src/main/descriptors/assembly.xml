@@ -143,8 +143,8 @@
         <include>org.apache.xmlgraphics:batik-i18n</include>
         <include>org.beanshell:bsh</include>
         <include>org.codehaus.groovy:groovy</include>
-        <include>org.codehaus.jackson:jackson-core-asl</include>
-        <include>org.codehaus.jackson:jackson-jaxrs</include>
+        <include>com.fasterxml.jackson.core:jackson-core</include>
+        <include>com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider</include>
         <include>org.drools:knowledge-api</include>
         <include>org.drools:drools-compiler</include>
         <include>org.drools:drools-core</include>

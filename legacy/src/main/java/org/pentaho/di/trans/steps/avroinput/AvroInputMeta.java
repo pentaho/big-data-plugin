@@ -30,12 +30,12 @@ import org.apache.avro.generic.GenericContainer;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericFixed;
 import org.apache.avro.util.Utf8;
-import org.codehaus.jackson.node.IntNode;
-import org.codehaus.jackson.node.BooleanNode;
-import org.codehaus.jackson.node.LongNode;
-import org.codehaus.jackson.node.DoubleNode;
-import org.codehaus.jackson.node.NumericNode;
-import org.codehaus.jackson.node.TextNode;
+import com.fasterxml.jackson.databind.node.IntNode;
+import com.fasterxml.jackson.databind.node.BooleanNode;
+import com.fasterxml.jackson.databind.node.LongNode;
+import com.fasterxml.jackson.databind.node.DoubleNode;
+import com.fasterxml.jackson.databind.node.NumericNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
@@ -317,17 +317,17 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
         switch ( s.getType() ) {
           case BOOLEAN:
             if ( fieldValue.getClass() == BooleanNode.class ) {
-              return getKettleValue( ( (BooleanNode) fieldValue ).getBooleanValue() );
+              return getKettleValue( ( (BooleanNode) fieldValue ).booleanValue() );
             }
             return getKettleValue( fieldValue );
           case LONG:
             if ( fieldValue.getClass() == LongNode.class ) {
-              return getKettleValue( ( (LongNode) fieldValue ).getLongValue() );
+              return getKettleValue( ( (LongNode) fieldValue ).longValue() );
             }
             return getKettleValue( fieldValue );
           case DOUBLE:
             if ( fieldValue.getClass() == DoubleNode.class ) {
-              return getKettleValue( ( (DoubleNode) fieldValue ).getDoubleValue() );
+              return getKettleValue( ( (DoubleNode) fieldValue ).doubleValue() );
             }
             return getKettleValue( fieldValue );
           case STRING:
@@ -340,12 +340,12 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
             return getKettleValue( fieldValue );
           case INT:
             if ( fieldValue.getClass() == IntNode.class ) {
-              return getKettleValue( new Long( ( (IntNode) fieldValue ).getIntValue() ) );
+              return getKettleValue( new Long( ( (IntNode) fieldValue ).intValue() ) );
             }
             return getKettleValue( new Long( (Integer) fieldValue ) );
           case FLOAT:
             if ( fieldValue instanceof NumericNode ) {
-              return getKettleValue( ( (DoubleNode) fieldValue ).getDoubleValue() );
+              return getKettleValue( ( (DoubleNode) fieldValue ).doubleValue() );
             }
             return getKettleValue( new Double( (Float) fieldValue ) );
           case FIXED:
