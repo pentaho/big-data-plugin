@@ -25,6 +25,8 @@ package org.pentaho.di.trans.steps.avroinput;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericContainer;
 import org.apache.avro.generic.GenericData;
@@ -597,14 +599,21 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
       if ( fieldS == null && !ignoreMissing ) {
         throw new KettleException( BaseMessages.getString( PKG, "AvroInput.Error.NonExistentField", part ) );
       }
-      Object field = record.get( part );
+
+      Object field;
+      try {
+        field = record.get( part );
+      } catch ( AvroRuntimeException e ) {
+        //updating Avro dependency changed the behaviour of the get method. An invalid schema field throws AvroRuntimeException
+        field = null;
+      }
 
       if ( field == null ) {
         fieldS = defaultSchema.getField( part );
-        if ( fieldS == null || fieldS.defaultValue() == null ) {
+        if ( fieldS == null || fieldS.defaultVal() == null ) {
           return null;
         }
-        field = fieldS.defaultValue();
+        field = fieldS.defaultVal();
       }
 
       Schema.Type fieldT = fieldS.schema().getType();

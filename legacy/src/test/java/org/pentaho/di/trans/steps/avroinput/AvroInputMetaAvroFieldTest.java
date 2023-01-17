@@ -378,7 +378,7 @@ public class AvroInputMetaAvroFieldTest {
     assertEquals( testString, avroField.convertToKettleValue( record, schema, mock( Schema.class ), false ) );
   }
 
-  /*@Test
+  @Test
   public void testGetDefaultValueFromDefaultSchemaIfNull() throws KettleException {
     avroField.m_kettleType = "Integer";
     avroField.m_fieldPath = "key";
@@ -392,11 +392,11 @@ public class AvroInputMetaAvroFieldTest {
     GenericData.Record record = mock( GenericData.Record.class );
     when( record.get( avroField.m_fieldPath ) ).thenReturn( null );
     when( defaultSchema.getField( avroField.m_fieldPath ) ).thenReturn( field );
-    when( field.defaultValue() ).thenReturn( node ).thenReturn( node );
+    when( field.defaultVal() ).thenReturn( node ).thenReturn( node );
     when( field.schema() ).thenReturn( fieldSchema );
     when( fieldSchema.getType() ).thenReturn( Schema.Type.INT );
     assertEquals( 5L, avroField.convertToKettleValue( record, schemaToUse, defaultSchema, true ) );
-  }*/
+  }
 
   @Test
   public void testGetPrimitiveFromConvertNode() throws KettleException {

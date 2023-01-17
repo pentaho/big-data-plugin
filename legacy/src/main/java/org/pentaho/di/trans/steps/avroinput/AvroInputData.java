@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema;
 import org.apache.avro.file.DataFileStream;
 import org.apache.avro.generic.GenericContainer;
@@ -628,7 +629,13 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
         }
       }
 
-      Object field = record.get( part );
+      Object field;
+      try {
+        field = record.get( part );
+      } catch ( AvroRuntimeException e ) {
+        //updating Avro dependency changed the behaviour of the get method. An invalid schema field throws AvroRuntimeException
+        field = null;
+      }
 
       if ( field == null ) {
         // field is null and we haven't hit the expansion yet. There will be
