@@ -45,7 +45,7 @@ public class KafkaFactory {
     return new KafkaFactory( KafkaConsumer::new, KafkaProducer::new );
   }
 
-  KafkaFactory(
+  public KafkaFactory(
     Function<Map<String, Object>, Consumer> consumerFunction,
     Function<Map<String, Object>, Producer<Object, Object>> producerFunction ) {
     this.consumerFunction = consumerFunction;
@@ -67,9 +67,9 @@ public class KafkaFactory {
     kafkaConfig.put( ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, keyDeserializerType.getKafkaDeserializerClass() );
     kafkaConfig.put( ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, meta.isAutoCommit() );
     //meta.getJaasConfigService().ifPresent( jaasConfigService -> putKerberosConfig( kafkaConfig, jaasConfigService ) );
-    meta.getConfig().entrySet()
+    /*meta.getConfig().entrySet()
         .forEach( ( entry -> kafkaConfig.put( entry.getKey(), variableNonNull.apply(
-            (String) entry.getValue() ) ) ) );
+            (String) entry.getValue() ) ) ) );*/
 
     return consumerFunction.apply( kafkaConfig );
   }
@@ -101,9 +101,9 @@ public class KafkaFactory {
     kafkaConfig.put( ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, msgSerializerType.getKafkaSerializerClass() );
     kafkaConfig.put( ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, keySerializerType.getKafkaSerializerClass() );
     //meta.getJaasConfigService().ifPresent( jaasConfigService -> putKerberosConfig( kafkaConfig, jaasConfigService ) );
-    meta.getConfig().entrySet()
+   /* meta.getConfig().entrySet()
         .forEach( ( entry -> kafkaConfig.put( entry.getKey(), variableNonNull.apply(
-            (String) entry.getValue() ) ) ) );
+            (String) entry.getValue() ) ) ) );*/
 
     return producerFunction.apply( kafkaConfig );
   }

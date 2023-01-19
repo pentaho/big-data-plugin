@@ -53,7 +53,7 @@ public class KafkaProducerOutput extends BaseStep implements StepInterface, Call
     setKafkaFactory( KafkaFactory.defaultFactory() );
   }
 
-  void setKafkaFactory( KafkaFactory factory ) {
+  protected void setKafkaFactory( KafkaFactory factory ) {
     this.kafkaFactory = factory;
   }
 
