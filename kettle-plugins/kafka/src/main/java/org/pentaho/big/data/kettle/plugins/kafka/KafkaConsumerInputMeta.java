@@ -169,7 +169,7 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
 
   private KafkaConsumerField timestampField;
 
-  private KafkaFactory kafkaFactory;
+  protected KafkaFactory kafkaFactory;
 
   private NamedClusterManager namedClusterService = NamedClusterManager.getInstance();
 
@@ -179,15 +179,16 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
 
   public KafkaConsumerInputMeta() {
     super(); // allocate BaseStepMeta
-
+    kafkaFactory = KafkaFactory.defaultFactory();
+    prepare();
+  }
+  protected  void prepare(){
     try {
       Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
       this.metastoreLocator = metastoreLocators.stream().findFirst().get();
     } catch ( Exception e ) {
       getLog().logError( "Error getting MetastoreLocator", e );
     }
-
-    kafkaFactory = KafkaFactory.defaultFactory();
     keyField = new KafkaConsumerField(
       KafkaConsumerField.Name.KEY,
       BaseMessages.getString( PKG, "KafkaConsumerInputDialog.KeyField" )

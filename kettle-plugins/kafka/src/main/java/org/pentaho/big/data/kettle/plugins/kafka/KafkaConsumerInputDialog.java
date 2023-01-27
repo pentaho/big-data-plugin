@@ -69,8 +69,8 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.C
 public class KafkaConsumerInputDialog extends BaseStreamingDialog implements StepDialogInterface {
 
   private static final int INPUT_WIDTH = 350;
-  private static final int SHELL_MIN_WIDTH = 527;
-  private static final int SHELL_MIN_HEIGHT = 682;
+  protected static final int SHELL_MIN_WIDTH = 527;
+  protected static final int SHELL_MIN_HEIGHT = 682;
   private static final Class<?> PKG = KafkaConsumerInputMeta.class;
   // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
@@ -79,21 +79,21 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
   private final KafkaFactory kafkaFactory = KafkaFactory.defaultFactory();
 
   private KafkaConsumerInputMeta consumerMeta;
-  private Spoon spoonInstance;
+  protected Spoon  spoonInstance ;
 
   private Label wlClusterName;
-  private ComboVar wClusterName;
-
+  protected ComboVar wClusterName;
+  private Composite wOptionsComp;
 
   private TextVar wConsumerGroup;
   private TableView topicsTable;
-  private TableView optionsTable;
+  protected TableView optionsTable;
 
 
   private Button wbDirect;
-  private Button wbCluster;
+  protected Button wbCluster;
   private Label wlBootstrapServers;
-  private TextVar wBootstrapServers;
+  protected TextVar wBootstrapServers;
   private Button wbAutoCommit;
   private Button wbManualCommit;
   private static final String REPOS_DELIM = "/";
@@ -112,10 +112,19 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
     shell.setMinimumSize( SHELL_MIN_WIDTH, SHELL_MIN_HEIGHT );
     buildFieldsTab();
     buildOptionsTab();
+    Listener listener = event -> {
+      switch (event.type) {
+        case SWT.MouseDown:
+          wOptionsComp.setToolTipText( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.Options.ErrorMessage" ) );
+          break;
+      }
+    };
+    wOptionsComp.addListener( SWT.MouseDown,listener );
+    optionsTable.setEnabled( false );
     buildOffsetManagement();
   }
 
-  private void buildOffsetManagement() {
+  protected void buildOffsetManagement() {
     Group wOffsetGroup = new Group( wBatchComp, SWT.SHADOW_ETCHED_IN );
     wOffsetGroup.setText( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.OffsetManagement" ) );
     FormLayout flOffsetGroup = new FormLayout();
@@ -297,7 +306,7 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
     wClusterName.setVisible( !isDirect );
   }
 
-  private void buildFieldsTab() {
+  protected void buildFieldsTab() {
     CTabItem wFieldsTab = new CTabItem( wTabFolder, SWT.NONE, 2 );
     wFieldsTab.setText( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.FieldsTab" ) );
 
@@ -321,11 +330,11 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
     wFieldsTab.setControl( wFieldsComp );
   }
 
-  private void buildOptionsTab() {
+  protected void buildOptionsTab() {
     CTabItem wOptionsTab = new CTabItem( wTabFolder, SWT.NONE );
     wOptionsTab.setText( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.OptionsTab" ) );
 
-    Composite wOptionsComp = new Composite( wTabFolder, SWT.NONE );
+    wOptionsComp = new Composite( wTabFolder, SWT.NONE );
     props.setLook( wOptionsComp );
     FormLayout fieldsLayout = new FormLayout();
     fieldsLayout.marginHeight = 15;
@@ -527,17 +536,7 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
 
     int topicsCount = consumerMeta.getTopics().size();
 
-    Listener lsFocusInTopic = e -> {
-      CCombo ccom = (CCombo) e.widget;
-      ComboVar cvar = (ComboVar) ccom.getParent();
-
-      KafkaDialogHelper kdh = new KafkaDialogHelper(
-        wClusterName, cvar, wbCluster, wBootstrapServers, kafkaFactory,
-        consumerMeta.getNamedClusterService(), // consumerMeta.getNamedClusterServiceLocator(),
-        consumerMeta.getMetastoreLocator(), optionsTable,
-        meta.getParentStepMeta() );
-      kdh.clusterNameChanged( e );
-    };
+    Listener lsFocusInTopic = prepareDialogHelper();
 
     topicsTable = new TableView(
       transMeta,
@@ -700,5 +699,18 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
   private void setOptionsFromTable() {
     consumerMeta.setConfig( KafkaDialogHelper.getConfig( optionsTable ) );
   }
-}
+  protected Listener prepareDialogHelper() {
+    Listener lsFocusInTopic = e -> {
+      CCombo ccom = (CCombo) e.widget;
+      ComboVar cvar = (ComboVar) ccom.getParent();
+    KafkaDialogHelper kdh = new KafkaDialogHelper(
+      wClusterName, cvar, wbCluster, wBootstrapServers, kafkaFactory,
+      consumerMeta.getNamedClusterService(), // consumerMeta.getNamedClusterServiceLocator(),
+      consumerMeta.getMetastoreLocator(), optionsTable,
+      meta.getParentStepMeta() );
+    kdh.clusterNameChanged( e );
+  };
+    return lsFocusInTopic;
+  }
+  }
 
