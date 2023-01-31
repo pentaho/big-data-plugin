@@ -5,14 +5,14 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-kettle-plugins</artifactId>
-    <version>9.5.0.0-SNAPSHOT</version>
+    <version>9.5.0.0-133</version>
   </parent>
   <groupId>pentaho</groupId>
   <artifactId>pentaho-big-data-kettle-plugins-hive</artifactId>
-  <version>9.5.0.0-SNAPSHOT</version>
+  <version>9.5.0.0-133</version>
   <packaging>bundle</packaging>
   <properties>
-    <platform.version>9.5.0.0-SNAPSHOT</platform.version>
+    <platform.version>9.5.0.0-133</platform.version>
   </properties>
   <dependencies>
     <dependency>
