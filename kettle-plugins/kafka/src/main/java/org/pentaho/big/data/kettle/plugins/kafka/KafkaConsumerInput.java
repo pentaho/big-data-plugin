@@ -91,14 +91,11 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
       kafkaConsumerInputMeta.getTopics().stream().map( this::environmentSubstitute ).collect( Collectors.toSet() );
     consumer.subscribe( topics );
 
-    source = createStream( consumer );
+    source = new KafkaStreamSource( consumer, kafkaConsumerInputMeta, kafkaConsumerInputData, variables, this );
     window = new FixedTimeStreamWindow<>( getSubtransExecutor(), kafkaConsumerInputData.outputRowMeta, getDuration(),
       getBatchSize(), getParallelism(), kafkaConsumerInputMeta.isAutoCommit() ? p -> { } : this::commitOffsets );
-    return true;
-  }
 
-  protected StreamSource<List<Object>> createStream( Consumer consumer) {
-    return new KafkaStreamSource( consumer, kafkaConsumerInputMeta, kafkaConsumerInputData, variables, this );
+    return true;
   }
 
   private void commitOffsets( Map.Entry<List<List<Object>>, Result> rowsAndResult ) {

@@ -536,7 +536,7 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
 
     int topicsCount = consumerMeta.getTopics().size();
 
-    Listener lsFocusInTopic = prepareDialogHelper();
+    Listener lsFocusInTopic = populateTopicList();
 
     topicsTable = new TableView(
       transMeta,
@@ -699,7 +699,7 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
   private void setOptionsFromTable() {
     consumerMeta.setConfig( KafkaDialogHelper.getConfig( optionsTable ) );
   }
-  protected Listener prepareDialogHelper() {
+  protected Listener populateTopicList() {
     Listener lsFocusInTopic = e -> {
       CCombo ccom = (CCombo) e.widget;
       ComboVar cvar = (ComboVar) ccom.getParent();
