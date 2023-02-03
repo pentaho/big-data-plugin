@@ -5,10 +5,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-kettle-plugins</artifactId>
-    <version>9.5.0.0-SNAPSHOT</version>
+    <version>9.5.0.0-136</version>
   </parent>
   <artifactId>pentaho-big-data-kettle-plugins-hdfs</artifactId>
-  <version>9.5.0.0-SNAPSHOT</version>
+  <version>9.5.0.0-136</version>
   <packaging>bundle</packaging>
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <description>a Pentaho open source project</description>
@@ -16,7 +16,7 @@
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
     <mockito.version>3.12.4</mockito.version>
-    <platform.version>9.5.0.0-SNAPSHOT</platform.version>
+    <platform.version>9.5.0.0-136</platform.version>
   </properties>
   <dependencies>
     <dependency>
