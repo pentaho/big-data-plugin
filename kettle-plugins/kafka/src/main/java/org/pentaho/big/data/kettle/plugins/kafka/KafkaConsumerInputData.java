@@ -28,7 +28,7 @@ import org.pentaho.di.trans.steps.transexecutor.TransExecutorData;
 
 
 public class KafkaConsumerInputData extends TransExecutorData implements StepDataInterface {
-  RowMetaInterface outputRowMeta;
+  public RowMetaInterface outputRowMeta;
 
   /**
    *

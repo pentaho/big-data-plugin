@@ -151,10 +151,10 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
   private KafkaConsumerField messageField;
 
   @Injection( name = "NAMES", group = "CONFIGURATION_PROPERTIES" )
-  protected List<String> injectedConfigNames;
+  public List<String> injectedConfigNames;
 
   @Injection( name = "VALUES", group = "CONFIGURATION_PROPERTIES" )
-  protected List<String> injectedConfigValues;
+  public List<String> injectedConfigValues;
 
   @Injection( name = AUTO_COMMIT )
   private boolean autoCommit = true;
@@ -628,7 +628,7 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     return config;
   }
 
-  protected void applyInjectedProperties() {
+  public void applyInjectedProperties() {
     if ( injectedConfigNames != null || injectedConfigValues != null ) {
       Preconditions.checkState( injectedConfigNames != null, "Options names were not injected" );
       Preconditions.checkState( injectedConfigValues != null, "Options values were not injected" );

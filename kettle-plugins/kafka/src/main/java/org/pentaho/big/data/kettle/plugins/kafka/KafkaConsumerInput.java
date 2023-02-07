@@ -48,9 +48,9 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
   private static final Class<?> PKG = KafkaConsumerInputMeta.class;
   // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
-  private KafkaConsumerInputMeta kafkaConsumerInputMeta;
-  private KafkaConsumerInputData kafkaConsumerInputData;
-  private KafkaFactory kafkaFactory;
+  protected KafkaConsumerInputMeta kafkaConsumerInputMeta;
+  protected KafkaConsumerInputData kafkaConsumerInputData;
+  protected KafkaFactory kafkaFactory;
 
   public KafkaConsumerInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
                              Trans trans ) {
@@ -83,7 +83,7 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
     }
 
     Consumer consumer =
-      kafkaFactory.consumer( kafkaConsumerInputMeta, this::environmentSubstitute,
+      kafkaConsumerInputMeta.getKafkaFactory().consumer( kafkaConsumerInputMeta, this::environmentSubstitute,
         kafkaConsumerInputMeta.getKeyField().getOutputType(),
         kafkaConsumerInputMeta.getMessageField().getOutputType() );
 
