@@ -31,6 +31,7 @@ import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
+import org.pentaho.di.trans.streaming.api.StreamSource;
 import org.pentaho.di.trans.streaming.common.BaseStreamStep;
 import org.pentaho.di.trans.streaming.common.FixedTimeStreamWindow;
 
@@ -47,9 +48,17 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
   private static final Class<?> PKG = KafkaConsumerInputMeta.class;
   // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
+  protected KafkaConsumerInputMeta kafkaConsumerInputMeta;
+  protected KafkaConsumerInputData kafkaConsumerInputData;
+  protected KafkaFactory kafkaFactory;
+
   public KafkaConsumerInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
                              Trans trans ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
+    setKafkaFactory( KafkaFactory.defaultFactory() );
+  }
+  protected void setKafkaFactory( KafkaFactory factory ) {
+    this.kafkaFactory = factory;
   }
 
   /**
@@ -59,9 +68,8 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
    * @param stepDataInterface The data to initialize
    */
   @Override public boolean init( StepMetaInterface stepMetaInterface, StepDataInterface stepDataInterface ) {
-    KafkaConsumerInputMeta kafkaConsumerInputMeta = (KafkaConsumerInputMeta) stepMetaInterface;
-    KafkaConsumerInputData kafkaConsumerInputData = (KafkaConsumerInputData) stepDataInterface;
-
+    kafkaConsumerInputMeta = (KafkaConsumerInputMeta) stepMetaInterface;
+    kafkaConsumerInputData = (KafkaConsumerInputData) stepDataInterface;
     boolean superInit = super.init( kafkaConsumerInputMeta, kafkaConsumerInputData );
     if ( !superInit ) {
       logError( BaseMessages.getString( PKG, "KafkaConsumerInput.Error.InitFailed" ) );
