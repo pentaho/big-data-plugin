@@ -72,7 +72,7 @@ public class KafkaDialogHelper {
   // KafkaProducerOutputMeta which do not share a common interface.  Would increase complexity for the trivial gain of
   // less parameters in the constructor
   @SuppressWarnings( "squid:S00107" )
-  KafkaDialogHelper( ComboVar wClusterName, ComboVar wTopic, Button wbCluster, TextVar wBootstrapServers,
+  public KafkaDialogHelper( ComboVar wClusterName, ComboVar wTopic, Button wbCluster, TextVar wBootstrapServers,
                             KafkaFactory kafkaFactory, NamedClusterManager namedClusterService, MetastoreLocator metastoreLocator,
                             TableView optionsTable, StepMeta parentMeta ) {
     this.wClusterName = wClusterName;
@@ -100,12 +100,14 @@ public class KafkaDialogHelper {
     if ( !wTopic.getCComboWidget().isDisposed() ) {
       wTopic.getCComboWidget().removeAll();
     }
+    KafkaConsumerInputMeta localMeta =
+      setKafkaProperties( clusterName, isCluster, directBootstrapServers, config );
     CompletableFuture
-      .supplyAsync( () -> listTopics( clusterName, isCluster, directBootstrapServers, config ) )
+      .supplyAsync( () -> listTopics( clusterName, isCluster, directBootstrapServers, config ,localMeta ) )
       .thenAccept( topicMap -> Display.getDefault().syncExec( () -> populateTopics( topicMap, current ) ) );
   }
 
-  private void populateTopics( Map<String, List<PartitionInfo>> topicMap, String current ) {
+  protected void populateTopics( Map<String, List<PartitionInfo>> topicMap, String current ) {
 
     topicMap.keySet().stream()
       .filter( key -> !"__consumer_offsets".equals( key ) ).sorted()
@@ -118,22 +120,24 @@ public class KafkaDialogHelper {
       wTopic.getCComboWidget().setText( current );
     }
   }
-
-  private Map<String, List<PartitionInfo>> listTopics(
-    final String clusterName, final boolean isCluster, final String directBootstrapServers,
-    Map<String, String> config ) {
+   protected KafkaConsumerInputMeta setKafkaProperties(final String clusterName, final boolean isCluster, final String directBootstrapServers,
+                                                    Map<String, String> config){
+     KafkaConsumerInputMeta localMeta = new KafkaConsumerInputMeta();
+     localMeta.setNamedClusterService( namedClusterService );
+     //localMeta.setNamedClusterServiceLocator( namedClusterServiceLocator );
+     localMeta.setMetastoreLocator( metastoreLocator );
+     localMeta.setConnectionType( isCluster ? CLUSTER : DIRECT );
+     localMeta.setClusterName( clusterName );
+     localMeta.setDirectBootstrapServers( directBootstrapServers );
+     localMeta.setParentStepMeta( parentMeta );
+     return localMeta;
+  }
+  protected Map<String, List<PartitionInfo>> listTopics( final String clusterName, final boolean isCluster, final String directBootstrapServers,
+                                                          Map<String, String> config, KafkaConsumerInputMeta localMeta ) {
     Consumer kafkaConsumer = null;
     try {
-      KafkaConsumerInputMeta localMeta = new KafkaConsumerInputMeta();
-      localMeta.setNamedClusterService( namedClusterService );
-      //localMeta.setNamedClusterServiceLocator( namedClusterServiceLocator );
-      localMeta.setMetastoreLocator( metastoreLocator );
-      localMeta.setConnectionType( isCluster ? CLUSTER : DIRECT );
-      localMeta.setClusterName( clusterName );
-      localMeta.setDirectBootstrapServers( directBootstrapServers );
-      localMeta.setConfig( config );
-      localMeta.setParentStepMeta( parentMeta );
-      kafkaConsumer = kafkaFactory.consumer( localMeta, Function.identity() );
+         //KafkaConsumerInputMeta localMeta = setKafkaProperties( clusterName, isCluster, directBootstrapServers, config );
+         kafkaConsumer = kafkaFactory.consumer( localMeta, Function.identity() );
       @SuppressWarnings ( "unchecked" ) Map<String, List<PartitionInfo>> topicMap = kafkaConsumer.listTopics();
       return topicMap;
     } catch ( Exception e ) {
@@ -197,4 +201,6 @@ public class KafkaDialogHelper {
     }
     return false;
   }
+
+
 }

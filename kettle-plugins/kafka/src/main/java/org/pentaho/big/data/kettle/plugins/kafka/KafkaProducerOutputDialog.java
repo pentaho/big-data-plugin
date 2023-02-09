@@ -89,7 +89,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
   private static final int INPUT_WIDTH = 350;
 
   private KafkaProducerOutputMeta meta;
-  private ModifyListener lsMod;
+  protected ModifyListener lsMod;
   private Label wlClusterName;
   private ComboVar wClusterName;
 
@@ -104,6 +104,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
   private Button wbCluster;
   private Label wlBootstrapServers;
   private TextVar wBootstrapServers;
+  private Composite wOptionsComp;
 
   public KafkaProducerOutputDialog( Shell parent, Object in,
                                     TransMeta transMeta, String stepName ) {
@@ -126,6 +127,29 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     };
 
     shell = new Shell( parent, SWT.DIALOG_TRIM | SWT.MIN | SWT.MAX | SWT.RESIZE );
+    prepareOpen();
+    Listener listener = event -> {
+      switch (event.type) {
+        case SWT.MouseDown:
+          wOptionsComp.setToolTipText( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.Options.ErrorMessage" ) );
+          break;
+      }
+    };
+    wOptionsComp.addListener( SWT.MouseDown,listener );
+    optionsTable.setEnabled( false );
+    shell.open();
+    while ( !shell.isDisposed() ) {
+      if ( !display.readAndDispatch() ) {
+        display.sleep();
+      }
+    }
+    return stepname;
+  }
+
+  /**
+   *
+   */
+  public void prepareOpen(){
     props.setLook( shell );
     setShellImage( shell, meta );
     shell.setMinimumSize( SHELL_MIN_WIDTH, SHELL_MIN_HEIGHT );
@@ -224,16 +248,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     meta.setChanged( changed );
 
     wTabFolder.setSelection( 0 );
-
-    shell.open();
-    while ( !shell.isDisposed() ) {
-      if ( !display.readAndDispatch() ) {
-        display.sleep();
-      }
-    }
-    return stepname;
   }
-
   private void buildSetupTab() {
     CTabItem wSetupTab = new CTabItem( wTabFolder, SWT.NONE );
     wSetupTab.setText( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.SetupTab" ) );
@@ -376,16 +391,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     fdTopic.top = new FormAttachment( wlTopic, 5 );
     fdTopic.right = new FormAttachment( 0, INPUT_WIDTH );
     wTopic.setLayoutData( fdTopic );
-    wTopic.getCComboWidget().addListener(
-      SWT.FocusIn,
-      event -> {
-        KafkaDialogHelper kafkaDialogHelper = new KafkaDialogHelper(
-          wClusterName, wTopic, wbCluster, wBootstrapServers, kafkaFactory, meta.getNamedClusterService(),
-          //meta.getNamedClusterServiceLocator(),
-          meta.getMetastoreLocator(), optionsTable, meta.getParentStepMeta() );
-        kafkaDialogHelper.clusterNameChanged( event );
-      } );
-
+    fetchTopicList(  );
     Label wlKeyField = new Label( wSetupComp, SWT.LEFT );
     props.setLook( wlKeyField );
     wlKeyField.setText( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.KeyField" ) );
@@ -438,6 +444,18 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     toggleConnectionType( !KafkaDialogHelper.isKarafEnabled() );
   }
 
+  protected void fetchTopicList(){
+    wTopic.getCComboWidget().addListener(
+      SWT.FocusIn,
+      event -> {
+        KafkaDialogHelper kafkaDialogHelper = new KafkaDialogHelper(
+          wClusterName, wTopic, wbCluster, wBootstrapServers, kafkaFactory, meta.getNamedClusterService(),
+          //meta.getNamedClusterServiceLocator(),
+          meta.getMetastoreLocator(), optionsTable, meta.getParentStepMeta() );
+        kafkaDialogHelper.clusterNameChanged( event );
+      } );
+  }
+
   private void toggleConnectionType( final boolean isDirect ) {
     wlBootstrapServers.setVisible( isDirect );
     wBootstrapServers.setVisible( isDirect );
@@ -448,7 +466,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
   private void buildOptionsTab() {
     CTabItem wOptionsTab = new CTabItem( wTabFolder, SWT.NONE );
     wOptionsTab.setText( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.Options.Tab" ) );
-    Composite wOptionsComp = new Composite( wTabFolder, SWT.NONE );
+     wOptionsComp = new Composite( wTabFolder, SWT.NONE );
     props.setLook( wOptionsComp );
     FormLayout fieldsLayout = new FormLayout();
     fieldsLayout.marginHeight = 15;
@@ -463,9 +481,20 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     wOptionsComp.setLayoutData( optionsFormData );
 
     buildOptionsTable( wOptionsComp );
-
     wOptionsComp.layout();
     wOptionsTab.setControl( wOptionsComp );
+    //optionsTable.getTable().setToolTipText( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.Options.ErrorMessage" ) );
+//    wOptionsComp.setToolTipText( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.Options.ErrorMessage" ) );
+    /*Listener listener = event -> {
+      switch (event.type) {
+        case SWT.MouseDown:
+          wOptionsComp.setToolTipText( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.Options.ErrorMessage" ) );
+          break;
+      }
+    };
+    wOptionsComp.addListener( SWT.MouseDown,listener );
+    optionsTable.setEnabled( false );*/
+
   }
 
   private void buildOptionsTable( Composite parentWidget ) {
@@ -595,12 +624,12 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     return null;
   }
 
-  private void cancel() {
+  protected void cancel() {
     meta.setChanged( false );
     dispose();
   }
 
-  private void ok() {
+  protected void ok() {
     stepname = wStepname.getText();
     meta.setClusterName( wClusterName.getText() );
     meta.setConnectionType( wbDirect.getSelection() ? DIRECT : CLUSTER );
@@ -611,5 +640,29 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     meta.setMessageField( wMessageField.getText() );
     setOptionsFromTable();
     dispose();
+  }
+
+  public TextVar getwBootstrapServers() {
+    return wBootstrapServers;
+  }
+
+  public Button getWbCluster() {
+    return wbCluster;
+  }
+
+  public ComboVar getwClusterName() {
+    return wClusterName;
+  }
+
+  public ComboVar getwTopic() {
+    return wTopic;
+  }
+
+  public TableView getOptionsTable() {
+    return optionsTable;
+  }
+
+  public CTabFolder getwTabFolder() {
+    return wTabFolder;
   }
 }
