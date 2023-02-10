@@ -22,31 +22,25 @@
 
 package org.pentaho.big.data.plugins.common.ui;
 
-import java.util.ArrayList;
-import java.util.Map;
+import java.io.File;
+import java.util.*;
+import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.StackLayout;
-import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.swt.events.FocusListener;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.custom.TableEditor;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.*;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.di.core.util.Utils;
@@ -139,6 +133,202 @@ public class NamedClusterComposite extends Composite {
     Label topSeparator = new Label( this, SWT.HORIZONTAL | SWT.SEPARATOR );
     // Attach the separator to the name 
     topSeparator.setLayoutData( createFormDataAndAttachTopControl( confUI ) );
+
+    List<String> elements = new ArrayList<>();
+    Map<Object, Button> buttons = new HashMap<Object, Button>();
+
+    Composite securityComposite = new Composite( this, SWT.NONE );
+    securityComposite.setLayout( new GridLayout( 2, true ) );
+
+    Label labelDriver = new Label( securityComposite, SWT.NONE );
+    labelDriver.setText( "Driver" );
+    GridData data = new GridData( SWT.FILL, SWT.BEGINNING, true, false );
+    labelDriver.setLayoutData( data );
+
+    Label labelVersion = new Label( securityComposite, SWT.NONE );
+    labelVersion.setText( "Version" );
+    data = new GridData( SWT.FILL, SWT.BEGINNING, true, false );
+    labelVersion.setLayoutData( data );
+
+    Combo driverCombo = new Combo( securityComposite, SWT.READ_ONLY | SWT.DROP_DOWN );
+    String[] driverItems = { "Driver A", "Driver B", "Driver C", "Driver D" }; // TODO: Actually get drivers
+    driverCombo.setItems( driverItems );
+    data = new GridData( SWT.BEGINNING, SWT.BEGINNING, false, false );
+    driverCombo.setLayoutData( data );
+    driverCombo.select( 0 );
+
+    Combo versionCombo = new Combo( securityComposite, SWT.READ_ONLY | SWT.DROP_DOWN );
+    String[] versionItems =
+            { "Version 1", "Version 2", "Version 3", "Version 4" };// TODO: Actually get available versions
+    versionCombo.setItems( versionItems );
+    data = new GridData( SWT.BEGINNING, SWT.BEGINNING, false, false );
+    versionCombo.setLayoutData( data );
+    versionCombo.select( 0 );
+
+    Group groupSiteXMLFiles = new Group( securityComposite, SWT.SHADOW_NONE );
+
+    data = new GridData( SWT.FILL, SWT.FILL, true, false );
+    data.horizontalSpan = 2;
+
+    groupSiteXMLFiles.setLayoutData( data );
+
+    groupSiteXMLFiles.setText( "Site XML Files" );
+    groupSiteXMLFiles.setLayout( new GridLayout( 1, true ) );
+
+    Button button = new Button( groupSiteXMLFiles, SWT.PUSH );
+    button.setText( "Browse to add file(s)" );
+
+    Table table = new Table( groupSiteXMLFiles, SWT.BORDER | SWT.FULL_SELECTION );
+    table.setLayoutData( new GridData( SWT.FILL, SWT.FILL, true, false ) );
+    TableViewer tableViewer = new TableViewer( table );
+    tableViewer.setContentProvider( new ArrayContentProvider() );
+    TableColumn fileNameTableColumn = new TableColumn( table, SWT.LEFT );
+    TableColumn deleteTableColumn = new TableColumn( table, SWT.RIGHT );
+    TableViewerColumn fileNameTableViewerColumn = new TableViewerColumn( tableViewer, fileNameTableColumn );
+    TableViewerColumn deleteTableViewerColumn = new TableViewerColumn( tableViewer, deleteTableColumn );
+    securityComposite.setLayoutData( createFormDataAndAttachTopControl( topSeparator ) );
+
+    // Makes columns equal size on TableViewer
+    tableViewer.getControl().addControlListener( new ControlListener() {
+
+      @Override
+      public void controlResized( ControlEvent arg0 ) {
+        Rectangle rect = tableViewer.getTable().getClientArea();
+        if ( rect.width > 0 ) {
+          int extraSpace = rect.width / tableViewer.getTable().getColumnCount();
+          fileNameTableViewerColumn.getColumn().setWidth( extraSpace );
+          deleteTableViewerColumn.getColumn().setWidth( extraSpace );
+        }
+      }
+
+      @Override
+      public void controlMoved( ControlEvent arg0 ) {
+        // Nothing should change
+      }
+    } );
+
+    // Provides labels for File Names
+    fileNameTableViewerColumn.setLabelProvider( new ColumnLabelProvider() {
+      @Override
+      public String getText( Object element ) {
+        String fileName = (String) element;
+        String seperator = System.getProperty( "file.separator" );
+        if ( fileName.contains( seperator ) ) {
+          return fileName.substring( fileName.lastIndexOf( seperator ) + 1 );
+        }
+        return fileName;
+      }
+
+    } );
+
+    deleteTableViewerColumn.setLabelProvider( new ColumnLabelProvider() {
+      @Override
+      public void update( ViewerCell cell ) {
+        Button button = null;
+        TableItem item = (TableItem) cell.getItem();
+        if ( buttons.containsKey( item ) && !buttons.get( item ).isDisposed() ) {
+          button = buttons.get( item );
+        } else {
+          if ( !item.getText().equals( "No files selected" ) ) {
+            button = new Button( item.getParent(), SWT.PUSH );
+            button.setText( "Remove" );
+            table.update();
+            buttons.put( item, button );
+          }
+        }
+        if ( button != null ) {
+          TableEditor editor = new TableEditor( item.getParent() );
+          editor.grabHorizontal = true;
+          editor.grabVertical = true;
+          editor.setEditor( button, item, 1 );
+          editor.layout();
+          if ( button.getListeners( SWT.PUSH ).length == 0 ) {
+            button.addSelectionListener( new SelectionAdapter() {
+              @Override public void widgetSelected( SelectionEvent e ) {
+                int index = -1;
+                Button b = (Button) e.getSource();
+                for ( int j = 0; j < table.getItemCount(); j++ ) {
+                  if ( buttons.containsKey( table.getItem( j ) ) && buttons.get( table.getItem( j ) ).equals( b ) ) {
+                    index = j;
+                    break;
+                  }
+                }
+                if ( index != -1 ) {
+                  buttons.remove( table.getItem( index ) );
+                  b.dispose();
+                  table.remove( index );
+                  elements.remove( index );
+
+                  if ( table.getItemCount() == 0 ) {
+                    elements.add( "No files selected" );
+                  }
+                  tableViewer.setInput( elements );
+
+                  tableViewer.getTable().update();
+                }
+              }
+            } );
+          }
+        }
+      }
+    } );
+
+    elements.add( "No files selected" );
+
+    tableViewer.setInput( elements );
+
+    button.addSelectionListener( new SelectionAdapter() {
+      @Override public void widgetSelected( SelectionEvent e ) {
+        FileDialog dialog = new FileDialog( parent.getShell(), SWT.MULTI );
+        dialog.setFilterExtensions( new String[] { "*.xml" } );
+        String path = dialog.open();
+        if ( path != null ) {
+
+          List<String> filesToAdd = new ArrayList<>();
+          filesToAdd.addAll( Arrays.asList( dialog.getFileNames() ) );
+          List<String> fullFilePaths = new ArrayList<>();
+          for ( String s : filesToAdd ) {
+            File file;
+            if ( s.contains( System.getProperty( "file.separator" ) ) ) {
+              file = new File( s );
+            } else {
+              file = new File( dialog.getFilterPath(), s );
+            }
+            if ( file.exists() ) {
+              fullFilePaths.add( file.getAbsolutePath() );
+            }
+          }
+          if ( !fullFilePaths.isEmpty() ) {
+            displayFiles( fullFilePaths );
+          }
+        }
+        if ( tableViewer.getTable().getItemCount() == 0 ) {
+          elements.clear();
+          elements.add( "No files selected" );
+        }
+        securityComposite.setSize( securityComposite.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
+        securityComposite.layout( true );
+      }
+
+      private void displayFiles( List<String> strings ) {
+        if ( tableViewer.getTable().getItemCount() == 1 && tableViewer.getTable().getItem( 0 ).getText()
+                .equals( "No files selected" ) ) {
+          elements.remove( 0 );
+        }
+
+        for ( String fileName : strings ) {
+          if ( !elements.contains( fileName ) ) {
+            elements.add( fileName );
+          }
+        }
+
+        tableViewer.setInput( elements );
+        tableViewer.getTable().update();
+        securityComposite.layout( true );
+      }
+    } );
+
+    securityComposite.layout( true );
 
     // create the composite to hold and switch between two subcomponent
     compositeSwitcher = new Composite( this, SWT.NONE );
