@@ -276,11 +276,6 @@
       <version>0.7.1</version>
     </dependency>
     <dependency>
-      <groupId>georss-rome</groupId>
-      <artifactId>georss-rome</artifactId>
-      <version>0.9.8</version>
-    </dependency>
-    <dependency>
       <groupId>infobright</groupId>
       <artifactId>infobright-core</artifactId>
       <version>3.4</version>
@@ -858,11 +853,6 @@
       <groupId>rhino</groupId>
       <artifactId>js</artifactId>
       <version>1.7R3</version>
-    </dependency>
-    <dependency>
-      <groupId>rome</groupId>
-      <artifactId>rome</artifactId>
-      <version>1.0</version>
     </dependency>
     <dependency>
       <groupId>stax</groupId>
