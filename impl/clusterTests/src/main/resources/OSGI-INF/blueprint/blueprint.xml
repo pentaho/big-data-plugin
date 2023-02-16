@@ -22,18 +22,18 @@
     <argument ref="connectivityTestFactory"/>
   </bean>
 
-  <bean id="listRootDirectoryTest" class="org.pentaho.big.data.impl.cluster.tests.hdfs.ListRootDirectoryTest"
+  <bean id="listRootDirectoryTest" class="org.pentaho.big.data.impl.cluster.tests.hdfs.GatewayListRootDirectoryTest"
         scope="singleton">
     <argument ref="messageGetterFactory"/>
     <argument ref="hadoopFileSystemLocator"/>
   </bean>
-  <bean id="listHomeDirectoryTest" class="org.pentaho.big.data.impl.cluster.tests.hdfs.ListHomeDirectoryTest"
+  <bean id="listHomeDirectoryTest" class="org.pentaho.big.data.impl.cluster.tests.hdfs.GatewayListHomeDirectoryTest"
         scope="singleton">
     <argument ref="messageGetterFactory"/>
     <argument ref="hadoopFileSystemLocator"/>
   </bean>
   <bean id="writeToAndDeleteFromUsersHomeFolderTest"
-        class="org.pentaho.big.data.impl.cluster.tests.hdfs.WriteToAndDeleteFromUsersHomeFolderTest" scope="singleton">
+        class="org.pentaho.big.data.impl.cluster.tests.hdfs.GatewayWriteToAndDeleteFromUsersHomeFolderTest" scope="singleton">
     <argument ref="messageGetterFactory"/>
     <argument ref="hadoopFileSystemLocator"/>
   </bean>

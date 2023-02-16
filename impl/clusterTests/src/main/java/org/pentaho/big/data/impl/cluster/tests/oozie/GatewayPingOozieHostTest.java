@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -58,7 +58,7 @@ public class GatewayPingOozieHostTest extends PingOozieHostTest {
         connectivityTestFactory.create( messageGetterFactory,
           variables.environmentSubstitute( namedCluster.getGatewayUrl() ), TEST_PATH,
           variables.environmentSubstitute( namedCluster.getGatewayUsername() ),
-          variables.environmentSubstitute( namedCluster.getGatewayPassword() ) )
+          variables.environmentSubstitute( namedCluster.decodePassword( namedCluster.getGatewayPassword() ) ) )
           .runTest(), ClusterRuntimeTestEntry.DocAnchor.OOZIE ) );
     }
   }
