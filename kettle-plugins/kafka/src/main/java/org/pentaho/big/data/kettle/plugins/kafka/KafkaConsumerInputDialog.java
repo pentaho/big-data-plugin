@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -24,6 +24,8 @@ package org.pentaho.big.data.kettle.plugins.kafka;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.CTabItem;
@@ -47,6 +49,7 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.trans.streaming.common.BaseStreamStepMeta;
+import org.pentaho.di.ui.core.dialog.SimpleMessageDialog;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ComboVar;
 import org.pentaho.di.ui.core.widget.TableView;
@@ -69,8 +72,8 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.C
 public class KafkaConsumerInputDialog extends BaseStreamingDialog implements StepDialogInterface {
 
   private static final int INPUT_WIDTH = 350;
-  private static final int SHELL_MIN_WIDTH = 527;
-  private static final int SHELL_MIN_HEIGHT = 682;
+  protected static final int SHELL_MIN_WIDTH = 527;
+  protected static final int SHELL_MIN_HEIGHT = 682;
   private static final Class<?> PKG = KafkaConsumerInputMeta.class;
   // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
@@ -79,21 +82,21 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
   private final KafkaFactory kafkaFactory = KafkaFactory.defaultFactory();
 
   private KafkaConsumerInputMeta consumerMeta;
-  private Spoon spoonInstance;
+  protected Spoon  spoonInstance ;
 
   private Label wlClusterName;
-  private ComboVar wClusterName;
-
+  protected ComboVar wClusterName;
+  private Composite wOptionsComp;
 
   private TextVar wConsumerGroup;
   private TableView topicsTable;
-  private TableView optionsTable;
+  protected TableView optionsTable;
 
 
   private Button wbDirect;
-  private Button wbCluster;
+  protected Button wbCluster;
   private Label wlBootstrapServers;
-  private TextVar wBootstrapServers;
+  protected TextVar wBootstrapServers;
   private Button wbAutoCommit;
   private Button wbManualCommit;
   private static final String REPOS_DELIM = "/";
@@ -527,17 +530,7 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
 
     int topicsCount = consumerMeta.getTopics().size();
 
-    Listener lsFocusInTopic = e -> {
-      CCombo ccom = (CCombo) e.widget;
-      ComboVar cvar = (ComboVar) ccom.getParent();
-
-      KafkaDialogHelper kdh = new KafkaDialogHelper(
-        wClusterName, cvar, wbCluster, wBootstrapServers, kafkaFactory,
-        consumerMeta.getNamedClusterService(), // consumerMeta.getNamedClusterServiceLocator(),
-        consumerMeta.getMetastoreLocator(), optionsTable,
-        meta.getParentStepMeta() );
-      kdh.clusterNameChanged( e );
-    };
+    Listener lsFocusInTopic = populateTopicList();
 
     topicsTable = new TableView(
       transMeta,
@@ -700,5 +693,43 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
   private void setOptionsFromTable() {
     consumerMeta.setConfig( KafkaDialogHelper.getConfig( optionsTable ) );
   }
-}
+
+  protected Listener populateTopicList() {
+    String keyOptions = BaseMessages.getString( PKG, "kafkaOption.protocol.restrictList" );
+    String[] options = null;
+    if( keyOptions != null ) {
+      options = keyOptions.split( "," );
+    }
+    String[] kafkaOptions = options;
+    Listener lsFocusInTopic = e -> {
+      setOptionsFromTable();
+      for ( String option : kafkaOptions ) {
+        for ( Map.Entry<String, String> entry : consumerMeta.getConfig().entrySet() ) {
+          if ( entry.getKey().startsWith( option ) ) {
+            shell.getDisplay().asyncExec( new Runnable() {
+              public void run() {
+                final Dialog dialog = new SimpleMessageDialog( shell,
+                  BaseMessages.getString( PKG, "System.StepJobEntryNameMissing.Title" ),
+                  BaseMessages.getString( PKG, "KafkaProducerOutputDialog.Options.Sasl.Column" ), MessageDialog.ERROR );
+                dialog.open();
+                return;
+              }
+            } );
+            break;
+          }
+        }
+        break;
+      }
+      CCombo ccom = (CCombo) e.widget;
+      ComboVar cvar = (ComboVar) ccom.getParent();
+      KafkaDialogHelper kdh = new KafkaDialogHelper(
+        wClusterName, cvar, wbCluster, wBootstrapServers, kafkaFactory,
+        consumerMeta.getNamedClusterService(), // consumerMeta.getNamedClusterServiceLocator(),
+        consumerMeta.getMetastoreLocator(), optionsTable,
+        meta.getParentStepMeta() );
+      kdh.clusterNameChanged( e );
+    };
+    return lsFocusInTopic;
+  }
+  }
 

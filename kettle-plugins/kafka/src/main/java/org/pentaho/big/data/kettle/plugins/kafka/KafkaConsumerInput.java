@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -47,9 +47,17 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
   private static final Class<?> PKG = KafkaConsumerInputMeta.class;
   // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
+  protected KafkaConsumerInputMeta kafkaConsumerInputMeta;
+  protected KafkaConsumerInputData kafkaConsumerInputData;
+  protected KafkaFactory kafkaFactory;
+
   public KafkaConsumerInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
                              Trans trans ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
+    setKafkaFactory( KafkaFactory.defaultFactory() );
+  }
+  protected void setKafkaFactory( KafkaFactory factory ) {
+    this.kafkaFactory = factory;
   }
 
   /**
@@ -59,12 +67,16 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
    * @param stepDataInterface The data to initialize
    */
   @Override public boolean init( StepMetaInterface stepMetaInterface, StepDataInterface stepDataInterface ) {
-    KafkaConsumerInputMeta kafkaConsumerInputMeta = (KafkaConsumerInputMeta) stepMetaInterface;
-    KafkaConsumerInputData kafkaConsumerInputData = (KafkaConsumerInputData) stepDataInterface;
-
+    kafkaConsumerInputMeta = (KafkaConsumerInputMeta) stepMetaInterface;
+    kafkaConsumerInputData = (KafkaConsumerInputData) stepDataInterface;
     boolean superInit = super.init( kafkaConsumerInputMeta, kafkaConsumerInputData );
     if ( !superInit ) {
       logError( BaseMessages.getString( PKG, "KafkaConsumerInput.Error.InitFailed" ) );
+      return false;
+    }
+
+    if(  kafkaConsumerInputMeta.checkSaslConfiguration() ){
+      logError( BaseMessages.getString( PKG, "KafkaProducer.Error.saslproperties" ) );
       return false;
     }
 
