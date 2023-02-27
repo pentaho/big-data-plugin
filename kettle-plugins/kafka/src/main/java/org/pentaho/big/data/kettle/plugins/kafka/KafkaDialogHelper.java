@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -72,7 +72,7 @@ public class KafkaDialogHelper {
   // KafkaProducerOutputMeta which do not share a common interface.  Would increase complexity for the trivial gain of
   // less parameters in the constructor
   @SuppressWarnings( "squid:S00107" )
-  KafkaDialogHelper( ComboVar wClusterName, ComboVar wTopic, Button wbCluster, TextVar wBootstrapServers,
+  public KafkaDialogHelper( ComboVar wClusterName, ComboVar wTopic, Button wbCluster, TextVar wBootstrapServers,
                             KafkaFactory kafkaFactory, NamedClusterManager namedClusterService, MetastoreLocator metastoreLocator,
                             TableView optionsTable, StepMeta parentMeta ) {
     this.wClusterName = wClusterName;
@@ -100,12 +100,13 @@ public class KafkaDialogHelper {
     if ( !wTopic.getCComboWidget().isDisposed() ) {
       wTopic.getCComboWidget().removeAll();
     }
+
     CompletableFuture
       .supplyAsync( () -> listTopics( clusterName, isCluster, directBootstrapServers, config ) )
       .thenAccept( topicMap -> Display.getDefault().syncExec( () -> populateTopics( topicMap, current ) ) );
   }
 
-  private void populateTopics( Map<String, List<PartitionInfo>> topicMap, String current ) {
+  protected void populateTopics( Map<String, List<PartitionInfo>> topicMap, String current ) {
 
     topicMap.keySet().stream()
       .filter( key -> !"__consumer_offsets".equals( key ) ).sorted()
@@ -119,9 +120,8 @@ public class KafkaDialogHelper {
     }
   }
 
-  private Map<String, List<PartitionInfo>> listTopics(
-    final String clusterName, final boolean isCluster, final String directBootstrapServers,
-    Map<String, String> config ) {
+  protected Map<String, List<PartitionInfo>> listTopics( final String clusterName, final boolean isCluster, final String directBootstrapServers,
+                                                          Map<String, String> config ) {
     Consumer kafkaConsumer = null;
     try {
       KafkaConsumerInputMeta localMeta = new KafkaConsumerInputMeta();

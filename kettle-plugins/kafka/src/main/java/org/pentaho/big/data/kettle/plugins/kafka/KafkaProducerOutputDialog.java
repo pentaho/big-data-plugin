@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -24,6 +24,8 @@ package org.pentaho.big.data.kettle.plugins.kafka;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -56,6 +58,7 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.ui.core.ConstUI;
+import org.pentaho.di.ui.core.dialog.SimpleMessageDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ComboVar;
@@ -89,7 +92,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
   private static final int INPUT_WIDTH = 350;
 
   private KafkaProducerOutputMeta meta;
-  private ModifyListener lsMod;
+  protected ModifyListener lsMod;
   private Label wlClusterName;
   private ComboVar wClusterName;
 
@@ -104,6 +107,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
   private Button wbCluster;
   private Label wlBootstrapServers;
   private TextVar wBootstrapServers;
+  private Composite wOptionsComp;
 
   public KafkaProducerOutputDialog( Shell parent, Object in,
                                     TransMeta transMeta, String stepName ) {
@@ -126,6 +130,21 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     };
 
     shell = new Shell( parent, SWT.DIALOG_TRIM | SWT.MIN | SWT.MAX | SWT.RESIZE );
+    prepareOpen();
+    shell.open();
+    while ( !shell.isDisposed() ) {
+      if ( !display.readAndDispatch() ) {
+        display.sleep();
+      }
+    }
+    return stepname;
+  }
+
+  /**
+   * This method will prepare Shell with necessary data
+   * and can be used in EE.
+   */
+  public void prepareOpen(){
     props.setLook( shell );
     setShellImage( shell, meta );
     shell.setMinimumSize( SHELL_MIN_WIDTH, SHELL_MIN_HEIGHT );
@@ -224,16 +243,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     meta.setChanged( changed );
 
     wTabFolder.setSelection( 0 );
-
-    shell.open();
-    while ( !shell.isDisposed() ) {
-      if ( !display.readAndDispatch() ) {
-        display.sleep();
-      }
-    }
-    return stepname;
   }
-
   private void buildSetupTab() {
     CTabItem wSetupTab = new CTabItem( wTabFolder, SWT.NONE );
     wSetupTab.setText( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.SetupTab" ) );
@@ -376,16 +386,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     fdTopic.top = new FormAttachment( wlTopic, 5 );
     fdTopic.right = new FormAttachment( 0, INPUT_WIDTH );
     wTopic.setLayoutData( fdTopic );
-    wTopic.getCComboWidget().addListener(
-      SWT.FocusIn,
-      event -> {
-        KafkaDialogHelper kafkaDialogHelper = new KafkaDialogHelper(
-          wClusterName, wTopic, wbCluster, wBootstrapServers, kafkaFactory, meta.getNamedClusterService(),
-          //meta.getNamedClusterServiceLocator(),
-          meta.getMetastoreLocator(), optionsTable, meta.getParentStepMeta() );
-        kafkaDialogHelper.clusterNameChanged( event );
-      } );
-
+    fetchTopicList(  );
     Label wlKeyField = new Label( wSetupComp, SWT.LEFT );
     props.setLook( wlKeyField );
     wlKeyField.setText( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.KeyField" ) );
@@ -438,6 +439,36 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     toggleConnectionType( !KafkaDialogHelper.isKarafEnabled() );
   }
 
+  protected void fetchTopicList(){
+    String keyOptions = BaseMessages.getString( PKG, "kafkaOption.protocol.restrictList" );
+    String[] options = null;
+    if( keyOptions != null ) {
+      options = keyOptions.split( "," );
+    }
+    String[] kafkaOptions = options;
+    wTopic.getCComboWidget().addListener(
+      SWT.FocusIn,
+      event -> {
+        setOptionsFromTable();
+        for ( String option : kafkaOptions ) {
+          for ( Map.Entry<String, String> entry : meta.getConfig().entrySet() ) {
+            if ( entry.getKey().startsWith( option ) ) {
+              final Dialog dialog = new SimpleMessageDialog( shell,
+                BaseMessages.getString( PKG, "System.StepJobEntryNameMissing.Title" ),
+                BaseMessages.getString( PKG, "KafkaProducerOutputDialog.Options.Sasl.Column" ), MessageDialog.ERROR );
+              dialog.open();
+              return;
+            }
+          }
+        }
+        KafkaDialogHelper kafkaDialogHelper = new KafkaDialogHelper(
+          wClusterName, wTopic, wbCluster, wBootstrapServers, kafkaFactory, meta.getNamedClusterService(),
+          //meta.getNamedClusterServiceLocator(),
+          meta.getMetastoreLocator(), optionsTable, meta.getParentStepMeta() );
+        kafkaDialogHelper.clusterNameChanged( event );
+      } );
+  }
+
   private void toggleConnectionType( final boolean isDirect ) {
     wlBootstrapServers.setVisible( isDirect );
     wBootstrapServers.setVisible( isDirect );
@@ -448,7 +479,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
   private void buildOptionsTab() {
     CTabItem wOptionsTab = new CTabItem( wTabFolder, SWT.NONE );
     wOptionsTab.setText( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.Options.Tab" ) );
-    Composite wOptionsComp = new Composite( wTabFolder, SWT.NONE );
+    wOptionsComp = new Composite( wTabFolder, SWT.NONE );
     props.setLook( wOptionsComp );
     FormLayout fieldsLayout = new FormLayout();
     fieldsLayout.marginHeight = 15;
@@ -463,7 +494,6 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     wOptionsComp.setLayoutData( optionsFormData );
 
     buildOptionsTable( wOptionsComp );
-
     wOptionsComp.layout();
     wOptionsTab.setControl( wOptionsComp );
   }
@@ -595,12 +625,12 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     return null;
   }
 
-  private void cancel() {
+  protected void cancel() {
     meta.setChanged( false );
     dispose();
   }
 
-  private void ok() {
+  protected void ok() {
     stepname = wStepname.getText();
     meta.setClusterName( wClusterName.getText() );
     meta.setConnectionType( wbDirect.getSelection() ? DIRECT : CLUSTER );
@@ -611,5 +641,29 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     meta.setMessageField( wMessageField.getText() );
     setOptionsFromTable();
     dispose();
+  }
+
+  public TextVar getwBootstrapServers() {
+    return wBootstrapServers;
+  }
+
+  public Button getWbCluster() {
+    return wbCluster;
+  }
+
+  public ComboVar getwClusterName() {
+    return wClusterName;
+  }
+
+  public ComboVar getwTopic() {
+    return wTopic;
+  }
+
+  public TableView getOptionsTable() {
+    return optionsTable;
+  }
+
+  public CTabFolder getwTabFolder() {
+    return wTabFolder;
   }
 }

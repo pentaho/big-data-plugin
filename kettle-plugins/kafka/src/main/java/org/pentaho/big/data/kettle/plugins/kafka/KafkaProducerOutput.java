@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -53,7 +53,7 @@ public class KafkaProducerOutput extends BaseStep implements StepInterface, Call
     setKafkaFactory( KafkaFactory.defaultFactory() );
   }
 
-  void setKafkaFactory( KafkaFactory factory ) {
+  public void setKafkaFactory( KafkaFactory factory ) {
     this.kafkaFactory = factory;
   }
 
@@ -67,6 +67,11 @@ public class KafkaProducerOutput extends BaseStep implements StepInterface, Call
     super.init( stepMetaInterface, stepDataInterface );
     meta = ( (KafkaProducerOutputMeta) stepMetaInterface );
     data = ( (KafkaProducerOutputData) stepDataInterface );
+
+    if ( meta.checkSaslConfiguration() ) {
+      logError( BaseMessages.getString( PKG, "KafkaProducer.Error.saslproperties" ) );
+      return false;
+    }
 
     return true;
   }
