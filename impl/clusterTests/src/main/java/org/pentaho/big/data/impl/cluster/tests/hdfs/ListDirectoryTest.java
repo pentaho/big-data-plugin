@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -68,7 +68,7 @@ public class ListDirectoryTest extends BaseRuntimeTest {
   private static final Class<?> PKG = ListDirectoryTest.class;
   private final HadoopFileSystemLocator hadoopFileSystemLocator;
   private final String directory;
-  private final MessageGetterFactory messageGetterFactory;
+  protected final MessageGetterFactory messageGetterFactory;
   private final MessageGetter messageGetter;
 
   public ListDirectoryTest( MessageGetterFactory messageGetterFactory, HadoopFileSystemLocator hadoopFileSystemLocator,

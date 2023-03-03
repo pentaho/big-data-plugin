@@ -2,7 +2,7 @@
  *
  *  Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  * ******************************************************************************
  *
@@ -96,8 +96,8 @@ public class WriteToAndDeleteFromUsersHomeFolderTest extends BaseRuntimeTest {
     "WriteToAndDeleteFromUsersHomeFolderTest.ErrorWritingDeletingFile.Message";
   private static final Class<?> PKG = WriteToAndDeleteFromUsersHomeFolderTest.class;
   private final HadoopFileSystemLocator hadoopFileSystemLocator;
-  private final MessageGetterFactory messageGetterFactory;
-  private final MessageGetter messageGetter;
+  protected final MessageGetterFactory messageGetterFactory;
+  protected final MessageGetter messageGetter;
 
   public WriteToAndDeleteFromUsersHomeFolderTest( MessageGetterFactory messageGetterFactory,
                                                   HadoopFileSystemLocator hadoopFileSystemLocator ) {

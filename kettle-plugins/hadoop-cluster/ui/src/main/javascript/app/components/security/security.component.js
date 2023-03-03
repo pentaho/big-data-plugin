@@ -1,5 +1,5 @@
 /*!
- * Copyright 2019 Hitachi Vantara. All rights reserved.
+ * Copyright 2019-2023 Hitachi Vantara. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,8 @@ define([
       vm.helpLink = i18n.get('security.help');
 
       if (!vm.data.model.securityType ||
-        (vm.data.model.securityType === vm.securityType.KNOX && vm.data.model.shimVendor !== "Hortonworks")) {
+          (vm.data.model.securityType === vm.securityType.KNOX && vm.data.model.shimVendor !== "Hortonworks"
+                  && vm.data.model.shimVendor !== "Cloudera")) {
         vm.data.model.securityType = vm.securityType.NONE;
       }
       vm.buttons = getButtons();

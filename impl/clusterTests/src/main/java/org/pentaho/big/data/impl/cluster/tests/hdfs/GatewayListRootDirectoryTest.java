@@ -20,34 +20,37 @@
  *
  ******************************************************************************/
 
-package org.pentaho.big.data.impl.cluster.tests.mr;
+package org.pentaho.big.data.impl.cluster.tests.hdfs;
 
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.big.data.impl.cluster.tests.ClusterRuntimeTestEntry;
 import org.pentaho.di.core.variables.Variables;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
 import org.pentaho.runtime.test.i18n.MessageGetterFactory;
 import org.pentaho.runtime.test.network.ConnectivityTestFactory;
 import org.pentaho.runtime.test.result.RuntimeTestResultSummary;
 import org.pentaho.runtime.test.result.org.pentaho.runtime.test.result.impl.RuntimeTestResultSummaryImpl;
 
 /**
- * Created by dstepanov on 27/04/17.
+ * Created by vamshidhar on 02/02/23.
  */
-public class GatewayPingJobTrackerTest extends PingJobTrackerTest {
-  private static final String TEST_PATH = "/resourcemanager/v1/cluster/info";
+public class GatewayListRootDirectoryTest extends ListRootDirectoryTest {
 
-  public GatewayPingJobTrackerTest( MessageGetterFactory messageGetterFactory,
-                                    ConnectivityTestFactory connectivityTestFactory ) {
-    super( messageGetterFactory, connectivityTestFactory );
+  public static final String TEST_PATH = "/webhdfs/v1/?op=LISTSTATUS";
+
+  private final ConnectivityTestFactory connectivityTestFactory;
+
+  public GatewayListRootDirectoryTest( MessageGetterFactory messageGetterFactory,
+                                       ConnectivityTestFactory connectivityTestFactory,
+                                       HadoopFileSystemLocator hadoopFileSystemLocator ) {
+    super( messageGetterFactory,  hadoopFileSystemLocator);
+    this.connectivityTestFactory = connectivityTestFactory;
   }
 
   @Override public RuntimeTestResultSummary runTest( Object objectUnderTest ) {
     // Safe to cast as our accepts method will only return true for named clusters
     NamedCluster namedCluster = (NamedCluster) objectUnderTest;
 
-    // The connection information might be parameterized. Since we aren't tied to a transformation or job, in order to
-    // use a parameter, the value would have to be set as a system property or in kettle.properties, etc.
-    // Here we try to resolve the parameters if we can:
     Variables variables = new Variables();
     variables.initializeVariablesFrom( null );
 
@@ -56,9 +59,9 @@ public class GatewayPingJobTrackerTest extends PingJobTrackerTest {
     } else {
       return new RuntimeTestResultSummaryImpl( new ClusterRuntimeTestEntry( messageGetterFactory,
         connectivityTestFactory.create( messageGetterFactory,
-          variables.environmentSubstitute( namedCluster.getGatewayUrl() ), TEST_PATH,
-          variables.environmentSubstitute( namedCluster.getGatewayUsername() ),
-          variables.environmentSubstitute( namedCluster.decodePassword( namedCluster.getGatewayPassword() ) ) )
+            variables.environmentSubstitute( namedCluster.getGatewayUrl() ), TEST_PATH,
+            variables.environmentSubstitute( namedCluster.getGatewayUsername() ),
+            variables.environmentSubstitute( namedCluster.decodePassword( namedCluster.getGatewayPassword() ) ) )
           .runTest(), ClusterRuntimeTestEntry.DocAnchor.CLUSTER_CONNECT_GATEWAY ) );
     }
   }
