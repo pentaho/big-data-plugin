@@ -530,8 +530,17 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
 
     int topicsCount = consumerMeta.getTopics().size();
 
-    Listener lsFocusInTopic = populateTopicList();
+    Listener lsFocusInTopic =  e -> {
+      CCombo ccom = (CCombo) e.widget;
+      ComboVar cvar = (ComboVar) ccom.getParent();
 
+      KafkaDialogHelper kdh = new KafkaDialogHelper(
+        wClusterName, cvar, wbCluster, wBootstrapServers, kafkaFactory,
+        consumerMeta.getNamedClusterService(), // consumerMeta.getNamedClusterServiceLocator(),
+        consumerMeta.getMetastoreLocator(), optionsTable,
+        meta.getParentStepMeta() );
+      kdh.clusterNameChanged( e );
+    };
     topicsTable = new TableView(
       transMeta,
       parentWidget,
@@ -694,42 +703,5 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
     consumerMeta.setConfig( KafkaDialogHelper.getConfig( optionsTable ) );
   }
 
-  protected Listener populateTopicList() {
-    String keyOptions = BaseMessages.getString( PKG, "kafkaOption.protocol.restrictList" );
-    String[] options = null;
-    if( keyOptions != null ) {
-      options = keyOptions.split( "," );
-    }
-    String[] kafkaOptions = options;
-    Listener lsFocusInTopic = e -> {
-      setOptionsFromTable();
-      for ( String option : kafkaOptions ) {
-        for ( Map.Entry<String, String> entry : consumerMeta.getConfig().entrySet() ) {
-          if ( entry.getKey().startsWith( option ) ) {
-            shell.getDisplay().asyncExec( new Runnable() {
-              public void run() {
-                final Dialog dialog = new SimpleMessageDialog( shell,
-                  BaseMessages.getString( PKG, "System.StepJobEntryNameMissing.Title" ),
-                  BaseMessages.getString( PKG, "KafkaProducerOutputDialog.Options.Sasl.Column" ), MessageDialog.ERROR );
-                dialog.open();
-                return;
-              }
-            } );
-            break;
-          }
-        }
-        break;
-      }
-      CCombo ccom = (CCombo) e.widget;
-      ComboVar cvar = (ComboVar) ccom.getParent();
-      KafkaDialogHelper kdh = new KafkaDialogHelper(
-        wClusterName, cvar, wbCluster, wBootstrapServers, kafkaFactory,
-        consumerMeta.getNamedClusterService(), // consumerMeta.getNamedClusterServiceLocator(),
-        consumerMeta.getMetastoreLocator(), optionsTable,
-        meta.getParentStepMeta() );
-      kdh.clusterNameChanged( e );
-    };
-    return lsFocusInTopic;
-  }
   }
 

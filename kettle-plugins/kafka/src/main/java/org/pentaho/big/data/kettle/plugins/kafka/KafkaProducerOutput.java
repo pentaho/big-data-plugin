@@ -68,11 +68,6 @@ public class KafkaProducerOutput extends BaseStep implements StepInterface, Call
     meta = ( (KafkaProducerOutputMeta) stepMetaInterface );
     data = ( (KafkaProducerOutputData) stepDataInterface );
 
-    if ( meta.checkSaslConfiguration() ) {
-      logError( BaseMessages.getString( PKG, "KafkaProducer.Error.saslproperties" ) );
-      return false;
-    }
-
     return true;
   }
 

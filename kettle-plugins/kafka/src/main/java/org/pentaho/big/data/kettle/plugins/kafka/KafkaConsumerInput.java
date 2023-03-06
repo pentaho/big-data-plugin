@@ -75,11 +75,6 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
       return false;
     }
 
-    if(  kafkaConsumerInputMeta.checkSaslConfiguration() ){
-      logError( BaseMessages.getString( PKG, "KafkaProducer.Error.saslproperties" ) );
-      return false;
-    }
-
     try {
       kafkaConsumerInputData.outputRowMeta = kafkaConsumerInputMeta.getRowMeta( getStepname(), this );
     } catch ( KettleStepException e ) {
@@ -105,4 +100,5 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
   private void commitOffsets( Map.Entry<List<List<Object>>, Result> rowsAndResult ) {
     ( (KafkaStreamSource) source ).commitOffsets( rowsAndResult.getKey() );
   }
+
 }
