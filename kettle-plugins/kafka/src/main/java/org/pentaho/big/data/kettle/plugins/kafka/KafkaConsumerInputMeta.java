@@ -682,20 +682,4 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     return timestampField.getOutputName();
   }
 
-  protected boolean checkSaslConfiguration() {
-    String keyOptions = BaseMessages.getString( PKG, "kafkaOption.protocol.restrictList" );
-    String[] options = null;
-    if( keyOptions != null ) {
-      options = keyOptions.split( "," );
-    }
-    for(String option:options) {
-      for ( Map.Entry<String, String> entry : getConfig().entrySet() ) {
-        if ( entry.getKey().startsWith( option ) ) {
-          return true;
-        }
-      }
-    }
-      return false;
-  }
-
 }

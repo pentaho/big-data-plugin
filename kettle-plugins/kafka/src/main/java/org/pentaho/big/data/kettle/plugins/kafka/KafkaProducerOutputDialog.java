@@ -386,7 +386,15 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     fdTopic.top = new FormAttachment( wlTopic, 5 );
     fdTopic.right = new FormAttachment( 0, INPUT_WIDTH );
     wTopic.setLayoutData( fdTopic );
-    fetchTopicList(  );
+    wTopic.getCComboWidget().addListener(
+      SWT.FocusIn,
+      event -> {
+        KafkaDialogHelper kafkaDialogHelper = new KafkaDialogHelper(
+          wClusterName, wTopic, wbCluster, wBootstrapServers, kafkaFactory, meta.getNamedClusterService(),
+          //meta.getNamedClusterServiceLocator(),
+          meta.getMetastoreLocator(), optionsTable, meta.getParentStepMeta() );
+        kafkaDialogHelper.clusterNameChanged( event );
+      } );
     Label wlKeyField = new Label( wSetupComp, SWT.LEFT );
     props.setLook( wlKeyField );
     wlKeyField.setText( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.KeyField" ) );
@@ -437,36 +445,6 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     wSetupTab.setControl( wSetupComp );
 
     toggleConnectionType( !KafkaDialogHelper.isKarafEnabled() );
-  }
-
-  protected void fetchTopicList(){
-    String keyOptions = BaseMessages.getString( PKG, "kafkaOption.protocol.restrictList" );
-    String[] options = null;
-    if( keyOptions != null ) {
-      options = keyOptions.split( "," );
-    }
-    String[] kafkaOptions = options;
-    wTopic.getCComboWidget().addListener(
-      SWT.FocusIn,
-      event -> {
-        setOptionsFromTable();
-        for ( String option : kafkaOptions ) {
-          for ( Map.Entry<String, String> entry : meta.getConfig().entrySet() ) {
-            if ( entry.getKey().startsWith( option ) ) {
-              final Dialog dialog = new SimpleMessageDialog( shell,
-                BaseMessages.getString( PKG, "System.StepJobEntryNameMissing.Title" ),
-                BaseMessages.getString( PKG, "KafkaProducerOutputDialog.Options.Sasl.Column" ), MessageDialog.ERROR );
-              dialog.open();
-              return;
-            }
-          }
-        }
-        KafkaDialogHelper kafkaDialogHelper = new KafkaDialogHelper(
-          wClusterName, wTopic, wbCluster, wBootstrapServers, kafkaFactory, meta.getNamedClusterService(),
-          //meta.getNamedClusterServiceLocator(),
-          meta.getMetastoreLocator(), optionsTable, meta.getParentStepMeta() );
-        kafkaDialogHelper.clusterNameChanged( event );
-      } );
   }
 
   private void toggleConnectionType( final boolean isDirect ) {
