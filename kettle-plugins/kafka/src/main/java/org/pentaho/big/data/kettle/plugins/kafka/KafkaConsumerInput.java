@@ -21,7 +21,11 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.kafka;
 
+import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.Node;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.i18n.BaseMessages;
@@ -34,9 +38,12 @@ import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.trans.streaming.common.BaseStreamStep;
 import org.pentaho.di.trans.streaming.common.FixedTimeStreamWindow;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 /**
@@ -75,6 +82,10 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
       return false;
     }
 
+    if ( !checkKafkaConnectionStatus( kafkaConsumerInputMeta ) ) {
+      return false;
+    }
+
     try {
       kafkaConsumerInputData.outputRowMeta = kafkaConsumerInputMeta.getRowMeta( getStepname(), this );
     } catch ( KettleStepException e ) {
@@ -101,4 +112,29 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
     ( (KafkaStreamSource) source ).commitOffsets( rowsAndResult.getKey() );
   }
 
+  private boolean checkKafkaConnectionStatus( KafkaConsumerInputMeta meta ) {
+    boolean kafkaConnectionStatus = false;
+    Properties props = new Properties();
+    props.put( ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, meta.getBootstrapServers()  );
+    props.put( ConsumerConfig.GROUP_ID_CONFIG,  meta.getConsumerGroup()  );
+    props.put( ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class );
+    props.put( ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class );
+    meta.getConfig().entrySet()
+      .forEach( ( entry -> props.put( entry.getKey(),
+        (String) entry.getValue() ) )  );
+
+    AdminClient client = AdminClient.create( props );
+    Collection<Node> nodes = null;
+    try {
+      nodes = client.describeCluster().nodes().get();
+    } catch ( ExecutionException e ) {
+      logError( BaseMessages.getString( PKG, "KafkaConsumerInput.Error.WaitingForConsumerToConnect" ) );
+    } catch ( Exception e ) {
+      logError( e.getMessage() );
+    }
+    if ( nodes != null && nodes.size() > 0 ) {
+      kafkaConnectionStatus = true;
+    }
+    return kafkaConnectionStatus;
+  }
 }
