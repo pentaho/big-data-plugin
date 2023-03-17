@@ -25,11 +25,13 @@
   <bean id="listRootDirectoryTest" class="org.pentaho.big.data.impl.cluster.tests.hdfs.GatewayListRootDirectoryTest"
         scope="singleton">
     <argument ref="messageGetterFactory"/>
+    <argument ref="connectivityTestFactory"/>
     <argument ref="hadoopFileSystemLocator"/>
   </bean>
   <bean id="listHomeDirectoryTest" class="org.pentaho.big.data.impl.cluster.tests.hdfs.GatewayListHomeDirectoryTest"
         scope="singleton">
     <argument ref="messageGetterFactory"/>
+    <argument ref="connectivityTestFactory"/>
     <argument ref="hadoopFileSystemLocator"/>
   </bean>
   <bean id="writeToAndDeleteFromUsersHomeFolderTest"
