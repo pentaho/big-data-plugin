@@ -115,13 +115,13 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
   private boolean checkKafkaConnectionStatus( KafkaConsumerInputMeta meta ) {
     boolean kafkaConnectionStatus = false;
     Properties props = new Properties();
-    props.put( ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, meta.getBootstrapServers()  );
+    props.put( ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, variables.environmentSubstitute( meta.getBootstrapServers() ) );
     props.put( ConsumerConfig.GROUP_ID_CONFIG,  meta.getConsumerGroup()  );
     props.put( ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class );
     props.put( ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class );
     meta.getConfig().entrySet()
       .forEach( ( entry -> props.put( entry.getKey(),
-        (String) entry.getValue() ) )  );
+       variables.environmentSubstitute( (String) entry.getValue() ) ) ) );
 
     AdminClient client = AdminClient.create( props );
     Collection<Node> nodes = null;
