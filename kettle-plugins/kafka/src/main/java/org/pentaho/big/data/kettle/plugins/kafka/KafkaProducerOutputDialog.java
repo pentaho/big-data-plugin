@@ -24,8 +24,6 @@ package org.pentaho.big.data.kettle.plugins.kafka;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -58,7 +56,6 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.ui.core.ConstUI;
-import org.pentaho.di.ui.core.dialog.SimpleMessageDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ComboVar;
@@ -144,7 +141,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
    * This method will prepare Shell with necessary data
    * and can be used in EE.
    */
-  public void prepareOpen(){
+  public void prepareOpen() {
     props.setLook( shell );
     setShellImage( shell, meta );
     shell.setMinimumSize( SHELL_MIN_WIDTH, SHELL_MIN_HEIGHT );
@@ -393,6 +390,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
           wClusterName, wTopic, wbCluster, wBootstrapServers, kafkaFactory, meta.getNamedClusterService(),
           //meta.getNamedClusterServiceLocator(),
           meta.getMetastoreLocator(), optionsTable, meta.getParentStepMeta() );
+        kafkaDialogHelper.setVariableSpace( transMeta );
         kafkaDialogHelper.clusterNameChanged( event );
       } );
     Label wlKeyField = new Label( wSetupComp, SWT.LEFT );

@@ -24,8 +24,6 @@ package org.pentaho.big.data.kettle.plugins.kafka;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.CTabItem;
@@ -49,7 +47,6 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.trans.streaming.common.BaseStreamStepMeta;
-import org.pentaho.di.ui.core.dialog.SimpleMessageDialog;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ComboVar;
 import org.pentaho.di.ui.core.widget.TableView;
@@ -82,7 +79,7 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
   private final KafkaFactory kafkaFactory = KafkaFactory.defaultFactory();
 
   private KafkaConsumerInputMeta consumerMeta;
-  protected Spoon  spoonInstance ;
+  protected Spoon  spoonInstance;
 
   private Label wlClusterName;
   protected ComboVar wClusterName;
@@ -539,6 +536,7 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
         consumerMeta.getNamedClusterService(), // consumerMeta.getNamedClusterServiceLocator(),
         consumerMeta.getMetastoreLocator(), optionsTable,
         meta.getParentStepMeta() );
+      kdh.setVariableSpace( transMeta );
       kdh.clusterNameChanged( e );
     };
     topicsTable = new TableView(
@@ -703,5 +701,5 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
     consumerMeta.setConfig( KafkaDialogHelper.getConfig( optionsTable ) );
   }
 
-  }
+}
 

@@ -37,6 +37,7 @@ import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.util.StringUtil;
+import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.ui.core.widget.ComboVar;
@@ -52,7 +53,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.CLUSTER;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.DIRECT;
 
@@ -67,6 +67,7 @@ public class KafkaDialogHelper {
   //private NamedClusterServiceLocator namedClusterServiceLocator;
   private TableView optionsTable;
   private StepMeta parentMeta;
+  private VariableSpace variableSpace;
 
   // squid:S00107 cannot consolidate params because they can come from either KafkaConsumerInputMeta or
   // KafkaProducerOutputMeta which do not share a common interface.  Would increase complexity for the trivial gain of
@@ -92,11 +93,11 @@ public class KafkaDialogHelper {
       || !wbCluster.getSelection() && StringUtil.isEmpty( wBootstrapServers.getText() ) ) {
       return;
     }
-    String current = wTopic.getText();
-    String clusterName = wClusterName.getText();
+    String current = substituteFieldValue( variableSpace, wTopic.getText() );
+    String clusterName = substituteFieldValue( variableSpace, wClusterName.getText() );
     boolean isCluster = wbCluster.getSelection();
-    String directBootstrapServers = wBootstrapServers == null ? "" : wBootstrapServers.getText();
-    Map<String, String> config = getConfig( optionsTable );
+    String directBootstrapServers = substituteFieldValue( variableSpace, wBootstrapServers == null ? "" : wBootstrapServers.getText() );
+    Map<String, String> config = prepareOptionsMap( getConfig( optionsTable ) );
     if ( !wTopic.getCComboWidget().isDisposed() ) {
       wTopic.getCComboWidget().removeAll();
     }
@@ -196,5 +197,22 @@ public class KafkaDialogHelper {
       return (new File( karafHome )).exists();
     }
     return false;
+  }
+
+  public void setVariableSpace( VariableSpace variableSpace ) {
+    this.variableSpace = variableSpace;
+  }
+
+  private String substituteFieldValue( final VariableSpace space, String field ) {
+    return space.environmentSubstitute( field );
+  }
+
+  private  Map<String, String> prepareOptionsMap( Map<String, String>  configMap ) {
+    Map<String, String> optionsMap = new LinkedHashMap<>();
+
+    configMap .entrySet()
+            .forEach( ( entry -> optionsMap.put( entry.getKey(),
+                    substituteFieldValue( variableSpace, (String) entry.getValue() ) ) ) );
+    return optionsMap;
   }
 }
