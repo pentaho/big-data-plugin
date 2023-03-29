@@ -57,15 +57,15 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.C
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.DIRECT;
 
 public class KafkaDialogHelper {
-  private ComboVar wTopic;
-  private ComboVar wClusterName;
-  private Button wbCluster;
-  private TextVar wBootstrapServers;
+  protected ComboVar wTopic;
+  protected ComboVar wClusterName;
+  protected Button wbCluster;
+  protected TextVar wBootstrapServers;
   private KafkaFactory kafkaFactory;
   private NamedClusterManager namedClusterService;
   private MetastoreLocator metastoreLocator;
   //private NamedClusterServiceLocator namedClusterServiceLocator;
-  private TableView optionsTable;
+  protected TableView optionsTable;
   private StepMeta parentMeta;
   private VariableSpace variableSpace;
 
@@ -93,11 +93,11 @@ public class KafkaDialogHelper {
       || !wbCluster.getSelection() && StringUtil.isEmpty( wBootstrapServers.getText() ) ) {
       return;
     }
-    String current = substituteFieldValue( variableSpace, wTopic.getText() );
-    String clusterName = substituteFieldValue( variableSpace, wClusterName.getText() );
+    String current = wTopic.getText();
+    String clusterName = wClusterName.getText();
     boolean isCluster = wbCluster.getSelection();
-    String directBootstrapServers = substituteFieldValue( variableSpace, wBootstrapServers == null ? "" : wBootstrapServers.getText() );
-    Map<String, String> config = prepareOptionsMap( getConfig( optionsTable ) );
+    String directBootstrapServers = wBootstrapServers == null ? "" : wBootstrapServers.getText();
+    Map<String, String> config = getConfig( optionsTable );
     if ( !wTopic.getCComboWidget().isDisposed() ) {
       wTopic.getCComboWidget().removeAll();
     }
@@ -197,22 +197,5 @@ public class KafkaDialogHelper {
       return (new File( karafHome )).exists();
     }
     return false;
-  }
-
-  public void setVariableSpace( VariableSpace variableSpace ) {
-    this.variableSpace = variableSpace;
-  }
-
-  private String substituteFieldValue( final VariableSpace space, String field ) {
-    return space.environmentSubstitute( field );
-  }
-
-  private  Map<String, String> prepareOptionsMap( Map<String, String>  configMap ) {
-    Map<String, String> optionsMap = new LinkedHashMap<>();
-
-    configMap .entrySet()
-            .forEach( ( entry -> optionsMap.put( entry.getKey(),
-                    substituteFieldValue( variableSpace, (String) entry.getValue() ) ) ) );
-    return optionsMap;
   }
 }

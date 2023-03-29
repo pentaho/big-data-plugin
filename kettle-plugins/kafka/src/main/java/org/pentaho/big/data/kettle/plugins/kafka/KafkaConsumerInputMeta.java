@@ -183,7 +183,7 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     prepare();
   }
 
-  protected  void prepare(){
+  protected  void prepare() {
     try {
       Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
       this.metastoreLocator = metastoreLocators.stream().findFirst().get();
@@ -558,7 +558,7 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     return kafkaFactory;
   }
 
-  void setKafkaFactory( KafkaFactory kafkaFactory ) {
+  protected void setKafkaFactory( KafkaFactory kafkaFactory ) {
     this.kafkaFactory = kafkaFactory;
   }
 
