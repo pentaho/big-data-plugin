@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  * ******************************************************************************
  *
@@ -1245,7 +1245,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
 
     NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
     HBaseService hBaseService = getHBaseService();
-    if ( nc != null ) {
+    if ( nc != null && !nc.isUseGateway()) {
       zookeeperHosts = transMeta.environmentSubstitute( nc.getZooKeeperHost() );
     }
 
@@ -1257,7 +1257,8 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
       defaultConf = transMeta.environmentSubstitute( m_defaultConfigText.getText() );
     }
 
-    if ( Const.isEmpty( zookeeperHosts ) && Const.isEmpty( coreConf ) && Const.isEmpty( defaultConf ) ) {
+    if ( Const.isEmpty( zookeeperHosts ) && Const.isEmpty( coreConf ) && Const.isEmpty( defaultConf )
+      && ( nc == null || !nc.isUseGateway() ) ) {
       throw new IOException( BaseMessages.getString( HBaseInputMeta.PKG,
         "MappingDialog.Error.Message.CantConnectNoConnectionDetailsProvided" ) );
     }
@@ -1275,7 +1276,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     boolean displayFieldsEmbeddedMapping =
       ( ( m_mappingEditor.getMapping( false, null, false ) != null && Const.isEmpty( m_mappingNamesCombo.getText() ) ) );
     boolean displayFieldsMappingFromHBase =
-      ( !Const.isEmpty( m_coreConfigText.getText() ) || !Const.isEmpty( zookeeperQuorumText ) )
+      ( !Const.isEmpty( m_coreConfigText.getText() ) || !Const.isEmpty( zookeeperQuorumText ) || nc.isUseGateway() )
         && !Const.isEmpty( m_mappedTableNamesCombo.getText() ) && !Const.isEmpty( m_mappingNamesCombo.getText() );
 
     if ( displayFieldsEmbeddedMapping || displayFieldsMappingFromHBase ) {
