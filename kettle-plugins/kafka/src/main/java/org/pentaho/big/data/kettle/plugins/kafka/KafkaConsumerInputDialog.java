@@ -531,12 +531,7 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
       CCombo ccom = (CCombo) e.widget;
       ComboVar cvar = (ComboVar) ccom.getParent();
 
-      KafkaDialogHelper kdh = new KafkaDialogHelper(
-        wClusterName, cvar, wbCluster, wBootstrapServers, kafkaFactory,
-        consumerMeta.getNamedClusterService(), // consumerMeta.getNamedClusterServiceLocator(),
-        consumerMeta.getMetastoreLocator(), optionsTable,
-        meta.getParentStepMeta() );
-      kdh.setVariableSpace( transMeta );
+      KafkaDialogHelper kdh = getDialogHelper( cvar );
       kdh.clusterNameChanged( e );
     };
     topicsTable = new TableView(
@@ -701,5 +696,13 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
     consumerMeta.setConfig( KafkaDialogHelper.getConfig( optionsTable ) );
   }
 
-}
+  protected KafkaDialogHelper getDialogHelper( ComboVar cvar ) {
+    KafkaDialogHelper helper = new KafkaDialogHelper(
+      wClusterName, cvar, wbCluster, wBootstrapServers, kafkaFactory,
+      consumerMeta.getNamedClusterService(), // consumerMeta.getNamedClusterServiceLocator(),
+      consumerMeta.getMetastoreLocator(), optionsTable,
+      meta.getParentStepMeta() );
+    return helper;
+  }
 
+}

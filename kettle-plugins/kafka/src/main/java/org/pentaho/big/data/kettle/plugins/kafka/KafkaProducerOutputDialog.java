@@ -91,19 +91,19 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
   private KafkaProducerOutputMeta meta;
   protected ModifyListener lsMod;
   private Label wlClusterName;
-  private ComboVar wClusterName;
+  protected ComboVar wClusterName;
 
   private TextVar wClientId;
-  private ComboVar wTopic;
+  protected ComboVar wTopic;
   private ComboVar wKeyField;
   private ComboVar wMessageField;
-  private TableView optionsTable;
+  protected TableView optionsTable;
   private CTabFolder wTabFolder;
 
   private Button wbDirect;
-  private Button wbCluster;
+  protected Button wbCluster;
   private Label wlBootstrapServers;
-  private TextVar wBootstrapServers;
+  protected TextVar wBootstrapServers;
   private Composite wOptionsComp;
 
   public KafkaProducerOutputDialog( Shell parent, Object in,
@@ -386,11 +386,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     wTopic.getCComboWidget().addListener(
       SWT.FocusIn,
       event -> {
-        KafkaDialogHelper kafkaDialogHelper = new KafkaDialogHelper(
-          wClusterName, wTopic, wbCluster, wBootstrapServers, kafkaFactory, meta.getNamedClusterService(),
-          //meta.getNamedClusterServiceLocator(),
-          meta.getMetastoreLocator(), optionsTable, meta.getParentStepMeta() );
-        kafkaDialogHelper.setVariableSpace( transMeta );
+        KafkaDialogHelper kafkaDialogHelper = getDialogHelper();
         kafkaDialogHelper.clusterNameChanged( event );
       } );
     Label wlKeyField = new Label( wSetupComp, SWT.LEFT );
@@ -642,4 +638,12 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
   public CTabFolder getwTabFolder() {
     return wTabFolder;
   }
+
+  protected KafkaDialogHelper getDialogHelper() {
+    KafkaDialogHelper helper = new KafkaDialogHelper(
+      wClusterName, wTopic, wbCluster, wBootstrapServers, kafkaFactory, meta.getNamedClusterService(),
+      meta.getMetastoreLocator(), optionsTable, meta.getParentStepMeta() );
+    return helper;
+  }
+
 }

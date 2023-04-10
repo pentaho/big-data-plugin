@@ -82,7 +82,8 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
       return false;
     }
 
-    if ( !checkKafkaConnectionStatus( kafkaConsumerInputMeta ) ) {
+    if ( !kafkaConsumerInputMeta.getKafkaFactory().checkKafkaConnectionStatus(
+            kafkaConsumerInputMeta, variables, getLogChannel() ) ) {
       return false;
     }
 
@@ -112,29 +113,4 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
     ( (KafkaStreamSource) source ).commitOffsets( rowsAndResult.getKey() );
   }
 
-  private boolean checkKafkaConnectionStatus( KafkaConsumerInputMeta meta ) {
-    boolean kafkaConnectionStatus = false;
-    Properties props = new Properties();
-    props.put( ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, variables.environmentSubstitute( meta.getBootstrapServers() ) );
-    props.put( ConsumerConfig.GROUP_ID_CONFIG,  meta.getConsumerGroup()  );
-    props.put( ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class );
-    props.put( ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class );
-    meta.getConfig().entrySet()
-      .forEach( ( entry -> props.put( entry.getKey(),
-       variables.environmentSubstitute( (String) entry.getValue() ) ) ) );
-
-    AdminClient client = AdminClient.create( props );
-    Collection<Node> nodes = null;
-    try {
-      nodes = client.describeCluster().nodes().get();
-    } catch ( ExecutionException e ) {
-      logError( BaseMessages.getString( PKG, "KafkaConsumerInput.Error.WaitingForConsumerToConnect" ) );
-    } catch ( Exception e ) {
-      logError( e.getMessage() );
-    }
-    if ( nodes != null && nodes.size() > 0 ) {
-      kafkaConnectionStatus = true;
-    }
-    return kafkaConnectionStatus;
-  }
 }

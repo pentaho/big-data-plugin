@@ -43,7 +43,7 @@ public class KafkaProducerOutput extends BaseStep implements StepInterface, Call
   private static final Class<?> PKG = KafkaConsumerInputMeta.class;
   private KafkaProducerOutputMeta meta;
   private KafkaProducerOutputData data;
-  private KafkaFactory kafkaFactory;
+  protected KafkaFactory kafkaFactory;
   // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
   public KafkaProducerOutput( StepMeta stepMeta,
