@@ -30,8 +30,10 @@
         <include>io.reactivex.rxjava2:rxjava</include>
         <include>ascsapjco3wrp:ascsapjco3wrp</include>
         <include>asm:asm</include>
-        <include>bouncycastle:bcmail-jdk14</include>
+        <include>org.bouncycastle:bcmail-jdk14</include>
         <include>org.bouncycastle:bcprov-jdk14</include>
+        <include>org.bouncycastle:bcutil-jdk14</include>
+        <include>org.bouncycastle:bcpkix-jdk14</include>
         <include>bsf:bsf</include>
         <include>cglib:cglib-nodep</include>
         <include>com.enterprisedt:edtftpj</include>

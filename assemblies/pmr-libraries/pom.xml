@@ -41,9 +41,19 @@
       <version>3.2</version>
     </dependency>
     <dependency>
-      <groupId>bouncycastle</groupId>
+      <groupId>org.bouncycastle</groupId>
       <artifactId>bcmail-jdk14</artifactId>
-      <version>138</version>
+      <version>${bcprov-jdk14.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcpkix-jdk14</artifactId>
+      <version>${bcprov-jdk14.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcutil-jdk14</artifactId>
+      <version>${bcprov-jdk14.version}</version>
     </dependency>
     <dependency>
       <groupId>org.bouncycastle</groupId>
