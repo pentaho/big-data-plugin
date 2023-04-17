@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,17 +22,16 @@
 package org.pentaho.big.data.kettle.plugins.hive;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.pentaho.di.core.logging.LogChannel;
-import org.pentaho.di.core.service.PluginServiceLoader;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.jdbc.DriverLocator;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.service.PluginServiceLoader;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.jdbc.DriverLocator;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.locator.api.MetastoreLocator;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
@@ -57,12 +56,18 @@ public class Hive2DatabaseMeta extends DatabaseMetaWithVersion {
   public Hive2DatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService ) {
     super( driverLocator );
     this.namedClusterService = namedClusterService;
-    try {
-      Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
-      this.metastoreLocator = metastoreLocators.stream().findFirst().get();
-    } catch ( Exception e ) {
-      logger.error( "Error getting metastore locator", e );
+  }
+
+  public MetastoreLocator getMetastoreLocator() {
+    if ( this.metastoreLocator == null ) {
+      try {
+        Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
+        this.metastoreLocator = metastoreLocators.stream().findFirst().get();
+      } catch ( Exception e ) {
+        logger.error( "Error getting metastore locator", e );
+      }
     }
+    return this.metastoreLocator;
   }
 
   @VisibleForTesting
@@ -259,7 +264,7 @@ public class Hive2DatabaseMeta extends DatabaseMetaWithVersion {
 
   @Override public List<String> getNamedClusterList() {
     try {
-      return namedClusterService.listNames( metastoreLocator.getMetastore() );
+      return namedClusterService.listNames( getMetastoreLocator().getMetastore() );
     } catch ( MetaStoreException e ) {
       e.printStackTrace();
       return null;

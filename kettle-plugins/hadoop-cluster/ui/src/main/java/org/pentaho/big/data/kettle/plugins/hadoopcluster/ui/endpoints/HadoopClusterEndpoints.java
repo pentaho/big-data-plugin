@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019-2022 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -34,11 +34,9 @@ import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.di.ui.spoon.Spoon;
-import org.pentaho.metastore.locator.api.MetastoreLocator;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.metastore.locator.api.MetastoreLocator;
 import org.pentaho.runtime.test.RuntimeTester;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -93,20 +91,26 @@ public class HadoopClusterEndpoints {
   public HadoopClusterEndpoints( NamedClusterService namedClusterService,
                                  RuntimeTester runtimeTester, String internalShim, boolean secureEnabled ) {
     this.namedClusterService = namedClusterService;
-    try {
-      Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
-      this.metastoreLocator = metastoreLocators.stream().findFirst().get();
-    } catch ( Exception e ) {
-      log.logError( "Error getting MetastoreLocator", e );
-    }
     this.runtimeTester = runtimeTester;
     this.internalShim = internalShim;
     this.secureEnabled = secureEnabled;
   }
 
+  protected MetastoreLocator getMetastoreLocator() {
+    if ( this.metastoreLocator == null ) {
+      try {
+        Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
+        this.metastoreLocator = metastoreLocators.stream().findFirst().get();
+      } catch ( Exception e ) {
+        log.logError( "Error getting MetastoreLocator", e );
+      }
+    }
+    return this.metastoreLocator;
+  }
+
   private HadoopClusterManager getClusterManager() {
     return new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService,
-      this.metastoreLocator.getMetastore(),
+    getMetastoreLocator().getMetastore(),
       internalShim );
   }
 

@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -23,14 +23,8 @@
 package org.pentaho.big.data.kettle.plugins.hbase.input;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.pentaho.big.data.kettle.plugins.hbase.HbaseUtil;
-import org.pentaho.di.core.logging.LogChannel;
-import org.pentaho.di.core.service.PluginServiceLoader;
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
-import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.hbase.FilterDefinition;
+import org.pentaho.big.data.kettle.plugins.hbase.HbaseUtil;
 import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.NamedClusterLoadSaveUtil;
 import org.pentaho.big.data.kettle.plugins.hbase.ServiceStatus;
@@ -38,15 +32,6 @@ import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingAdmin;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingUtils;
 import org.pentaho.big.data.kettle.plugins.hbase.meta.AELHBaseMappingImpl;
 import org.pentaho.big.data.kettle.plugins.hbase.meta.AELHBaseValueMetaImpl;
-import org.pentaho.hadoop.shim.api.hbase.ByteConversionUtil;
-import org.pentaho.hadoop.shim.api.hbase.HBaseConnection;
-import org.pentaho.hadoop.shim.api.hbase.HBaseService;
-import org.pentaho.hadoop.shim.api.hbase.mapping.ColumnFilter;
-import org.pentaho.hadoop.shim.api.hbase.mapping.ColumnFilterFactory;
-import org.pentaho.hadoop.shim.api.hbase.mapping.Mapping;
-import org.pentaho.hadoop.shim.api.hbase.mapping.MappingFactory;
-import org.pentaho.hadoop.shim.api.hbase.meta.HBaseValueMetaInterface;
-import org.pentaho.hadoop.shim.api.hbase.meta.HBaseValueMetaInterfaceFactory;
 import org.pentaho.di.core.CheckResult;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
@@ -58,11 +43,11 @@ import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionDeep;
 import org.pentaho.di.core.injection.InjectionSupported;
-import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
@@ -71,10 +56,23 @@ import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepMeta;
-import org.pentaho.di.trans.step.StepMetaInterface;
-import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
+import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.di.trans.step.StepMetaInterface;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.hbase.ByteConversionUtil;
+import org.pentaho.hadoop.shim.api.hbase.HBaseConnection;
+import org.pentaho.hadoop.shim.api.hbase.HBaseService;
+import org.pentaho.hadoop.shim.api.hbase.mapping.ColumnFilter;
+import org.pentaho.hadoop.shim.api.hbase.mapping.ColumnFilterFactory;
+import org.pentaho.hadoop.shim.api.hbase.mapping.Mapping;
+import org.pentaho.hadoop.shim.api.hbase.mapping.MappingFactory;
+import org.pentaho.hadoop.shim.api.hbase.meta.HBaseValueMetaInterface;
+import org.pentaho.hadoop.shim.api.hbase.meta.HBaseValueMetaInterfaceFactory;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.locator.api.MetastoreLocator;
 import org.pentaho.runtime.test.RuntimeTester;
@@ -195,12 +193,18 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     this.runtimeTestActionService = runtimeTestActionService;
     this.runtimeTester = runtimeTester;
     namedClusterLoadSaveUtil = new NamedClusterLoadSaveUtil();
-    try {
-      Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
-      this.metaStoreService = metastoreLocators.stream().findFirst().get();
-    } catch ( Exception e ) {
-      getLog().logError( "Error getting MetastoreLocator", e );
+  }
+
+  public MetastoreLocator getMetastoreLocator() {
+    if ( this.metaStoreService == null ) {
+      try {
+        Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
+        this.metaStoreService = metastoreLocators.stream().findFirst().get();
+      } catch ( Exception e ) {
+        getLog().logError( "Error getting MetastoreLocator", e );
+      }
     }
+    return this.metaStoreService;
   }
 
   HBaseInputMeta( NamedClusterService namedClusterService,
@@ -454,7 +458,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
       // the namedCluster present in the local metastore.  Time to load it from the embedded Metastore which is only
       // present at runtime
       NamedCluster nc = namedClusterService.getNamedClusterByName( namedCluster.getName(),
-        metaStoreService
+        getMetastoreLocator()
           .getExplicitMetastore( getParentStepMeta().getParentTransMeta().getEmbeddedMetastoreProviderKey() ) );
       if ( nc != null && nc.getShimIdentifier() != null ) {
         namedCluster = nc; //Overwrite with the real one
@@ -638,7 +642,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     System.out.println( "loading data" );
 
     if ( metaStore == null ) {
-      metaStore = metaStoreService.getMetastore();
+      metaStore = getMetastoreLocator().getMetastore();
     }
 
     this.namedCluster =
@@ -736,7 +740,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step ) throws KettleException {
 
     if ( metaStore == null ) {
-      metaStore = metaStoreService.getMetastore();
+      metaStore = getMetastoreLocator().getMetastore();
     }
 
     namedClusterLoadSaveUtil.saveRep( rep, metaStore, id_transformation, id_step, namedClusterService, namedCluster, getLog() );
@@ -789,7 +793,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
       throws KettleException {
 
     if ( metaStore == null ) {
-      metaStore = metaStoreService.getMetastore();
+      metaStore = getMetastoreLocator().getMetastore();
     }
 
     this.namedCluster = namedClusterLoadSaveUtil.loadClusterConfig( namedClusterService, id_step, rep, metaStore, null, getLog() );
@@ -840,7 +844,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
                      String[] input, String[] output, RowMetaInterface info, VariableSpace variableSpace, Repository repository, IMetaStore metaStore ) {
 
     if ( metaStore == null ) {
-      metaStore = metaStoreService.getMetastore();
+      metaStore = getMetastoreLocator().getMetastore();
     }
 
     RowMeta r = new RowMeta();

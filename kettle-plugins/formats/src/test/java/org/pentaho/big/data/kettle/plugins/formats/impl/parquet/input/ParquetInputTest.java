@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2020-2022 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2020-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -33,6 +33,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.logging.LogLevel;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
@@ -115,6 +116,7 @@ public class ParquetInputTest {
 
   @Before
   public void setUp() throws Exception {
+    KettleLogStore.init();
     currentParquetInputRow = 0;
     setInputRows();
     setParquetRows();
@@ -122,34 +124,37 @@ public class ParquetInputTest {
     metastoreLocatorCollection.add( mockMetaStoreLocator );
     NamedClusterResolver namedClusterResolver;
     try ( MockedStatic<PluginServiceLoader> pluginServiceLoaderMockedStatic = Mockito.mockStatic( PluginServiceLoader.class ) ) {
-      pluginServiceLoaderMockedStatic.when( () -> PluginServiceLoader.loadServices( MetastoreLocator.class ) ).thenReturn( metastoreLocatorCollection );
+      pluginServiceLoaderMockedStatic.when( () -> PluginServiceLoader.loadServices( MetastoreLocator.class ) )
+        .thenReturn( metastoreLocatorCollection );
       namedClusterResolver = new NamedClusterResolver( mockNamedClusterServiceLocator, mockNamedClusterService );
+
+      parquetInputMeta = new ParquetInputMeta( namedClusterResolver );
+      parquetInputMeta.inputFiles.fileName = new String[ 1 ];
+      parquetInputMeta.setFilename( INPUT_STREAM_FIELD_NAME );
+
+      parquetInputMeta.setParentStepMeta( mockStepMeta );
+      when( mockStepMeta.getName() ).thenReturn( INPUT_STEP_NAME );
+      when( mockTransMeta.findStep( INPUT_STEP_NAME ) ).thenReturn( mockStepMeta );
+
+      parquetInputData.input = mockPentahoParquetInputFormat;
+      when( mockFormatService.createInputFormat( IPentahoParquetInputFormat.class,
+        parquetInputMeta.getNamedClusterResolver().resolveNamedCluster( parquetInputMeta.getFilename() ) ) )
+        .thenReturn( mockPentahoParquetInputFormat );
+      when( mockNamedClusterServiceLocator.getService( nullable( NamedCluster.class ), any( Class.class ) ) )
+        .thenReturn( mockFormatService );
+      when( mockPentahoParquetInputFormat.createRecordReader( mockPentahoInputSplit ) ).thenReturn(
+        mockPentahoParquetRecordReader );
+      when( mockPentahoParquetRecordReader.iterator() ).thenReturn( new ParquetInputTest.ParquetRecordIterator() );
+      List<IPentahoInputFormat.IPentahoInputSplit> splits = new ArrayList<>();
+      splits.add( mockPentahoInputSplit );
+      when( parquetInputData.input.getSplits() ).thenReturn( splits );
+
+      parquetInput = spy( new ParquetInput( mockStepMeta, mockStepDataInterface, 0, mockTransMeta,
+        mockTrans ) );
+      parquetInput.setRowHandler( mockRowHandler );
+      parquetInput.setInputRowMeta( inputRowMeta );
+      parquetInput.setLogLevel( LogLevel.ERROR );
     }
-    parquetInputMeta = new ParquetInputMeta( namedClusterResolver );
-    parquetInputMeta.inputFiles.fileName = new String[1];
-    parquetInputMeta.setFilename( INPUT_STREAM_FIELD_NAME );
-
-    parquetInputMeta.setParentStepMeta( mockStepMeta );
-    when( mockStepMeta.getName() ).thenReturn( INPUT_STEP_NAME );
-    when( mockTransMeta.findStep( INPUT_STEP_NAME ) ).thenReturn( mockStepMeta );
-
-    parquetInputData.input = mockPentahoParquetInputFormat;
-    when( mockFormatService.createInputFormat( IPentahoParquetInputFormat.class,
-      parquetInputMeta.getNamedClusterResolver().resolveNamedCluster( parquetInputMeta.getFilename() ) ) )
-      .thenReturn( mockPentahoParquetInputFormat );
-    when( mockNamedClusterServiceLocator.getService( nullable( NamedCluster.class ), any( Class.class ) ) )
-      .thenReturn( mockFormatService );
-    when( mockPentahoParquetInputFormat.createRecordReader( mockPentahoInputSplit ) ).thenReturn( mockPentahoParquetRecordReader );
-    when( mockPentahoParquetRecordReader.iterator() ).thenReturn( new ParquetInputTest.ParquetRecordIterator() );
-    List<IPentahoInputFormat.IPentahoInputSplit> splits = new ArrayList<>();
-    splits.add( mockPentahoInputSplit );
-    when( parquetInputData.input.getSplits() ).thenReturn( splits );
-
-    parquetInput = spy( new ParquetInput( mockStepMeta, mockStepDataInterface, 0, mockTransMeta,
-      mockTrans ) );
-    parquetInput.setRowHandler( mockRowHandler );
-    parquetInput.setInputRowMeta( inputRowMeta );
-    parquetInput.setLogLevel( LogLevel.ERROR );
   }
 
   private Object[] returnNextInputRow() {
