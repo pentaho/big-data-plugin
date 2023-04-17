@@ -39,6 +39,7 @@ public class S3CommonFileSystemConfigBuilder extends FileSystemConfigBuilder {
   private static final String PATHSTYLE_ACCESS = "pathSyleAccess";
   private static final String DEFAULT_S3_CONFIG = "defaultS3Config";
   private static final String CONNECTION_TYPE = "connectionType";
+  private static final String USE_DEFAULTS = "useDefaults";
 
   private FileSystemOptions fileSystemOptions;
 
@@ -149,6 +150,14 @@ public class S3CommonFileSystemConfigBuilder extends FileSystemConfigBuilder {
 
   public String getConnectionType() {
     return (String) this.getParam( getFileSystemOptions(), CONNECTION_TYPE );
+  }
+
+  public boolean useDefaults() {
+    return this.getBoolean( getFileSystemOptions(), USE_DEFAULTS, Boolean.TRUE );
+  }
+
+  public void setUseDefaults( boolean useDefaults ) {
+    this.setParam( getFileSystemOptions(), USE_DEFAULTS, useDefaults );
   }
 
   @Override protected Class<? extends FileSystem> getConfigClass() {

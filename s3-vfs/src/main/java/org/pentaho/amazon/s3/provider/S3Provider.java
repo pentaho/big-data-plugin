@@ -47,6 +47,9 @@ import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.core.osgi.api.DirectFileSystemAccessOsgi;
+import org.pentaho.di.core.service.ServiceProvider;
+import org.pentaho.di.core.service.ServiceProviderInterface;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.s3.vfs.S3FileProvider;
 import org.pentaho.s3common.S3CommonFileSystemConfigBuilder;
@@ -59,12 +62,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.pentaho.di.core.exception.KettleFileException;
+import org.pentaho.di.core.vfs.KettleVFS;
 
 /**
  * Created by bmorrise on 2/5/19.
  */
+@ServiceProvider( id = "S3Provider", description = "Provides S3 Filesystems", provides = DirectFileSystemAccessOsgi.class )
 @SuppressWarnings( "WeakerAccess" )
-public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
+public class S3Provider extends BaseVFSConnectionProvider<S3Details> implements DirectFileSystemAccessOsgi, ServiceProviderInterface<DirectFileSystemAccessOsgi> {
 
   private static final String ACCESS_KEY_SECRET_KEY = "0";
   private static final String CREDENTIALS_FILE = "1";
@@ -199,6 +207,27 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
       }
     }
     return s3Details;
+  }
+
+  @Override
+  public FileObject getFile( ConnectionDetails connectionDetails, String path ) throws KettleFileException {
+    if ( !(connectionDetails instanceof S3Details ) ) {
+      return null;
+    }
+    S3Details s3Conn = (S3Details) connectionDetails;
+    if ( !S3FileProvider.SCHEME.equals( s3Conn.getType() ) ) {
+      return null;
+    }
+    FileSystemOptions fsopts = getOpts( s3Conn );
+    S3CommonFileSystemConfigBuilder builder = new S3CommonFileSystemConfigBuilder( fsopts );
+    builder.setUseDefaults( false );
+    fsopts = builder.getFileSystemOptions();
+
+    // TODO: bucket name should come from somewhere else
+    String bucketname = "metastore";
+    String uri = S3FileProvider.SCHEME + "://" + bucketname + path;
+    return KettleVFS.getFileObject(uri, fsopts);
+    //S3FileProvider().findFile( null, uri, fsopts );
   }
 
   private AmazonS3 getAmazonS3( S3Details s3Details, VariableSpace space ) {
