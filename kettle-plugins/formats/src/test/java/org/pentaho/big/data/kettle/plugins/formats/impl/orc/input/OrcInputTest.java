@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2020-2022 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2020-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -32,6 +32,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.logging.LogLevel;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
@@ -111,6 +112,7 @@ public class OrcInputTest {
 
   @Before
   public void setUp() throws Exception {
+    KettleLogStore.init();
     currentOrcInputRow = 0;
     setInputRows();
     setOrcRows();
@@ -118,33 +120,35 @@ public class OrcInputTest {
     metastoreLocatorCollection.add( mockMetaStoreLocator );
     NamedClusterResolver namedClusterResolver;
     try ( MockedStatic<PluginServiceLoader> pluginServiceLoaderMockedStatic = Mockito.mockStatic( PluginServiceLoader.class ) ) {
-      pluginServiceLoaderMockedStatic.when( () -> PluginServiceLoader.loadServices( MetastoreLocator.class ) ).thenReturn( metastoreLocatorCollection );
+      pluginServiceLoaderMockedStatic.when( () -> PluginServiceLoader.loadServices( MetastoreLocator.class ) )
+        .thenReturn( metastoreLocatorCollection );
       namedClusterResolver = new NamedClusterResolver( mockNamedClusterServiceLocator, mockNamedClusterService );
+
+      orcInputMeta = spy( new OrcInputMeta( namedClusterResolver ) );
+      orcInputMeta.inputFiles.fileName = new String[ 1 ];
+      orcInputMeta.setFilename( INPUT_STREAM_FIELD_NAME );
+
+      orcInputMeta.setParentStepMeta( mockStepMeta );
+      when( mockStepMeta.getParentTransMeta() ).thenReturn( mockTransMeta );
+      when( mockStepMeta.getName() ).thenReturn( INPUT_STEP_NAME );
+      when( mockTransMeta.findStep( INPUT_STEP_NAME ) ).thenReturn( mockStepMeta );
+
+      orcInputData.input = mockPentahoOrcInputFormat;
+      when( mockFormatService.createInputFormat( IPentahoOrcInputFormat.class,
+        orcInputMeta.getNamedClusterResolver().resolveNamedCluster( orcInputMeta.getFilename() ) ) )
+        .thenReturn( mockPentahoOrcInputFormat );
+      when( mockNamedClusterServiceLocator.getService( nullable( NamedCluster.class ), any( Class.class ) ) )
+        .thenReturn( mockFormatService );
+      when( mockTransMeta.environmentSubstitute( INPUT_STREAM_FIELD_NAME ) ).thenReturn( INPUT_STREAM_FIELD_NAME );
+      when( mockPentahoOrcInputFormat.createRecordReader( null ) ).thenReturn( mockPentahoOrcRecordReader );
+      when( mockPentahoOrcRecordReader.iterator() ).thenReturn( new OrcInputTest.OrcRecordIterator() );
+
+      orcInput = spy( new OrcInput( mockStepMeta, mockStepDataInterface, 0, mockTransMeta,
+        mockTrans ) );
+      orcInput.setRowHandler( mockRowHandler );
+      orcInput.setInputRowMeta( inputRowMeta );
+      orcInput.setLogLevel( LogLevel.ERROR );
     }
-    orcInputMeta = spy( new OrcInputMeta( namedClusterResolver ) );
-    orcInputMeta.inputFiles.fileName = new String[1];
-    orcInputMeta.setFilename( INPUT_STREAM_FIELD_NAME );
-
-    orcInputMeta.setParentStepMeta( mockStepMeta );
-    when( mockStepMeta.getParentTransMeta() ).thenReturn( mockTransMeta );
-    when( mockStepMeta.getName() ).thenReturn( INPUT_STEP_NAME );
-    when( mockTransMeta.findStep( INPUT_STEP_NAME ) ).thenReturn( mockStepMeta );
-
-    orcInputData.input = mockPentahoOrcInputFormat;
-    when( mockFormatService.createInputFormat( IPentahoOrcInputFormat.class,
-      orcInputMeta.getNamedClusterResolver().resolveNamedCluster( orcInputMeta.getFilename() ) ) )
-      .thenReturn( mockPentahoOrcInputFormat );
-    when( mockNamedClusterServiceLocator.getService( nullable( NamedCluster.class ), any( Class.class ) ) )
-      .thenReturn( mockFormatService );
-    when( mockTransMeta.environmentSubstitute( INPUT_STREAM_FIELD_NAME ) ).thenReturn( INPUT_STREAM_FIELD_NAME );
-    when( mockPentahoOrcInputFormat.createRecordReader( null ) ).thenReturn( mockPentahoOrcRecordReader );
-    when( mockPentahoOrcRecordReader.iterator() ).thenReturn( new OrcInputTest.OrcRecordIterator() );
-
-    orcInput = spy( new OrcInput( mockStepMeta, mockStepDataInterface, 0, mockTransMeta,
-      mockTrans ) );
-    orcInput.setRowHandler( mockRowHandler );
-    orcInput.setInputRowMeta( inputRowMeta );
-    orcInput.setLogLevel( LogLevel.ERROR );
   }
 
   private Object[] returnNextInputRow() {

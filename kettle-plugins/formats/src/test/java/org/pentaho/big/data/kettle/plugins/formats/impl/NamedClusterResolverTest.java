@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019-2022 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -65,12 +65,7 @@ public class NamedClusterResolverTest {
       .thenReturn( namedCluster );
     when( namedClusterService.getNamedClusterByHost( "somehost", null ) )
       .thenReturn( namedCluster );
-    Collection<MetastoreLocator> metastoreLocatorCollection = new ArrayList<>();
-    metastoreLocatorCollection.add( metaStoreService );
-    try ( MockedStatic<PluginServiceLoader> pluginServiceLoaderMockedStatic = Mockito.mockStatic( PluginServiceLoader.class ) ) {
-      pluginServiceLoaderMockedStatic.when( () -> PluginServiceLoader.loadServices( MetastoreLocator.class ) ).thenReturn( metastoreLocatorCollection );
-      namedClusterResolver = new NamedClusterResolver( namedClusterServiceLocator, namedClusterService );
-    }
+    namedClusterResolver = new NamedClusterResolver( namedClusterServiceLocator, namedClusterService );
   }
 
   @Test
@@ -82,18 +77,29 @@ public class NamedClusterResolverTest {
 
   @Test
   public void testNamedClusterByName() {
-    NamedCluster cluster = namedClusterResolver.resolveNamedCluster( "hc://testhc/path" );
-    assertEquals( namedCluster, cluster );
+    Collection<MetastoreLocator> metastoreLocatorCollection = new ArrayList<>();
+    metastoreLocatorCollection.add( metaStoreService );
+    try ( MockedStatic<PluginServiceLoader> pluginServiceLoaderMockedStatic = Mockito.mockStatic( PluginServiceLoader.class ) ) {
+      pluginServiceLoaderMockedStatic.when( () -> PluginServiceLoader.loadServices( MetastoreLocator.class ) )
+        .thenReturn( metastoreLocatorCollection );
+      NamedCluster cluster = namedClusterResolver.resolveNamedCluster( "hc://testhc/path" );
+      assertEquals( namedCluster, cluster );
 
-    cluster = namedClusterResolver.resolveNamedCluster( "hc://nosuchhc/path" );
-    assertNull( cluster );
-
+      cluster = namedClusterResolver.resolveNamedCluster( "hc://nosuchhc/path" );
+      assertNull( cluster );
+    }
   }
 
   @Test
   public void testNamedClusterByHost() {
-    NamedCluster cluster = namedClusterResolver.resolveNamedCluster( "hdfs://somehost/path" );
-    assertEquals( namedCluster, cluster );
+    Collection<MetastoreLocator> metastoreLocatorCollection = new ArrayList<>();
+    metastoreLocatorCollection.add( metaStoreService );
+    try ( MockedStatic<PluginServiceLoader> pluginServiceLoaderMockedStatic = Mockito.mockStatic( PluginServiceLoader.class ) ) {
+      pluginServiceLoaderMockedStatic.when( () -> PluginServiceLoader.loadServices( MetastoreLocator.class ) )
+        .thenReturn( metastoreLocatorCollection );
+      NamedCluster cluster = namedClusterResolver.resolveNamedCluster( "hdfs://somehost/path" );
+      assertEquals( namedCluster, cluster );
+    }
   }
 
 }

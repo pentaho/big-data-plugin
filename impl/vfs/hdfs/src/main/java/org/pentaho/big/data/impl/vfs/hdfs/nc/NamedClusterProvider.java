@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p>
- * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  * <p>
  * ******************************************************************************
  * <p>
@@ -26,7 +26,6 @@ import org.apache.commons.vfs2.provider.FileNameParser;
 import org.apache.commons.vfs2.provider.GenericFileName;
 import org.pentaho.big.data.impl.vfs.hdfs.HDFSFileProvider;
 import org.pentaho.di.core.osgi.api.VfsEmbeddedFileSystemCloser;
-import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
@@ -38,7 +37,6 @@ import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.locator.api.MetastoreLocator;
 
 import java.net.URI;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,7 +48,6 @@ import java.util.Set;
  */
 public class NamedClusterProvider extends HDFSFileProvider implements VfsEmbeddedFileSystemCloser {
 
-  private MetastoreLocator metaStoreService;
   private Map<String, Set<FileSystem>> cacheEntries =
     Collections.synchronizedMap( new HashMap<>() );
 
@@ -89,15 +86,6 @@ public class NamedClusterProvider extends HDFSFileProvider implements VfsEmbedde
                                String[] schemes,
                                MetastoreLocator metaStore ) throws FileSystemException {
     super( hadoopFileSystemLocator, namedClusterService, fileSystemManager, fileNameParser, schemes, metaStore );
-    this.metaStoreService = metaStore;
-    if ( this.metaStoreService == null ) {
-      try {
-        Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
-        this.metaStoreService = metastoreLocators.stream().findFirst().get();
-      } catch ( Exception e ) {
-        logger.error( "Error getting MetastoreLocator", e );
-      }
-    }
   }
 
 
@@ -126,7 +114,7 @@ public class NamedClusterProvider extends HDFSFileProvider implements VfsEmbedde
 
   @Override
   public FileSystemConfigBuilder getConfigBuilder() {
-    return NamedClusterConfigBuilder.getInstance( metaStoreService, namedClusterService );
+    return NamedClusterConfigBuilder.getInstance( getMetastoreLocator(), namedClusterService );
   }
 
   /**
@@ -170,8 +158,8 @@ public class NamedClusterProvider extends HDFSFileProvider implements VfsEmbedde
 
   private IMetaStore getMetastore( String clusterNameToResolve, FileSystemOptions fileSystemOptions ) {
     String embeddedMetastoreKey = getEmbeddedMetastoreKey( fileSystemOptions );
-    IMetaStore metaStore = ( embeddedMetastoreKey != null ) ? metaStoreService.getMetastore( embeddedMetastoreKey )
-      : metaStoreService.getMetastore();
+    IMetaStore metaStore = ( embeddedMetastoreKey != null ) ? getMetastoreLocator().getMetastore( embeddedMetastoreKey )
+      : getMetastoreLocator().getMetastore();
     if ( metaStore != null ) {
       try {
         if ( namedClusterService.read( clusterNameToResolve, metaStore ) != null ) {
@@ -180,8 +168,8 @@ public class NamedClusterProvider extends HDFSFileProvider implements VfsEmbedde
       } catch ( MetaStoreException e ) {
         // fall through and return the embedded metastore
       }
-      if ( metaStoreService.getExplicitMetastore( embeddedMetastoreKey ) != null ) {
-        metaStore = metaStoreService.getExplicitMetastore( embeddedMetastoreKey );
+      if ( getMetastoreLocator().getExplicitMetastore( embeddedMetastoreKey ) != null ) {
+        metaStore = getMetastoreLocator().getExplicitMetastore( embeddedMetastoreKey );
       }
     }
     return metaStore;
@@ -199,8 +187,8 @@ public class NamedClusterProvider extends HDFSFileProvider implements VfsEmbedde
   }
 
   public void closeFileSystem( String embeddedMetastoreKey ) {
-    IMetaStore defaultMetastore = metaStoreService.getMetastore();
-    IMetaStore embeddedMetastore = metaStoreService.getExplicitMetastore( embeddedMetastoreKey );
+    IMetaStore defaultMetastore = getMetastoreLocator().getMetastore();
+    IMetaStore embeddedMetastore = getMetastoreLocator().getExplicitMetastore( embeddedMetastoreKey );
     if ( cacheEntries.get( embeddedMetastoreKey ) != null ) {
       for ( FileSystem fs : cacheEntries.get( embeddedMetastoreKey ) ) {
         closeFileSystem( fs );
