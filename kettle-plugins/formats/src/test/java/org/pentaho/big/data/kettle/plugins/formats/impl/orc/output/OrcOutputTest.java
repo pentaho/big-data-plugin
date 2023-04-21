@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2020-2022 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2020-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -33,6 +33,7 @@ import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
 import org.pentaho.big.data.kettle.plugins.formats.orc.output.OrcOutputField;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.logging.LogLevel;
 import org.pentaho.di.core.row.RowMeta;
@@ -116,6 +117,7 @@ public class OrcOutputTest {
 
   @Before
   public void setUp() throws Exception {
+    KettleLogStore.init();
     currentOrcRow = 0;
     setDataInputRows();
     setOrcOutputRows();
@@ -123,36 +125,38 @@ public class OrcOutputTest {
     metastoreLocatorCollection.add( mockMetaStoreLocator );
     NamedClusterResolver namedClusterResolver;
     try ( MockedStatic<PluginServiceLoader> pluginServiceLoaderMockedStatic = Mockito.mockStatic( PluginServiceLoader.class ) ) {
-      pluginServiceLoaderMockedStatic.when( () -> PluginServiceLoader.loadServices( MetastoreLocator.class ) ).thenReturn( metastoreLocatorCollection );
+      pluginServiceLoaderMockedStatic.when( () -> PluginServiceLoader.loadServices( MetastoreLocator.class ) )
+        .thenReturn( metastoreLocatorCollection );
       namedClusterResolver = new NamedClusterResolver( mockNamedClusterServiceLocator, mockNamedClusterService );
+
+      orcOutputMeta = new OrcOutputMeta( namedClusterResolver );
+      orcOutputMeta.setFilename( OUTPUT_FILE_NAME );
+      orcOutputMeta.setOutputFields( orcOutputFields );
+      orcOutputMeta.setOverrideOutput( true );
+      orcOutputMeta.setParentStepMeta( mockStepMeta );
+      when( mockStepMeta.getName() ).thenReturn( OUTPUT_STEP_NAME );
+      when( mockTransMeta.findStep( OUTPUT_STEP_NAME ) ).thenReturn( mockStepMeta );
+      when( mockTransMeta.findStep( OUTPUT_STEP_NAME ) ).thenReturn( mockStepMeta );
+
+      try {
+        when( mockRowHandler.getRow() ).thenAnswer( answer -> returnNextParquetRow() );
+      } catch ( KettleException ke ) {
+        ke.printStackTrace();
+      }
+
+      when( mockFormatService.createOutputFormat( IPentahoOrcOutputFormat.class,
+        orcOutputMeta.getNamedClusterResolver().resolveNamedCluster( orcOutputMeta.getFilename() ) ) )
+        .thenReturn( mockPentahoOrcOutputFormat );
+      when( mockNamedClusterServiceLocator.getService( nullable( NamedCluster.class ), any( Class.class ) ) )
+        .thenReturn( mockFormatService );
+      when( mockPentahoOrcOutputFormat.createRecordWriter() ).thenReturn( mockPentahoOrcRecordWriter );
+
+      orcOutput = spy( new OrcOutput( mockStepMeta, mockStepDataInterface, 0, mockTransMeta, mockTrans ) );
+      orcOutput.init( orcOutputMeta, orcOutputData );
+      orcOutput.setInputRowMeta( dataInputRowMeta );
+      orcOutput.setRowHandler( mockRowHandler );
+      orcOutput.setLogLevel( LogLevel.ERROR );
     }
-    orcOutputMeta = new OrcOutputMeta( namedClusterResolver );
-    orcOutputMeta.setFilename( OUTPUT_FILE_NAME );
-    orcOutputMeta.setOutputFields( orcOutputFields );
-    orcOutputMeta.setOverrideOutput( true );
-    orcOutputMeta.setParentStepMeta( mockStepMeta );
-    when( mockStepMeta.getName() ).thenReturn( OUTPUT_STEP_NAME );
-    when( mockTransMeta.findStep( OUTPUT_STEP_NAME ) ).thenReturn( mockStepMeta );
-    when( mockTransMeta.findStep( OUTPUT_STEP_NAME ) ).thenReturn( mockStepMeta );
-
-    try {
-      when( mockRowHandler.getRow() ).thenAnswer( answer -> returnNextParquetRow() );
-    } catch ( KettleException ke ) {
-      ke.printStackTrace();
-    }
-
-    when( mockFormatService.createOutputFormat( IPentahoOrcOutputFormat.class,
-      orcOutputMeta.getNamedClusterResolver().resolveNamedCluster( orcOutputMeta.getFilename() ) ) )
-      .thenReturn( mockPentahoOrcOutputFormat );
-    when( mockNamedClusterServiceLocator.getService( nullable( NamedCluster.class ), any( Class.class ) ) )
-      .thenReturn( mockFormatService );
-    when( mockPentahoOrcOutputFormat.createRecordWriter() ).thenReturn( mockPentahoOrcRecordWriter );
-
-    orcOutput = spy( new OrcOutput( mockStepMeta, mockStepDataInterface, 0, mockTransMeta, mockTrans ) );
-    orcOutput.init( orcOutputMeta, orcOutputData );
-    orcOutput.setInputRowMeta( dataInputRowMeta );
-    orcOutput.setRowHandler( mockRowHandler );
-    orcOutput.setLogLevel( LogLevel.ERROR );
   }
 
   @Test
