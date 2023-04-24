@@ -146,7 +146,7 @@ public class HDFSFileProvider extends AbstractOriginatingFileProvider {
   }
 
   private NamedCluster resolveNamedCluster( String hostName, int port, final FileName name ) {
-    NamedCluster namedCluster = namedClusterService.getNamedClusterByHost( hostName, metaStoreService.getMetastore() );
+    NamedCluster namedCluster = namedClusterService.getNamedClusterByHost( hostName, getMetastoreLocator().getMetastore() );
     if ( namedCluster == null ) {
       namedClusterService.updateNamedClusterTemplate( hostName, port, MAPRFS.equals( name.getScheme() ) );
       namedCluster = namedClusterService.getClusterTemplate();
