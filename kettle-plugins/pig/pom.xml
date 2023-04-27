@@ -1,114 +1,32 @@
-<?xml version="1.0"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <parent>
-    <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-kettle-plugins</artifactId>
+    <groupId>pentaho</groupId>
     <version>10.3.0.0-SNAPSHOT</version>
   </parent>
+
   <artifactId>pentaho-big-data-kettle-plugins-pig</artifactId>
-  <version>10.3.0.0-SNAPSHOT</version>
-  <packaging>bundle</packaging>
+  <version>10.2.0.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <description>a Pentaho open source project</description>
   <url>http://www.pentaho.com</url>
-  <properties>
-    <publish-sonar-phase>site</publish-sonar-phase>
-  </properties>
-  <dependencies>
-    <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>shim-api</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-kettle-plugins-common-ui</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>pentaho-kettle</groupId>
-      <artifactId>kettle-core</artifactId>
-      <version>${pdi.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>pentaho-kettle</groupId>
-      <artifactId>kettle-engine</artifactId>
-      <version>${pdi.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>pentaho-kettle</groupId>
-      <artifactId>kettle-ui-swt</artifactId>
-      <version>${pdi.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>${dependency.junit.revision}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
-      <version>${dependency.mockito.revision}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>pentaho-kettle</groupId>
-      <artifactId>kettle-engine</artifactId>
-      <version>${pdi.version}</version>
-      <classifier>tests</classifier>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-legacy</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho.hadoop.shims</groupId>
-      <artifactId>pentaho-hadoop-shims-common-fragment-V1</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-core</artifactId>
-      <version>0.20.2</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-impl-cluster</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.pig</groupId>
-      <artifactId>pig</artifactId>
-      <version>0.8.1</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <version>${dependency.maven-bundle-plugin.version}</version>
-        <extensions>true</extensions>
-        <configuration>
-          <instructions>
-            <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-            <Import-Package>org.eclipse.swt*;resolution:=optional,org.pentaho.di.ui.xul*;resolution:=optional,org.pentaho.ui.xul*;resolution:=optional,org.pentaho.di.osgi,org.pentaho.di.core.plugins,org.pentaho.hadoop.shim.api.cluster,*</Import-Package>
-          </instructions>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+      <comments>A business-friendly OSS license</comments>
+    </license>
+  </licenses>
+
+  <modules>
+    <module>assemblies</module>
+    <module>core</module>
+  </modules>
 </project>
