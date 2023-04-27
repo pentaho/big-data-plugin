@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -682,7 +682,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
       return;
     } else {
       NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
-      if ( StringUtils.isEmpty( nc.getZooKeeperHost() ) ) {
+      if ( !nc.isUseGateway() && StringUtils.isEmpty( nc.getZooKeeperHost() ) ) {
         MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
         mb.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "Dialog.Error" ) );
         mb.setMessage( BaseMessages.getString(
@@ -855,11 +855,12 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     }
 
     NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
-    if ( nc != null ) {
+    if ( nc != null && !nc.isUseGateway() ) {
       zookeeperHosts = transMeta.environmentSubstitute( nc.getZooKeeperHost() );
     }
 
-    if ( Utils.isEmpty( zookeeperHosts ) && Utils.isEmpty( coreConf ) && Utils.isEmpty( defaultConf ) ) {
+    if ( Utils.isEmpty( zookeeperHosts ) && Utils.isEmpty( coreConf ) && Utils.isEmpty( defaultConf ) && ( nc != null
+      && !nc.isUseGateway() ) ) {
       throw new IOException( BaseMessages.getString( HBaseOutputMeta.PKG,
         "MappingDialog.Error.Message.CantConnectNoConnectionDetailsProvided" ) );
     }
