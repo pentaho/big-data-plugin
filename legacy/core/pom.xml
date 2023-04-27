@@ -4,10 +4,10 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>pentaho</groupId>
-    <artifactId>pentaho-big-data-legacy-amazon</artifactId>
-    <version>11.0.0.0-SNAPSHOT</version>
+    <artifactId>pentaho-big-data-legacy</artifactId>
+    <version>10.2.0.0-SNAPSHOT</version>
   </parent>
-  <artifactId>pdi-legacy-amazon-core</artifactId>
+  <artifactId>pdi-legacy-core</artifactId>
   <licenses>
     <license>
       <name>Apache License, Version 2.0</name>
@@ -42,7 +42,7 @@
               org.pentaho.di.core.namedcluster,
               org.pentaho.di.core.namedcluster.model
             </Export-Package>
-  -->
+-->
 
   <build>
     <resources>
@@ -85,37 +85,46 @@
   <dependencies>
     <dependency>
       <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-legacy</artifactId>
-      <version>${project.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-legacy-core</artifactId>
       <version>${project.version}</version>
-      <scope>provided</scope>
+      <!--scope>provided</scope-->
     </dependency>
     <dependency>
       <groupId>org.apache.oozie</groupId>
       <artifactId>oozie-client</artifactId>
       <version>${oozie.version}</version>
+
+      <scope>provided</scope>
+
     </dependency>
     <dependency>
       <groupId>org.apache.oozie</groupId>
       <artifactId>oozie-core</artifactId>
       <version>${oozie.version}</version>
+
+      <scope>provided</scope>
+
     </dependency>
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-mapper-asl</artifactId>
+
+      <scope>provided</scope>
+
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
+
+      <scope>provided</scope>
+
     </dependency>
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-iam</artifactId>
+
+      <scope>provided</scope>
+
       <exclusions>
         <exclusion>
           <groupId>com.amazonaws</groupId>
@@ -126,6 +135,9 @@
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-core</artifactId>
+
+      <scope>provided</scope>
+
       <exclusions>
         <exclusion>
           <groupId>com.fasterxml.jackson.dataformat</groupId>
@@ -140,6 +152,9 @@
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-emr</artifactId>
+
+      <scope>provided</scope>
+
       <exclusions>
         <exclusion>
           <groupId>com.amazonaws</groupId>
@@ -150,6 +165,9 @@
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-pricing</artifactId>
+
+      <scope>provided</scope>
+
       <exclusions>
         <exclusion>
           <groupId>com.amazonaws</groupId>
@@ -160,6 +178,9 @@
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-s3</artifactId>
+
+      <scope>provided</scope>
+
       <exclusions>
         <exclusion>
           <groupId>com.amazonaws</groupId>
@@ -175,6 +196,9 @@
       <groupId>joda-time</groupId>
       <artifactId>joda-time</artifactId>
       <version>${dependency.joda-time.revision}</version>
+
+      <scope>provided</scope>
+
       <exclusions>
         <exclusion>
           <artifactId>*</artifactId>
@@ -186,48 +210,78 @@
       <groupId>org.apache.avro</groupId>
       <artifactId>avro</artifactId>
       <version>${avro.version}</version>
+
+      <scope>provided</scope>
+
     </dependency>
     <dependency>
       <groupId>org.eclipse.core</groupId>
       <artifactId>commands</artifactId>
       <version>${commands.version}</version>
+
+      <scope>provided</scope>
+
     </dependency>
     <dependency>
       <groupId>org.eclipse.equinox</groupId>
       <artifactId>common</artifactId>
       <version>${common.version}</version>
+
+      <scope>provided</scope>
+
     </dependency>
     <dependency>
       <groupId>com.github.stephenc.high-scale-lib</groupId>
       <artifactId>high-scale-lib</artifactId>
       <version>${high-scale-lib.version}</version>
+
+      <scope>provided</scope>
+
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
+
+      <scope>provided</scope>
+
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpcore</artifactId>
+
+      <scope>provided</scope>
+
     </dependency>
     <dependency>
       <groupId>net.java.dev.jets3t</groupId>
       <artifactId>jets3t</artifactId>
       <version>${jets3t.version}</version>
+
+      <scope>provided</scope>
+
     </dependency>
     <dependency>
       <groupId>jline</groupId>
       <artifactId>jline</artifactId>
       <version>${jline.version}</version>
+
+      <scope>provided</scope>
+
     </dependency>
     <dependency>
       <groupId>libthrift</groupId>
       <artifactId>libthrift</artifactId>
       <version>${libthrift.version}</version>
+
+      <scope>provided</scope>
+
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
+
+      <scope>provided</scope>
+
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
@@ -262,25 +316,57 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>${guava.version}</version>
+      <version>${dependency.guava.revision}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>commons-configuration</groupId>
       <artifactId>commons-configuration</artifactId>
       <version>${dependency.commons-configuration.revision}</version>
+
+      <scope>provided</scope>
+
     </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>${dependency.junit.revision}</version>
-      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
-      <version>${mockito.version}</version>
+      <artifactId>mockito-all</artifactId>
+      <version>${dependency.mockito.revision}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-reflect</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-api-mockito</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4-common</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-api-support</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -356,15 +442,11 @@
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
-      <artifactId>shim-api-core</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
       <artifactId>shim-api</artifactId>
       <version>${pentaho-hadoop-shims.version}</version>
+
       <scope>provided</scope>
+
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
@@ -373,23 +455,6 @@
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-platform-api</artifactId>
-      <version>${platform.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-platform-core</artifactId>
-      <version>${platform.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-s3-vfs</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
+
 </project>

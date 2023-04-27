@@ -80,6 +80,8 @@
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
       <version>${mockito.version}</version>
+      <artifactId>mockito-all</artifactId>
+      <version>${dependency.mockito.revision}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -97,7 +99,6 @@
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-legacy</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
