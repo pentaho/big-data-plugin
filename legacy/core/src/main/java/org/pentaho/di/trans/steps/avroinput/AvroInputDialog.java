@@ -40,6 +40,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
+import org.pentaho.di.core.annotations.PluginDialog;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleException;
@@ -74,6 +75,8 @@ import org.pentaho.vfs.ui.VfsFileChooserDialog;
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  * @version $Revision$
  */
+@PluginDialog( id = "AvroInput", image = "ui/images/deprecated.svg", pluginType = PluginDialog.PluginType.STEP,
+  documentationUrl = "Products/Avro_Input" )
 public class AvroInputDialog extends BaseStepDialog implements StepDialogInterface {
 
   private static final Class<?> PKG = AvroInputMeta.class;
