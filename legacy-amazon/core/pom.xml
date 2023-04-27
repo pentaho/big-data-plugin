@@ -6,6 +6,7 @@
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-legacy-amazon</artifactId>
     <version>11.0.0.0-SNAPSHOT</version>
+    <version>10.2.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>pdi-legacy-amazon-core</artifactId>
   <licenses>
@@ -19,6 +20,7 @@
   <properties>
     <common.version>3.3.0-v20070426</common.version>
     <pig.version>0.8.1</pig.version>
+    <h2.version>1.3.166</h2.version>
     <jets3t.version>0.9.4</jets3t.version>
     <hadoop.version>0.20.2</hadoop.version>
     <hbase.version>0.90.3</hbase.version>
@@ -103,6 +105,10 @@
       <groupId>org.apache.oozie</groupId>
       <artifactId>oozie-core</artifactId>
       <version>${oozie.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-mapper-asl</artifactId>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
@@ -229,6 +235,12 @@
       <artifactId>kettle-core</artifactId>
       <version>${pdi.version}</version>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>commons-httpclient</artifactId>
+          <groupId>commons-httpclient</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
@@ -241,6 +253,12 @@
       <artifactId>kettle-ui-swt</artifactId>
       <version>${pdi.version}</version>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>commons-httpclient</artifactId>
+          <groupId>commons-httpclient</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
@@ -277,6 +295,12 @@
       <artifactId>hadoop-core</artifactId>
       <version>${hadoop.version}</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>commons-httpclient</artifactId>
+          <groupId>commons-httpclient</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.jboss.shrinkwrap</groupId>
@@ -289,6 +313,12 @@
       <artifactId>pig</artifactId>
       <version>${pig.version}</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>commons-httpclient</artifactId>
+          <groupId>commons-httpclient</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.easymock</groupId>
@@ -302,6 +332,10 @@
       <version>${hbase.version}</version>
       <scope>test</scope>
       <exclusions>
+        <exclusion>
+          <artifactId>commons-httpclient</artifactId>
+          <groupId>commons-httpclient</groupId>
+        </exclusion>
         <exclusion>
           <artifactId>libthrift</artifactId>
           <groupId>libthrift</groupId>

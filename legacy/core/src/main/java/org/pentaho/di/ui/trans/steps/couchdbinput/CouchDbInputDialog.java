@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.pentaho.di.core.annotations.PluginDialog;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
@@ -46,6 +47,8 @@ import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.dialog.TransPreviewProgressDialog;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 
+@PluginDialog( id = "CouchDbInput", image = "couchdb-input.svg", pluginType = PluginDialog.PluginType.STEP,
+  documentationUrl = "Products/CouchDB_Input" )
 public class CouchDbInputDialog extends BaseStepDialog implements StepDialogInterface {
   private static Class<?> PKG = CouchDbInputMeta.class; // for Translator.sh
 
