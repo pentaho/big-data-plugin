@@ -1,0 +1,67 @@
+/*! ******************************************************************************
+ *
+ * Pentaho Big Data
+ *
+ * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
+
+package org.pentaho.big.data.kettle.plugins.sqoop;
+
+import org.eclipse.swt.widgets.Shell;
+import org.pentaho.di.core.annotations.PluginDialog;
+import org.pentaho.big.data.kettle.plugins.sqoop.ui.AbstractSqoopJobEntryDialog;
+import org.pentaho.big.data.kettle.plugins.sqoop.ui.SqoopExportJobEntryController;
+import org.pentaho.di.job.JobMeta;
+import org.pentaho.di.job.entry.JobEntryInterface;
+import org.pentaho.di.repository.Repository;
+import org.pentaho.ui.xul.XulDomContainer;
+import org.pentaho.ui.xul.XulException;
+import org.pentaho.ui.xul.binding.BindingFactory;
+
+import java.lang.reflect.InvocationTargetException;
+
+/**
+ * Dialog for the Sqoop Export job entry.
+ * 
+ * @see SqoopExportJobEntry
+ */
+@PluginDialog( id = "SqoopExport", image = "sqoop-export.svg", pluginType = PluginDialog.PluginType.JOBENTRY,
+  documentationUrl = "https://pentaho-community.atlassian.net/wiki/display/EAI/Sqoop+Export" )
+public class SqoopExportJobEntryDialog extends AbstractSqoopJobEntryDialog<SqoopExportConfig, SqoopExportJobEntry> {
+
+  public SqoopExportJobEntryDialog( Shell parent, JobEntryInterface jobEntry, Repository rep, JobMeta jobMeta )
+    throws XulException, InvocationTargetException {
+    super( parent, jobEntry, rep, jobMeta );
+  }
+
+  @Override
+  protected String getXulFile() {
+    return "org/pentaho/big/data/kettle/plugins/sqoop/xul/SqoopExportJobEntry.xul";
+  }
+
+  @Override
+  protected Class<?> getMessagesClass() {
+    return SqoopExportJobEntry.class;
+  }
+
+  @Override
+  protected SqoopExportJobEntryController createController( XulDomContainer container, SqoopExportJobEntry jobEntry,
+                                                            BindingFactory bindingFactory ) {
+    return new SqoopExportJobEntryController( jobMeta, container, jobEntry, bindingFactory );
+  }
+}

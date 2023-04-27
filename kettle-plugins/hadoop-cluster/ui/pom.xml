@@ -101,6 +101,12 @@
       <artifactId>commons-collections4</artifactId>
       <version>4.1</version>
     </dependency>
+    <dependency>
+      <groupId>commons-configuration</groupId>
+      <artifactId>commons-configuration</artifactId>
+      <version>${dependency.commons-configuration.revision}</version>
+      <scope>provided</scope>
+    </dependency>
     <!--END OF CHANGES-->
     <dependency>
       <groupId>javax.ws.rs</groupId>
