@@ -11,6 +11,8 @@
   <name>PDI Hbase Core</name>
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
+    <easymock.versin>3.0</easymock.versin>
+    <mockito.version>4.0.0</mockito.version>
   </properties>
 
   <!-- VERIFY THESE IMPORTS THAT WERE IN THE BUILD SECTION WHEN THE PLUGIN WAS OSGI. ARE THEY NEEDED?
@@ -46,7 +48,9 @@
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-kettle-plugins-common-ui</artifactId>
       <version>${project.version}</version>
+
       <scope>provided</scope>
+
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>

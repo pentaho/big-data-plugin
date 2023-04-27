@@ -96,7 +96,6 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-inline</artifactId>
-      <version>${mockito-inline.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -116,6 +115,7 @@
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-legacy</artifactId>
       <version>${project.version}</version>
+      <scope>test</scope>
       <exclusions>
         <exclusion>
           <groupId>org.mockito</groupId>
