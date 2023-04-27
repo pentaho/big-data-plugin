@@ -14,7 +14,6 @@
   </bean>
   <bean id="hadoopFileInputMeta" class="org.pentaho.big.data.kettle.plugins.hdfs.trans.HadoopFileInputMeta" scope="prototype">
     <argument ref="namedClusterService"/>
-    <argument ref="hadoopFileSystemService"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
   </bean>
   <bean id="hadoopFileOutputMeta" class="org.pentaho.big.data.kettle.plugins.hdfs.trans.HadoopFileOutputMeta" scope="prototype">
@@ -33,7 +32,6 @@
   <reference id="namedClusterService" interface="org.pentaho.hadoop.shim.api.cluster.NamedClusterService"/>
   <reference id="runtimeTester" interface="org.pentaho.runtime.test.RuntimeTester"/>
   <reference id="runtimeTestActionService" interface="org.pentaho.runtime.test.action.RuntimeTestActionService"/>
-  <reference id="hadoopFileSystemService" interface="org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator"/>
 
 
   <bean id="MetaverseGraphImpl" class="org.pentaho.metaverse.api.model.BaseSynchronizedGraphFactory" factory-method="open">
