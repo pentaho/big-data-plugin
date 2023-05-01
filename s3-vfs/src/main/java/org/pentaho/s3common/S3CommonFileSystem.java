@@ -1,5 +1,5 @@
 /*!
- * Copyright 2010 - 2021 Hitachi Vantara.  All rights reserved.
+ * Copyright 2010 - 2023 Hitachi Vantara.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,11 +77,13 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
 
     Optional<? extends ConnectionDetails> defaultS3Connection = Optional.empty();
     try {
-      defaultS3Connection =
+      if ( s3CommonFileSystemConfigBuilder.useDefaults() ) {
+        defaultS3Connection =
         connectionManager.get().getConnectionDetailsByScheme( "s3" ).stream().filter(
           connectionDetails -> connectionDetails.getProperties().get( DEFAULT_S3_CONFIG_PROPERTY ) != null
             && connectionDetails.getProperties().get( DEFAULT_S3_CONFIG_PROPERTY ).equalsIgnoreCase( "true" ) )
-          .findFirst();
+        .findFirst();
+      }
     } catch ( Exception ignored ) {
       // Ignore the exception, it's OK if we can't find a default S3 connection.
     }
