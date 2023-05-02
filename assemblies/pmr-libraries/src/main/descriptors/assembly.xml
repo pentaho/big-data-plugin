@@ -140,7 +140,7 @@
         <include>org.apache.xmlgraphics:batik-xml</include>
         <include>org.apache.xmlgraphics:batik-constants</include>
         <include>org.apache.xmlgraphics:batik-i18n</include>
-        <include>org.beanshell:bsh</include>
+        <include>org.apache-extras.beanshell:bsh</include>
         <include>org.codehaus.groovy:groovy</include>
         <include>org.codehaus.jackson:jackson-core-asl</include>
         <include>org.codehaus.jackson:jackson-jaxrs</include>
