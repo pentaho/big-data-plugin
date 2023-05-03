@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -45,9 +45,11 @@ import org.pentaho.di.connections.vfs.BaseVFSConnectionProvider;
 import org.pentaho.di.connections.vfs.VFSRoot;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.s3.vfs.S3FileProvider;
 import org.pentaho.s3common.S3CommonFileSystemConfigBuilder;
 
@@ -59,6 +61,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
+
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileSystemOptions;
 
 /**
  * Created by bmorrise on 2/5/19.
@@ -199,6 +205,25 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
       }
     }
     return s3Details;
+  }
+
+  @Override
+  public FileObject getDirectFile( ConnectionDetails connectionDetails, String path ) throws KettleFileException {
+    if ( !(connectionDetails instanceof S3Details ) ) {
+      return null;
+    }
+    S3Details s3Conn = (S3Details) connectionDetails;
+    if ( !S3FileProvider.SCHEME.equals( s3Conn.getType() ) ) {
+      return null;
+    }
+    FileSystemOptions fsopts = getOpts( s3Conn );
+    S3CommonFileSystemConfigBuilder builder = new S3CommonFileSystemConfigBuilder( fsopts );
+    // Disable "Use Defaults" so we don't call back into ConnectionManager for the default S3 connection
+    builder.setUseDefaults( false );
+    fsopts = builder.getFileSystemOptions();
+
+    String uri = S3FileProvider.SCHEME + "://" + path;
+    return KettleVFS.getFileObject(uri, fsopts);
   }
 
   private AmazonS3 getAmazonS3( S3Details s3Details, VariableSpace space ) {
