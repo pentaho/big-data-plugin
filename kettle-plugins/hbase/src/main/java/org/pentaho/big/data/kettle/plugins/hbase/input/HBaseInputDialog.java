@@ -995,7 +995,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
       mb.open();
       return;
     } else {
-      if ( StringUtils.isEmpty( selectedNamedCluster.getZooKeeperHost() ) ) {
+      if ( StringUtils.isEmpty( selectedNamedCluster.getZooKeeperHost() ) && !selectedNamedCluster.isUseGateway() ) {
         MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
         mb.setText( Messages.getString( "Dialog.Error" ) );
         mb.setMessage( Messages.getString( "HBaseInputDialog.NamedClusterMissingValues.Msg" ) );
