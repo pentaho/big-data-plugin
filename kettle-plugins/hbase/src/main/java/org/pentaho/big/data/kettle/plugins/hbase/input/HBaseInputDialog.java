@@ -995,7 +995,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
       mb.open();
       return;
     } else {
-      if ( StringUtils.isEmpty( selectedNamedCluster.getZooKeeperHost() ) ) {
+      if ( StringUtils.isEmpty( selectedNamedCluster.getZooKeeperHost() ) && !selectedNamedCluster.isUseGateway() ) {
         MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
         mb.setText( Messages.getString( "Dialog.Error" ) );
         mb.setMessage( Messages.getString( "HBaseInputDialog.NamedClusterMissingValues.Msg" ) );
@@ -1276,7 +1276,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     boolean displayFieldsEmbeddedMapping =
       ( ( m_mappingEditor.getMapping( false, null, false ) != null && Const.isEmpty( m_mappingNamesCombo.getText() ) ) );
     boolean displayFieldsMappingFromHBase =
-      ( !Const.isEmpty( m_coreConfigText.getText() ) || !Const.isEmpty( zookeeperQuorumText ) || nc.isUseGateway() )
+      ( !Const.isEmpty( m_coreConfigText.getText() ) || !Const.isEmpty( zookeeperQuorumText ) || ( nc != null && nc.isUseGateway() ) )
         && !Const.isEmpty( m_mappedTableNamesCombo.getText() ) && !Const.isEmpty( m_mappingNamesCombo.getText() );
 
     if ( displayFieldsEmbeddedMapping || displayFieldsMappingFromHBase ) {
