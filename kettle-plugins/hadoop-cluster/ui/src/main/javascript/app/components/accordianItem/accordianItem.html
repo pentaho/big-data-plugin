@@ -3,11 +3,11 @@
     <img class="accordian-header-image" ng-src="{{::vm.getStatusImage(vm.testCategory.categoryStatus)}}"/>
     <div class="accordian-header-text">{{::vm.testCategory.categoryName}} {{::vm.testCategory.categoryActive === false ? "(skipped)" : ""}}</div>
     <img ng-src="{{vm.expandCollapseToggleImage}}" ng-class="vm.chevronToggleClass" ng-if="vm.testCategory.tests.length > 0"/>
-    <div class="accordian-learn-more-category" ng-if="vm.showCategoryLearnMore(vm.testCategory)"><a href="javascript:;" onclick="window.open('https://help.pentaho.com/Documentation/9.4/Setup/Big_Data_issues','','height=600,width=800,scrollbars=yes,toolbar=no,status=no,menubar=no,location=no,resizable=yes');">{{::vm.learnMoreLabel}}</a></div>
+    <div class="accordian-learn-more-category" ng-if="vm.showCategoryLearnMore(vm.testCategory)"><a href="javascript:;" onclick="window.open('https://help.pentaho.com/Documentation/Pentaho/9.5/Setup/Big_Data_issues','','height=600,width=800,scrollbars=yes,toolbar=no,status=no,menubar=no,location=no,resizable=yes');">{{::vm.learnMoreLabel}}</a></div>
   </div>
   <div ng-repeat="test in vm.testCategory.tests" ng-class="vm.getBodyStatusClass(test.testStatus)" ng-if="vm.isExpanded && test.testActive">
     <img class="accordian-body-image" ng-src="{{::vm.getStatusImage(test.testStatus)}}"/>
     <div class="accordian-body-text">{{::test.testName}}</div>
-    <div class="accordian-learn-more" ng-if="test.testStatus === 'Fail'"><a href="javascript:;" onclick="window.open('https://help.pentaho.com/Documentation/9.4/Setup/Big_Data_issues','','height=600,width=800,scrollbars=yes,toolbar=no,status=no,menubar=no,location=no,resizable=yes');">{{::vm.learnMoreLabel}}</a></div>
+    <div class="accordian-learn-more" ng-if="test.testStatus === 'Fail'"><a href="javascript:;" onclick="window.open('https://help.pentaho.com/Documentation/Pentaho/9.5/Setup/Big_Data_issues','','height=600,width=800,scrollbars=yes,toolbar=no,status=no,menubar=no,location=no,resizable=yes');">{{::vm.learnMoreLabel}}</a></div>
   </div>
 </div>
