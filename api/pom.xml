@@ -5,10 +5,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-bundles</artifactId>
-    <version>9.5.0.0-SNAPSHOT</version>
+    <version>9.5.0.0-239</version>
   </parent>
   <artifactId>pentaho-big-data-api</artifactId>
-  <version>9.5.0.0-SNAPSHOT</version>
+  <version>9.5.0.0-239</version>
   <packaging>pom</packaging>
   <modules>
     <module>runtimeTest</module>
