@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -35,6 +35,7 @@ import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
+import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.Trans;
@@ -86,6 +87,9 @@ import static org.pentaho.metaverse.api.analyzer.kettle.step.ExternalResourceSte
 @Metaverse.EntityLink ( entity = KAFKA_TOPIC_METAVERSE, link = LINK_CONTAINS_CONCEPT, parentEntity = KAFKA_SERVER_METAVERSE )
 @Metaverse.EntityLink ( entity = KAFKA_TOPIC_METAVERSE, link = LINK_PARENT_CONCEPT )
 public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInterface {
+
+  private static final Class<?> PKG = KafkaProducerOutputMeta.class;
+
   public enum ConnectionType {
     DIRECT,
     CLUSTER
@@ -411,4 +415,5 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
       injectedConfigValues = null;
     }
   }
+
 }
