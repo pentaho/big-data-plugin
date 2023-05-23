@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -43,7 +43,7 @@ public class KafkaProducerOutput extends BaseStep implements StepInterface, Call
   private static final Class<?> PKG = KafkaConsumerInputMeta.class;
   private KafkaProducerOutputMeta meta;
   private KafkaProducerOutputData data;
-  private KafkaFactory kafkaFactory;
+  protected KafkaFactory kafkaFactory;
   // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
   public KafkaProducerOutput( StepMeta stepMeta,
@@ -53,7 +53,7 @@ public class KafkaProducerOutput extends BaseStep implements StepInterface, Call
     setKafkaFactory( KafkaFactory.defaultFactory() );
   }
 
-  void setKafkaFactory( KafkaFactory factory ) {
+  public void setKafkaFactory( KafkaFactory factory ) {
     this.kafkaFactory = factory;
   }
 
