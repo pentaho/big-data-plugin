@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -28,6 +28,8 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.core.variables.VariableSpace;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,7 +47,7 @@ public class KafkaFactory {
     return new KafkaFactory( KafkaConsumer::new, KafkaProducer::new );
   }
 
-  KafkaFactory(
+  public KafkaFactory(
     Function<Map<String, Object>, Consumer> consumerFunction,
     Function<Map<String, Object>, Producer<Object, Object>> producerFunction ) {
     this.consumerFunction = consumerFunction;
@@ -67,9 +69,7 @@ public class KafkaFactory {
     kafkaConfig.put( ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, keyDeserializerType.getKafkaDeserializerClass() );
     kafkaConfig.put( ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, meta.isAutoCommit() );
     //meta.getJaasConfigService().ifPresent( jaasConfigService -> putKerberosConfig( kafkaConfig, jaasConfigService ) );
-    meta.getConfig().entrySet()
-        .forEach( ( entry -> kafkaConfig.put( entry.getKey(), variableNonNull.apply(
-            (String) entry.getValue() ) ) ) );
+    setConsumerConfigValue( meta, variableNonNull, kafkaConfig );
 
     return consumerFunction.apply( kafkaConfig );
   }
@@ -101,9 +101,7 @@ public class KafkaFactory {
     kafkaConfig.put( ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, msgSerializerType.getKafkaSerializerClass() );
     kafkaConfig.put( ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, keySerializerType.getKafkaSerializerClass() );
     //meta.getJaasConfigService().ifPresent( jaasConfigService -> putKerberosConfig( kafkaConfig, jaasConfigService ) );
-    meta.getConfig().entrySet()
-        .forEach( ( entry -> kafkaConfig.put( entry.getKey(), variableNonNull.apply(
-            (String) entry.getValue() ) ) ) );
+    setProducerConfigValue( meta, variableNonNull, kafkaConfig );
 
     return producerFunction.apply( kafkaConfig );
   }
@@ -111,4 +109,24 @@ public class KafkaFactory {
   private static String nullToEmpty( String value ) {
     return value == null ? "" : value;
   }
+
+  protected void setProducerConfigValue( KafkaProducerOutputMeta meta, Function<String, String> variableNonNull,
+                                         HashMap<String, Object> kafkaConfig ) {
+    meta.getConfig().entrySet()
+      .forEach( ( entry -> kafkaConfig.put( entry.getKey(), variableNonNull.apply(
+         (String) entry.getValue() ) ) ) );
+  }
+
+  protected void setConsumerConfigValue( KafkaConsumerInputMeta meta, Function<String, String> variableNonNull,
+                                         HashMap<String, Object> kafkaConfig ) {
+    meta.getConfig().entrySet()
+      .forEach( ( entry -> kafkaConfig.put( entry.getKey(), variableNonNull.apply(
+        (String) entry.getValue() ) ) ) );
+  }
+
+  public boolean checkKafkaConnectionStatus( KafkaConsumerInputMeta meta, VariableSpace variables,
+                                             LogChannelInterface logChannel ) {
+    return true;
+  }
+
 }
