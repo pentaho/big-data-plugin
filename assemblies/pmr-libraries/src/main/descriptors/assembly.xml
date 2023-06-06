@@ -84,7 +84,6 @@
         <include>org.elasticsearch:elasticsearch</include>
         <include>feed4j:feed4j</include>
         <include>ftp4che:ftp4che</include>
-        <include>georss-rome:georss-rome</include>
         <include>infobright:infobright-core</include>
         <include>org.codehaus.janino:janino</include>
         <include>org.codehaus.janino:commons-compiler</include>
@@ -222,7 +221,6 @@
         <include>org.pentaho.reporting.engine:classic-core</include>
         <include>pentaho:pentaho-service-coordinator</include>
         <include>rhino:js</include>
-        <include>rome:rome</include>
         <include>com.wcohen:com.wcohen.secondstring</include>
         <include>stax:stax</include>
         <include>stax:stax-api</include>
