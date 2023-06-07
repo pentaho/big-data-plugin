@@ -1,5 +1,5 @@
 /*!
- * Copyright 2010 - 2022 Hitachi Vantara.  All rights reserved.
+ * Copyright 2010 - 2023 Hitachi Vantara.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -216,9 +216,17 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
     injectType( FileType.IMAGINARY );
 
     if ( isRootBucket() ) {
-      // cannot attach to root bucket
-      injectType( FileType.FOLDER );
-      return;
+      // cannot attach to root bucket but still need to figure out the type for exists()
+      try {
+        fileSystem.getS3Client().getObjectMetadata( bucketName, key );
+      } catch ( AmazonS3Exception e ) {
+        if ( e.getErrorCode().contains( "404 Not Found" ) ) {
+          injectType( FileType.IMAGINARY );
+          return;
+        }
+      }
+        injectType( FileType.FOLDER );
+        return;
     }
     try {
       // 1. Is it an existing file?
