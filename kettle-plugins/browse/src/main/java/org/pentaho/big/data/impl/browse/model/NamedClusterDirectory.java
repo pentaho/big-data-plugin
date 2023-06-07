@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -26,6 +26,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.pentaho.big.data.impl.browse.NamedClusterProvider;
 import org.pentaho.di.plugins.fileopensave.api.providers.Directory;
+import org.pentaho.di.plugins.fileopensave.api.providers.EntityType;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -89,5 +90,10 @@ public class NamedClusterDirectory extends NamedClusterFile implements Directory
       namedClusterDirectory.setDate( new Date() );
     }
     return namedClusterDirectory;
+  }
+
+  @Override
+  public EntityType getEntityType(){
+    return EntityType.NAMED_CLUSTER_DIRECTORY;
   }
 }

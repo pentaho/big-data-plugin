@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p>
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  * <p>
  * ******************************************************************************
  * <p>
@@ -19,6 +19,7 @@ package org.pentaho.big.data.impl.vfs.hdfs.nc;
 
 
 import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.Selectors;
 import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.pentaho.big.data.impl.vfs.hdfs.HDFSFileObject;
 import org.pentaho.di.core.vfs.AliasedFileObject;
@@ -42,5 +43,8 @@ public class NamedClusterFileObject extends HDFSFileObject implements AliasedFil
     return getOriginalURIString();
   }
 
-
+  @Override
+  public boolean delete() throws FileSystemException {
+    return delete( Selectors.SELECT_SELF_AND_CHILDREN ) > 0;
+  }
 }
