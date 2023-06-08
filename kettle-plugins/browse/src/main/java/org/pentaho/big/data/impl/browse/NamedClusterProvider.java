@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2019-2022 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -33,7 +33,9 @@ import org.pentaho.big.data.impl.browse.model.NamedClusterTree;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.service.PluginServiceLoader;
+import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.vfs.KettleVFS;
+import org.pentaho.di.plugins.fileopensave.api.overwrite.OverwriteStatus;
 import org.pentaho.di.plugins.fileopensave.api.providers.BaseFileProvider;
 import org.pentaho.di.plugins.fileopensave.api.providers.File;
 import org.pentaho.di.plugins.fileopensave.api.providers.Tree;
@@ -259,17 +261,17 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
     return file1 instanceof NamedClusterFile && file2 instanceof NamedClusterFile;
   }
 
-  @Override public NamedClusterFile rename( NamedClusterFile file, String newPath, boolean overwrite, VariableSpace space )
+  @Override public NamedClusterFile rename( NamedClusterFile file, String newPath, OverwriteStatus overwriteStatus, VariableSpace space )
     throws FileException {
-    return doMove( file, newPath, overwrite );
+    return doMove( file, newPath, overwriteStatus );
   }
 
-  @Override public NamedClusterFile copy( NamedClusterFile file, String toPath, boolean b, VariableSpace space )
+  @Override public NamedClusterFile copy( NamedClusterFile file, String toPath, OverwriteStatus overwriteStatus, VariableSpace space )
     throws FileException {
     try {
       FileObject fileObject = KettleVFS.getFileObject( file.getPath() );
       FileObject copyObject = KettleVFS.getFileObject( toPath );
-      copyObject.copyFrom( fileObject, Selectors.SELECT_SELF );
+      copyObject.copyFrom( fileObject, Selectors.SELECT_ALL );
       if ( file instanceof NamedClusterDirectory ) {
         return NamedClusterDirectory.create( copyObject.getParent().getPublicURIString(), fileObject );
       } else {
@@ -280,25 +282,36 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
     }
   }
 
-  @Override public NamedClusterFile move( NamedClusterFile namedClusterFile, String s, boolean b, VariableSpace space )
+  @Override public NamedClusterFile move( NamedClusterFile namedClusterFile, String s, OverwriteStatus overwriteStatus, VariableSpace space )
     throws FileException {
     return null;
   }
 
-  private NamedClusterFile doMove( NamedClusterFile file, String newPath, boolean overwrite ) {
+  private NamedClusterFile doMove( NamedClusterFile file, String newPath, OverwriteStatus overwriteStatus ) {
     try {
       FileObject fileObject = KettleVFS.getFileObject( file.getPath() );
       FileObject renameObject = KettleVFS.getFileObject( newPath );
-      if ( overwrite && renameObject.exists() ) {
-        renameObject.delete();
+      if ( renameObject.exists() ) {
+        overwriteStatus.promptOverwriteIfNecessary( file.getPath(), file.getType() );
+        if ( overwriteStatus.isOverwrite() ) {
+          renameObject.delete();
+        } else if ( overwriteStatus.isCancel() || overwriteStatus.isSkip() ) {
+          return null;
+        } else if ( overwriteStatus.isRename() ) {
+          NamedClusterDirectory namedClusterDir =
+            NamedClusterDirectory.create( renameObject.getParent().getPath().toString(), renameObject );
+          newPath = getNewName( namedClusterDir, newPath, new Variables() );
+          renameObject = KettleVFS.getFileObject( newPath );
+        }
       }
+
       fileObject.moveTo( renameObject );
       if ( file instanceof NamedClusterDirectory ) {
         return NamedClusterDirectory.create( renameObject.getParent().getPublicURIString(), renameObject );
       } else {
         return NamedClusterFile.create( renameObject.getParent().getPublicURIString(), renameObject );
       }
-    } catch ( KettleFileException | FileSystemException e ) {
+    } catch ( KettleFileException | FileSystemException | FileException e ) {
       return null;
     }
   }
@@ -313,8 +326,8 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
   }
 
   @Override
-  public NamedClusterFile writeFile( InputStream inputStream, NamedClusterFile destDir, String path, boolean overwrite,
-                                     VariableSpace space ) throws FileException {
+  public NamedClusterFile writeFile( InputStream inputStream, NamedClusterFile destDir, String path,
+                                     OverwriteStatus overwriteStatus, VariableSpace space ) throws FileException {
     FileObject fileObject = null;
     try {
       fileObject = KettleVFS.getFileObject( path );
@@ -341,5 +354,43 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
 
   @Override public void clearProviderCache() {
     // Nothing to clear
+  }
+
+  @Override public File getFile( String path, boolean isDirectory ) {
+    FileObject fileObject = null;
+    try {
+      fileObject = KettleVFS.getFileObject( path );
+      if ( isDirectory ) {
+        if ( fileObject.exists() && !fileObject.getType().equals( FileType.FOLDER ) ) {
+          throwIllegalArgumentException( path, "is not a directory" );
+        }
+        return NamedClusterDirectory.create( null, fileObject );
+      } else {
+        if ( fileObject.exists() && !fileObject.getType().equals( FileType.FILE ) ) {
+          throwIllegalArgumentException( path, "is a directory" );
+        }
+        return NamedClusterFile.create( null, fileObject );
+      }
+    } catch ( KettleFileException | FileSystemException e ) {
+      throwIllegalArgumentException( path, "could not create a VFSFile object" );
+    }
+    return null; //Will never be executed but compiler complained
+  }
+
+  private void throwIllegalArgumentException( String path, String message ) {
+    throw new IllegalArgumentException( "\"" + path + "\" " + message );
+  }
+
+  @Override public NamedClusterFile createDirectory( String parentPath, NamedClusterFile file, String newDirectoryName ) {
+    NamedClusterDirectory namedClusterDir = null;
+    try {
+      FileObject fileObject = KettleVFS.getFileObject( parentPath + "/" + newDirectoryName );
+      namedClusterDir = NamedClusterDirectory.create( null, fileObject );
+      add( namedClusterDir,null );
+    } catch ( KettleFileException | FileException e ) {
+      e.printStackTrace();
+      return null;
+    }
+    return namedClusterDir;
   }
 }
