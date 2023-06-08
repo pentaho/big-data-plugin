@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2019-2022 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -27,6 +27,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.pentaho.big.data.impl.browse.NamedClusterProvider;
 import org.pentaho.di.plugins.fileopensave.api.providers.BaseEntity;
+import org.pentaho.di.plugins.fileopensave.api.providers.EntityType;
 import org.pentaho.di.plugins.fileopensave.api.providers.File;
 
 import java.util.Date;
@@ -75,6 +76,11 @@ public class NamedClusterFile extends BaseEntity implements File {
     // This comparison depends on `getProvider()` to always return a hardcoded value
     return compare.getProvider().equals( getProvider() )
       && StringUtils.equals( compare.getPath(), getPath() );
+  }
+
+  @Override
+  public EntityType getEntityType(){
+    return EntityType.NAMED_CLUSTER_FILE;
   }
 
 }

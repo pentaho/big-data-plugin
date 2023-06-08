@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -65,13 +65,12 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.C
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.DIRECT;
 
 @SuppressWarnings ( { "FieldCanBeLocal", "unused" } )
-@PluginDialog ( id = "KafkaConsumerInput", pluginType = PluginDialog.PluginType.STEP, image = "KafkaConsumerInput.svg", 
-  documentationUrl = "Products/Kafka_Consumer" )
+@PluginDialog ( id = "KafkaConsumerInput", pluginType = PluginDialog.PluginType.STEP, image = "KafkaConsumerInput.svg" )
 public class KafkaConsumerInputDialog extends BaseStreamingDialog implements StepDialogInterface {
 
   private static final int INPUT_WIDTH = 350;
-  private static final int SHELL_MIN_WIDTH = 527;
-  private static final int SHELL_MIN_HEIGHT = 682;
+  protected static final int SHELL_MIN_WIDTH = 527;
+  protected static final int SHELL_MIN_HEIGHT = 682;
   private static final Class<?> PKG = KafkaConsumerInputMeta.class;
   // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
@@ -80,21 +79,21 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
   private final KafkaFactory kafkaFactory = KafkaFactory.defaultFactory();
 
   private KafkaConsumerInputMeta consumerMeta;
-  private Spoon spoonInstance;
+  protected Spoon  spoonInstance;
 
   private Label wlClusterName;
-  private ComboVar wClusterName;
-
+  protected ComboVar wClusterName;
+  private Composite wOptionsComp;
 
   private TextVar wConsumerGroup;
   private TableView topicsTable;
-  private TableView optionsTable;
+  protected TableView optionsTable;
 
 
   private Button wbDirect;
-  private Button wbCluster;
+  protected Button wbCluster;
   private Label wlBootstrapServers;
-  private TextVar wBootstrapServers;
+  protected TextVar wBootstrapServers;
   private Button wbAutoCommit;
   private Button wbManualCommit;
   private static final String REPOS_DELIM = "/";
@@ -528,18 +527,13 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
 
     int topicsCount = consumerMeta.getTopics().size();
 
-    Listener lsFocusInTopic = e -> {
+    Listener lsFocusInTopic =  e -> {
       CCombo ccom = (CCombo) e.widget;
       ComboVar cvar = (ComboVar) ccom.getParent();
 
-      KafkaDialogHelper kdh = new KafkaDialogHelper(
-        wClusterName, cvar, wbCluster, wBootstrapServers, kafkaFactory,
-        consumerMeta.getNamedClusterService(), // consumerMeta.getNamedClusterServiceLocator(),
-        consumerMeta.getMetastoreLocator(), optionsTable,
-        meta.getParentStepMeta() );
+      KafkaDialogHelper kdh = getDialogHelper( cvar );
       kdh.clusterNameChanged( e );
     };
-
     topicsTable = new TableView(
       transMeta,
       parentWidget,
@@ -701,5 +695,14 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
   private void setOptionsFromTable() {
     consumerMeta.setConfig( KafkaDialogHelper.getConfig( optionsTable ) );
   }
-}
 
+  protected KafkaDialogHelper getDialogHelper( ComboVar cvar ) {
+    KafkaDialogHelper helper = new KafkaDialogHelper(
+      wClusterName, cvar, wbCluster, wBootstrapServers, kafkaFactory,
+      consumerMeta.getNamedClusterService(), // consumerMeta.getNamedClusterServiceLocator(),
+      consumerMeta.getMetastoreLocator(), optionsTable,
+      meta.getParentStepMeta() );
+    return helper;
+  }
+
+}
