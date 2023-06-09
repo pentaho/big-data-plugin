@@ -208,11 +208,7 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
   }
 
   @Override
-  public FileObject getDirectFile( ConnectionDetails connectionDetails, String path ) throws KettleFileException {
-    if ( !(connectionDetails instanceof S3Details ) ) {
-      return null;
-    }
-    S3Details s3Conn = (S3Details) connectionDetails;
+  public FileObject getDirectFile( S3Details s3Conn, String path ) throws KettleFileException {
     if ( !S3FileProvider.SCHEME.equals( s3Conn.getType() ) ) {
       return null;
     }
