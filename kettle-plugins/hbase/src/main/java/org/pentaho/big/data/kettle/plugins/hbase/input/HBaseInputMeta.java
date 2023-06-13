@@ -51,6 +51,7 @@ import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
+import org.pentaho.di.metastore.MetaStoreConst;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.Trans;
@@ -580,7 +581,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     StringBuilder retval = new StringBuilder();
 
     namedClusterLoadSaveUtil
-        .getXml( retval, namedClusterService, namedCluster, repository == null ? null : repository.getMetaStore(), getLog() );
+        .getXml( retval, namedClusterService, namedCluster, MetaStoreConst.getDefaultMetastore(), getLog() );
 
     if ( parentStepMeta != null && parentStepMeta.getParentTransMeta() != null ) {
       parentStepMeta.getParentTransMeta().getNamedClusterEmbedManager().addClusterToMeta( namedCluster.getName() );
