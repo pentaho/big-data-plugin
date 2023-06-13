@@ -58,7 +58,6 @@ public class JobEntryHadoopTransJobExecutorTest {
     namedClusterServiceLocator = mock( NamedClusterServiceLocator.class );
     rep = mock( Repository.class );
     metaStore = mock( IMetaStore.class );
-    when( rep.getMetaStore() ).thenReturn( metaStore );
     oid = mock( ObjectId.class );
     exec = new JobEntryHadoopTransJobExecutor( namedClusterService, runtimeTestActionService, runtimeTester,
       namedClusterServiceLocator );

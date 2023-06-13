@@ -63,7 +63,6 @@ public class JobEntryHadoopJobExecutorTest {
     metaStore = mock( IMetaStore.class );
     namedCluster = mock( NamedCluster.class );
     repository = mock( Repository.class );
-    when( repository.getMetaStore() ).thenReturn( metaStore );
     objectId = mock( ObjectId.class );
 
     jobExecutor = new JobEntryHadoopJobExecutor( namedClusterService, runtimeTestActionService, runtimeTester,
