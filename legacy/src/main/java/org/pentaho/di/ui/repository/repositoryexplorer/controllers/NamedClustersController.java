@@ -194,7 +194,7 @@ public class NamedClustersController extends LazilyInitializedController impleme
     Runnable r = new Runnable() {
       public void run() {
         try {
-          for ( NamedCluster namedCluster : NamedClusterManager.getInstance().list( diRepository.getMetaStore() ) ) {
+          for ( NamedCluster namedCluster : NamedClusterManager.getInstance().list( diRepository.getRepositoryMetaStore() ) ) {
             try {
               tmpList.add( UINamedClusterObjectRegistry.getInstance().constructUINamedCluster( namedCluster, diRepository ) );
             } catch ( UIObjectCreationException uoe ) {
@@ -362,7 +362,7 @@ public class NamedClustersController extends LazilyInitializedController impleme
             NamedCluster namedCluster = uiNamedCluster.getNamedCluster();
 
             // Make sure this named cluster already exists and store its id for updating
-            if ( NamedClusterManager.getInstance().read( namedCluster.getName(), diRepository.getMetaStore() ) == null ) {
+            if ( NamedClusterManager.getInstance().read( namedCluster.getName(), diRepository.getRepositoryMetaStore() ) == null ) {
               MessageBox mb = new MessageBox( shell, SWT.ICON_ERROR | SWT.OK );
               mb
                 .setMessage( BaseMessages.getString(
@@ -370,7 +370,7 @@ public class NamedClustersController extends LazilyInitializedController impleme
               mb.setText( BaseMessages.getString( PKG, "RepositoryExplorerDialog.NamedCluster.Delete.DoesNotExists.Title" ) );
               mb.open();
             } else {
-              NamedClusterManager.getInstance().delete( namedCluster.getName(), diRepository.getMetaStore() );
+              NamedClusterManager.getInstance().delete( namedCluster.getName(), diRepository.getRepositoryMetaStore() );
             }
           }
         }
