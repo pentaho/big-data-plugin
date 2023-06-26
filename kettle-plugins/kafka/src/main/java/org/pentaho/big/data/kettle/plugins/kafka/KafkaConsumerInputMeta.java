@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -151,10 +151,10 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
   private KafkaConsumerField messageField;
 
   @Injection( name = "NAMES", group = "CONFIGURATION_PROPERTIES" )
-  protected List<String> injectedConfigNames;
+  public List<String> injectedConfigNames;
 
   @Injection( name = "VALUES", group = "CONFIGURATION_PROPERTIES" )
-  protected List<String> injectedConfigValues;
+  public List<String> injectedConfigValues;
 
   @Injection( name = AUTO_COMMIT )
   private boolean autoCommit = true;
@@ -169,7 +169,7 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
 
   private KafkaConsumerField timestampField;
 
-  private KafkaFactory kafkaFactory;
+  protected KafkaFactory kafkaFactory;
 
   private NamedClusterManager namedClusterService = NamedClusterManager.getInstance();
 
@@ -179,15 +179,17 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
 
   public KafkaConsumerInputMeta() {
     super(); // allocate BaseStepMeta
+    kafkaFactory = KafkaFactory.defaultFactory();
+    prepare();
+  }
 
+  protected  void prepare() {
     try {
       Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
       this.metastoreLocator = metastoreLocators.stream().findFirst().get();
     } catch ( Exception e ) {
       getLog().logError( "Error getting MetastoreLocator", e );
     }
-
-    kafkaFactory = KafkaFactory.defaultFactory();
     keyField = new KafkaConsumerField(
       KafkaConsumerField.Name.KEY,
       BaseMessages.getString( PKG, "KafkaConsumerInputDialog.KeyField" )
@@ -556,7 +558,7 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     return kafkaFactory;
   }
 
-  void setKafkaFactory( KafkaFactory kafkaFactory ) {
+  protected void setKafkaFactory( KafkaFactory kafkaFactory ) {
     this.kafkaFactory = kafkaFactory;
   }
 
@@ -627,7 +629,7 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     return config;
   }
 
-  protected void applyInjectedProperties() {
+  public void applyInjectedProperties() {
     if ( injectedConfigNames != null || injectedConfigValues != null ) {
       Preconditions.checkState( injectedConfigNames != null, "Options names were not injected" );
       Preconditions.checkState( injectedConfigValues != null, "Options values were not injected" );
