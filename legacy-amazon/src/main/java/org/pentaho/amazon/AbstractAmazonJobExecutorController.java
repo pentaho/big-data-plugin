@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -1143,7 +1143,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     return this.fileChooserDialog;
   }
 
-  protected FileSystemOptions getFileSystemOptions() {
+  protected FileSystemOptions getFileSystemOptions() throws FileSystemException {
     FileSystemOptions opts = new FileSystemOptions();
 
     if ( !Const.isEmpty( getAccessKey() ) || !Const.isEmpty( getSecretKey() ) ) {
@@ -1484,7 +1484,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     setAlive( !isAlive() );
   }
 
-  public FileObject resolveFile( String fileUri ) throws KettleFileException {
+  public FileObject resolveFile( String fileUri ) throws FileSystemException, KettleFileException {
     VariableSpace vs = getVariableSpace();
     FileSystemOptions opts = new FileSystemOptions();
     DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts,

@@ -36,7 +36,6 @@
     <!-- Third-party dependencies -->
     <slf4j-api.version>1.7.7</slf4j-api.version>
     <guava.version>19.0</guava.version>
-    <commons-lang3.version>3.12.0</commons-lang3.version>
 
     <!-- Test dependencies -->
     <junit.version>4.12</junit.version>
@@ -65,18 +64,6 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-vfs2</artifactId>
-      <scope>compile</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-      <version>${commons-lang3.version}</version>
       <scope>compile</scope>
       <exclusions>
         <exclusion>

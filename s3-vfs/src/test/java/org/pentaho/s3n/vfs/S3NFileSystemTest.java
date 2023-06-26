@@ -1,5 +1,5 @@
 /*!
-* Copyright 2010 - 2023 Hitachi Vantara.  All rights reserved.
+* Copyright 2010 - 2021 Hitachi Vantara.  All rights reserved.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public class S3NFileSystemTest {
   }
 
   @Test
-  public void testGetS3Service() {
+  public void testGetS3Service() throws Exception {
     assertNotNull( fileSystem.getS3Client() );
 
     FileSystemOptions options = new FileSystemOptions();
