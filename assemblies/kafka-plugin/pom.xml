@@ -11,7 +11,7 @@
   </parent>
 
   <artifactId>pentaho-streaming-kafka-plugin-zip</artifactId>
-  <version>9.5.0.0-SNAPSHOT</version>
+  <version>9.5.1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Pentaho Kafka Streaming Plugin</name>
