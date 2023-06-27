@@ -209,7 +209,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>${dependency.guava.revision}</version>
+      <version>${guava.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
