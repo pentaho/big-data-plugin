@@ -16,7 +16,6 @@
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
     <!-- Dependency versions -->
-    <pdi-version>9.5.0.0-SNAPSHOT</pdi-version>
     <pentaho-metaverse.version>9.5.0.0-SNAPSHOT</pentaho-metaverse.version>
     <dependency.org.powermock.version>1.6.0</dependency.org.powermock.version>
     <dependency.com.tinkerpop.frames.version>2.5.0</dependency.com.tinkerpop.frames.version>
@@ -56,7 +55,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-legacy-core</artifactId>
-      <version>${pdi-version}</version>
+      <version>${pdi.version}</version>
       <scope>provided</scope>
     </dependency>
 
