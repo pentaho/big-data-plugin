@@ -44,7 +44,6 @@
     <pentaho-json.version>9.6.0.0-SNAPSHOT</pentaho-json.version>
     <plugin.org.codehaus.mojo.build-helper-maven-plugin.version>1.5</plugin.org.codehaus.mojo.build-helper-maven-plugin.version>
     <pentaho-registry.version>9.6.0.0-SNAPSHOT</pentaho-registry.version>
-    <dependency.guava.revision>17.0</dependency.guava.revision>
     <dependency.maven-resources-plugin.revision>2.7</dependency.maven-resources-plugin.revision>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <dependency.common.revision>3.3.0-v20070426</dependency.common.revision>
