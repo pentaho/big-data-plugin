@@ -48,6 +48,7 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.s3.vfs.S3FileProvider;
@@ -219,7 +220,8 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
     fsopts = builder.getFileSystemOptions();
 
     String uri = S3FileProvider.SCHEME + "://" + path;
-    return KettleVFS.getFileObject(uri, fsopts);
+    // use an empty Variables to prevent other "connection" values from causing StackOverflowErrors
+    return KettleVFS.getFileObject(uri, new Variables(), fsopts);
   }
 
   private AmazonS3 getAmazonS3( S3Details s3Details, VariableSpace space ) {
