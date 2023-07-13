@@ -59,7 +59,7 @@ public class S3DetailComposite implements VFSDetailsComposite {
   private final VFSDetailsCompositeHelper helper;
   private final PropsUI props;
 
-  private static final String[] S3_CONNECTION_TYPE_CHOICES = new String[] { "Amazon", "Minio" };
+  private static final String[] S3_CONNECTION_TYPE_CHOICES = new String[] { "Amazon", "Minio/HCP" };
   private static final String[] AUTH_TYPE_CHOICES = new String[] { "Access Key/Secret Key", "Credentials File" };
   private static final int TEXT_VAR_FLAGS = SWT.SINGLE | SWT.LEFT | SWT.BORDER;
   private final String[] regionChoices;
