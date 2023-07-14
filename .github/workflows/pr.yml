@@ -1,0 +1,14 @@
+name: Pull request workflow
+on:
+  pull_request:
+    branches-ignore:
+      - master
+
+jobs:
+
+  reusable-pr-workflow:
+    uses: pentaho/actions-common/.github/workflows/pr.yml@master
+    with:
+      slack_channels: ""
+      sonar_project_key: "pentaho:pentaho-big-data-bundles"
+    secrets: inherit

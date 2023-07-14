@@ -1,0 +1,27 @@
+name: Merge request workflow
+on:
+  push:
+    branches:
+      - "9.5.1.0"
+      - "!master"
+    paths-ignore:
+      - .github/**
+
+  workflow_dispatch:
+    inputs:
+      modules_to_build:
+        required: true
+        description: "The modules to build when running from the root of the project. Defaults to everything ('.')"
+        default: "."
+
+jobs:
+
+  reusable-merge-workflow:
+    uses: pentaho/actions-common/.github/workflows/merge.yml@master
+    with:
+      version: "9.5.1.0"
+      base_version: "9.5.0.0-240"
+      slack_channels: ""
+      sonar_project_key: "pentaho:pentaho-big-data-bundles"
+      modules_to_build: ${{ inputs.modules_to_build }}
+    secrets: inherit

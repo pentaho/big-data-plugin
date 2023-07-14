@@ -1,0 +1,27 @@
+name: Parent POMs merge request workflow
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        required: true
+        description: "The version to be released"
+        type: string
+      arti_host:
+        required: false
+        type: string
+        default: https://repo.orl.eng.hitachivantara.com
+        description: "Artifactory's Host name"
+      box_upload:
+        type: boolean
+        default: true
+        description: "Flag that controls whether the box upload should be done."
+
+jobs:
+
+    release:
+      uses: pentaho/actions-common/.github/workflows/merge.yml@master
+      with:
+        release_version: ${{ inputs.release_version }}
+        box_upload: ${{ inputs.box_upload }}
+        arti_host: ${{ inputs.arti_host }}
+      secrets: inherit
