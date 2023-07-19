@@ -75,7 +75,7 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
 
   private static final String ACCESS_KEY_SECRET_KEY = "0";
   private static final String CREDENTIALS_FILE = "1";
-  public static final String NAME = "Amazon S3/Minio";
+  public static final String NAME = "Amazon S3/Minio/HCP";
   private final Supplier<ConnectionManager> connectionManagerSupplier = ConnectionManager::getInstance;
 
   private final LogChannelInterface log = new LogChannel( this );
