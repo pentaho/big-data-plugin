@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -114,7 +114,7 @@ public abstract class AbstractAmazonJobExecutor extends AbstractAmazonJobEntry {
     return bucketName;
   }
 
-  private String getS3FileObjectPath() throws FileSystemException, KettleFileException {
+  private String getS3FileObjectPath() throws KettleFileException {
     FileSystemOptions opts = new FileSystemOptions();
     DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts,
       new StaticUserAuthenticator( null, getAWSAccessKeyId(), getAWSSecretKey() ) );
