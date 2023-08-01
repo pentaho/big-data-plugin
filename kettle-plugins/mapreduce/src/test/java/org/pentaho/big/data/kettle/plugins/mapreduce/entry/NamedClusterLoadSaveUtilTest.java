@@ -84,7 +84,6 @@ public class NamedClusterLoadSaveUtilTest {
     metaStore = mock( IMetaStore.class );
     namedCluster = mock( NamedCluster.class );
     repository = mock( Repository.class );
-    when( repository.getMetaStore() ).thenReturn( metaStore );
     objectId = mock( ObjectId.class );
     id_job = mock( ObjectId.class );
     logChannelInterface = mock( LogChannelInterface.class );

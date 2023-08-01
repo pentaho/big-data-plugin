@@ -27,6 +27,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.metastore.SuppliedMetaStore;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.spoon.delegates.SpoonDelegate;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
@@ -276,6 +277,11 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
       if ( activeMetastore instanceof XmlMetaStore ) {
         xmlMetaStore = (XmlMetaStore) activeMetastore;
       }
+    } else if ( metaStore instanceof SuppliedMetaStore ) {
+        IMetaStore activeMetastore = ( (SuppliedMetaStore) metaStore ).getCurrentMetaStore();
+        if ( activeMetastore instanceof XmlMetaStore ) {
+          xmlMetaStore = (XmlMetaStore) activeMetastore;
+        }
     } else if ( metaStore instanceof XmlMetaStore ) {
       xmlMetaStore = (XmlMetaStore) metaStore;
     }

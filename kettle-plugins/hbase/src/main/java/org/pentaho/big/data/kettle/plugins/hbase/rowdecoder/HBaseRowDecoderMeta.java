@@ -44,6 +44,7 @@ import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
+import org.pentaho.di.metastore.MetaStoreConst;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.Trans;
@@ -338,8 +339,8 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
       retval.append( "\n    " ).append( XMLHandler.addTagValue( INCOMING_RESULT_FIELD, mIncomingResultField ) );
     }
 
-    namedClusterLoadSaveUtil.getXml( retval, namedClusterService, namedCluster, repository == null ? null : repository
-        .getMetaStore(), log );
+    namedClusterLoadSaveUtil.getXml( retval, namedClusterService, namedCluster,
+      MetaStoreConst.getDefaultMetastore(), log );
     if ( mMapping != null ) {
       retval.append( mMapping.getXML() );
     }

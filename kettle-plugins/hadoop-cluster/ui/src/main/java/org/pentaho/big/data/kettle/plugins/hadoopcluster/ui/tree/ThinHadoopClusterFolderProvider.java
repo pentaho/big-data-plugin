@@ -51,7 +51,7 @@ public class ThinHadoopClusterFolderProvider extends TreeFolderProvider {
     List<NamedCluster> namedClusters;
     List<MetaStoreException> exceptionList = new ArrayList<>();
     try {
-      namedClusters = NamedClusterManager.getInstance().list( Spoon.getInstance().metaStore, exceptionList );
+      namedClusters = NamedClusterManager.getInstance().list( Spoon.getInstance().getMetaStore(), exceptionList );
       for ( MetaStoreException e : exceptionList ) {
         new ErrorDialog( Spoon.getInstance().getShell(), BaseMessages.getString( PKG, "Spoon.ErrorDialog.Title" ),
           BaseMessages.getString( PKG, "Spoon.ErrorDialog.ErrorFetchingFromRepo.NamedCluster" ), e );
