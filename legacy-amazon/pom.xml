@@ -187,12 +187,6 @@
       <artifactId>kettle-core</artifactId>
       <version>${pdi.version}</version>
       <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>commons-httpclient</artifactId>
-          <groupId>commons-httpclient</groupId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
@@ -205,12 +199,6 @@
       <artifactId>kettle-ui-swt</artifactId>
       <version>${pdi.version}</version>
       <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>commons-httpclient</artifactId>
-          <groupId>commons-httpclient</groupId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
@@ -277,12 +265,6 @@
       <artifactId>hadoop-core</artifactId>
       <version>${hadoop.version}</version>
       <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>commons-httpclient</artifactId>
-          <groupId>commons-httpclient</groupId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.jboss.shrinkwrap</groupId>
@@ -295,12 +277,6 @@
       <artifactId>pig</artifactId>
       <version>${pig.version}</version>
       <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>commons-httpclient</artifactId>
-          <groupId>commons-httpclient</groupId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.easymock</groupId>
@@ -314,10 +290,6 @@
       <version>${hbase.version}</version>
       <scope>test</scope>
       <exclusions>
-        <exclusion>
-          <artifactId>commons-httpclient</artifactId>
-          <groupId>commons-httpclient</groupId>
-        </exclusion>
         <exclusion>
           <artifactId>libthrift</artifactId>
           <groupId>libthrift</groupId>
