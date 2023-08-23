@@ -12,7 +12,7 @@
   <packaging>pom</packaging>
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
-    <apache-xmlgraphics.revision>1.9.1</apache-xmlgraphics.revision>
+    <apache-xmlgraphics.revision>1.17</apache-xmlgraphics.revision>
     <blueprints-core.version>2.6.0</blueprints-core.version>
     <rxjava.version>2.2.3</rxjava.version>
     <jsch.version>0.1.54</jsch.version>
