@@ -114,7 +114,7 @@ public abstract class AbstractAmazonJobExecutor extends AbstractAmazonJobEntry {
     return bucketName;
   }
 
-  private String getS3FileObjectPath() throws KettleFileException {
+  private String getS3FileObjectPath() throws FileSystemException, KettleFileException {
     FileSystemOptions opts = new FileSystemOptions();
     DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts,
       new StaticUserAuthenticator( null, getAWSAccessKeyId(), getAWSSecretKey() ) );

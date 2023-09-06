@@ -1484,7 +1484,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     setAlive( !isAlive() );
   }
 
-  public FileObject resolveFile( String fileUri ) throws KettleFileException {
+  public FileObject resolveFile( String fileUri ) throws FileSystemException, KettleFileException {
     VariableSpace vs = getVariableSpace();
     FileSystemOptions opts = new FileSystemOptions();
     DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts,
