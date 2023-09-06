@@ -39,7 +39,7 @@ public class S3VfsFileChooserDialog extends S3VfsFileChooserBaseDialog {
 
   @Override
   public void activate() {
-    vfsFileChooserDialog.openFileCombo.setText( "s3://s3/" );
+    vfsFileChooserDialog.openFileCombo.setText( "s3://" );
     super.activate();
   }
   /**
@@ -49,7 +49,7 @@ public class S3VfsFileChooserDialog extends S3VfsFileChooserBaseDialog {
    * @TODO: relocate to a s3 helper class or similar
    */
   public String buildS3FileSystemUrlString() {
-    return S3FileProvider.SCHEME + "://s3/";
+    return S3FileProvider.SCHEME + "://";
   }
 
 }
