@@ -1143,7 +1143,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     return this.fileChooserDialog;
   }
 
-  protected FileSystemOptions getFileSystemOptions() {
+  protected FileSystemOptions getFileSystemOptions() throws FileSystemException {
     FileSystemOptions opts = new FileSystemOptions();
 
     if ( !Const.isEmpty( getAccessKey() ) || !Const.isEmpty( getSecretKey() ) ) {
