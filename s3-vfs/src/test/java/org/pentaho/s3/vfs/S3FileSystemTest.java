@@ -71,7 +71,7 @@ public class S3FileSystemTest {
   }
 
   @Test
-  public void testGetS3Service() {
+  public void testGetS3Service() throws Exception {
     assertNotNull( fileSystem.getS3Client() );
 
     FileSystemOptions options = new FileSystemOptions();
