@@ -15,7 +15,7 @@
     <apache-xmlgraphics.revision>1.9.1</apache-xmlgraphics.revision>
     <blueprints-core.version>2.6.0</blueprints-core.version>
     <rxjava.version>2.2.3</rxjava.version>
-    <jsch.version>0.1.54</jsch.version>
+    <jsch.version>0.2.9</jsch.version>
     <encryption-support.version>10.1.0.0-SNAPSHOT</encryption-support.version>
     <pdi-osgi-bridge.version>10.1.0.0-SNAPSHOT</pdi-osgi-bridge.version>
   </properties>
@@ -131,7 +131,7 @@
       <version>1.2.6</version>
     </dependency>
     <dependency>
-      <groupId>com.jcraft</groupId>
+      <groupId>com.github.mwiede</groupId>
       <artifactId>jsch</artifactId>
       <version>${jsch.version}</version>
     </dependency>
