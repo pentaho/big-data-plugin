@@ -320,7 +320,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     wbFilename.setLayoutData( fdbFilename );
 
     wFilename = new TextVar( transMeta, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    wFilename.setText( "s3n://s3n/" );
+    wFilename.setText( "s3n://" );
     props.setLook( wFilename );
     wFilename.addModifyListener( lsMod );
     fdFilename = new FormData();
@@ -1475,7 +1475,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     tfoi.setSecretKey( input.getSecretKey() );
 
     if ( StringUtils.isEmpty( wFilename.getText().trim() ) ) {
-      wFilename.setText( "s3n://s3n/" );
+      wFilename.setText( "s3n://" );
     }
 
     tfoi.setFileName( wFilename.getText() );
