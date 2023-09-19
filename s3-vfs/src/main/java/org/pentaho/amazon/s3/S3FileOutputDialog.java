@@ -320,7 +320,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     wbFilename.setLayoutData( fdbFilename );
 
     wFilename = new TextVar( transMeta, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    wFilename.setText( "s3n://s3n/" );
+    wFilename.setText( "s3n://" );
     props.setLook( wFilename );
     wFilename.addModifyListener( lsMod );
     fdFilename = new FormData();
@@ -1158,7 +1158,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
               BaseMessages.getString( BASE_PKG, "System.FileType.AllFiles" ) };
 
           if ( StringUtils.isEmpty( wFilename.getText().trim() ) ) {
-            wFilename.setText( "s3n://s3n/" );
+            wFilename.setText( "s3a://" );
           }
           /* For legacy transformations containing AWS S3 access credentials, {@link Const#KETTLE_USE_AWS_DEFAULT_CREDENTIALS} can force Spoon to use
            * the Amazon Default Credentials Provider Chain instead of using the credentials embedded in the transformation metadata. */
@@ -1475,7 +1475,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     tfoi.setSecretKey( input.getSecretKey() );
 
     if ( StringUtils.isEmpty( wFilename.getText().trim() ) ) {
-      wFilename.setText( "s3n://s3n/" );
+      wFilename.setText( "s3n://" );
     }
 
     tfoi.setFileName( wFilename.getText() );
@@ -1636,9 +1636,9 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
   protected VfsFileChooserDialog getFileChooserDialog() throws KettleFileException {
     if ( this.fileChooserDialog == null ) {
       String filename = wFilename.getText();
-      String defaultFileObject = "s3n://s3n";
-      if ( !StringUtils.isEmpty( filename ) && filename.startsWith( "s3://s3" ) ) {
-        defaultFileObject = "s3://s3";
+      String defaultFileObject = "s3n://";
+      if ( !StringUtils.isEmpty( filename ) && filename.startsWith( "s3://" ) ) {
+        defaultFileObject = "s3://";
       }
       FileObject defaultInitialFile = KettleVFS.getFileObject( defaultFileObject );
 
