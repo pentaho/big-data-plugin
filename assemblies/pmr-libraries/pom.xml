@@ -734,7 +734,7 @@
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-engine</artifactId>
-      <version>${pdi.version}</version>
+      <version>${project.version}</version>
 	  <exclusions>
         <exclusion>
           <artifactId>jackson-jaxrs</artifactId>
