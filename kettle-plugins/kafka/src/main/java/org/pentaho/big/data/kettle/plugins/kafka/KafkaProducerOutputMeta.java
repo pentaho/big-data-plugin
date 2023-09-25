@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -35,6 +35,7 @@ import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
+import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.Trans;
@@ -73,19 +74,22 @@ import static org.pentaho.metaverse.api.analyzer.kettle.annotations.Metaverse.FA
 import static org.pentaho.metaverse.api.analyzer.kettle.step.ExternalResourceStepAnalyzer.RESOURCE;
 
 @Step( id = "KafkaProducerOutput", image = "KafkaProducerOutput.svg",
-  i18nPackageName = "org.pentaho.big.data.kettle.plugins.kafka",
-  name = "KafkaProducer.TypeLongDesc",
-  description = "KafkaProducer.TypeTooltipDesc",
-  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming",
-  documentationUrl = "Products/Kafka_Producer" )
+        i18nPackageName = "org.pentaho.big.data.kettle.plugins.kafka",
+        name = "KafkaProducer.TypeLongDesc",
+        description = "KafkaProducer.TypeTooltipDesc",
+        categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming",
+        documentationUrl = "Products/Kafka_Producer" )
 @InjectionSupported( localizationPrefix = "KafkaProducerOutputMeta.Injection.", groups = { "CONFIGURATION_PROPERTIES" } )
 @Metaverse.CategoryMap ( entity = KAFKA_TOPIC_METAVERSE, category = CATEGORY_MESSAGE_QUEUE )
 @Metaverse.CategoryMap ( entity = KAFKA_SERVER_METAVERSE, category = CATEGORY_DATASOURCE )
 @Metaverse.EntityLink ( entity = KAFKA_SERVER_METAVERSE, link = LINK_PARENT_CONCEPT, parentEntity =
-  NODE_TYPE_EXTERNAL_CONNECTION )
+        NODE_TYPE_EXTERNAL_CONNECTION )
 @Metaverse.EntityLink ( entity = KAFKA_TOPIC_METAVERSE, link = LINK_CONTAINS_CONCEPT, parentEntity = KAFKA_SERVER_METAVERSE )
 @Metaverse.EntityLink ( entity = KAFKA_TOPIC_METAVERSE, link = LINK_PARENT_CONCEPT )
 public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInterface {
+
+  private static final Class<?> PKG = KafkaProducerOutputMeta.class;
+
   public enum ConnectionType {
     DIRECT,
     CLUSTER
@@ -165,16 +169,16 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     config = new LinkedHashMap<>();
 
     Optional.ofNullable( XMLHandler.getSubNode( stepnode, ADVANCED_CONFIG ) ).map( Node::getChildNodes )
-        .ifPresent( nodes -> IntStream.range( 0, nodes.getLength() ).mapToObj( nodes::item )
-            .filter( node -> node.getNodeType() == Node.ELEMENT_NODE )
-            .forEach( node -> {
-              if ( CONFIG_OPTION.equals( node.getNodeName() ) ) {
-                config.put( node.getAttributes().getNamedItem( OPTION_PROPERTY ).getTextContent(),
-                  node.getAttributes().getNamedItem( OPTION_VALUE ).getTextContent() );
-              } else {
-                config.put( node.getNodeName(), node.getTextContent() );
-              }
-            } ) );
+            .ifPresent( nodes -> IntStream.range( 0, nodes.getLength() ).mapToObj( nodes::item )
+                    .filter( node -> node.getNodeType() == Node.ELEMENT_NODE )
+                    .forEach( node -> {
+                      if ( CONFIG_OPTION.equals( node.getNodeName() ) ) {
+                        config.put( node.getAttributes().getNamedItem( OPTION_PROPERTY ).getTextContent(),
+                                node.getAttributes().getNamedItem( OPTION_VALUE ).getTextContent() );
+                      } else {
+                        config.put( node.getNodeName(), node.getTextContent() );
+                      }
+                    } ) );
   }
 
   @Override public void setDefault() {
@@ -182,7 +186,7 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
   }
 
   @Override public void readRep( Repository rep, IMetaStore metaStore, ObjectId stepId, List<DatabaseMeta> databases )
-    throws KettleException {
+          throws KettleException {
     setConnectionType( ConnectionType.valueOf( rep.getStepAttributeString( stepId, CONNECTION_TYPE ) ) );
     setDirectBootstrapServers( rep.getStepAttributeString( stepId, DIRECT_BOOTSTRAP_SERVERS ) );
     setClusterName( rep.getStepAttributeString( stepId, CLUSTER_NAME ) );
@@ -195,12 +199,12 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
 
     for ( int i = 0; i < rep.getStepAttributeInteger( stepId, ADVANCED_CONFIG + "_COUNT" ); i++ ) {
       config.put( rep.getStepAttributeString( stepId, i, ADVANCED_CONFIG + "_NAME" ),
-          rep.getStepAttributeString( stepId, i, ADVANCED_CONFIG + "_VALUE" ) );
+              rep.getStepAttributeString( stepId, i, ADVANCED_CONFIG + "_VALUE" ) );
     }
   }
 
   @Override public void saveRep( Repository rep, IMetaStore metaStore, ObjectId transformationId, ObjectId stepId )
-    throws KettleException {
+          throws KettleException {
     rep.saveStepAttribute( transformationId, stepId, CONNECTION_TYPE, connectionType.name() );
     rep.saveStepAttribute( transformationId, stepId, DIRECT_BOOTSTRAP_SERVERS, directBootstrapServers );
     rep.saveStepAttribute( transformationId, stepId, CLUSTER_NAME, clusterName );
@@ -219,7 +223,7 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
   }
 
   @Override public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
-                         VariableSpace space, Repository repository, IMetaStore metaStore ) {
+                                   VariableSpace space, Repository repository, IMetaStore metaStore ) {
     // Default: nothing changes to rowMeta
   }
 
@@ -252,16 +256,16 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
       metastore = getParentStepMeta().getParentTransMeta().getEmbeddedMetaStore();
     }
     Optional<NamedCluster> namedClusterByName = Optional.ofNullable(
-      namedClusterService.getNamedClusterByName(
-        parentStepMeta.getParentTransMeta().environmentSubstitute( clusterName ), metastore ) );
+            namedClusterService.getNamedClusterByName(
+                    parentStepMeta.getParentTransMeta().environmentSubstitute( clusterName ), metastore ) );
     if ( !namedClusterByName.isPresent() ) {
       namedClusterByName = Optional.ofNullable(
-        namedClusterService.getNamedClusterByName(
-          parentStepMeta.getParentTransMeta().environmentSubstitute( clusterName ),
-          getParentStepMeta().getParentTransMeta().getEmbeddedMetaStore() ) );
+              namedClusterService.getNamedClusterByName(
+                      parentStepMeta.getParentTransMeta().environmentSubstitute( clusterName ),
+                      getParentStepMeta().getParentTransMeta().getEmbeddedMetaStore() ) );
     }
     return namedClusterByName
-        .map( NamedCluster::getKafkaBootstrapServers ).orElse( "" );
+            .map( NamedCluster::getKafkaBootstrapServers ).orElse( "" );
   }
 
   public String getClientId() {
@@ -323,8 +327,8 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     retval.append( "    " ).append( XMLHandler.addTagValue( MESSAGE_FIELD, messageField ) );
     retval.append( "    " ).append( XMLHandler.openTag( ADVANCED_CONFIG ) ).append( Const.CR );
     getConfig().forEach( ( key, value ) -> retval.append( "        " )
-      .append( XMLHandler.addTagValue( CONFIG_OPTION, "", true,
-        OPTION_PROPERTY, (String) key, OPTION_VALUE, (String) value ) ) );
+            .append( XMLHandler.addTagValue( CONFIG_OPTION, "", true,
+                    OPTION_PROPERTY, (String) key, OPTION_VALUE, (String) value ) ) );
     retval.append( "    " ).append( XMLHandler.closeTag( ADVANCED_CONFIG ) ).append( Const.CR );
 
     parentStepMeta.getParentTransMeta().getNamedClusterEmbedManager().registerUrl( "hc://" + clusterName );
@@ -401,14 +405,15 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
       Preconditions.checkState( injectedConfigNames != null, "Options names were not injected" );
       Preconditions.checkState( injectedConfigValues != null, "Options values were not injected" );
       Preconditions.checkState( injectedConfigNames.size() == injectedConfigValues.size(),
-          "Injected different number of options names and value" );
+              "Injected different number of options names and value" );
 
       setConfig( IntStream.range( 0, injectedConfigNames.size() ).boxed().collect( Collectors
-          .toMap( injectedConfigNames::get, injectedConfigValues::get, ( v1, v2 ) -> v1,
-              LinkedHashMap::new ) ) );
+              .toMap( injectedConfigNames::get, injectedConfigValues::get, ( v1, v2 ) -> v1,
+                      LinkedHashMap::new ) ) );
 
       injectedConfigNames = null;
       injectedConfigValues = null;
     }
   }
+
 }

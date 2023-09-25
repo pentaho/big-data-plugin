@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -28,7 +28,7 @@ import org.pentaho.di.trans.steps.transexecutor.TransExecutorData;
 
 
 public class KafkaConsumerInputData extends TransExecutorData implements StepDataInterface {
-  RowMetaInterface outputRowMeta;
+  public RowMetaInterface outputRowMeta;
 
   /**
    *

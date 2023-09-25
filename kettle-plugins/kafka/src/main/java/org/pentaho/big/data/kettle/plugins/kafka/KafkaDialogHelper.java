@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -37,6 +37,7 @@ import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.util.StringUtil;
+import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.ui.core.widget.ComboVar;
@@ -52,27 +53,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.CLUSTER;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.DIRECT;
 
 public class KafkaDialogHelper {
-  private ComboVar wTopic;
-  private ComboVar wClusterName;
-  private Button wbCluster;
-  private TextVar wBootstrapServers;
+  protected ComboVar wTopic;
+  protected ComboVar wClusterName;
+  protected Button wbCluster;
+  protected TextVar wBootstrapServers;
   private KafkaFactory kafkaFactory;
   private NamedClusterManager namedClusterService;
   private MetastoreLocator metastoreLocator;
   //private NamedClusterServiceLocator namedClusterServiceLocator;
-  private TableView optionsTable;
+  protected TableView optionsTable;
   private StepMeta parentMeta;
+  private VariableSpace variableSpace;
 
   // squid:S00107 cannot consolidate params because they can come from either KafkaConsumerInputMeta or
   // KafkaProducerOutputMeta which do not share a common interface.  Would increase complexity for the trivial gain of
   // less parameters in the constructor
   @SuppressWarnings( "squid:S00107" )
-  KafkaDialogHelper( ComboVar wClusterName, ComboVar wTopic, Button wbCluster, TextVar wBootstrapServers,
+  public KafkaDialogHelper( ComboVar wClusterName, ComboVar wTopic, Button wbCluster, TextVar wBootstrapServers,
                             KafkaFactory kafkaFactory, NamedClusterManager namedClusterService, MetastoreLocator metastoreLocator,
                             TableView optionsTable, StepMeta parentMeta ) {
     this.wClusterName = wClusterName;
@@ -89,7 +90,7 @@ public class KafkaDialogHelper {
 
   @SuppressWarnings ( "unused" ) public void clusterNameChanged( Event event ) {
     if ( ( wbCluster.getSelection() && StringUtil.isEmpty( wClusterName.getText() ) )
-      || !wbCluster.getSelection() && StringUtil.isEmpty( wBootstrapServers.getText() ) ) {
+            || !wbCluster.getSelection() && StringUtil.isEmpty( wBootstrapServers.getText() ) ) {
       return;
     }
     String current = wTopic.getText();
@@ -100,28 +101,28 @@ public class KafkaDialogHelper {
     if ( !wTopic.getCComboWidget().isDisposed() ) {
       wTopic.getCComboWidget().removeAll();
     }
+
     CompletableFuture
-      .supplyAsync( () -> listTopics( clusterName, isCluster, directBootstrapServers, config ) )
-      .thenAccept( topicMap -> Display.getDefault().syncExec( () -> populateTopics( topicMap, current ) ) );
+            .supplyAsync( () -> listTopics( clusterName, isCluster, directBootstrapServers, config ) )
+            .thenAccept( topicMap -> Display.getDefault().syncExec( () -> populateTopics( topicMap, current ) ) );
   }
 
-  private void populateTopics( Map<String, List<PartitionInfo>> topicMap, String current ) {
+  protected void populateTopics( Map<String, List<PartitionInfo>> topicMap, String current ) {
 
     topicMap.keySet().stream()
-      .filter( key -> !"__consumer_offsets".equals( key ) ).sorted()
-      .forEach( key -> {
-        if ( !wTopic.isDisposed() ) {
-          wTopic.add( key );
-        }
-      } );
+            .filter( key -> !"__consumer_offsets".equals( key ) ).sorted()
+            .forEach( key -> {
+              if ( !wTopic.isDisposed() ) {
+                wTopic.add( key );
+              }
+            } );
     if ( !wTopic.getCComboWidget().isDisposed() ) {
       wTopic.getCComboWidget().setText( current );
     }
   }
 
-  private Map<String, List<PartitionInfo>> listTopics(
-    final String clusterName, final boolean isCluster, final String directBootstrapServers,
-    Map<String, String> config ) {
+  protected Map<String, List<PartitionInfo>> listTopics( final String clusterName, final boolean isCluster, final String directBootstrapServers,
+                                                         Map<String, String> config ) {
     Consumer kafkaConsumer = null;
     try {
       KafkaConsumerInputMeta localMeta = new KafkaConsumerInputMeta();
@@ -163,16 +164,16 @@ public class KafkaDialogHelper {
 
   public static List<String> getConsumerAdvancedConfigOptionNames() {
     return Arrays.asList( ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,
-      SslConfigs.SSL_KEY_PASSWORD_CONFIG, SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG,
-      SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG,
-      SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG );
+            SslConfigs.SSL_KEY_PASSWORD_CONFIG, SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG,
+            SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG,
+            SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG );
   }
 
   public static List<String> getProducerAdvancedConfigOptionNames() {
     return Arrays.asList( ProducerConfig.COMPRESSION_TYPE_CONFIG,
-      SslConfigs.SSL_KEY_PASSWORD_CONFIG, SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG,
-      SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG,
-      SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG );
+            SslConfigs.SSL_KEY_PASSWORD_CONFIG, SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG,
+            SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG,
+            SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG );
   }
 
   public static Map<String, String> getConfig( TableView optionsTable ) {

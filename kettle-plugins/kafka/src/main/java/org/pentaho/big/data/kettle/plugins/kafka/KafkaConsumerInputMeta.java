@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -87,16 +87,16 @@ import static org.pentaho.metaverse.api.analyzer.kettle.annotations.Metaverse.SU
 import static org.pentaho.metaverse.api.analyzer.kettle.step.ExternalResourceStepAnalyzer.RESOURCE;
 
 @Step( id = "KafkaConsumerInput", image = "KafkaConsumerInput.svg",
-  i18nPackageName = "org.pentaho.big.data.kettle.plugins.kafka",
-  name = "KafkaConsumer.TypeLongDesc",
-  description = "KafkaConsumer.TypeTooltipDesc",
-  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming",
-  documentationUrl = "Products/Kafka_Consumer" )
+        i18nPackageName = "org.pentaho.big.data.kettle.plugins.kafka",
+        name = "KafkaConsumer.TypeLongDesc",
+        description = "KafkaConsumer.TypeTooltipDesc",
+        categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming",
+        documentationUrl = "Products/Kafka_Consumer" )
 @InjectionSupported( localizationPrefix = "KafkaConsumerInputMeta.Injection.", groups = { "CONFIGURATION_PROPERTIES" } )
 @Metaverse.CategoryMap ( entity = KAFKA_TOPIC_METAVERSE, category = CATEGORY_MESSAGE_QUEUE )
 @Metaverse.CategoryMap ( entity = KAFKA_SERVER_METAVERSE, category = CATEGORY_DATASOURCE )
 @Metaverse.EntityLink ( entity = KAFKA_SERVER_METAVERSE, link = LINK_PARENT_CONCEPT, parentEntity =
-  NODE_TYPE_EXTERNAL_CONNECTION )
+        NODE_TYPE_EXTERNAL_CONNECTION )
 @Metaverse.EntityLink ( entity = KAFKA_TOPIC_METAVERSE, link = LINK_CONTAINS_CONCEPT, parentEntity = KAFKA_SERVER_METAVERSE )
 @Metaverse.EntityLink ( entity = KAFKA_TOPIC_METAVERSE, link = LINK_PARENT_CONCEPT )
 public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMetaInterface {
@@ -151,10 +151,10 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
   private KafkaConsumerField messageField;
 
   @Injection( name = "NAMES", group = "CONFIGURATION_PROPERTIES" )
-  protected List<String> injectedConfigNames;
+  public List<String> injectedConfigNames;
 
   @Injection( name = "VALUES", group = "CONFIGURATION_PROPERTIES" )
-  protected List<String> injectedConfigValues;
+  public List<String> injectedConfigValues;
 
   @Injection( name = AUTO_COMMIT )
   private boolean autoCommit = true;
@@ -169,7 +169,7 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
 
   private KafkaConsumerField timestampField;
 
-  private KafkaFactory kafkaFactory;
+  protected KafkaFactory kafkaFactory;
 
   private NamedClusterManager namedClusterService = NamedClusterManager.getInstance();
 
@@ -179,46 +179,48 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
 
   public KafkaConsumerInputMeta() {
     super(); // allocate BaseStepMeta
+    kafkaFactory = KafkaFactory.defaultFactory();
+    prepare();
+  }
 
+  protected  void prepare() {
     try {
       Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
       this.metastoreLocator = metastoreLocators.stream().findFirst().get();
     } catch ( Exception e ) {
       getLog().logError( "Error getting MetastoreLocator", e );
     }
-
-    kafkaFactory = KafkaFactory.defaultFactory();
     keyField = new KafkaConsumerField(
-      KafkaConsumerField.Name.KEY,
-      BaseMessages.getString( PKG, "KafkaConsumerInputDialog.KeyField" )
+            KafkaConsumerField.Name.KEY,
+            BaseMessages.getString( PKG, "KafkaConsumerInputDialog.KeyField" )
     );
 
     messageField = new KafkaConsumerField(
-      KafkaConsumerField.Name.MESSAGE,
-      BaseMessages.getString( PKG, "KafkaConsumerInputDialog.MessageField" )
+            KafkaConsumerField.Name.MESSAGE,
+            BaseMessages.getString( PKG, "KafkaConsumerInputDialog.MessageField" )
     );
 
     topicField = new KafkaConsumerField(
-      KafkaConsumerField.Name.TOPIC,
-      BaseMessages.getString( PKG, "KafkaConsumerInputDialog.TopicField" )
+            KafkaConsumerField.Name.TOPIC,
+            BaseMessages.getString( PKG, "KafkaConsumerInputDialog.TopicField" )
     );
 
     partitionField = new KafkaConsumerField(
-      KafkaConsumerField.Name.PARTITION,
-      BaseMessages.getString( PKG, "KafkaConsumerInputDialog.PartitionField" ),
-      KafkaConsumerField.Type.Integer
+            KafkaConsumerField.Name.PARTITION,
+            BaseMessages.getString( PKG, "KafkaConsumerInputDialog.PartitionField" ),
+            KafkaConsumerField.Type.Integer
     );
 
     offsetField = new KafkaConsumerField(
-      KafkaConsumerField.Name.OFFSET,
-      BaseMessages.getString( PKG, "KafkaConsumerInputDialog.OffsetField" ),
-      KafkaConsumerField.Type.Integer
+            KafkaConsumerField.Name.OFFSET,
+            BaseMessages.getString( PKG, "KafkaConsumerInputDialog.OffsetField" ),
+            KafkaConsumerField.Type.Integer
     );
 
     timestampField = new KafkaConsumerField(
-      KafkaConsumerField.Name.TIMESTAMP,
-      BaseMessages.getString( PKG, "KafkaConsumerInputDialog.TimestampField" ),
-      KafkaConsumerField.Type.Integer
+            KafkaConsumerField.Name.TIMESTAMP,
+            BaseMessages.getString( PKG, "KafkaConsumerInputDialog.TimestampField" ),
+            KafkaConsumerField.Type.Integer
     );
     setSpecificationMethod( ObjectLocationSpecificationMethod.FILENAME );
   }
@@ -260,9 +262,9 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
       String kafkaName = XMLHandler.getTagAttribute( node, KAFKA_NAME_ATTRIBUTE );
       String type = XMLHandler.getTagAttribute( node, TYPE_ATTRIBUTE );
       KafkaConsumerField field = new KafkaConsumerField(
-        KafkaConsumerField.Name.valueOf( kafkaName.toUpperCase() ),
-        displayName,
-        KafkaConsumerField.Type.valueOf( type ) );
+              KafkaConsumerField.Name.valueOf( kafkaName.toUpperCase() ),
+              displayName,
+              KafkaConsumerField.Type.valueOf( type ) );
 
       setField( field );
     } );
@@ -270,16 +272,16 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     config = new LinkedHashMap<>();
 
     Optional.ofNullable( XMLHandler.getSubNode( stepnode, ADVANCED_CONFIG ) ).map( Node::getChildNodes )
-        .ifPresent( nodes -> IntStream.range( 0, nodes.getLength() ).mapToObj( nodes::item )
-            .filter( node -> node.getNodeType() == Node.ELEMENT_NODE )
-            .forEach( node -> {
-              if ( CONFIG_OPTION.equals( node.getNodeName() ) ) {
-                config.put( node.getAttributes().getNamedItem( OPTION_PROPERTY ).getTextContent(),
-                            node.getAttributes().getNamedItem( OPTION_VALUE ).getTextContent() );
-              } else {
-                config.put( node.getNodeName(), node.getTextContent() );
-              }
-            } ) );
+            .ifPresent( nodes -> IntStream.range( 0, nodes.getLength() ).mapToObj( nodes::item )
+                    .filter( node -> node.getNodeType() == Node.ELEMENT_NODE )
+                    .forEach( node -> {
+                      if ( CONFIG_OPTION.equals( node.getNodeName() ) ) {
+                        config.put( node.getAttributes().getNamedItem( OPTION_PROPERTY ).getTextContent(),
+                                node.getAttributes().getNamedItem( OPTION_VALUE ).getTextContent() );
+                      } else {
+                        config.put( node.getNodeName(), node.getTextContent() );
+                      }
+                    } ) );
   }
 
   protected void setField( KafkaConsumerField field ) {
@@ -294,7 +296,7 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
   }
 
   @Override public void readRep( Repository rep, IMetaStore metaStore, ObjectId objectId, List<DatabaseMeta> databases )
-    throws KettleException {
+          throws KettleException {
     setClusterName( rep.getStepAttributeString( objectId, CLUSTER_NAME ) );
 
     int topicCount = rep.countNrStepAttributes( objectId, TOPIC );
@@ -329,12 +331,12 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
 
     for ( int i = 0; i < rep.getStepAttributeInteger( objectId, ADVANCED_CONFIG + "_COUNT" ); i++ ) {
       config.put( rep.getStepAttributeString( objectId, i, ADVANCED_CONFIG + "_NAME" ),
-          rep.getStepAttributeString( objectId, i, ADVANCED_CONFIG + "_VALUE" ) );
+              rep.getStepAttributeString( objectId, i, ADVANCED_CONFIG + "_VALUE" ) );
     }
   }
 
   @Override public void saveRep( Repository rep, IMetaStore metaStore, ObjectId transId, ObjectId stepId )
-    throws KettleException {
+          throws KettleException {
     rep.saveStepAttribute( transId, stepId, CLUSTER_NAME, clusterName );
 
     int i = 0;
@@ -382,19 +384,19 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
   }
 
   void putFieldOnRowMeta( KafkaConsumerField field, RowMetaInterface rowMeta,
-                                  String origin, VariableSpace space ) throws KettleStepException {
+                          String origin, VariableSpace space ) throws KettleStepException {
     if ( field != null && !Utils.isEmpty( field.getOutputName() ) ) {
       try {
         String value = space.environmentSubstitute( field.getOutputName() );
         ValueMetaInterface v = ValueMetaFactory.createValueMeta( value,
-          field.getOutputType().getValueMetaInterfaceType() );
+                field.getOutputType().getValueMetaInterfaceType() );
         v.setOrigin( origin );
         rowMeta.addValueMeta( v );
       } catch ( KettlePluginException e ) {
         throw new KettleStepException( BaseMessages.getString(
-          PKG,
-          "KafkaConsumerInputMeta.UnableToCreateValueType",
-          field
+                PKG,
+                "KafkaConsumerInputMeta.UnableToCreateValueType",
+                field
         ), e );
       }
     }
@@ -402,7 +404,7 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
 
 
   @Override public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int cnr, TransMeta tr,
-                                Trans trans ) {
+                                          Trans trans ) {
     return new KafkaConsumerInput( stepMeta, stepDataInterface, cnr, tr, trans );
   }
 
@@ -430,8 +432,8 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
       return getDirectBootstrapServers();
     }
     return Optional
-        .ofNullable( namedClusterService.getNamedClusterByName( parentStepMeta.getParentTransMeta().environmentSubstitute( clusterName ), metastoreLocator.getMetastore() ) )
-        .map( NamedCluster::getKafkaBootstrapServers ).orElse( "" );
+            .ofNullable( namedClusterService.getNamedClusterByName( parentStepMeta.getParentTransMeta().environmentSubstitute( clusterName ), metastoreLocator.getMetastore() ) )
+            .map( NamedCluster::getKafkaBootstrapServers ).orElse( "" );
   }
 
   @Metaverse.Node ( name = KAFKA_TOPIC_METAVERSE, type = KAFKA_TOPIC_METAVERSE, link = LINK_READBY )
@@ -514,7 +516,7 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     parentStepMeta.getParentTransMeta().getNamedClusterEmbedManager().registerUrl( "hc://" + clusterName );
 
     getTopics().forEach( topic ->
-      retval.append( "    " ).append( XMLHandler.addTagValue( TOPIC, topic ) ) );
+            retval.append( "    " ).append( XMLHandler.addTagValue( TOPIC, topic ) ) );
 
     retval.append( "    " ).append( XMLHandler.addTagValue( CONSUMER_GROUP, consumerGroup ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( TRANSFORMATION_PATH, transformationPath ) );
@@ -528,15 +530,15 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     retval.append( "    " ).append( XMLHandler.addTagValue( AUTO_COMMIT, autoCommit ) );
 
     getFieldDefinitions().forEach( field ->
-      retval.append( "    " ).append(
-        XMLHandler.addTagValue( OUTPUT_FIELD_TAG_NAME, field.getOutputName(), true,
-          KAFKA_NAME_ATTRIBUTE, field.getKafkaName().toString(),
-          TYPE_ATTRIBUTE, field.getOutputType().toString() ) ) );
+            retval.append( "    " ).append(
+                    XMLHandler.addTagValue( OUTPUT_FIELD_TAG_NAME, field.getOutputName(), true,
+                            KAFKA_NAME_ATTRIBUTE, field.getKafkaName().toString(),
+                            TYPE_ATTRIBUTE, field.getOutputType().toString() ) ) );
 
     retval.append( "    " ).append( XMLHandler.openTag( ADVANCED_CONFIG ) ).append( Const.CR );
     getConfig().forEach( ( key, value ) -> retval.append( "        " )
-        .append( XMLHandler.addTagValue( CONFIG_OPTION, "", true,
-                              OPTION_PROPERTY, (String) key, OPTION_VALUE, (String) value ) ) );
+            .append( XMLHandler.addTagValue( CONFIG_OPTION, "", true,
+                    OPTION_PROPERTY, (String) key, OPTION_VALUE, (String) value ) ) );
     retval.append( "    " ).append( XMLHandler.closeTag( ADVANCED_CONFIG ) ).append( Const.CR );
 
     return retval.toString();
@@ -544,19 +546,19 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
 
   public List<KafkaConsumerField> getFieldDefinitions() {
     return Lists.newArrayList(
-      getKeyField(),
-      getMessageField(),
-      getTopicField(),
-      getPartitionField(),
-      getOffsetField(),
-      getTimestampField() );
+            getKeyField(),
+            getMessageField(),
+            getTopicField(),
+            getPartitionField(),
+            getOffsetField(),
+            getTimestampField() );
   }
 
   public KafkaFactory getKafkaFactory() {
     return kafkaFactory;
   }
 
-  void setKafkaFactory( KafkaFactory kafkaFactory ) {
+  protected void setKafkaFactory( KafkaFactory kafkaFactory ) {
     this.kafkaFactory = kafkaFactory;
   }
 
@@ -627,16 +629,16 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     return config;
   }
 
-  protected void applyInjectedProperties() {
+  public void applyInjectedProperties() {
     if ( injectedConfigNames != null || injectedConfigValues != null ) {
       Preconditions.checkState( injectedConfigNames != null, "Options names were not injected" );
       Preconditions.checkState( injectedConfigValues != null, "Options values were not injected" );
       Preconditions.checkState( injectedConfigNames.size() == injectedConfigValues.size(),
-          "Injected different number of options names and value" );
+              "Injected different number of options names and value" );
 
       setConfig( IntStream.range( 0, injectedConfigNames.size() ).boxed().collect( Collectors
-          .toMap( injectedConfigNames::get, injectedConfigValues::get, ( v1, v2 ) -> v1,
-              LinkedHashMap::new ) ) );
+              .toMap( injectedConfigNames::get, injectedConfigValues::get, ( v1, v2 ) -> v1,
+                      LinkedHashMap::new ) ) );
 
       injectedConfigNames = null;
       injectedConfigValues = null;

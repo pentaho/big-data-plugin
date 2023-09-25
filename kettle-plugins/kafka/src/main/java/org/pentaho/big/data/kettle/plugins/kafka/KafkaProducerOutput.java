@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -43,7 +43,7 @@ public class KafkaProducerOutput extends BaseStep implements StepInterface, Call
   private static final Class<?> PKG = KafkaConsumerInputMeta.class;
   private KafkaProducerOutputMeta meta;
   private KafkaProducerOutputData data;
-  private KafkaFactory kafkaFactory;
+  protected KafkaFactory kafkaFactory;
   // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
   public KafkaProducerOutput( StepMeta stepMeta,
@@ -53,7 +53,7 @@ public class KafkaProducerOutput extends BaseStep implements StepInterface, Call
     setKafkaFactory( KafkaFactory.defaultFactory() );
   }
 
-  void setKafkaFactory( KafkaFactory factory ) {
+  public void setKafkaFactory( KafkaFactory factory ) {
     this.kafkaFactory = factory;
   }
 
@@ -88,8 +88,8 @@ public class KafkaProducerOutput extends BaseStep implements StepInterface, Call
       ValueMetaInterface msgValueMeta = getInputRowMeta().getValueMeta( data.messageFieldIndex );
 
       data.kafkaProducer = kafkaFactory.producer( meta, this::environmentSubstitute,
-        KafkaConsumerField.Type.fromValueMetaInterface( keyValueMeta ),
-        KafkaConsumerField.Type.fromValueMetaInterface( msgValueMeta ) );
+              KafkaConsumerField.Type.fromValueMetaInterface( keyValueMeta ),
+              KafkaConsumerField.Type.fromValueMetaInterface( msgValueMeta ) );
 
       data.isOpen = true;
 
@@ -102,11 +102,11 @@ public class KafkaProducerOutput extends BaseStep implements StepInterface, Call
     ProducerRecord<Object, Object> producerRecord;
     // allow for null keys
     if ( data.keyFieldIndex < 0 || r[ data.keyFieldIndex ] == null || StringUtil
-      .isEmpty( r[ data.keyFieldIndex ].toString() ) ) {
+            .isEmpty( r[ data.keyFieldIndex ].toString() ) ) {
       producerRecord = new ProducerRecord<>( environmentSubstitute( meta.getTopic() ), r[ data.messageFieldIndex ] );
     } else {
       producerRecord = new ProducerRecord<>( environmentSubstitute( meta.getTopic() ), r[ data.keyFieldIndex ],
-        r[ data.messageFieldIndex ] );
+              r[ data.messageFieldIndex ] );
     }
 
     data.kafkaProducer.send( producerRecord, this );
