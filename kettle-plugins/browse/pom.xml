@@ -29,7 +29,7 @@
     <dependency>
       <groupId>org.pentaho.di.plugins</groupId>
       <artifactId>file-open-save-new-api</artifactId>
-      <version>${project.version}</version>
+      <version>${pdi.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

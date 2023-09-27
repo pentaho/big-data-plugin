@@ -33,7 +33,7 @@
         <dependency>
             <groupId>pentaho-kettle</groupId>
             <artifactId>kettle-engine</artifactId>
-            <version>${project.version}</version>
+            <version>${pdi.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
