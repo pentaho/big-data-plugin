@@ -115,10 +115,10 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
     throws KettleException {
     try {
       super.readRep( rep, metaStore, id_step, databases );
+      updateForRetroCompatibility();
       setAccessKey( Encr.decryptPasswordOptionallyEncrypted( rep.getStepAttributeString( id_step, ACCESS_KEY_TAG ) ) );
       setSecretKey( Encr.decryptPasswordOptionallyEncrypted( rep.getStepAttributeString( id_step, SECRET_KEY_TAG ) ) );
-      String filename = rep.getStepAttributeString( id_step, "file_name" );
-      processFilename( filename );
+      processFilename( fileName );
     } catch ( Exception e ) {
       throw new KettleException( "Unexpected error reading step information from the repository", e );
     }
