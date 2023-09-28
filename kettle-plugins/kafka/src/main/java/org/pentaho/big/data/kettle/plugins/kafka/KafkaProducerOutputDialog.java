@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -89,21 +89,22 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
   private static final int INPUT_WIDTH = 350;
 
   private KafkaProducerOutputMeta meta;
-  private ModifyListener lsMod;
+  protected ModifyListener lsMod;
   private Label wlClusterName;
-  private ComboVar wClusterName;
+  protected ComboVar wClusterName;
 
   private TextVar wClientId;
-  private ComboVar wTopic;
+  protected ComboVar wTopic;
   private ComboVar wKeyField;
   private ComboVar wMessageField;
-  private TableView optionsTable;
+  protected TableView optionsTable;
   private CTabFolder wTabFolder;
 
   private Button wbDirect;
-  private Button wbCluster;
+  protected Button wbCluster;
   private Label wlBootstrapServers;
-  private TextVar wBootstrapServers;
+  protected TextVar wBootstrapServers;
+  private Composite wOptionsComp;
 
   public KafkaProducerOutputDialog( Shell parent, Object in,
                                     TransMeta transMeta, String stepName ) {
@@ -126,6 +127,21 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     };
 
     shell = new Shell( parent, SWT.DIALOG_TRIM | SWT.MIN | SWT.MAX | SWT.RESIZE );
+    prepareOpen();
+    shell.open();
+    while ( !shell.isDisposed() ) {
+      if ( !display.readAndDispatch() ) {
+        display.sleep();
+      }
+    }
+    return stepname;
+  }
+
+  /**
+   * This method will prepare Shell with necessary data
+   * and can be used in EE.
+   */
+  public void prepareOpen() {
     props.setLook( shell );
     setShellImage( shell, meta );
     shell.setMinimumSize( SHELL_MIN_WIDTH, SHELL_MIN_HEIGHT );
@@ -224,16 +240,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     meta.setChanged( changed );
 
     wTabFolder.setSelection( 0 );
-
-    shell.open();
-    while ( !shell.isDisposed() ) {
-      if ( !display.readAndDispatch() ) {
-        display.sleep();
-      }
-    }
-    return stepname;
   }
-
   private void buildSetupTab() {
     CTabItem wSetupTab = new CTabItem( wTabFolder, SWT.NONE );
     wSetupTab.setText( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.SetupTab" ) );
@@ -379,13 +386,9 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     wTopic.getCComboWidget().addListener(
       SWT.FocusIn,
       event -> {
-        KafkaDialogHelper kafkaDialogHelper = new KafkaDialogHelper(
-          wClusterName, wTopic, wbCluster, wBootstrapServers, kafkaFactory, meta.getNamedClusterService(),
-          //meta.getNamedClusterServiceLocator(),
-          meta.getMetastoreLocator(), optionsTable, meta.getParentStepMeta() );
+        KafkaDialogHelper kafkaDialogHelper = getDialogHelper();
         kafkaDialogHelper.clusterNameChanged( event );
       } );
-
     Label wlKeyField = new Label( wSetupComp, SWT.LEFT );
     props.setLook( wlKeyField );
     wlKeyField.setText( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.KeyField" ) );
@@ -448,7 +451,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
   private void buildOptionsTab() {
     CTabItem wOptionsTab = new CTabItem( wTabFolder, SWT.NONE );
     wOptionsTab.setText( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.Options.Tab" ) );
-    Composite wOptionsComp = new Composite( wTabFolder, SWT.NONE );
+    wOptionsComp = new Composite( wTabFolder, SWT.NONE );
     props.setLook( wOptionsComp );
     FormLayout fieldsLayout = new FormLayout();
     fieldsLayout.marginHeight = 15;
@@ -463,7 +466,6 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     wOptionsComp.setLayoutData( optionsFormData );
 
     buildOptionsTable( wOptionsComp );
-
     wOptionsComp.layout();
     wOptionsTab.setControl( wOptionsComp );
   }
@@ -526,8 +528,9 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
       new ColumnInfo( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.Options.Column.Name" ),
         ColumnInfo.COLUMN_TYPE_TEXT, false, false );
 
-    ColumnInfo value = new ColumnInfo( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.Options.Column.Value" ),
-      ColumnInfo.COLUMN_TYPE_TEXT, false, false );
+    ColumnInfo value = new ColumnInfo( BaseMessages.getString( PKG,
+"KafkaProducerOutputDialog.Options.Column.Value" ),
+        ColumnInfo.COLUMN_TYPE_TEXT, false, false );
     value.setUsingVariables( true );
 
     return new ColumnInfo[] { optionName, value };
@@ -595,12 +598,12 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     return null;
   }
 
-  private void cancel() {
+  protected void cancel() {
     meta.setChanged( false );
     dispose();
   }
 
-  private void ok() {
+  protected void ok() {
     stepname = wStepname.getText();
     meta.setClusterName( wClusterName.getText() );
     meta.setConnectionType( wbDirect.getSelection() ? DIRECT : CLUSTER );
@@ -612,4 +615,36 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     setOptionsFromTable();
     dispose();
   }
+
+  public TextVar getwBootstrapServers() {
+    return wBootstrapServers;
+  }
+
+  public Button getWbCluster() {
+    return wbCluster;
+  }
+
+  public ComboVar getwClusterName() {
+    return wClusterName;
+  }
+
+  public ComboVar getwTopic() {
+    return wTopic;
+  }
+
+  public TableView getOptionsTable() {
+    return optionsTable;
+  }
+
+  public CTabFolder getwTabFolder() {
+    return wTabFolder;
+  }
+
+  protected KafkaDialogHelper getDialogHelper() {
+    KafkaDialogHelper helper = new KafkaDialogHelper(
+            wClusterName, wTopic, wbCluster, wBootstrapServers, kafkaFactory, meta.getNamedClusterService(),
+            meta.getMetastoreLocator(), optionsTable, meta.getParentStepMeta() );
+    return helper;
+  }
+
 }

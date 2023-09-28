@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -65,36 +65,34 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.C
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.DIRECT;
 
 @SuppressWarnings ( { "FieldCanBeLocal", "unused" } )
-@PluginDialog ( id = "KafkaConsumerInput", pluginType = PluginDialog.PluginType.STEP, image = "KafkaConsumerInput.svg", 
-  documentationUrl = "Products/Kafka_Consumer" )
+@PluginDialog ( id = "KafkaConsumerInput", pluginType = PluginDialog.PluginType.STEP, image = "KafkaConsumerInput.svg" )
 public class KafkaConsumerInputDialog extends BaseStreamingDialog implements StepDialogInterface {
 
   private static final int INPUT_WIDTH = 350;
-  private static final int SHELL_MIN_WIDTH = 527;
-  private static final int SHELL_MIN_HEIGHT = 682;
+  protected static final int SHELL_MIN_WIDTH = 527;
+  protected static final int SHELL_MIN_HEIGHT = 682;
   private static final Class<?> PKG = KafkaConsumerInputMeta.class;
   // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
-  private static final ImmutableMap<String, String> DEFAULT_OPTION_VALUES =
-    ImmutableMap.of( ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest" );
+  private static final ImmutableMap<String, String> DEFAULT_OPTION_VALUES = ImmutableMap.of( ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest" );
   private final KafkaFactory kafkaFactory = KafkaFactory.defaultFactory();
 
   private KafkaConsumerInputMeta consumerMeta;
-  private Spoon spoonInstance;
+  protected Spoon  spoonInstance;
 
   private Label wlClusterName;
-  private ComboVar wClusterName;
-
+  protected ComboVar wClusterName;
+  private Composite wOptionsComp;
 
   private TextVar wConsumerGroup;
   private TableView topicsTable;
-  private TableView optionsTable;
+  protected TableView optionsTable;
 
 
   private Button wbDirect;
-  private Button wbCluster;
+  protected Button wbCluster;
   private Label wlBootstrapServers;
-  private TextVar wBootstrapServers;
+  protected TextVar wBootstrapServers;
   private Button wbAutoCommit;
   private Button wbManualCommit;
   private static final String REPOS_DELIM = "/";
@@ -447,14 +445,11 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
     KafkaConsumerField.Type[] values = KafkaConsumerField.Type.values();
     String[] supportedTypes = stream( values ).map( KafkaConsumerField.Type::toString ).toArray( String[]::new );
 
-    ColumnInfo referenceName = new ColumnInfo( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.Column.Ref" ),
-      ColumnInfo.COLUMN_TYPE_TEXT, false, true );
+    ColumnInfo referenceName = new ColumnInfo( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.Column.Ref" ), ColumnInfo.COLUMN_TYPE_TEXT, false, true );
 
-    ColumnInfo name = new ColumnInfo( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.Column.Name" ),
-      ColumnInfo.COLUMN_TYPE_TEXT, false, false );
+    ColumnInfo name = new ColumnInfo( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.Column.Name" ), ColumnInfo.COLUMN_TYPE_TEXT, false, false );
 
-    ColumnInfo type = new ColumnInfo( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.Column.Type" ),
-      ColumnInfo.COLUMN_TYPE_CCOMBO, supportedTypes, false );
+    ColumnInfo type = new ColumnInfo( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.Column.Type" ), ColumnInfo.COLUMN_TYPE_CCOMBO, supportedTypes, false );
 
     // don't let the user edit the type for anything other than key & msg fields
     type.setDisabledListener( rowNumber -> {
@@ -469,11 +464,9 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
 
   private ColumnInfo[] getOptionsColumns() {
 
-    ColumnInfo optionName = new ColumnInfo( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.NameField" ),
-      ColumnInfo.COLUMN_TYPE_TEXT, false, false );
+    ColumnInfo optionName = new ColumnInfo( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.NameField" ), ColumnInfo.COLUMN_TYPE_TEXT, false, false );
 
-    ColumnInfo value = new ColumnInfo( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.Column.Value" ),
-      ColumnInfo.COLUMN_TYPE_TEXT, false, false );
+    ColumnInfo value = new ColumnInfo( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.Column.Value" ), ColumnInfo.COLUMN_TYPE_TEXT, false, false );
     value.setUsingVariables( true );
 
     return new ColumnInfo[] { optionName, value };
@@ -520,9 +513,8 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
   }
 
   private void buildTopicsTable( Composite parentWidget, Control controlAbove, Control controlBelow ) {
-    ColumnInfo[] columns =
-      new ColumnInfo[] { new ColumnInfo( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.NameField" ),
-        ColumnInfo.COLUMN_TYPE_CCOMBO, new String[ 1 ], false ) };
+    ColumnInfo[] columns = new ColumnInfo[] { new ColumnInfo( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.NameField" ),
+                    ColumnInfo.COLUMN_TYPE_CCOMBO, new String[ 1 ], false ) };
 
     columns[ 0 ].setUsingVariables( true );
 
@@ -532,14 +524,9 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
       CCombo ccom = (CCombo) e.widget;
       ComboVar cvar = (ComboVar) ccom.getParent();
 
-      KafkaDialogHelper kdh = new KafkaDialogHelper(
-        wClusterName, cvar, wbCluster, wBootstrapServers, kafkaFactory,
-        consumerMeta.getNamedClusterService(), // consumerMeta.getNamedClusterServiceLocator(),
-        consumerMeta.getMetastoreLocator(), optionsTable,
-        meta.getParentStepMeta() );
+      KafkaDialogHelper kdh = getDialogHelper( cvar );
       kdh.clusterNameChanged( e );
     };
-
     topicsTable = new TableView(
       transMeta,
       parentWidget,
@@ -701,5 +688,14 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
   private void setOptionsFromTable() {
     consumerMeta.setConfig( KafkaDialogHelper.getConfig( optionsTable ) );
   }
-}
 
+  protected KafkaDialogHelper getDialogHelper( ComboVar cvar ) {
+    KafkaDialogHelper helper = new KafkaDialogHelper(
+            wClusterName, cvar, wbCluster, wBootstrapServers, kafkaFactory,
+            consumerMeta.getNamedClusterService(), // consumerMeta.getNamedClusterServiceLocator(),
+            consumerMeta.getMetastoreLocator(), optionsTable,
+            meta.getParentStepMeta() );
+    return helper;
+  }
+
+}
