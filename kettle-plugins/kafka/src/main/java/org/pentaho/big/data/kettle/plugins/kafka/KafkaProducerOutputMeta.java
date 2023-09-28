@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -86,6 +86,9 @@ import static org.pentaho.metaverse.api.analyzer.kettle.step.ExternalResourceSte
 @Metaverse.EntityLink ( entity = KAFKA_TOPIC_METAVERSE, link = LINK_CONTAINS_CONCEPT, parentEntity = KAFKA_SERVER_METAVERSE )
 @Metaverse.EntityLink ( entity = KAFKA_TOPIC_METAVERSE, link = LINK_PARENT_CONCEPT )
 public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInterface {
+
+  private static final Class<?> PKG = KafkaProducerOutputMeta.class;
+
   public enum ConnectionType {
     DIRECT,
     CLUSTER
@@ -165,24 +168,25 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     config = new LinkedHashMap<>();
 
     Optional.ofNullable( XMLHandler.getSubNode( stepnode, ADVANCED_CONFIG ) ).map( Node::getChildNodes )
-        .ifPresent( nodes -> IntStream.range( 0, nodes.getLength() ).mapToObj( nodes::item )
-            .filter( node -> node.getNodeType() == Node.ELEMENT_NODE )
-            .forEach( node -> {
-              if ( CONFIG_OPTION.equals( node.getNodeName() ) ) {
-                config.put( node.getAttributes().getNamedItem( OPTION_PROPERTY ).getTextContent(),
-                  node.getAttributes().getNamedItem( OPTION_VALUE ).getTextContent() );
-              } else {
-                config.put( node.getNodeName(), node.getTextContent() );
-              }
-            } ) );
+      .ifPresent( nodes -> IntStream.range( 0, nodes.getLength() ).mapToObj( nodes::item )
+           .filter( node -> node.getNodeType() == Node.ELEMENT_NODE )
+           .forEach( node -> {
+             if ( CONFIG_OPTION.equals( node.getNodeName() ) ) {
+               config.put( node.getAttributes().getNamedItem( OPTION_PROPERTY ).getTextContent(),
+                 node.getAttributes().getNamedItem( OPTION_VALUE ).getTextContent() );
+             } else {
+               config.put( node.getNodeName(), node.getTextContent() );
+             }
+           } ) );
   }
 
   @Override public void setDefault() {
     // no defaults
   }
 
-  @Override public void readRep( Repository rep, IMetaStore metaStore, ObjectId stepId, List<DatabaseMeta> databases )
-    throws KettleException {
+  @Override public void readRep( Repository rep, IMetaStore metaStore, ObjectId stepId, List<DatabaseMeta>
+ databases )
+   throws KettleException {
     setConnectionType( ConnectionType.valueOf( rep.getStepAttributeString( stepId, CONNECTION_TYPE ) ) );
     setDirectBootstrapServers( rep.getStepAttributeString( stepId, DIRECT_BOOTSTRAP_SERVERS ) );
     setClusterName( rep.getStepAttributeString( stepId, CLUSTER_NAME ) );
@@ -218,8 +222,9 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     }
   }
 
-  @Override public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
-                         VariableSpace space, Repository repository, IMetaStore metaStore ) {
+  @Override public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta
+          nextStep,
+                        VariableSpace space, Repository repository, IMetaStore metaStore ) {
     // Default: nothing changes to rowMeta
   }
 
@@ -323,8 +328,8 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     retval.append( "    " ).append( XMLHandler.addTagValue( MESSAGE_FIELD, messageField ) );
     retval.append( "    " ).append( XMLHandler.openTag( ADVANCED_CONFIG ) ).append( Const.CR );
     getConfig().forEach( ( key, value ) -> retval.append( "        " )
-      .append( XMLHandler.addTagValue( CONFIG_OPTION, "", true,
-        OPTION_PROPERTY, (String) key, OPTION_VALUE, (String) value ) ) );
+       .append( XMLHandler.addTagValue( CONFIG_OPTION, "", true,
+          OPTION_PROPERTY, (String) key, OPTION_VALUE, (String) value ) ) );
     retval.append( "    " ).append( XMLHandler.closeTag( ADVANCED_CONFIG ) ).append( Const.CR );
 
     parentStepMeta.getParentTransMeta().getNamedClusterEmbedManager().registerUrl( "hc://" + clusterName );
@@ -401,7 +406,7 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
       Preconditions.checkState( injectedConfigNames != null, "Options names were not injected" );
       Preconditions.checkState( injectedConfigValues != null, "Options values were not injected" );
       Preconditions.checkState( injectedConfigNames.size() == injectedConfigValues.size(),
-          "Injected different number of options names and value" );
+"Injected different number of options names and value" );
 
       setConfig( IntStream.range( 0, injectedConfigNames.size() ).boxed().collect( Collectors
           .toMap( injectedConfigNames::get, injectedConfigValues::get, ( v1, v2 ) -> v1,
@@ -411,4 +416,5 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
       injectedConfigValues = null;
     }
   }
+
 }

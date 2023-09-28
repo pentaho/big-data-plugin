@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -33,7 +33,6 @@ import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.trans.streaming.common.BaseStreamStep;
 import org.pentaho.di.trans.streaming.common.FixedTimeStreamWindow;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,9 +46,17 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
   private static final Class<?> PKG = KafkaConsumerInputMeta.class;
   // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
+  protected KafkaConsumerInputMeta kafkaConsumerInputMeta;
+  protected KafkaConsumerInputData kafkaConsumerInputData;
+  protected KafkaFactory kafkaFactory;
+
   public KafkaConsumerInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
                              Trans trans ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
+    setKafkaFactory( KafkaFactory.defaultFactory() );
+  }
+  protected void setKafkaFactory( KafkaFactory factory ) {
+    this.kafkaFactory = factory;
   }
 
   /**
@@ -59,12 +66,16 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
    * @param stepDataInterface The data to initialize
    */
   @Override public boolean init( StepMetaInterface stepMetaInterface, StepDataInterface stepDataInterface ) {
-    KafkaConsumerInputMeta kafkaConsumerInputMeta = (KafkaConsumerInputMeta) stepMetaInterface;
-    KafkaConsumerInputData kafkaConsumerInputData = (KafkaConsumerInputData) stepDataInterface;
-
+    kafkaConsumerInputMeta = (KafkaConsumerInputMeta) stepMetaInterface;
+    kafkaConsumerInputData = (KafkaConsumerInputData) stepDataInterface;
     boolean superInit = super.init( kafkaConsumerInputMeta, kafkaConsumerInputData );
     if ( !superInit ) {
       logError( BaseMessages.getString( PKG, "KafkaConsumerInput.Error.InitFailed" ) );
+      return false;
+    }
+
+    if ( !kafkaConsumerInputMeta.getKafkaFactory().checkKafkaConnectionStatus(
+            kafkaConsumerInputMeta, variables, getLogChannel() ) ) {
       return false;
     }
 
@@ -74,18 +85,7 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
       log.logError( e.getMessage(), e );
     }
 
-    Consumer consumer =
-      kafkaConsumerInputMeta.getKafkaFactory().consumer( kafkaConsumerInputMeta, this::environmentSubstitute,
-        kafkaConsumerInputMeta.getKeyField().getOutputType(),
-        kafkaConsumerInputMeta.getMessageField().getOutputType() );
-
-    Set<String> topics =
-      kafkaConsumerInputMeta.getTopics().stream().map( this::environmentSubstitute ).collect( Collectors.toSet() );
-    consumer.subscribe( topics );
-
-    source = new KafkaStreamSource( consumer, kafkaConsumerInputMeta, kafkaConsumerInputData, variables, this );
-    window = new FixedTimeStreamWindow<>( getSubtransExecutor(), kafkaConsumerInputData.outputRowMeta, getDuration(),
-      getBatchSize(), getParallelism(), kafkaConsumerInputMeta.isAutoCommit() ? p -> { } : this::commitOffsets );
+    this.prepareConsumer( kafkaConsumerInputMeta, kafkaConsumerInputData );
 
     return true;
   }
@@ -93,4 +93,20 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
   private void commitOffsets( Map.Entry<List<List<Object>>, Result> rowsAndResult ) {
     ( (KafkaStreamSource) source ).commitOffsets( rowsAndResult.getKey() );
   }
+
+  protected void prepareConsumer( KafkaConsumerInputMeta kafkaConsumerInputMeta,
+                                  KafkaConsumerInputData kafkaConsumerInputData ) {
+    Consumer consumer = kafkaConsumerInputMeta.getKafkaFactory().consumer( kafkaConsumerInputMeta,
+            this::environmentSubstitute, kafkaConsumerInputMeta.getKeyField().getOutputType(),
+            kafkaConsumerInputMeta.getMessageField().getOutputType() );
+
+    Set<String> topics = kafkaConsumerInputMeta.getTopics().stream().map( this::environmentSubstitute ).collect( Collectors.toSet() );
+    consumer.subscribe( topics );
+
+    source = new KafkaStreamSource( consumer, kafkaConsumerInputMeta, kafkaConsumerInputData, variables, this );
+    window = new FixedTimeStreamWindow<>( getSubtransExecutor(), kafkaConsumerInputData.outputRowMeta, getDuration(),
+            getBatchSize(), getParallelism(), kafkaConsumerInputMeta.isAutoCommit() ? p -> {
+            } : this::commitOffsets );
+  }
+
 }
