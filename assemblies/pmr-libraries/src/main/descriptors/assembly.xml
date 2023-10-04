@@ -220,7 +220,7 @@
         <include>org.pentaho:pentaho-encryption-support</include>
         <include>org.pentaho.reporting.engine:classic-core</include>
         <include>pentaho:pentaho-service-coordinator</include>
-        <include>rhino:js</include>
+        <include>org.mozilla:rhino</include>
         <include>com.wcohen:com.wcohen.secondstring</include>
         <include>stax:stax</include>
         <include>stax:stax-api</include>
