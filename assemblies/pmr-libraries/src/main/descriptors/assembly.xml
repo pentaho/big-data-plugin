@@ -46,7 +46,7 @@
         <include>com.google.gdata:gdata-core</include>
         <include>com.google.guava:guava</include>
         <include>com.healthmarketscience.jackcess:jackcess</include>
-        <include>com.jcraft:jsch</include>
+        <include>com.github.mwiede:jsch</include>
         <include>com.lowagie:itext</include>
         <include>com.lowagie:itext-rtf</include>
         <include>com.tinkerpop.blueprints:blueprints-core</include>
