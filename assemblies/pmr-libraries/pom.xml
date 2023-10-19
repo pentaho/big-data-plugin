@@ -472,7 +472,7 @@
     <dependency>
       <groupId>org.apache.xmlgraphics</groupId>
       <artifactId>batik-bridge</artifactId>
-      <version>${apache-xmlgraphics.revision}</version>
+      <version>${batik-bridge.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.xmlgraphics</groupId>
@@ -482,7 +482,7 @@
     <dependency>
       <groupId>org.apache.xmlgraphics</groupId>
       <artifactId>batik-css</artifactId>
-      <version>${apache-xmlgraphics.revision}</version>
+      <version>${batik-css.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.xmlgraphics</groupId>
