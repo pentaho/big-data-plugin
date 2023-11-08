@@ -82,7 +82,7 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
 
     // now set the default for the
     // filename to an empty string
-    setFileName( "s3n://s3n" );
+    setFileName( "s3n://" );
   }
 
   @Override
@@ -115,10 +115,10 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
     throws KettleException {
     try {
       super.readRep( rep, metaStore, id_step, databases );
+      updateForRetroCompatibility();
       setAccessKey( Encr.decryptPasswordOptionallyEncrypted( rep.getStepAttributeString( id_step, ACCESS_KEY_TAG ) ) );
       setSecretKey( Encr.decryptPasswordOptionallyEncrypted( rep.getStepAttributeString( id_step, SECRET_KEY_TAG ) ) );
-      String filename = rep.getStepAttributeString( id_step, "file_name" );
-      processFilename( filename );
+      processFilename( fileName );
     } catch ( Exception e ) {
       throw new KettleException( "Unexpected error reading step information from the repository", e );
     }
@@ -132,15 +132,32 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
   public void readData( Node stepnode ) throws KettleXMLException {
     try {
       super.readData( stepnode );
+      updateForRetroCompatibility();
       accessKey = Encr.decryptPasswordOptionallyEncrypted( XMLHandler.getTagValue( stepnode, ACCESS_KEY_TAG ) );
       secretKey = Encr.decryptPasswordOptionallyEncrypted( XMLHandler.getTagValue( stepnode, SECRET_KEY_TAG ) );
-      String filename = XMLHandler.getTagValue( stepnode, FILE_TAG, NAME_TAG );
-      processFilename( filename );
+      processFilename( fileName );
     } catch ( Exception e ) {
       throw new KettleXMLException( "Unable to load step info from XML", e );
     }
   }
 
+  private void updateForRetroCompatibility() {
+    if ( System.getProperty( Const.KETTLE_COMPATIBILITY_ALLOW_S3_LEGACY_URI, "N" ).equals( "Y" ) ) {
+      getLog().logDebug( "[KETTLE_COMPATIBILITY_ALLOW_S3_LEGACY_URI] flag is enable" );
+      if ( fileName.startsWith( "s3://s3/" ) ) {
+        updateFilenameForRetroCompatibility( this.fileName.replace( "s3://s3/", "s3://" ) );
+      } else if ( fileName.startsWith( "s3n://s3n/" ) ) {
+        updateFilenameForRetroCompatibility( this.fileName.replace( "s3n://s3n/", "s3n://" ) );
+      } else if ( fileName.startsWith( "s3a://s3a/" ) ) {
+        updateFilenameForRetroCompatibility( this.fileName.replace( "s3a://s3a/", "s3a://" ) );
+      }
+    }
+  }
+
+  private void updateFilenameForRetroCompatibility( String newFilename ) {
+    getLog().logDebug( "[KETTLE_COMPATIBILITY_ALLOW_S3_LEGACY_URI] Filename was updated from {} to {}", this.fileName, newFilename );
+    this.fileName = newFilename;
+  }
   @Override
   public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int cnr, TransMeta transMeta,
       Trans trans ) {
@@ -156,7 +173,7 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
    */
   protected void processFilename( String filename ) throws Exception {
     if ( Util.isEmpty( filename ) ) {
-      filename = "s3n://s3n/";
+      filename = "s3n://";
     }
     setFileName( filename );
   }
