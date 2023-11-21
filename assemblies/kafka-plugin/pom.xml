@@ -10,7 +10,7 @@
     <version>10.1.0.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>pentaho-streaming-kafka-plugin-zip</artifactId>
+  <artifactId>pentaho-streaming-kafka-plugin</artifactId>
   <version>10.1.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
