@@ -169,24 +169,25 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     config = new LinkedHashMap<>();
 
     Optional.ofNullable( XMLHandler.getSubNode( stepnode, ADVANCED_CONFIG ) ).map( Node::getChildNodes )
-        .ifPresent( nodes -> IntStream.range( 0, nodes.getLength() ).mapToObj( nodes::item )
-            .filter( node -> node.getNodeType() == Node.ELEMENT_NODE )
-            .forEach( node -> {
-              if ( CONFIG_OPTION.equals( node.getNodeName() ) ) {
-                config.put( node.getAttributes().getNamedItem( OPTION_PROPERTY ).getTextContent(),
-                  node.getAttributes().getNamedItem( OPTION_VALUE ).getTextContent() );
-              } else {
-                config.put( node.getNodeName(), node.getTextContent() );
-              }
-            } ) );
+      .ifPresent( nodes -> IntStream.range( 0, nodes.getLength() ).mapToObj( nodes::item )
+           .filter( node -> node.getNodeType() == Node.ELEMENT_NODE )
+           .forEach( node -> {
+             if ( CONFIG_OPTION.equals( node.getNodeName() ) ) {
+               config.put( node.getAttributes().getNamedItem( OPTION_PROPERTY ).getTextContent(),
+                 node.getAttributes().getNamedItem( OPTION_VALUE ).getTextContent() );
+             } else {
+               config.put( node.getNodeName(), node.getTextContent() );
+             }
+           } ) );
   }
 
   @Override public void setDefault() {
     // no defaults
   }
 
-  @Override public void readRep( Repository rep, IMetaStore metaStore, ObjectId stepId, List<DatabaseMeta> databases )
-    throws KettleException {
+  @Override public void readRep( Repository rep, IMetaStore metaStore, ObjectId stepId, List<DatabaseMeta>
+ databases )
+   throws KettleException {
     setConnectionType( ConnectionType.valueOf( rep.getStepAttributeString( stepId, CONNECTION_TYPE ) ) );
     setDirectBootstrapServers( rep.getStepAttributeString( stepId, DIRECT_BOOTSTRAP_SERVERS ) );
     setClusterName( rep.getStepAttributeString( stepId, CLUSTER_NAME ) );
@@ -222,8 +223,9 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     }
   }
 
-  @Override public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
-                         VariableSpace space, Repository repository, IMetaStore metaStore ) {
+  @Override public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta
+          nextStep,
+                        VariableSpace space, Repository repository, IMetaStore metaStore ) {
     // Default: nothing changes to rowMeta
   }
 
@@ -327,8 +329,8 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     retval.append( "    " ).append( XMLHandler.addTagValue( MESSAGE_FIELD, messageField ) );
     retval.append( "    " ).append( XMLHandler.openTag( ADVANCED_CONFIG ) ).append( Const.CR );
     getConfig().forEach( ( key, value ) -> retval.append( "        " )
-      .append( XMLHandler.addTagValue( CONFIG_OPTION, "", true,
-        OPTION_PROPERTY, (String) key, OPTION_VALUE, (String) value ) ) );
+       .append( XMLHandler.addTagValue( CONFIG_OPTION, "", true,
+          OPTION_PROPERTY, (String) key, OPTION_VALUE, (String) value ) ) );
     retval.append( "    " ).append( XMLHandler.closeTag( ADVANCED_CONFIG ) ).append( Const.CR );
 
     parentStepMeta.getParentTransMeta().getNamedClusterEmbedManager().registerUrl( "hc://" + clusterName );
@@ -405,7 +407,7 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
       Preconditions.checkState( injectedConfigNames != null, "Options names were not injected" );
       Preconditions.checkState( injectedConfigValues != null, "Options values were not injected" );
       Preconditions.checkState( injectedConfigNames.size() == injectedConfigValues.size(),
-          "Injected different number of options names and value" );
+"Injected different number of options names and value" );
 
       setConfig( IntStream.range( 0, injectedConfigNames.size() ).boxed().collect( Collectors
           .toMap( injectedConfigNames::get, injectedConfigValues::get, ( v1, v2 ) -> v1,

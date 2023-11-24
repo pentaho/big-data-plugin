@@ -39,7 +39,7 @@
     <configfile finalname="/etc/pentaho.big.data.impl.cluster.cfg">
       mvn:pentaho/pentaho-osgi-config/${pentaho-karaf.version}/cfg/pentaho-big-data-impl-cluster
     </configfile>
-    <bundle>mvn:commons-beanutils/commons-beanutils/1.9.3</bundle>
+    <bundle>mvn:commons-beanutils/commons-beanutils/${commons-beanutils.version}</bundle>
   </feature>
 
   <feature name="pentaho-big-data-plugin-api" version="1.0">
