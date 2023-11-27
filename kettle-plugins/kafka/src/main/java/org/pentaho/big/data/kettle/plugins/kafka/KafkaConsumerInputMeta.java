@@ -90,8 +90,7 @@ import static org.pentaho.metaverse.api.analyzer.kettle.step.ExternalResourceSte
   i18nPackageName = "org.pentaho.big.data.kettle.plugins.kafka",
   name = "KafkaConsumer.TypeLongDesc",
   description = "KafkaConsumer.TypeTooltipDesc",
-  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming",
-  documentationUrl = "Products/Kafka_Consumer" )
+  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming" )
 @InjectionSupported( localizationPrefix = "KafkaConsumerInputMeta.Injection.", groups = { "CONFIGURATION_PROPERTIES" } )
 @Metaverse.CategoryMap ( entity = KAFKA_TOPIC_METAVERSE, category = CATEGORY_MESSAGE_QUEUE )
 @Metaverse.CategoryMap ( entity = KAFKA_SERVER_METAVERSE, category = CATEGORY_DATASOURCE )
