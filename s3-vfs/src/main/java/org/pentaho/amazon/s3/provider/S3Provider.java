@@ -122,7 +122,6 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
       }
     } catch ( Exception e ) {
       log.logError( e.getMessage(), e );
-      throw e;
     }
     return buckets;
   }
@@ -224,7 +223,7 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
     return KettleVFS.getFileObject(uri, new Variables(), fsopts);
   }
 
-  private AmazonS3 getAmazonS3( S3Details s3Details, VariableSpace space ) {
+  private AmazonS3 getAmazonS3( S3Details s3Details, VariableSpace space ) throws KettleException {
     AWSCredentials awsCredentials;
     AWSCredentialsProvider awsCredentialsProvider = null;
 
@@ -240,19 +239,27 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
         space );
     String signatureVersion = getVar( s3Details.getSignatureVersion(), space );
     boolean access = ( pathStyleAccess == null ) || Boolean.parseBoolean( pathStyleAccess );
+    try {
+      if ( s3Details.getAuthType().equals( ACCESS_KEY_SECRET_KEY ) ) {
 
-    if ( s3Details.getAuthType().equals( ACCESS_KEY_SECRET_KEY ) ) {
-      if ( S3Util.isEmpty( getVar( s3Details.getSessionToken(), space ) ) ) {
-        awsCredentials = new BasicAWSCredentials( accessKey, secretKey );
-      } else {
-        awsCredentials =
-          new BasicSessionCredentials( accessKey, secretKey, sessionToken );
+        if ( S3Util.isEmpty( getVar( s3Details.getSessionToken(), space ) ) ) {
+          //throws IllegalArgumentException if accessKey/secretKey is null
+          awsCredentials = new BasicAWSCredentials( accessKey, secretKey );
+        } else {
+          awsCredentials =
+            new BasicSessionCredentials( accessKey, secretKey, sessionToken );
+        }
+        //throws IllegalArgumentException if awsCredentials is null
+        awsCredentialsProvider = new AWSStaticCredentialsProvider( awsCredentials );
+
       }
-      awsCredentialsProvider = new AWSStaticCredentialsProvider( awsCredentials );
-    }
-    if ( s3Details.getAuthType().equals( CREDENTIALS_FILE ) ) {
-      ProfilesConfigFile profilesConfigFile = new ProfilesConfigFile( credentialsFilePath );
-      awsCredentialsProvider = new ProfileCredentialsProvider( profilesConfigFile, profileName );
+      if ( s3Details.getAuthType().equals( CREDENTIALS_FILE ) ) {
+        //throws IllegalArgumentException if credentialsFilePath is null
+        ProfilesConfigFile profilesConfigFile = new ProfilesConfigFile( credentialsFilePath );
+        awsCredentialsProvider = new ProfileCredentialsProvider( profilesConfigFile, profileName );
+      }
+    } catch ( IllegalArgumentException e ) {
+      throw new KettleException( e );
     }
     String region = getVar( s3Details.getRegion(), space );
     String endPoint = getVar( s3Details.getEndpoint(), space );
