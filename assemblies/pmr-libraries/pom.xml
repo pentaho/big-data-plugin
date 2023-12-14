@@ -135,9 +135,9 @@
       <version>${jsch.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.lowagie</groupId>
-      <artifactId>itext</artifactId>
-      <version>2.1.7</version>
+      <groupId>com.github.librepdf</groupId>
+      <artifactId>openpdf</artifactId>
+      <version>${openpdf.version}</version>
       <exclusions>
         <exclusion>
           <groupId>bouncycastle</groupId>
@@ -150,9 +150,9 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>com.lowagie</groupId>
-      <artifactId>itext-rtf</artifactId>
-      <version>2.1.7</version>
+      <groupId>com.github.librepdf</groupId>
+      <artifactId>openrtf</artifactId>
+      <version>${openrtf.version}</version>
       <exclusions>
         <exclusion>
           <groupId>bouncycastle</groupId>
