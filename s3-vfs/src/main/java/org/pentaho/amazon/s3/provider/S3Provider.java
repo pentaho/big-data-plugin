@@ -239,6 +239,7 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
         space );
     String signatureVersion = getVar( s3Details.getSignatureVersion(), space );
     boolean access = ( pathStyleAccess == null ) || Boolean.parseBoolean( pathStyleAccess );
+
     try {
       if ( s3Details.getAuthType().equals( ACCESS_KEY_SECRET_KEY ) ) {
 
@@ -253,32 +254,40 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
         awsCredentialsProvider = new AWSStaticCredentialsProvider( awsCredentials );
 
       }
+
       if ( s3Details.getAuthType().equals( CREDENTIALS_FILE ) ) {
         //throws IllegalArgumentException if credentialsFilePath is null
         ProfilesConfigFile profilesConfigFile = new ProfilesConfigFile( credentialsFilePath );
         awsCredentialsProvider = new ProfileCredentialsProvider( profilesConfigFile, profileName );
       }
+
+      String region = getVar( s3Details.getRegion(), space );
+      String endPoint = getVar( s3Details.getEndpoint(), space );
+      Regions regions = !S3Util.isEmpty( region ) ? Regions.fromName( region ) : Regions.DEFAULT_REGION;
+      if ( awsCredentialsProvider != null && S3Util.isEmpty( endPoint ) ) {
+        return AmazonS3ClientBuilder.standard().withCredentials( awsCredentialsProvider )
+          .enableForceGlobalBucketAccess().withRegion( regions ).build();
+      }
+
+      if ( awsCredentialsProvider != null && !S3Util.isEmpty( endPoint ) ) {
+        ClientConfiguration clientConfiguration = new ClientConfiguration();
+        clientConfiguration.setSignerOverride(
+          S3Util.isEmpty( signatureVersion ) ? S3Util.SIGNATURE_VERSION_SYSTEM_PROPERTY : signatureVersion );
+        return AmazonS3ClientBuilder.standard()
+          .withEndpointConfiguration( new AwsClientBuilder.EndpointConfiguration( endpoint, regions.getName() ) )
+          .withPathStyleAccessEnabled( access )
+          .withClientConfiguration( clientConfiguration )
+          .withCredentials( awsCredentialsProvider )
+          .build();
+      }
+
+      return null;
+
     } catch ( IllegalArgumentException e ) {
+      // Opting to throw KettleException instead of returning false only to preserve UI compatibility.
+      // Kettle user may be depending on the exception info to see what's invalid.
       throw new KettleException( e );
     }
-    String region = getVar( s3Details.getRegion(), space );
-    String endPoint = getVar( s3Details.getEndpoint(), space );
-    Regions regions = !S3Util.isEmpty( region ) ? Regions.fromName( region ) : Regions.DEFAULT_REGION;
-    if ( awsCredentialsProvider != null && S3Util.isEmpty( endPoint ) ) {
-      return AmazonS3ClientBuilder.standard().withCredentials( awsCredentialsProvider )
-        .enableForceGlobalBucketAccess().withRegion( regions ).build();
-    } else if ( awsCredentialsProvider != null && !S3Util.isEmpty( endPoint ) ) {
-      ClientConfiguration clientConfiguration = new ClientConfiguration();
-      clientConfiguration.setSignerOverride(
-        S3Util.isEmpty( signatureVersion ) ? S3Util.SIGNATURE_VERSION_SYSTEM_PROPERTY : signatureVersion );
-      return AmazonS3ClientBuilder.standard()
-        .withEndpointConfiguration( new AwsClientBuilder.EndpointConfiguration( endpoint, regions.getName() ) )
-        .withPathStyleAccessEnabled( access )
-        .withClientConfiguration( clientConfiguration )
-        .withCredentials( awsCredentialsProvider )
-        .build();
-    }
-    return null;
   }
 
   private String getBooleanStringOfVariable( String variableName, String defaultValue, VariableSpace space ) {
