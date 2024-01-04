@@ -135,9 +135,9 @@
       <version>${jsch.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.lowagie</groupId>
-      <artifactId>itext</artifactId>
-      <version>2.1.7</version>
+      <groupId>com.github.librepdf</groupId>
+      <artifactId>openpdf</artifactId>
+      <version>${openpdf.version}</version>
       <exclusions>
         <exclusion>
           <groupId>bouncycastle</groupId>
@@ -150,9 +150,9 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>com.lowagie</groupId>
-      <artifactId>itext-rtf</artifactId>
-      <version>2.1.7</version>
+      <groupId>com.github.librepdf</groupId>
+      <artifactId>openrtf</artifactId>
+      <version>${openrtf.version}</version>
       <exclusions>
         <exclusion>
           <groupId>bouncycastle</groupId>
@@ -585,22 +585,22 @@
     <dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-c3p0</artifactId>
-      <version>3.6.9.Final</version>
+      <version>5.4.24.Final</version>
     </dependency>
     <dependency>
-      <groupId>org.hibernate</groupId>
+      <groupId>org.hibernate.common</groupId>
       <artifactId>hibernate-commons-annotations</artifactId>
-      <version>3.2.0.Final</version>
+      <version>5.1.2.Final</version>
     </dependency>
     <dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-core</artifactId>
-      <version>3.6.9.Final</version>
+      <version>5.4.24.Final</version>
     </dependency>
     <dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-ehcache</artifactId>
-      <version>3.6.9.Final</version>
+      <version>5.4.24.Final</version>
     </dependency>
     <dependency>
       <groupId>org.ini4j</groupId>
