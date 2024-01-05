@@ -195,15 +195,20 @@ public class S3DetailComposite implements VFSDetailsComposite {
 
   private void setupBottomHalf() {
     setupBottomHalf( computeComboIndex( wS3ConnectionType.getText(), S3_CONNECTION_TYPE_CHOICES, 0 ),
-      computeComboIndex( wAuthType.getText(), AUTH_TYPE_CHOICES, 0 ) );
+        computeComboIndex( wAuthType.getText(), AUTH_TYPE_CHOICES, 0 ), wRegion.getText() );
   }
 
-  private void setupBottomHalf( int s3ConnectionType, int authType ) {
+  private void setupBottomHalf( int s3ConnectionType, int authType, String region ) {
     if ( initializingUiForFirstTime || s3ConnectionType != stringToInteger( details.getConnectionType() ) ) {
       details.setConnectionType( String.valueOf( s3ConnectionType ) );
     }
+
     if ( initializingUiForFirstTime || authType != stringToInteger( details.getAuthType() ) ) {
       details.setAuthType( String.valueOf( authType ) );
+    }
+
+    if ( s3ConnectionType == 0 && ( initializingUiForFirstTime || !region.equalsIgnoreCase( details.getRegion() ) ) ) {
+      details.setRegion( region );
     }
 
     for ( Control c : wBottomHalf.getChildren() ) {
