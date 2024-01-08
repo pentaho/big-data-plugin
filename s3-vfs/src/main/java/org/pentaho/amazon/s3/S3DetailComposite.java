@@ -129,7 +129,7 @@ public class S3DetailComposite implements VFSDetailsComposite {
     wAuthType.select( Integer.parseInt( Const.NVL( details.getAuthType(), "0" ) ) );
     wRegion = createStandbyComboVar();
     wRegion.setItems( regionChoices );
-    wRegion.select( 0 );
+    wRegion.select( computeComboIndex( Const.NVL( details.getRegion(), regionChoices[ 0 ] ), regionChoices, -1 ) );
     wAccessKey = createStandbyPasswordVisibleTextVar();
     wSecretKey = createStandbyPasswordVisibleTextVar();
     wSessionToken = createStandbyPasswordVisibleTextVar();
