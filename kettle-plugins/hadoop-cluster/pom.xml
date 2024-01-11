@@ -6,11 +6,11 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-kettle-plugins</artifactId>
-    <version>10.1.0.0-SNAPSHOT</version>
+    <version>10.1.0.0-202</version>
   </parent>
 
   <artifactId>pentaho-big-data-kettle-plugins-hadoop-cluster</artifactId>
-  <version>10.1.0.0-SNAPSHOT</version>
+  <version>10.1.0.0-202</version>
   <packaging>pom</packaging>
   <name>Hadoop Cluster Plugin</name>
 
@@ -19,13 +19,13 @@
   </modules>
 
   <properties>
-    <pdi.version>10.1.0.0-SNAPSHOT</pdi.version>
+    <pdi.version>10.1.0.0-202</pdi.version>
     <dependency.karaf.version>3.0.3</dependency.karaf.version>
     <dependency.osgi.version>4.3.1</dependency.osgi.version>
     <version.for.license>${project.version}</version.for.license>
     <js.project.list>requirejs,requirejs-text,angular,require-css,angular-i18n</js.project.list>
-    <pentaho-osgi-bundles.version>10.1.0.0-SNAPSHOT</pentaho-osgi-bundles.version>
-    <platform.version>10.1.0.0-SNAPSHOT</platform.version>
+    <pentaho-osgi-bundles.version>10.1.0.0-202</pentaho-osgi-bundles.version>
+    <platform.version>10.1.0.0-202</platform.version>
     <cxf.karaf.version>3.0.13</cxf.karaf.version>
     <require-css.version>0.1.8</require-css.version>
     <swt.version>4.6</swt.version>
