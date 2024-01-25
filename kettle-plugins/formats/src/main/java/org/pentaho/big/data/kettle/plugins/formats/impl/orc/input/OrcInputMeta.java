@@ -34,7 +34,7 @@ import org.pentaho.di.trans.step.StepMeta;
 //keep ID as new because we will have old step with ID OrcInput
 @Step( id = "OrcInput", image = "OI.svg", name = "OrcInput.Name", description = "OrcInput.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
-    documentationUrl = "Products/ORC_Input",
+    documentationUrl = "mk-95pdia003/pdi-transformation-steps/orc-input",
     i18nPackageName = "org.pentaho.di.trans.steps.orc" )
 @InjectionSupported( localizationPrefix = "OrcInput.Injection.", groups = { "FILENAME_LINES", "FIELDS" }, hide = {
   "FILEMASK", "EXCLUDE_FILEMASK", "FILE_REQUIRED", "INCLUDE_SUBFOLDERS", "FIELD_POSITION", "FIELD_LENGTH",
