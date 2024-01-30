@@ -83,7 +83,6 @@
         <include>eigenbase:eigenbase-properties</include>
         <include>eigenbase:eigenbase-resgen</include>
         <include>eigenbase:eigenbase-xom</include>
-        <include>org.elasticsearch:elasticsearch</include>
         <include>feed4j:feed4j</include>
         <include>ftp4che:ftp4che</include>
         <include>infobright:infobright-core</include>
