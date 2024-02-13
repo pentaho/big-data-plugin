@@ -108,6 +108,7 @@
         <include>ldapjdk:ldapjdk</include>
         <include>monetdb:monetdb-jdbc</include>
         <include>net.java.dev.javacc:javacc</include>
+        <include>net.sf.ehcache:ehcache-core</include>
         <include>net.sf.saxon:saxon</include>
         <include>net.sf.saxon:saxon-dom</include>
         <include>net.sf.scannotation:scannotation</include>
