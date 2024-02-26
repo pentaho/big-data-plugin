@@ -118,7 +118,7 @@
     </dependency>
     <dependency>
       <groupId>org.webjars.npm</groupId>
-      <artifactId>requirejs</artifactId>
+      <artifactId>prantlf__requirejs</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
