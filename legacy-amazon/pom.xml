@@ -5,11 +5,11 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-bundles</artifactId>
-    <version>10.1.0.0-SNAPSHOT</version>
+    <version>10.1.0.1-330</version>
   </parent>
   <artifactId>pentaho-big-data-legacy-amazon</artifactId>
   <packaging>bundle</packaging>
-  <version>10.1.0.0-SNAPSHOT</version>
+  <version>10.1.0.1-330</version>
   <licenses>
     <license>
       <name>Apache License, Version 2.0</name>
