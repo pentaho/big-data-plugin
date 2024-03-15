@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -92,7 +92,7 @@ public class EmrClientImpl implements EmrClient {
                           AbstractAmazonJobEntry jobEntry
   ) {
 
-    this.alive = jobEntry.getAlive();
+    this.setAlive( jobEntry.getAlive() );
 
     RunJobFlowRequest runJobFlowRequest =
       initEmrCluster( stagingS3FileUrl, stagingS3BucketUrl, stepType, mainClass, bootstrapActions, jobEntry );
@@ -116,7 +116,7 @@ public class EmrClientImpl implements EmrClient {
   public void addStepToExistingJobFlow( String stagingS3FileUrl, String stagingS3BucketUrl, String stepType,
                                         String mainClass,
                                         AbstractAmazonJobEntry jobEntry ) {
-    this.alive = jobEntry.getAlive();
+    this.setAlive( jobEntry.getAlive() );
     this.hadoopJobFlowId = jobEntry.getHadoopJobFlowId();
 
     setStepsFromCluster();
@@ -172,7 +172,7 @@ public class EmrClientImpl implements EmrClient {
     boolean isClusterRunning = isClusterRunning();
     boolean isStepRunning = isStepRunning();
 
-    if ( !alive && !requestClusterShutdown && ClusterState.WAITING.name().equalsIgnoreCase( currentClusterState ) ) {
+    if ( !isAlive() && !requestClusterShutdown && ClusterState.WAITING.name().equalsIgnoreCase( currentClusterState ) ) {
       if ( !isStepRunning ) {
         terminateJobFlows();
         return isClusterRunning();
@@ -223,7 +223,7 @@ public class EmrClientImpl implements EmrClient {
     instances.setInstanceCount( numInsts );
     instances.setMasterInstanceType( masterInstanceType );
     instances.setSlaveInstanceType( slaveInstanceType );
-    instances.setKeepJobFlowAliveWhenNoSteps( alive );
+    instances.setKeepJobFlowAliveWhenNoSteps( isAlive() );
 
     return instances;
   }
@@ -296,7 +296,7 @@ public class EmrClientImpl implements EmrClient {
     StepConfig hiveStepConfig =
       new StepConfig( "Hive",
         new StepFactory().newRunHiveScriptStep( stagingS3qUrl, cmdLineArgsArr ) );
-    if ( alive ) {
+    if ( isAlive() ) {
       hiveStepConfig.withActionOnFailure( ActionOnFailure.CANCEL_AND_WAIT );
     } else {
       hiveStepConfig.withActionOnFailure( ActionOnFailure.TERMINATE_JOB_FLOW );
@@ -324,7 +324,7 @@ public class EmrClientImpl implements EmrClient {
     stepConfig.setName( "custom jar: " + jarUrl );
 
     stepConfig.setHadoopJarStep( configureHadoopStep( jarUrl, mainClass, jarStepArgs ) );
-    if ( this.alive ) {
+    if ( this.isAlive() ) {
       stepConfig.withActionOnFailure( ActionOnFailure.CANCEL_AND_WAIT );
     } else {
       stepConfig.withActionOnFailure( ActionOnFailure.TERMINATE_JOB_FLOW );
@@ -535,7 +535,8 @@ public class EmrClientImpl implements EmrClient {
     return bootstrapActionConfig;
   }
 
-  private List<StepSummary> getSteps() {
+  @VisibleForTesting
+  protected List<StepSummary> getSteps() {
 
     ListStepsRequest listStepsRequest = new ListStepsRequest();
     listStepsRequest.setClusterId( hadoopJobFlowId );
@@ -548,7 +549,8 @@ public class EmrClientImpl implements EmrClient {
     return stepSummaries;
   }
 
-  private void setStepsFromCluster() {
+  @VisibleForTesting
+  protected void setStepsFromCluster() {
     stepSummaries = getSteps();
   }
 
@@ -568,7 +570,8 @@ public class EmrClientImpl implements EmrClient {
     return currentSteps.get( 0 ).getId();
   }
 
-  private void terminateJobFlows() {
+  @VisibleForTesting
+  protected void terminateJobFlows() {
     if ( !requestClusterShutdown ) {
       TerminateJobFlowsRequest terminateJobFlowsRequest = new TerminateJobFlowsRequest();
       terminateJobFlowsRequest.withJobFlowIds( hadoopJobFlowId );
@@ -578,7 +581,8 @@ public class EmrClientImpl implements EmrClient {
     }
   }
 
-  private void cancelStepExecution() {
+  @VisibleForTesting
+  protected void cancelStepExecution() {
     if ( !requestStepCancell ) {
       CancelStepsRequest cancelStepsRequest = new CancelStepsRequest();
       cancelStepsRequest.setClusterId( hadoopJobFlowId );
@@ -592,7 +596,7 @@ public class EmrClientImpl implements EmrClient {
 
   @Override
   public boolean stopSteps() {
-    if ( alive ) {
+    if ( isAlive() ) {
       cancelStepExecution();
       return true;
     } else {
@@ -635,5 +639,15 @@ public class EmrClientImpl implements EmrClient {
     String clusterLogUri = clusterResult.getCluster().getLogUri();
     String clusterLogBucket = new URI( clusterLogUri ).getHost();
     return clusterLogBucket;
+  }
+
+  @VisibleForTesting
+  protected boolean isAlive() {
+    return alive;
+  }
+
+  @VisibleForTesting
+  protected void setAlive( boolean alive ) {
+    this.alive = alive;
   }
 }

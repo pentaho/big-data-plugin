@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -27,7 +27,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.KettleClientEnvironment;
@@ -64,8 +64,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -334,7 +334,7 @@ public class KafkaConsumerInputMetaTest {
     when( rep.getStepAttributeString( stepId, PARALLELISM ) ).thenReturn( "222" );
     when( rep.getStepAttributeString( stepId, CONNECTION_TYPE ) ).thenReturn( "CLUSTER" );
     when( rep.getStepAttributeString( stepId, DIRECT_BOOTSTRAP_SERVERS ) ).thenReturn( "unused" );
-    when( rep.getStepAttributeString( stepId, AUTO_COMMIT ) ).thenReturn( "N" );
+    when( rep.getStepAttributeBoolean( stepId, 0, AUTO_COMMIT, true ) ).thenReturn( false );
 
     when( rep.getStepAttributeString( stepId, "OutputField_key" ) ).thenReturn( "machineId" );
     when( rep.getStepAttributeString( stepId, "OutputField_key_type" ) ).thenReturn( "String" );
@@ -487,7 +487,7 @@ public class KafkaConsumerInputMetaTest {
     when( namedCluster.getKafkaBootstrapServers() ).thenReturn( "server:11111" );
 
     NamedClusterManager namedClusterService = mock( NamedClusterManager.class );
-    when( namedClusterService.getNamedClusterByName( eq( "my_cluster" ), any( IMetaStore.class ) ) )
+    when( namedClusterService.getNamedClusterByName( eq( "my_cluster" ), nullable( IMetaStore.class ) ) )
       .thenReturn( namedCluster );
 
     KafkaConsumerInputMeta meta = new KafkaConsumerInputMeta();
