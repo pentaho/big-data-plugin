@@ -83,7 +83,7 @@ public class S3ClientImpl implements S3Client {
     return logContents.toString();
   }
 
-  private String readLogFromS3( String stagingBucketName, String key ) {
+  protected String readLogFromS3( String stagingBucketName, String key ) {
 
     Scanner logScanner = null;
     S3ObjectInputStream s3ObjectInputStream = null;

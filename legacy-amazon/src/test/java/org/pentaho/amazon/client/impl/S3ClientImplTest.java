@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -32,14 +32,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.pentaho.amazon.client.api.S3Client;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -47,14 +42,18 @@ import java.io.FileOutputStream;
 import java.nio.file.Paths;
 import java.util.zip.GZIPOutputStream;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
+
 
 /**
  * Created by Aliaksandr_Zhuk on 2/8/2018.
  */
 
-@RunWith( PowerMockRunner.class )
-@PrepareForTest( S3ClientImpl.class )
-@PowerMockIgnore( { "javax.management.*", "jdk.internal.reflect.*" } )
+@RunWith( MockitoJUnitRunner.class )
 public class S3ClientImplTest {
 
   @Rule
@@ -62,7 +61,7 @@ public class S3ClientImplTest {
 
   @Mock
   private AmazonS3Client awsS3Client;
-  private S3Client s3Client;
+  private S3ClientImpl s3Client;
   private String logFileName;
   private String gzArchName;
   private File stagingFolder;
@@ -79,7 +78,7 @@ public class S3ClientImplTest {
 
     createGzArchive();
 
-    s3Client = PowerMockito.spy( new S3ClientImpl( awsS3Client ) );
+    s3Client = spy( new S3ClientImpl( awsS3Client ) );
   }
 
   @Test
@@ -90,12 +89,12 @@ public class S3ClientImplTest {
     String hadoopJobFlowId = "j-11WRZQW6NIQOA";
     String stepId = "s-15PK2NMVIPRPF";
 
-    PowerMockito.doReturn( "" )
-      .when( s3Client, "readLogFromS3", stagingBucketName, hadoopJobFlowId + "/steps/" + stepId + "/controller.gz" );
-    PowerMockito.doReturn( "" )
-      .when( s3Client, "readLogFromS3", stagingBucketName, hadoopJobFlowId + "/steps/" + stepId + "/stdout.gz" );
-    PowerMockito.doReturn( "" )
-      .when( s3Client, "readLogFromS3", stagingBucketName, hadoopJobFlowId + "/steps/" + stepId + "/syslog.gz" );
+    doReturn( "" )
+      .when( s3Client ).readLogFromS3( stagingBucketName, hadoopJobFlowId + "/steps/" + stepId + "/controller.gz" );
+    doReturn( "" )
+      .when( s3Client ).readLogFromS3(  stagingBucketName, hadoopJobFlowId + "/steps/" + stepId + "/stdout.gz" );
+    doReturn( "" )
+      .when( s3Client ).readLogFromS3(  stagingBucketName, hadoopJobFlowId + "/steps/" + stepId + "/syslog.gz" );
 
     try {
       inputStream = new FileInputStream( gzArchName );
@@ -103,8 +102,8 @@ public class S3ClientImplTest {
       S3Object s3Object = new S3Object();
       s3Object.setObjectContent( s3ObjectInputStream );
 
-      Mockito.when( awsS3Client.getObject( Matchers.anyString(), Matchers.anyString() ) ).thenReturn( s3Object );
-      Mockito.when( awsS3Client.doesObjectExist( Matchers.anyString(), Matchers.anyString() ) ).thenReturn( true );
+      Mockito.when( awsS3Client.getObject( anyString(), anyString() ) ).thenReturn( s3Object );
+      Mockito.when( awsS3Client.doesObjectExist( anyString(), anyString() ) ).thenReturn( true );
 
       String lineFromStepLogFile = s3Client.readStepLogsFromS3( stagingBucketName, hadoopJobFlowId, stepId );
       lineFromStepLogFile = lineFromStepLogFile.replace( "\n", "" ).replace( "\r", "" );
@@ -130,16 +129,15 @@ public class S3ClientImplTest {
       "Step " + stepId + " failed. See logs here: s3://" + stagingBucketName + "/" + hadoopJobFlowId + "/steps/"
         + stepId;
 
-    PowerMockito.doReturn( "" )
-      .when( s3Client, "readLogFromS3", Matchers.eq( stagingBucketName ), Matchers.anyString() );
+    doReturn( "" )
+      .when( s3Client ).readLogFromS3( eq( stagingBucketName ), anyString() );
+    doCallRealMethod().when( s3Client ).readStepLogsFromS3( anyString(), anyString(), anyString() );
 
     try {
       inputStream = new FileInputStream( gzArchName );
       s3ObjectInputStream = new S3ObjectInputStream( inputStream, null, false );
       S3Object s3Object = new S3Object();
       s3Object.setObjectContent( s3ObjectInputStream );
-
-      Mockito.when( awsS3Client.doesObjectExist( Matchers.anyString(), Matchers.anyString() ) ).thenReturn( false );
 
       String lineFromStepLogFile = s3Client.readStepLogsFromS3( stagingBucketName, hadoopJobFlowId, stepId );
       lineFromStepLogFile = lineFromStepLogFile.replace( "\n", "" ).replace( "\r", "" );

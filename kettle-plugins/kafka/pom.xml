@@ -17,7 +17,6 @@
     <publish-sonar-phase>site</publish-sonar-phase>
     <!-- Dependency versions -->
     <pentaho-metaverse.version>10.2.0.0-SNAPSHOT</pentaho-metaverse.version>
-    <dependency.org.powermock.version>1.6.0</dependency.org.powermock.version>
     <dependency.com.tinkerpop.frames.version>2.5.0</dependency.com.tinkerpop.frames.version>
     <dependency.com.tinkerpop.blueprints.version>2.6.0</dependency.com.tinkerpop.blueprints.version>
     <osgi.version>5.0.0</osgi.version>
@@ -84,8 +83,7 @@
     <!-- test dependencies -->
     <dependency>
       <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
-      <version>${dependency.mockito.revision}</version>
+      <artifactId>mockito-core</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -116,21 +114,6 @@
       <groupId>com.tinkerpop.blueprints</groupId>
       <artifactId>blueprints-core</artifactId>
       <version>${dependency.com.tinkerpop.blueprints.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-core</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-module-junit4</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-api-mockito</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

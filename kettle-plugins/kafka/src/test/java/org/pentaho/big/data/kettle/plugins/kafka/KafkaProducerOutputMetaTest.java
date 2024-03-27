@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -27,7 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.attributes.metastore.EmbeddedMetaStore;
 import org.pentaho.di.core.logging.KettleLogStore;
@@ -53,8 +53,8 @@ import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -251,7 +251,7 @@ public class KafkaProducerOutputMetaTest {
     when( namedCluster.getKafkaBootstrapServers() ).thenReturn( "server:11111" );
 
     NamedClusterManager namedClusterService = mock( NamedClusterManager.class );
-    when( namedClusterService.getNamedClusterByName( eq( "my_cluster" ), any( IMetaStore.class ) ) )
+    when( namedClusterService.getNamedClusterByName( eq( "my_cluster" ), nullable( IMetaStore.class ) ) )
         .thenReturn( namedCluster );
 
     KafkaProducerOutputMeta meta = new KafkaProducerOutputMeta();
