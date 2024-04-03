@@ -186,7 +186,7 @@
         <include>org.syslog4j:syslog4j</include>
         <include>org.w3c.css:sac</include>
         <include>org.xerial.snappy:snappy-java</include>
-        <include>org.yaml:snakeyaml</include>
+        <include>org.hitachivantara:safeyaml</include>
         <include>pentaho-kettle:kettle-core</include>
         <include>pentaho-kettle:kettle-engine</include>
         <include>pentaho-kettle:kettle-ui-swt</include>
