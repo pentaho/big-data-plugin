@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2019-2022 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,7 +25,7 @@ package org.pentaho.amazon.s3;
 import com.amazonaws.regions.Regions;
 import org.eclipse.swt.widgets.Composite;
 import org.pentaho.di.connections.annotations.Encrypted;
-import org.pentaho.di.connections.vfs.VFSConnectionDetails;
+import org.pentaho.di.connections.vfs.BaseVFSConnectionDetails;
 import org.pentaho.di.connections.vfs.VFSDetailsComposite;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.ui.core.PropsUI;
@@ -38,7 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 @MetaStoreElementType( name = "Amazon S3 Connection", description = "Defines the connection details for an Amazon S3 connection" )
-public class S3Details implements VFSConnectionDetails {
+public class S3Details extends BaseVFSConnectionDetails {
   VFSDetailsComposite vfsDetailsComposite;
   VariableSpace space;
 
@@ -226,8 +226,7 @@ public class S3Details implements VFSConnectionDetails {
     this.defaultS3ConfigVariable = defaultS3ConfigVariable;
   }
 
-  @Override public Map<String, String> getProperties() {
-    Map<String, String> props = new HashMap<>();
+  @Override protected void fillProperties( Map<String, String> props ) {
     props.put( "name", getName() );
     props.put( "description", getDescription() );
     props.put( "accessKey", getAccessKey() );
@@ -243,8 +242,7 @@ public class S3Details implements VFSConnectionDetails {
     props.put( "pathStyleAccess", getPathStyleAccess() );
     props.put( "defaultS3Config", getDefaultS3Config() );
     props.put( "connectionType", getConnectionType() );
-
-    return props;
+    super.fillProperties( props );
   }
 
   @Override
