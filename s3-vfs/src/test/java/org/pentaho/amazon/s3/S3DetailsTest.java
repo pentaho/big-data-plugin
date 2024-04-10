@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -45,8 +45,8 @@ public class S3DetailsTest {
     assertThat( props.get( "region" ), equalTo( "aws-west-1" ) );
     assertThat( props.get( "accessKey" ), equalTo( "ASIAXJ3TZZPFVO3NK6O" ) );
     assertThat( props.get( "secretKey" ), equalTo( "jKbmptEdHk6cTXXqGodacxJn5yaETIIhKjJb/oZ" ) );
-    assertThat( props.size(), equalTo( 15 ) );
-    assertThat( props.entrySet().stream().filter( e -> e.getValue() != null ).count(), equalTo( 4L ) );
+    assertThat( props.size(), equalTo( 16 ) );
+    assertThat( props.entrySet().stream().filter( e -> e.getValue() != null ).count(), equalTo( 5L ) );
   }
 
   @Test
@@ -68,8 +68,8 @@ public class S3DetailsTest {
     assertThat( props.get( "pathStyleAccess" ), equalTo( "true" ) );
     assertThat( props.get( "signatureVersion" ), equalTo( "v4" ) );
 
-    assertThat( props.size(), equalTo( 15 ) );
-    assertThat( props.entrySet().stream().filter( e -> e.getValue() != null ).count(), equalTo( 7L ) );
+    assertThat( props.size(), equalTo( 16 ) );
+    assertThat( props.entrySet().stream().filter( e -> e.getValue() != null ).count(), equalTo( 8L ) );
   }
 
 }
