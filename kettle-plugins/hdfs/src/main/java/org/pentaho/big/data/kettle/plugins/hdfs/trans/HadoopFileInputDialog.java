@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -495,7 +495,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   private void showFiles() {
     HadoopFileInputMeta tfii = new HadoopFileInputMeta();
     getInfo( tfii );
-    String[] files = tfii.getFilePaths( transMeta );
+    String[] files = tfii.getFilePaths( transMeta.getBowl(), transMeta );
     if ( files != null && files.length > 0 ) {
       EnterSelectionDialog esd =
         new EnterSelectionDialog( shell, getFriendlyURIs( files ), "Files read", "Files read:" );
@@ -2338,7 +2338,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     HadoopFileInputMeta meta = new HadoopFileInputMeta();
     getInfo( meta );
     HadoopFileInputMeta previousMeta = (HadoopFileInputMeta) meta.clone();
-    FileInputList textFileList = meta.getTextFileList( transMeta );
+    FileInputList textFileList = meta.getTextFileList( transMeta.getBowl(), transMeta );
     InputStream fileInputStream = null;
     InputStream inputStream = null;
     StringBuilder lineStringBuilder = new StringBuilder( 256 );
@@ -2573,7 +2573,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     getInfo( info );
 
     try {
-      if ( info.getTextFileList( transMeta ).nrOfFiles() > 0 ) {
+      if ( info.getTextFileList( transMeta.getBowl(), transMeta ).nrOfFiles() > 0 ) {
         String shellText = BaseMessages.getString( BASE_PKG, "TextFileInputDialog.LinesToView.DialogTitle" );
         String lineText = BaseMessages.getString( BASE_PKG, "TextFileInputDialog.LinesToView.DialogMessage" );
         EnterNumberDialog end = new EnterNumberDialog( shell, 100, shellText, lineText );
@@ -2617,7 +2617,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   private List<String> getFirst( int nrlines, boolean skipHeaders ) throws KettleException {
     HadoopFileInputMeta meta = new HadoopFileInputMeta();
     getInfo( meta );
-    FileInputList textFileList = meta.getTextFileList( transMeta );
+    FileInputList textFileList = meta.getTextFileList( transMeta.getBowl(), transMeta );
 
     InputStream fi = null;
     InputStream f = null;
