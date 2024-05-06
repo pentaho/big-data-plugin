@@ -13,6 +13,7 @@
 
 package org.pentaho.big.data.kettle.plugins.hdfs;
 
+import org.pentaho.di.core.plugins.ParentPlugin;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.big.data.kettle.plugins.hdfs.vfs.HadoopVfsFileChooserDialog;
 import org.pentaho.big.data.kettle.plugins.hdfs.vfs.MapRFSFileChooserDialog;
@@ -24,13 +25,23 @@ import org.pentaho.di.core.lifecycle.LifecycleException;
 import org.pentaho.di.core.lifecycle.LifecycleListener;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.runtime.test.RuntimeTester;
+import org.pentaho.runtime.test.action.RuntimeTestActionHandler;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
+import org.pentaho.runtime.test.action.impl.LoggingRuntimeTestActionHandlerImpl;
+import org.pentaho.runtime.test.action.impl.RuntimeTestActionServiceImpl;
+import org.pentaho.runtime.test.i18n.impl.BaseMessagesMessageGetterFactoryImpl;
+import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by bryan on 11/23/15.
  */
 @LifecyclePlugin( id = "HdfsLifecycleListener", name = "HdfsLifecycleListener" )
+@ParentPlugin( pathFromDataIntegration = "plugins/pentaho-big-data-plugin" )
 public class HdfsLifecycleListener implements LifecycleListener {
 
   private final int hdfsPriority = 150;
@@ -44,6 +55,14 @@ public class HdfsLifecycleListener implements LifecycleListener {
   private MapRFSFileChooserDialog mapRFSFileChooserDialog;
   private NamedClusterVfsFileChooserDialog ncFileChooserDialog;
 
+  public HdfsLifecycleListener() {
+    this.ncService = NamedClusterManager.getInstance();
+    this.rtTestActServ = RuntimeTestActionServiceImpl.getInstance();
+    this.rtTester = RuntimeTesterImpl.getInstance();
+  }
+
+  @Deprecated
+  // This OSGI constructor should be removed
   public HdfsLifecycleListener( NamedClusterService namedClusterService,
                                 RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester ) {
     this.ncService = namedClusterService;

@@ -13,6 +13,8 @@
 
 package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
+import org.pentaho.di.core.plugins.ParentFirst;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.di.core.Const;
@@ -30,6 +32,8 @@ import org.pentaho.di.trans.steps.textfileoutput.TextFileOutputMeta;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
+import org.pentaho.runtime.test.action.impl.RuntimeTestActionServiceImpl;
+import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
 import org.w3c.dom.Node;
 
 import java.util.Map;
@@ -40,6 +44,7 @@ import java.util.Map;
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     i18nPackageName = "org.pentaho.di.trans.steps.hadoopfileoutput" )
 @InjectionSupported( localizationPrefix = "HadoopFileOutput.Injection.", groups = { "OUTPUT_FIELDS" } )
+//@ParentFirst( patterns = { "../../lib" } )
 public class HadoopFileOutputMeta extends TextFileOutputMeta implements HadoopFileMeta {
 
   // for message resolution
@@ -54,6 +59,12 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta implements HadoopFi
   private final RuntimeTester runtimeTester;
   private IMetaStore metaStore;
   private Node embeddedNamedClusterNode;
+
+  public HadoopFileOutputMeta() {
+    this.namedClusterService = NamedClusterManager.getInstance();
+    this.runtimeTestActionService = RuntimeTestActionServiceImpl.getInstance();
+    this.runtimeTester = RuntimeTesterImpl.getInstance();
+  }
 
   public HadoopFileOutputMeta( NamedClusterService namedClusterService,
                                RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester ) {
