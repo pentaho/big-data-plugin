@@ -122,7 +122,7 @@
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-impl-cluster</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
+      <scope>provided</scope>
       <exclusions>
         <exclusion>
           <groupId>org.mockito</groupId>
@@ -130,6 +130,18 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-big-data-api-runtimeTest</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+<!--    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-big-data-kettle-plugins-common-ui</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>-->
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-metaverse-api</artifactId>
