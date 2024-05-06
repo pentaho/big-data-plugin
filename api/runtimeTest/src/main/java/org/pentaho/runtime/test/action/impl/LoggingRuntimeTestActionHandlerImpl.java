@@ -17,6 +17,7 @@ import org.pentaho.runtime.test.action.RuntimeTestAction;
 import org.pentaho.runtime.test.action.RuntimeTestActionHandler;
 import org.pentaho.runtime.test.i18n.MessageGetter;
 import org.pentaho.runtime.test.i18n.MessageGetterFactory;
+import org.pentaho.runtime.test.i18n.impl.BaseMessagesMessageGetterFactoryImpl;
 import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,12 @@ public class LoggingRuntimeTestActionHandlerImpl implements RuntimeTestActionHan
   public static final String LOGGING_RUNTIME_TEST_ACTION_HANDLER_IMPL_MISSING_SEVERITY = "LoggingRuntimeTestActionHandlerImpl.MissingSeverity";
   private final Logger logger;
   private final MessageGetter messageGetter;
+  private static LoggingRuntimeTestActionHandlerImpl instance =
+    new LoggingRuntimeTestActionHandlerImpl( BaseMessagesMessageGetterFactoryImpl.getInstance() );
+
+  public static LoggingRuntimeTestActionHandlerImpl getInstance() {
+    return instance;
+  }
 
   public LoggingRuntimeTestActionHandlerImpl( MessageGetterFactory messageGetterFactory ) {
     this( messageGetterFactory, LoggerFactory.getLogger( LoggingRuntimeTestActionHandlerImpl.class ) );

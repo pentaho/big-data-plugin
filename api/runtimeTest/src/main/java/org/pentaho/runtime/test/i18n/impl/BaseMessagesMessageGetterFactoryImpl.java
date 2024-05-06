@@ -20,7 +20,13 @@ import org.pentaho.runtime.test.i18n.MessageGetterFactory;
  * Created by bryan on 8/21/15.
  */
 public class BaseMessagesMessageGetterFactoryImpl implements MessageGetterFactory {
+  private static BaseMessagesMessageGetterFactoryImpl instance = new BaseMessagesMessageGetterFactoryImpl();
+
   @Override public MessageGetter create( Class<?> PKG ) {
     return new BaseMessagesMessageGetterImpl( PKG );
+  }
+
+  public static BaseMessagesMessageGetterFactoryImpl getInstance() {
+    return instance;
   }
 }
