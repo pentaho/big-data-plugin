@@ -70,8 +70,10 @@ import java.util.stream.Collectors;
 
 public class NamedClusterManager implements NamedClusterService {
 
+  private static NamedClusterManager instance = new NamedClusterManager();
   public static final String BIG_DATA_SLAVE_METASTORE_DIR = "hadoop.configurations.path";
   private static final Class<?> PKG = NamedClusterManager.class;
+
   private BundleContext bundleContext;
 
   private Map<IMetaStore, MetaStoreFactory<NamedClusterImpl>> factoryMap = new HashMap<>();
@@ -85,6 +87,10 @@ public class NamedClusterManager implements NamedClusterService {
   private static final List<String> siteFileNames =
     Arrays.asList( "hdfs-site.xml", "core-site.xml", "mapred-site.xml", "yarn-site.xml",
       "hbase-site.xml", "hive-site.xml" );
+
+  public static NamedClusterManager getInstance() {
+    return instance;
+  }
 
   public BundleContext getBundleContext() {
     return bundleContext;

@@ -23,6 +23,7 @@
 package org.pentaho.big.data.kettle.plugins.hdfs.job;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.job.entries.copyfiles.JobEntryCopyFiles;
@@ -31,6 +32,8 @@ import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
+import org.pentaho.runtime.test.action.impl.RuntimeTestActionServiceImpl;
+import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,6 +51,12 @@ public class JobEntryHadoopCopyFiles extends JobEntryCopyFiles {
   private final NamedClusterService namedClusterService;
   private final RuntimeTestActionService runtimeTestActionService;
   private final RuntimeTester runtimeTester;
+
+  public JobEntryHadoopCopyFiles() {
+    this.namedClusterService = NamedClusterManager.getInstance();
+    this.runtimeTestActionService = RuntimeTestActionServiceImpl.getInstance();
+    this.runtimeTester = RuntimeTesterImpl.getInstance();
+  }
 
   /**
    * Hold mapping to go back to unresolved or original URL stored in the xml.
