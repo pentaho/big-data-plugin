@@ -16,7 +16,9 @@ package org.pentaho.runtime.test.action.impl;
 import org.pentaho.runtime.test.action.RuntimeTestAction;
 import org.pentaho.runtime.test.action.RuntimeTestActionHandler;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
+import org.pentaho.runtime.test.i18n.impl.BaseMessagesMessageGetterFactoryImpl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,6 +27,7 @@ import java.util.List;
 public class RuntimeTestActionServiceImpl implements RuntimeTestActionService {
   private final List<RuntimeTestActionHandler> runtimeTestActionHandlers;
   private final RuntimeTestActionHandler defaultHandler;
+  private static RuntimeTestActionServiceImpl instance;
 
   /**
    * Creates the RuntimeTestActionService
@@ -36,6 +39,17 @@ public class RuntimeTestActionServiceImpl implements RuntimeTestActionService {
                                        RuntimeTestActionHandler defaultHandler ) {
     this.runtimeTestActionHandlers = runtimeTestActionHandlers;
     this.defaultHandler = defaultHandler;
+  }
+
+  public static RuntimeTestActionServiceImpl getInstance() {
+    if ( instance == null ){
+      LoggingRuntimeTestActionHandlerImpl loggingRuntimeTestActionHandler =
+        LoggingRuntimeTestActionHandlerImpl.getInstance();
+      List<RuntimeTestActionHandler> runtimeTestActionHandlers = new ArrayList<>();
+      runtimeTestActionHandlers.add( loggingRuntimeTestActionHandler );
+      instance = new RuntimeTestActionServiceImpl( runtimeTestActionHandlers, loggingRuntimeTestActionHandler );
+    }
+    return instance;
   }
 
   @Override public void handle( RuntimeTestAction runtimeTestAction ) {
