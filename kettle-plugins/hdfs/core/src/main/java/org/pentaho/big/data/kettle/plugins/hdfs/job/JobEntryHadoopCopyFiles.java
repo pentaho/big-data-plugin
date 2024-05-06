@@ -23,6 +23,8 @@
 package org.pentaho.big.data.kettle.plugins.hdfs.job;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
+import org.pentaho.di.core.plugins.ParentFirst;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.JobEntry;
@@ -32,6 +34,8 @@ import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
+import org.pentaho.runtime.test.action.impl.RuntimeTestActionServiceImpl;
+import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
 
 import java.util.Map;
 
@@ -47,6 +51,12 @@ public class JobEntryHadoopCopyFiles extends JobEntryCopyFiles {
   private final NamedClusterService namedClusterService;
   private final RuntimeTestActionService runtimeTestActionService;
   private final RuntimeTester runtimeTester;
+
+  public JobEntryHadoopCopyFiles() {
+    this.namedClusterService = NamedClusterManager.getInstance();
+    this.runtimeTestActionService = RuntimeTestActionServiceImpl.getInstance();
+    this.runtimeTester = RuntimeTesterImpl.getInstance();
+  }
 
   public JobEntryHadoopCopyFiles( NamedClusterService namedClusterService,
                                   RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester ) {

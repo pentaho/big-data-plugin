@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
 import org.pentaho.di.core.annotations.PluginDialog;
+import org.pentaho.di.core.plugins.ParentFirst;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.big.data.kettle.plugins.hdfs.vfs.HadoopVfsFileChooserDialog;
@@ -65,6 +66,7 @@ import java.util.Map;
 
 @PluginDialog( id = "HadoopCopyFilesPlugin", image = "HDM.svg", pluginType = PluginDialog.PluginType.JOBENTRY,
   documentationUrl = "Products/Hadoop_Copy_Files" )
+//@ParentFirst( patterns = { "../../lib" } )
 public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
   private static Class<?> BASE_PKG = JobEntryCopyFiles.class; // for i18n purposes, needed by Translator2!! $NON-NLS-1$
   private static Class<?> PKG = JobEntryHadoopCopyFiles.class; // for i18n purposes, needed by Translator2!! $NON-NLS-1$

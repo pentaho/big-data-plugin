@@ -24,6 +24,7 @@ package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 
 import org.apache.commons.lang.Validate;
 import org.apache.commons.vfs2.FileName;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
@@ -84,7 +85,7 @@ public class HadoopFileInputMeta extends TextFileInputMeta implements HadoopFile
   public String[] environment = {};
 
   public HadoopFileInputMeta() {
-    this( null );
+    this( NamedClusterManager.getInstance() );
   }
 
   public HadoopFileInputMeta( NamedClusterService namedClusterService ) {

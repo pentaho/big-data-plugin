@@ -32,6 +32,8 @@ import org.pentaho.di.core.plugins.RegistryPlugin;
     id = "ShimDependentPluginRegistryPlugin",
     name = "ShimDependentPluginRegistryPlugin",
     description = "Registers sub plugins of the big data plugin that depend on the shim jars in their classpath" )
+    //classLoaderGroup = "big-data" )
+
 public class ShimDependentPluginRegistryPlugin implements PluginRegistryExtension {
 
   @Override
@@ -49,5 +51,4 @@ public class ShimDependentPluginRegistryPlugin implements PluginRegistryExtensio
   @Override
   public void searchForType( PluginTypeInterface pluginTypeInterface ) {
   }
-
 }

@@ -64,6 +64,9 @@
                 <include>org.apache.thrift:libthrift</include>
                 <include>org.apache.oozie:oozie-client</include>
                 <include>org.apache.oozie:oozie-core</include>
+                <include>pentaho:pentaho-big-data-impl-cluster</include>
+                <include>pentaho:pentaho-big-data-kettle-plugins-common-ui</include>
+                <include>org.pentaho:shim-api</include>
                 <include>xmlpull:xmlpull</include>
                 <include>xpp3:xpp3_min</include>
                 <include>com.thoughtworks.xstream:xstream</include>
