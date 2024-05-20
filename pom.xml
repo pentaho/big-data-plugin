@@ -66,7 +66,7 @@
     <dependency.commands.revision>3.3.0-I20070605-0010</dependency.commands.revision>
     <publish-sonar-phase></publish-sonar-phase>
     <plugin.org.apache.maven.plugins.maven-failsafe-plugin.version>2.17</plugin.org.apache.maven.plugins.maven-failsafe-plugin.version>
-    <dependency.junit.revision>4.11</dependency.junit.revision>
+    <dependency.junit.revision>4.13.2</dependency.junit.revision>
     <dependency.maven-bundle-plugin.version>2.4.0</dependency.maven-bundle-plugin.version>
     <pentaho-osgi-bundles.version>10.2.0.0-SNAPSHOT</pentaho-osgi-bundles.version>
     <pdi-osgi-bridge.version>10.2.0.0-SNAPSHOT</pdi-osgi-bridge.version>
@@ -84,42 +84,19 @@
     <dependency.pdi-osgi-bridge-core.revision>${project.version}</dependency.pdi-osgi-bridge-core.revision>
     <thoughtworks.paranamer.version>2.7</thoughtworks.paranamer.version>
     <dependency.commons-httpclient.revision>3.1</dependency.commons-httpclient.revision>
-    <powermock.version>1.7.3</powermock.version>
     <requirejs-text.version>2.0.10</requirejs-text.version>
     <commons-lang3.version>3.12.0</commons-lang3.version>
+    <mockito.version>5.10.0</mockito.version>
+    <maven-surefire-plugin.argLine> --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED </maven-surefire-plugin.argLine>
   </properties>
 
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.powermock</groupId>
-        <artifactId>powermock-reflect</artifactId>
-        <version>${powermock.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.powermock</groupId>
-        <artifactId>powermock-core</artifactId>
-        <version>${powermock.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.powermock</groupId>
-        <artifactId>powermock-api-mockito</artifactId>
-        <version>${powermock.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.powermock</groupId>
-        <artifactId>powermock-module-junit4</artifactId>
-        <version>${powermock.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.powermock</groupId>
-        <artifactId>powermock-module-junit4-common</artifactId>
-        <version>${powermock.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.powermock</groupId>
-        <artifactId>powermock-api-support</artifactId>
-        <version>${powermock.version}</version>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>${mockito.version}</version>
+        <scope>test</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>

@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -28,6 +28,7 @@ import com.amazonaws.services.pricing.model.Filter;
 import com.amazonaws.services.pricing.model.GetProductsRequest;
 import com.amazonaws.services.pricing.model.GetProductsResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
 import org.pentaho.amazon.InstanceType;
 import org.pentaho.amazon.client.api.PricingClient;
 
@@ -76,7 +77,8 @@ public class PricingClientImpl implements PricingClient {
     return productsRequest;
   }
 
-  private List<String> getProductDescriptions() {
+  @VisibleForTesting
+  protected List<String> getProductDescriptions() {
     GetProductsRequest productsRequest = initProductsRequest();
     GetProductsResult productsResult = pricing.getProducts( productsRequest );
     List<String> productDescriptions = productsResult.getPriceList();

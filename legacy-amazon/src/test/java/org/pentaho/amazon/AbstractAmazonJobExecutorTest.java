@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -30,27 +30,25 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.amazon.hive.job.AmazonHiveJobExecutor;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.junit.rules.RestorePDIEngineEnvironment;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 /**
  * Created by Aliaksandr_Zhuk on 2/7/2018.
  */
-@RunWith( PowerMockRunner.class )
-@PrepareForTest( AmazonHiveJobExecutor.class )
-@PowerMockIgnore( "jdk.internal.reflect.*" )
+@RunWith( MockitoJUnitRunner.class )
 public class AbstractAmazonJobExecutorTest {
   @ClassRule public static RestorePDIEngineEnvironment env = new RestorePDIEngineEnvironment();
 
@@ -63,7 +61,7 @@ public class AbstractAmazonJobExecutorTest {
 
   @Before
   public void setUp() throws Exception {
-    jobExecutor = PowerMockito.spy( new AmazonHiveJobExecutor() );
+    jobExecutor = spy( new AmazonHiveJobExecutor() );
     stagingFolder = temporaryFolder.newFolder( "emr" );
     stagingFile = temporaryFolder.newFile( stagingFolder.getName() + "/hive.q" );
   }
@@ -75,11 +73,10 @@ public class AbstractAmazonJobExecutorTest {
     String expectedStagingDirPath = "/s3/emr/hive";
 
     AWSCredentials credentials = mock( AWSCredentials.class );
-    when( credentials.getAWSAccessKeyId() ).thenReturn( null );
-    when( credentials.getAWSSecretKey() ).thenReturn( null );
-    Whitebox.setInternalState( jobExecutor, "stagingDir", stagingDirWithScheme );
+    jobExecutor.stagingDir = stagingDirWithScheme;
+    when( jobExecutor.getS3FileObjectPath() ).thenCallRealMethod();
 
-    String stagingDirPath = org.powermock.reflect.Whitebox.invokeMethod( jobExecutor, "getS3FileObjectPath" );
+    String stagingDirPath = jobExecutor.getS3FileObjectPath();
 
     assertEquals( expectedStagingDirPath, stagingDirPath );
   }
@@ -87,9 +84,10 @@ public class AbstractAmazonJobExecutorTest {
   @Test
   public void testGetKeyFromS3StagingDir_getNullKey() throws Exception {
 
-    PowerMockito.doReturn( "/test" ).when( jobExecutor, "getS3FileObjectPath" );
+    when( jobExecutor.getS3FileObjectPath() ).thenReturn( "/test" );
+    when( jobExecutor.getKeyFromS3StagingDir() ).thenCallRealMethod();
 
-    String bucketKey = org.powermock.reflect.Whitebox.invokeMethod( jobExecutor, "getKeyFromS3StagingDir" );
+    String bucketKey = jobExecutor.getKeyFromS3StagingDir();
 
     assertEquals( null, bucketKey );
   }
@@ -97,9 +95,10 @@ public class AbstractAmazonJobExecutorTest {
   @Test
   public void testGetKeyFromS3StagingDir_getNotNullKey() throws Exception {
 
-    PowerMockito.doReturn( "/bucket/key" ).when( jobExecutor, "getS3FileObjectPath" );
+    when( jobExecutor.getS3FileObjectPath() ).thenReturn(  "/bucket/key" );
+    when( jobExecutor.getKeyFromS3StagingDir() ).thenCallRealMethod();
 
-    String bucketKey = org.powermock.reflect.Whitebox.invokeMethod( jobExecutor, "getKeyFromS3StagingDir" );
+    String bucketKey = jobExecutor.getKeyFromS3StagingDir();
 
     assertEquals( "key", bucketKey );
   }
@@ -112,11 +111,12 @@ public class AbstractAmazonJobExecutorTest {
 
     FileObject stagingFileObject = KettleVFS.getFileObject( stagingFile.getPath() );
 
-    PowerMockito.doReturn( bucketKey ).when( jobExecutor, "getKeyFromS3StagingDir" );
+    when( jobExecutor.getKeyFromS3StagingDir() ).thenReturn( bucketKey );
+    doCallRealMethod().when( jobExecutor ).setS3BucketKey( any() );
 
-    org.powermock.reflect.Whitebox.invokeMethod( jobExecutor, "setS3BucketKey", stagingFileObject );
+    jobExecutor.setS3BucketKey( stagingFileObject );
 
-    String bucketKeyWithFileName = (String) Whitebox.getInternalState( jobExecutor, "key" );
+    String bucketKeyWithFileName = jobExecutor.key;
 
     assertEquals( expectedKey, bucketKeyWithFileName );
   }
@@ -129,11 +129,12 @@ public class AbstractAmazonJobExecutorTest {
 
     FileObject stagingFileObject = KettleVFS.getFileObject( stagingFile.getPath() );
 
-    PowerMockito.doReturn( bucketKey ).when( jobExecutor, "getKeyFromS3StagingDir" );
+    when( jobExecutor.getKeyFromS3StagingDir() ).thenReturn( bucketKey );
+    doCallRealMethod().when( jobExecutor ).setS3BucketKey( any() );
 
-    org.powermock.reflect.Whitebox.invokeMethod( jobExecutor, "setS3BucketKey", stagingFileObject );
+    jobExecutor.setS3BucketKey( stagingFileObject );
 
-    String bucketKeyWithFileName = (String) Whitebox.getInternalState( jobExecutor, "key" );
+    String bucketKeyWithFileName = jobExecutor.key;
 
     assertEquals( expectedKey, bucketKeyWithFileName );
   }
@@ -146,11 +147,12 @@ public class AbstractAmazonJobExecutorTest {
 
     FileObject stagingFileObject = KettleVFS.getFileObject( stagingFile.getPath() );
 
-    PowerMockito.doReturn( bucketKey ).when( jobExecutor, "getKeyFromS3StagingDir" );
+    when( jobExecutor.getKeyFromS3StagingDir() ).thenReturn( bucketKey );
+    doCallRealMethod().when( jobExecutor ).setS3BucketKey( any() );
 
-    org.powermock.reflect.Whitebox.invokeMethod( jobExecutor, "setS3BucketKey", stagingFileObject );
+    jobExecutor.setS3BucketKey( stagingFileObject );
 
-    String bucketKeyWithFileName = (String) Whitebox.getInternalState( jobExecutor, "key" );
+    String bucketKeyWithFileName = jobExecutor.key;
 
     assertEquals( expectedKey, bucketKeyWithFileName );
   }
@@ -160,7 +162,7 @@ public class AbstractAmazonJobExecutorTest {
 
     String expectedBucketName = "test";
 
-    PowerMockito.doReturn( "/test" ).when( jobExecutor, "getS3FileObjectPath" );
+    when( jobExecutor.getS3FileObjectPath() ).thenReturn( "/test" );
 
     String bucketName = jobExecutor.getStagingBucketName();
 
@@ -172,7 +174,7 @@ public class AbstractAmazonJobExecutorTest {
 
     String expectedBucketName = "test";
 
-    PowerMockito.doReturn( "/test/hive" ).when( jobExecutor, "getS3FileObjectPath" );
+    when( jobExecutor.getS3FileObjectPath() ).thenReturn( "/test/hive" );
 
     String bucketName = jobExecutor.getStagingBucketName();
 

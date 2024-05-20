@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,12 +25,12 @@ package org.pentaho.big.data.kettle.plugins.kafka;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import static org.mockito.Mockito.when;
-
+import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.di.core.row.ValueMetaInterface;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by rfellows on 6/19/17.

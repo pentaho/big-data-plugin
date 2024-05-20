@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,35 +25,34 @@ package org.pentaho.amazon.client.impl;
 import com.amazonaws.services.elasticmapreduce.AmazonElasticMapReduce;
 import com.amazonaws.services.elasticmapreduce.model.ActionOnFailure;
 import com.amazonaws.services.elasticmapreduce.model.AddJobFlowStepsRequest;
-import com.amazonaws.services.elasticmapreduce.model.AddJobFlowStepsResult;
 import com.amazonaws.services.elasticmapreduce.model.HadoopJarStepConfig;
 import com.amazonaws.services.elasticmapreduce.model.RunJobFlowRequest;
-import com.amazonaws.services.elasticmapreduce.model.RunJobFlowResult;
 import com.amazonaws.services.elasticmapreduce.model.StepConfig;
 import com.amazonaws.services.elasticmapreduce.model.StepSummary;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.amazon.hive.job.AmazonHiveJobExecutor;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * Created by Aliaksandr_Zhuk on 2/8/2018.
  */
-@RunWith( PowerMockRunner.class )
-@PrepareForTest( EmrClientImpl.class )
-@PowerMockIgnore( "jdk.internal.reflect.*" )
+@RunWith( MockitoJUnitRunner.class )
 public class EmrClientImplTest {
 
   private EmrClientImpl emrClient;
@@ -62,9 +61,9 @@ public class EmrClientImplTest {
 
   @Before
   public void setUp() {
-    awsEmrClient = PowerMockito.mock( AmazonElasticMapReduce.class );
-    emrClient = PowerMockito.spy( new EmrClientImpl( awsEmrClient ) );
-    jobEntry = PowerMockito.spy( new AmazonHiveJobExecutor() );
+    awsEmrClient = mock( AmazonElasticMapReduce.class );
+    emrClient = spy( new EmrClientImpl( awsEmrClient ) );
+    jobEntry = spy( new AmazonHiveJobExecutor() );
     setJobEntryFields();
   }
 
@@ -75,11 +74,6 @@ public class EmrClientImplTest {
     String stepType = "hive";
     String mainClass = "";
     String bootstrapActions = "";
-
-    RunJobFlowRequest mockJobFlowRequest = Mockito.mock( RunJobFlowRequest.class );
-
-    PowerMockito.doReturn( "s-15PK2NMVIPRPF" ).when( emrClient, "getCurrentlyRunningStepId" );
-    PowerMockito.doReturn( new RunJobFlowResult() ).when( awsEmrClient, "runJobFlow", mockJobFlowRequest );
 
     RunJobFlowRequest jobFlowRequest =
       emrClient.initEmrCluster( stagingS3FileUrl, stagingS3BucketUrl, stepType, mainClass, bootstrapActions, jobEntry );
@@ -105,11 +99,6 @@ public class EmrClientImplTest {
     String stepType = "emr";
     String mainClass = "WordCount";
     String bootstrapActions = "";
-
-    RunJobFlowRequest mockJobFlowRequest = Mockito.mock( RunJobFlowRequest.class );
-
-    PowerMockito.doReturn( "s-15PK2NMVIPRPF" ).when( emrClient, "getCurrentlyRunningStepId" );
-    PowerMockito.doReturn( new RunJobFlowResult() ).when( awsEmrClient, "runJobFlow", mockJobFlowRequest );
 
     RunJobFlowRequest jobFlowRequest =
       emrClient.initEmrCluster( stagingS3FileUrl, stagingS3BucketUrl, stepType, mainClass, bootstrapActions, jobEntry );
@@ -141,11 +130,6 @@ public class EmrClientImplTest {
     stepArgs.add( "bucket" );
     stepArgs.add( "s3://test" );
 
-    RunJobFlowRequest mockJobFlowRequest = Mockito.mock( RunJobFlowRequest.class );
-
-    PowerMockito.doReturn( "s-15PK2NMVIPRPF" ).when( emrClient, "getCurrentlyRunningStepId" );
-    PowerMockito.doReturn( new RunJobFlowResult() ).when( awsEmrClient, "runJobFlow", mockJobFlowRequest );
-
     RunJobFlowRequest jobFlowRequest =
       emrClient.initEmrCluster( stagingS3FileUrl, stagingS3BucketUrl, stepType, mainClass, bootstrapActions, jobEntry );
 
@@ -171,11 +155,6 @@ public class EmrClientImplTest {
     String mainClass = "";
     String bootstrapActions = "";
 
-    RunJobFlowRequest mockJobFlowRequest = Mockito.mock( RunJobFlowRequest.class );
-
-    PowerMockito.doReturn( "s-15PK2NMVIPRPF" ).when( emrClient, "getCurrentlyRunningStepId" );
-    PowerMockito.doReturn( new RunJobFlowResult() ).when( awsEmrClient, "runJobFlow", mockJobFlowRequest );
-
     RunJobFlowRequest jobFlowRequest =
       emrClient.initEmrCluster( stagingS3FileUrl, stagingS3BucketUrl, stepType, mainClass, bootstrapActions, jobEntry );
 
@@ -196,7 +175,9 @@ public class EmrClientImplTest {
     String stepType = "hive";
     String mainClass = "";
 
+    doCallRealMethod().when( jobEntry ).setHadoopJobFlowId( anyString() );
     jobEntry.setHadoopJobFlowId( "j-11WRZQW6NIQOA" );
+    doReturn( true ).when( jobEntry ).getAlive();
 
     List<StepSummary> existingSteps = new ArrayList<>();
     List<StepSummary> existingWithNewSteps = new ArrayList<>();
@@ -214,12 +195,10 @@ public class EmrClientImplTest {
     existingWithNewSteps.addAll( existingSteps );
     existingWithNewSteps.add( stepSummary3 );
 
-    AddJobFlowStepsRequest jobFlowStepsRequest = PowerMockito.mock( AddJobFlowStepsRequest.class );
+    AddJobFlowStepsRequest jobFlowStepsRequest = mock( AddJobFlowStepsRequest.class );
 
-    PowerMockito.doNothing().when( emrClient, "setStepsFromCluster" );
-    PowerMockito.doReturn( new AddJobFlowStepsResult() ).when( awsEmrClient, "addJobFlowSteps", jobFlowStepsRequest );
-    PowerMockito.doReturn( existingWithNewSteps ).when( emrClient, "getSteps" );
-    Whitebox.setInternalState( emrClient, "stepSummaries", existingSteps );
+    doReturn( existingSteps, existingWithNewSteps ).when( emrClient ).getSteps();
+    doCallRealMethod().when( emrClient ).addStepToExistingJobFlow( anyString(), anyString(), anyString(), anyString(), nullable( AmazonHiveJobExecutor.class ) );
 
     emrClient.addStepToExistingJobFlow( stagingS3FileUrl, stagingS3BucketUrl, stepType, mainClass, jobEntry );
 
@@ -229,30 +208,32 @@ public class EmrClientImplTest {
   @Test
   public void testStopSteps_whenLeaveClusterAlive() throws Exception {
 
-    Whitebox.setInternalState( emrClient, "alive", true );
+    doCallRealMethod().when( emrClient ).setAlive( true );
+    doCallRealMethod().when( emrClient ).isAlive();
+    doNothing().when( emrClient ).cancelStepExecution();
 
-    PowerMockito.doNothing().when( emrClient, "terminateJobFlows" );
-    PowerMockito.doNothing().when( emrClient, "cancelStepExecution" );
+    emrClient.setAlive( true );
 
     boolean stopSteps = emrClient.stopSteps();
 
-    PowerMockito.verifyPrivate( emrClient, times( 0 ) ).invoke( "terminateJobFlows" );
-    PowerMockito.verifyPrivate( emrClient, times( 1 ) ).invoke( "cancelStepExecution" );
+    verify( emrClient, times( 0 ) ).terminateJobFlows();
+    verify( emrClient, times( 1 ) ).cancelStepExecution();
     Assert.assertEquals( true, stopSteps );
   }
 
   @Test
   public void testStopSteps_whenNotLeaveClusterAlive() throws Exception {
 
-    Whitebox.setInternalState( emrClient, "alive", false );
+    doCallRealMethod().when( emrClient ).setAlive( false );
+    doCallRealMethod().when( emrClient ).isAlive();
+    doNothing().when( emrClient ).terminateJobFlows();
 
-    PowerMockito.doNothing().when( emrClient, "terminateJobFlows" );
-    PowerMockito.doNothing().when( emrClient, "cancelStepExecution" );
+    emrClient.setAlive( false );
 
     boolean stopSteps = emrClient.stopSteps();
 
-    PowerMockito.verifyPrivate( emrClient, times( 1 ) ).invoke( "terminateJobFlows" );
-    PowerMockito.verifyPrivate( emrClient, times( 0 ) ).invoke( "cancelStepExecution" );
+    verify( emrClient, times( 1 ) ).terminateJobFlows();
+    verify( emrClient, times( 0 ) ).cancelStepExecution();
     Assert.assertEquals( false, stopSteps );
   }
 
