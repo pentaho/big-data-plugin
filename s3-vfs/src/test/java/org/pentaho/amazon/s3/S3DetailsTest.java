@@ -39,14 +39,16 @@ public class S3DetailsTest {
     s3Details.setRegion( "aws-west-1" );
     s3Details.setAccessKey( "ASIAXJ3TZZPFVO3NK6O" );
     s3Details.setSecretKey( "jKbmptEdHk6cTXXqGodacxJn5yaETIIhKjJb/oZ" );
+    s3Details.setRootPath( "test/path" );
 
     Map<String, String> props = s3Details.getProperties();
     assertThat( props.get( "name" ), equalTo( "name" ) );
     assertThat( props.get( "region" ), equalTo( "aws-west-1" ) );
     assertThat( props.get( "accessKey" ), equalTo( "ASIAXJ3TZZPFVO3NK6O" ) );
     assertThat( props.get( "secretKey" ), equalTo( "jKbmptEdHk6cTXXqGodacxJn5yaETIIhKjJb/oZ" ) );
-    assertThat( props.size(), equalTo( 16 ) );
-    assertThat( props.entrySet().stream().filter( e -> e.getValue() != null ).count(), equalTo( 5L ) );
+    assertThat( props.get( "rootPath" ), equalTo( "test/path" ) );
+    assertThat( props.size(), equalTo( 17 ) );
+    assertThat( props.entrySet().stream().filter( e -> e.getValue() != null ).count(), equalTo( 6L ) );
   }
 
   @Test
@@ -68,7 +70,7 @@ public class S3DetailsTest {
     assertThat( props.get( "pathStyleAccess" ), equalTo( "true" ) );
     assertThat( props.get( "signatureVersion" ), equalTo( "v4" ) );
 
-    assertThat( props.size(), equalTo( 16 ) );
+    assertThat( props.size(), equalTo( 17 ) );
     assertThat( props.entrySet().stream().filter( e -> e.getValue() != null ).count(), equalTo( 8L ) );
   }
 
