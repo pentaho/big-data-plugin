@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -26,6 +26,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.amazon.client.ClientFactoriesManager;
 import org.pentaho.amazon.client.ClientType;
 import org.pentaho.amazon.client.api.PricingClient;
@@ -38,24 +41,31 @@ import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.binding.BindingFactory;
 import org.pentaho.ui.xul.components.XulButton;
 import org.pentaho.ui.xul.util.AbstractModelList;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by Aliaksandr_Zhuk on 2/8/2018.
  */
-@RunWith( PowerMockRunner.class )
-@PrepareForTest( { AbstractAmazonJobExecutorController.class, ClientFactoriesManager.class } )
-@PowerMockIgnore( "jdk.internal.reflect.*" )
+@RunWith( MockitoJUnitRunner.class )
 public class AbstractAmazonJobExecutorControllerTest {
 
   private AmazonHiveJobExecutorController jobExecutorController;
@@ -72,7 +82,7 @@ public class AbstractAmazonJobExecutorControllerTest {
   @Before
   public void setUp() throws Exception {
     jobExecutorController =
-      PowerMockito.spy( new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory ) );
+      spy( new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory ) );
   }
 
   @Test
@@ -80,8 +90,7 @@ public class AbstractAmazonJobExecutorControllerTest {
 
     int expectedCountOfRegions = 16;
 
-    AbstractModelList<String> listRegions =
-      org.powermock.reflect.Whitebox.invokeMethod( jobExecutorController, "populateRegions" );
+    AbstractModelList<String> listRegions = jobExecutorController.populateRegions();
 
     assertEquals( expectedCountOfRegions, listRegions.size() );
   }
@@ -91,8 +100,7 @@ public class AbstractAmazonJobExecutorControllerTest {
 
     int expectedCountOfReleases = 32;
 
-    AbstractModelList<String> listReleases =
-      org.powermock.reflect.Whitebox.invokeMethod( jobExecutorController, "populateReleases" );
+    AbstractModelList<String> listReleases = jobExecutorController.populateReleases();
 
     assertEquals( expectedCountOfReleases, listReleases.size() );
   }
@@ -104,9 +112,9 @@ public class AbstractAmazonJobExecutorControllerTest {
 
     AmazonHiveJobExecutor jobEntry = spy( new AmazonHiveJobExecutor() );
     AmazonHiveJobExecutorController hiveJobExecutorController =
-      PowerMockito.spy( new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory ) );
+      new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory );
 
-    org.powermock.reflect.Whitebox.invokeMethod( jobExecutorController, "populateReleases" );
+    AbstractModelList<String> listReleases = hiveJobExecutorController.populateReleases();
 
     assertEquals( expectedEmrRelease, jobEntry.getEmrRelease() );
   }
@@ -118,11 +126,11 @@ public class AbstractAmazonJobExecutorControllerTest {
 
     AmazonHiveJobExecutor jobEntry = spy( new AmazonHiveJobExecutor() );
     AmazonHiveJobExecutorController hiveJobExecutorController =
-      PowerMockito.spy( new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory ) );
+      spy( new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory ) );
 
     when( hiveJobExecutorController.getJobEntry().getEmrRelease() ).thenReturn( "emr-5.11.0" );
 
-    org.powermock.reflect.Whitebox.invokeMethod( hiveJobExecutorController, "populateReleases" );
+    hiveJobExecutorController.populateReleases();
 
     verify( hiveJobExecutorController, times( 2 ) ).getJobEntry();
 
@@ -135,8 +143,7 @@ public class AbstractAmazonJobExecutorControllerTest {
     int expectedCountOfReleases = 33;
 
     when( jobExecutorController.getJobEntry().getEmrRelease() ).thenReturn( "emr-5.12.0" );
-    AbstractModelList<String> listReleases =
-      org.powermock.reflect.Whitebox.invokeMethod( jobExecutorController, "populateReleases" );
+    AbstractModelList<String> listReleases = jobExecutorController.populateReleases();
 
     verify( jobExecutorController, times( 2 ) ).getJobEntry();
     assertEquals( expectedCountOfReleases, listReleases.size() );
@@ -150,11 +157,10 @@ public class AbstractAmazonJobExecutorControllerTest {
     AmazonHiveJobExecutor jobEntry = spy( new AmazonHiveJobExecutor() );
 
     AmazonHiveJobExecutorController hiveJobExecutorController =
-      PowerMockito.spy( new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory ) );
+      spy( new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory ) );
     jobEntry.setEmrRelease( null );
 
-    AbstractModelList<String> listReleases =
-      org.powermock.reflect.Whitebox.invokeMethod( hiveJobExecutorController, "populateReleases" );
+    AbstractModelList<String> listReleases = hiveJobExecutorController.populateReleases();
 
     verify( hiveJobExecutorController, times( 2 ) ).getJobEntry();
     verify( jobEntry, times( 2 ) ).setEmrRelease( listReleases.get( 0 ) );
@@ -253,12 +259,12 @@ public class AbstractAmazonJobExecutorControllerTest {
     AmazonHiveJobExecutor jobEntry = spy( new AmazonHiveJobExecutor() );
 
     AmazonHiveJobExecutorController hiveJobExecutorController =
-      PowerMockito.spy( new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory ) );
+      new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory );
 
     AimClientImpl aimClient = mock( AimClientImpl.class );
     when( aimClient.getEc2RolesFromAmazonAccount() ).thenReturn( expectedRolesList );
 
-    org.powermock.reflect.Whitebox.invokeMethod( hiveJobExecutorController, "setEc2RolesFromAmazonAccount", aimClient );
+    hiveJobExecutorController.setEc2RolesFromAmazonAccount( aimClient );
 
     assertEquals( expectedRolesList.size(), hiveJobExecutorController.getEc2Roles().size() );
   }
@@ -271,12 +277,12 @@ public class AbstractAmazonJobExecutorControllerTest {
     AmazonHiveJobExecutor jobEntry = spy( new AmazonHiveJobExecutor() );
 
     AmazonHiveJobExecutorController hiveJobExecutorController =
-      PowerMockito.spy( new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory ) );
+      new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory );
 
     AimClientImpl aimClient = mock( AimClientImpl.class );
     when( aimClient.getEc2RolesFromAmazonAccount() ).thenReturn( new AbstractModelList<>() );
 
-    org.powermock.reflect.Whitebox.invokeMethod( hiveJobExecutorController, "setEc2RolesFromAmazonAccount", aimClient );
+    hiveJobExecutorController.setEc2RolesFromAmazonAccount( aimClient );
 
     assertEquals( expectedEc2Role, hiveJobExecutorController.getEc2Roles().get( 0 ) );
   }
@@ -292,12 +298,12 @@ public class AbstractAmazonJobExecutorControllerTest {
     AmazonHiveJobExecutor jobEntry = spy( new AmazonHiveJobExecutor() );
 
     AmazonHiveJobExecutorController hiveJobExecutorController =
-      PowerMockito.spy( new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory ) );
+      new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory );
 
     AimClientImpl aimClient = mock( AimClientImpl.class );
     when( aimClient.getEmrRolesFromAmazonAccount() ).thenReturn( expectedRolesList );
 
-    org.powermock.reflect.Whitebox.invokeMethod( hiveJobExecutorController, "setEmrRolesFromAmazonAccount", aimClient );
+    hiveJobExecutorController.setEmrRolesFromAmazonAccount( aimClient );
 
     assertEquals( expectedRolesList.size(), hiveJobExecutorController.getEmrRoles().size() );
   }
@@ -310,12 +316,12 @@ public class AbstractAmazonJobExecutorControllerTest {
     AmazonHiveJobExecutor jobEntry = spy( new AmazonHiveJobExecutor() );
 
     AmazonHiveJobExecutorController hiveJobExecutorController =
-      PowerMockito.spy( new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory ) );
+      new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory );
 
     AimClientImpl aimClient = mock( AimClientImpl.class );
     when( aimClient.getEmrRolesFromAmazonAccount() ).thenReturn( new AbstractModelList<>() );
 
-    org.powermock.reflect.Whitebox.invokeMethod( hiveJobExecutorController, "setEmrRolesFromAmazonAccount", aimClient );
+    hiveJobExecutorController.setEmrRolesFromAmazonAccount( aimClient );
 
     assertEquals( expectedEmrRole, hiveJobExecutorController.getEmrRoles().get( 0 ) );
   }
@@ -330,13 +336,12 @@ public class AbstractAmazonJobExecutorControllerTest {
     AmazonHiveJobExecutor jobEntry = spy( new AmazonHiveJobExecutor() );
 
     AmazonHiveJobExecutorController hiveJobExecutorController =
-      PowerMockito.spy( new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory ) );
+      new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory );
 
     PricingClient pricingClient = mock( PricingClientImpl.class );
     when( pricingClient.populateInstanceTypesForSelectedRegion() ).thenReturn( instanceTypes );
 
-    org.powermock.reflect.Whitebox
-      .invokeMethod( hiveJobExecutorController, "populateInstanceTypesForSelectedRegion", pricingClient );
+    hiveJobExecutorController.populateInstanceTypesForSelectedRegion( pricingClient );
 
     assertEquals( instanceTypes.size(), hiveJobExecutorController.getMasterInstanceTypes().size() );
     assertEquals( instanceTypes.size(), hiveJobExecutorController.getSlaveInstanceTypes().size() );
@@ -348,13 +353,12 @@ public class AbstractAmazonJobExecutorControllerTest {
     AmazonHiveJobExecutor jobEntry = spy( new AmazonHiveJobExecutor() );
 
     AmazonHiveJobExecutorController hiveJobExecutorController =
-      PowerMockito.spy( new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory ) );
+      new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory );
 
     PricingClient pricingClient = mock( PricingClientImpl.class );
     when( pricingClient.populateInstanceTypesForSelectedRegion() ).thenReturn( null );
 
-    org.powermock.reflect.Whitebox
-      .invokeMethod( hiveJobExecutorController, "populateInstanceTypesForSelectedRegion", pricingClient );
+    hiveJobExecutorController.populateInstanceTypesForSelectedRegion( pricingClient );
 
     assertEquals( 0, hiveJobExecutorController.getMasterInstanceTypes().size() );
     assertEquals( 0, hiveJobExecutorController.getSlaveInstanceTypes().size() );
@@ -366,16 +370,17 @@ public class AbstractAmazonJobExecutorControllerTest {
     AmazonHiveJobExecutor jobEntry = spy( new AmazonHiveJobExecutor() );
 
     AmazonHiveJobExecutorController hiveJobExecutorController =
-      PowerMockito.spy( new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory ) );
+      spy( new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory ) );
 
     PricingClient pricingClient = mock( PricingClientImpl.class );
     when( pricingClient.populateInstanceTypesForSelectedRegion() ).thenThrow( new IOException() );
-    doNothing().when( hiveJobExecutorController ).showErrorDialog( anyString(), anyString() );
+    doNothing().when( hiveJobExecutorController ).showErrorDialog( nullable( String.class ), nullable( String.class ) );
+    doCallRealMethod().when( hiveJobExecutorController ).populateInstanceTypesForSelectedRegion( any() );
 
-    org.powermock.reflect.Whitebox
-      .invokeMethod( hiveJobExecutorController, "populateInstanceTypesForSelectedRegion", pricingClient );
 
-    verify( hiveJobExecutorController, times( 1 ) ).showErrorDialog( anyString(), anyString() );
+    hiveJobExecutorController.populateInstanceTypesForSelectedRegion( pricingClient );
+
+    verify( hiveJobExecutorController, times( 1 ) ).showErrorDialog( nullable( String.class ), nullable( String.class ) );
   }
 
   @Test
@@ -387,7 +392,7 @@ public class AbstractAmazonJobExecutorControllerTest {
     XulDomContainer container = mock( XulDomContainer.class, RETURNS_DEEP_STUBS );
 
     AmazonHiveJobExecutorController hiveJobExecutorController =
-      PowerMockito.spy( new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory ) );
+      spy( new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory ) );
 
     when( hiveJobExecutorController.getXulDomContainer() ).thenReturn( container );
     when( container.getDocumentRoot().getElementById( "access-key" ) ).thenReturn( textBox );
@@ -412,7 +417,7 @@ public class AbstractAmazonJobExecutorControllerTest {
     XulDomContainer container = mock( XulDomContainer.class, RETURNS_DEEP_STUBS );
 
     AmazonHiveJobExecutorController hiveJobExecutorController =
-      PowerMockito.spy( new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory ) );
+      spy( new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory ) );
 
     when( hiveJobExecutorController.getXulDomContainer() ).thenReturn( container );
     when( container.getDocumentRoot().getElementById( "access-key" ) ).thenReturn( textBox );
@@ -438,41 +443,43 @@ public class AbstractAmazonJobExecutorControllerTest {
 
     ExtTextbox textBox = mock( ExtTextbox.class );
     XulButton btn = mock( XulButton.class );
-    ClientFactoriesManager manager = mock( ClientFactoriesManager.class );
-    PowerMockito.mockStatic( ClientFactoriesManager.class );
-    AimClientImpl aimClient = mock( AimClientImpl.class );
-    PricingClient pricingClient = mock( PricingClientImpl.class );
+    try ( MockedStatic<ClientFactoriesManager> clientFactoriesManagerMockedStatic =
+            Mockito.mockStatic( ClientFactoriesManager.class ) ) {
+      ClientFactoriesManager manager = mock( ClientFactoriesManager.class );
+      clientFactoriesManagerMockedStatic.when( () -> ClientFactoriesManager.getInstance() ).thenReturn( manager );
 
-    when( aimClient.getEc2RolesFromAmazonAccount() ).thenReturn( rolesList );
-    when( aimClient.getEmrRolesFromAmazonAccount() ).thenReturn( rolesList );
-    when( pricingClient.populateInstanceTypesForSelectedRegion() ).thenReturn( typesList );
+      AimClientImpl aimClient = mock( AimClientImpl.class );
+      PricingClient pricingClient = mock( PricingClientImpl.class );
 
-    XulDomContainer container = mock( XulDomContainer.class, RETURNS_DEEP_STUBS );
-    AmazonHiveJobExecutorController hiveJobExecutorController =
-      PowerMockito.spy( new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory ) );
+      when( aimClient.getEc2RolesFromAmazonAccount() ).thenReturn( rolesList );
+      when( aimClient.getEmrRolesFromAmazonAccount() ).thenReturn( rolesList );
+      when( pricingClient.populateInstanceTypesForSelectedRegion() ).thenReturn( typesList );
 
-    when( hiveJobExecutorController.getXulDomContainer() ).thenReturn( container );
-    when( container.getDocumentRoot().getElementById( "access-key" ) ).thenReturn( textBox );
-    when( container.getDocumentRoot().getElementById( "secret-key" ) ).thenReturn( textBox );
-    when( container.getDocumentRoot().getElementById( "session-token" ) ).thenReturn( textBox );
-    when( container.getDocumentRoot().getElementById( "num-instances" ) ).thenReturn( textBox );
-    when( container.getDocumentRoot().getElementById( "emr-settings" ) ).thenReturn( btn );
-    when( textBox.getValue() ).thenReturn( "testing" );
-    when( hiveJobExecutorController.getJobEntry().getRegion() ).thenReturn( "invalid Region" );
-    when( ClientFactoriesManager.getInstance() ).thenReturn( manager );
+      XulDomContainer container = mock( XulDomContainer.class, RETURNS_DEEP_STUBS );
+      AmazonHiveJobExecutorController hiveJobExecutorController =
+        spy( new AmazonHiveJobExecutorController( container, jobEntry, bindingFactory ) );
 
-    doNothing().when( btn ).setDisabled( true );
-    doNothing().when( hiveJobExecutorController ).showErrorDialog( anyString(), anyString() );
-    doNothing().when( hiveJobExecutorController ).setXulMenusDisabled( false );
-    doNothing().when( hiveJobExecutorController ).setSelectedItemForEachMenu();
+      when( hiveJobExecutorController.getXulDomContainer() ).thenReturn( container );
+      when( container.getDocumentRoot().getElementById( "access-key" ) ).thenReturn( textBox );
+      when( container.getDocumentRoot().getElementById( "secret-key" ) ).thenReturn( textBox );
+      when( container.getDocumentRoot().getElementById( "session-token" ) ).thenReturn( textBox );
+      when( container.getDocumentRoot().getElementById( "num-instances" ) ).thenReturn( textBox );
+      when( container.getDocumentRoot().getElementById( "emr-settings" ) ).thenReturn( btn );
+      when( textBox.getValue() ).thenReturn( "testing" );
+      when( hiveJobExecutorController.getJobEntry().getRegion() ).thenReturn( "invalid Region" );
 
-    doReturn( aimClient ).when( manager )
-      .createClient( anyString(), anyString(), anyString(), anyString(), eq( ClientType.AIM ) );
-    doReturn( pricingClient ).when( manager )
-      .createClient( anyString(), anyString(), anyString(), anyString(), eq( ClientType.PRICING ) );
+      doNothing().when( btn ).setDisabled( true );
+      doNothing().when( hiveJobExecutorController ).setXulMenusDisabled( false );
+      doNothing().when( hiveJobExecutorController ).setSelectedItemForEachMenu();
 
-    hiveJobExecutorController.getEmrSettings();
+      doReturn( aimClient ).when( manager )
+        .createClient( anyString(), anyString(), anyString(), anyString(), eq( ClientType.AIM ) );
+      doReturn( pricingClient ).when( manager )
+        .createClient( anyString(), anyString(), anyString(), anyString(), eq( ClientType.PRICING ) );
 
-    verify( hiveJobExecutorController, never() ).showErrorDialog( anyString(), anyString() );
+      hiveJobExecutorController.getEmrSettings();
+
+      verify( hiveJobExecutorController, never() ).showErrorDialog( nullable( String.class ), nullable( String.class ) );
+    }
   }
 }

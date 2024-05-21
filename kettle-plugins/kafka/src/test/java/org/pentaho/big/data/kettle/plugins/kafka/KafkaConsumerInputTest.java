@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -35,8 +35,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.verification.VerificationMode;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.KettleClientEnvironment;
@@ -49,7 +50,6 @@ import org.pentaho.di.core.logging.LogLevel;
 import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.StepPluginType;
-import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.Trans;
@@ -76,10 +76,8 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doNothing;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -137,7 +135,6 @@ public class KafkaConsumerInputTest {
     when( logChannelFactory.create( any() ) ).thenReturn( logChannel );
 
     NamedClusterManager namedClusterService = mock( NamedClusterManager.class );
-    //NamedClusterServiceLocator namedClusterServiceLocator = mock( NamedClusterServiceLocator.class );
     MetastoreLocator metastoreLocator = mock( MetastoreLocator.class );
 
     meta = new KafkaConsumerInputMeta();
@@ -280,8 +277,6 @@ public class KafkaConsumerInputTest {
     // spy on the step meta so we can verify things were called as we expect
     // and we can provide values normally provided by things we aren't testing
     step = spy( new KafkaConsumerInput( stepMeta, data, 1, transMeta, trans ) );
-    doReturn( null ).when( step ).getRow();
-    doNothing().when( step ).putRow( any( RowMetaInterface.class ), any( Object[].class ) );
     // we control the consumer creation since the usual constructor tries to connect to kafka
     when( factory.consumer( eq( meta ), any(), eq( meta.getKeyField().getOutputType() ),
             eq( meta.getMessageField().getOutputType() ) ) ).thenReturn( consumer );
@@ -294,7 +289,7 @@ public class KafkaConsumerInputTest {
     records = new ConsumerRecords<>( messages );
     // provide some data when we try to poll for kafka messages
     CountDownLatch latch = new CountDownLatch( 1 );
-    when( consumer.poll( anyLong() ) ).thenReturn( records ).then( invocationOnMock -> {
+    when( consumer.poll( ArgumentMatchers.anyLong() ) ).thenReturn( records ).then( invocationOnMock -> {
       latch.countDown();
       return Collections.emptyList();
     } );

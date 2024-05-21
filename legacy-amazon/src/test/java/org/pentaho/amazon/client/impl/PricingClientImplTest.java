@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -27,29 +27,29 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.amazon.client.api.PricingClient;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+
 /**
  * Created by Aliaksandr_Zhuk on 2/8/2018.
  */
-@RunWith( PowerMockRunner.class )
-@PrepareForTest( PricingClientImpl.class )
-@PowerMockIgnore( "jdk.internal.reflect.*" )
+@RunWith( MockitoJUnitRunner.class )
 public class PricingClientImplTest {
 
-  private PricingClient pricingClient;
+  private PricingClientImpl pricingClient;
 
   @Before
   public void setUp() {
-    AWSPricing awsPricing = PowerMockito.mock( AWSPricing.class );
-    pricingClient = PowerMockito.spy( new PricingClientImpl( awsPricing, "US East (N. Virginia)" ) );
+    AWSPricing awsPricing = mock( AWSPricing.class );
+    pricingClient = spy( new PricingClientImpl( awsPricing, "US East (N. Virginia)" ) );
   }
 
   @Test
@@ -98,7 +98,7 @@ public class PricingClientImplTest {
     productDescriptions.add( jsonDescriptionC2xlarge );
     productDescriptions.add( jsonDescriptionC4xlarge );
 
-    PowerMockito.doReturn( productDescriptions ).when( pricingClient, "getProductDescriptions" );
+    doReturn( productDescriptions ).when( pricingClient ).getProductDescriptions();
 
     List<String> instanceTypes = pricingClient.populateInstanceTypesForSelectedRegion();
 
@@ -110,7 +110,7 @@ public class PricingClientImplTest {
 
     List<String> productDescriptions = null;
 
-    PowerMockito.doReturn( productDescriptions ).when( pricingClient, "getProductDescriptions" );
+    doReturn( productDescriptions ).when( pricingClient ).getProductDescriptions();
 
     List<String> instanceTypes = pricingClient.populateInstanceTypesForSelectedRegion();
 
@@ -122,7 +122,7 @@ public class PricingClientImplTest {
 
     List<String> productDescriptions = new ArrayList<>();
 
-    PowerMockito.doReturn( productDescriptions ).when( pricingClient, "getProductDescriptions" );
+    doReturn( productDescriptions ).when( pricingClient ).getProductDescriptions();
 
     List<String> instanceTypes = pricingClient.populateInstanceTypesForSelectedRegion();
 

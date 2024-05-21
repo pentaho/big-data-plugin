@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2022 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -38,7 +38,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
@@ -61,8 +61,6 @@ public class KafkaFactoryTest {
   @Mock Function<Map<String, Object>, Consumer> consumerFun;
   @Mock Function<Map<String, Object>, Producer<Object, Object>> producerFun;
   @Mock NamedClusterManager namedClusterService;
-//  @Mock NamedClusterServiceLocator namedClusterServiceLocator;
-//  @Mock JaasConfigService jaasConfigService;
   @Mock MetastoreLocator metastoreLocator;
   @Mock IMetaStore metastore;
   @Mock NamedCluster namedCluster;

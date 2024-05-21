@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,6 +22,7 @@
 
 package org.pentaho.amazon;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemOptions;
@@ -114,7 +115,8 @@ public abstract class AbstractAmazonJobExecutor extends AbstractAmazonJobEntry {
     return bucketName;
   }
 
-  private String getS3FileObjectPath() throws FileSystemException, KettleFileException {
+  @VisibleForTesting
+  protected String getS3FileObjectPath() throws FileSystemException, KettleFileException {
     FileSystemOptions opts = new FileSystemOptions();
     DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts,
       new StaticUserAuthenticator( null, getAWSAccessKeyId(), getAWSSecretKey() ) );
@@ -123,7 +125,8 @@ public abstract class AbstractAmazonJobExecutor extends AbstractAmazonJobEntry {
     return stagingDirFileObject.getName().getPath();
   }
 
-  private String getKeyFromS3StagingDir() throws KettleFileException, FileSystemException {
+  @VisibleForTesting
+  protected String getKeyFromS3StagingDir() throws KettleFileException, FileSystemException {
 
     String pathToStagingDir = getS3FileObjectPath();
     StringBuilder sb = new StringBuilder( pathToStagingDir );

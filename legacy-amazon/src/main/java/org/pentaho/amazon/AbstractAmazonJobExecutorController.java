@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,6 +22,7 @@
 
 package org.pentaho.amazon;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.vfs2.FileObject;
@@ -487,7 +488,8 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     setEmrRolesFromAmazonAccount( amiClient );
   }
 
-  private void setEc2RolesFromAmazonAccount( AimClient amiClient ) {
+  @VisibleForTesting
+  protected void setEc2RolesFromAmazonAccount( AimClient amiClient ) {
     AbstractModelList<String> ec2List;
     ec2List = amiClient.getEc2RolesFromAmazonAccount();
 
@@ -499,7 +501,8 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     ec2Roles.addAll( ec2List );
   }
 
-  private void setEmrRolesFromAmazonAccount( AimClient amiClient ) {
+  @VisibleForTesting
+  protected void setEmrRolesFromAmazonAccount( AimClient amiClient ) {
     AbstractModelList<String> emrList;
     emrList = amiClient.getEmrRolesFromAmazonAccount();
 
