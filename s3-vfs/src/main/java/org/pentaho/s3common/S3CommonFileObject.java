@@ -1,5 +1,5 @@
 /*!
- * Copyright 2010 - 2023 Hitachi Vantara.  All rights reserved.
+ * Copyright 2010 - 2024 Hitachi Vantara.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -224,10 +224,21 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
           injectType( FileType.IMAGINARY );
           return;
         }
+
+        // One common case is "403 Access Denied", for bucket names which exist in the same region
+        // but are not of this account. This can also happen for normal files and is being handled
+        // similarly in handleAttachExceptionFallback.
+        // Any other errors should also bubble up.
+
+        // Make sure this gets printed for the user.
+        logger.error( "Could not get information on " + getQualifiedName(), e );
+        throw new FileSystemException( "vfs.provider/get-type.error", e, getQualifiedName() );
       }
-        injectType( FileType.FOLDER );
-        return;
+
+      injectType( FileType.FOLDER );
+      return;
     }
+
     try {
       // 1. Is it an existing file?
       s3ObjectMetadata = fileSystem.getS3Client().getObjectMetadata( bucketName, key );
