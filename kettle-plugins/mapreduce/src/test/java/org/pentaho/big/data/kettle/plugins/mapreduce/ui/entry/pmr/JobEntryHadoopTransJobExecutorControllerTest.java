@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -21,32 +21,32 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.mapreduce.ui.entry.pmr;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.inOrder;
-
-import java.util.Arrays;
-import java.util.List;
-
 import org.eclipse.swt.widgets.Shell;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.big.data.kettle.plugins.mapreduce.entry.pmr.JobEntryHadoopTransJobExecutor;
 import org.pentaho.big.data.plugins.common.ui.HadoopClusterDelegateImpl;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.job.JobMeta;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.containers.XulDialog;
 import org.pentaho.ui.xul.dom.Document;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Tatsiana_Kasiankova
@@ -79,10 +79,8 @@ public class JobEntryHadoopTransJobExecutorControllerTest {
     testController.setXulDomContainer( containerMock );
     testController.setSelectedNamedCluster( selectedNamedClusterMock );
 
-    when( ncDelegateMock.newNamedCluster( any( VariableSpace.class ), any( IMetaStore.class ), any( Shell.class ) ) )
-        .thenReturn( A_NEW_NAMED_CLUSTER );
-    when( ncDelegateMock.editNamedCluster( any( IMetaStore.class ), any( NamedCluster.class ), any( Shell.class ) ) )
-        .thenReturn( EDITED_NAMED_CLUSTER );
+    when( ncDelegateMock.newNamedCluster( any(), any(), any() ) ).thenReturn( A_NEW_NAMED_CLUSTER );
+    when( ncDelegateMock.editNamedCluster( any(), any(), any() ) ).thenReturn( EDITED_NAMED_CLUSTER );
     when( selectedNamedClusterMock.getName() ).thenReturn( SELECTED_NAMED_CLUSTER );
     when( newNamedClusterMock.getName() ).thenReturn( A_NEW_NAMED_CLUSTER );
     when( editedNamedClusterMock.getName() ).thenReturn( EDITED_NAMED_CLUSTER );
@@ -104,7 +102,7 @@ public class JobEntryHadoopTransJobExecutorControllerTest {
   public void testEditNamedCluster_NamedClusterIsSelected() throws MetaStoreException {
     testController.editNamedCluster();
 
-    verify( ncDelegateMock ).editNamedCluster( any( IMetaStore.class ), any( NamedCluster.class ), any( Shell.class ) );
+    verify( ncDelegateMock ).editNamedCluster( any(), any( NamedCluster.class ), any() );
     // verify the times of call
     verify( testController ).namedClustersChanged();
     verify( testController ).selectedNamedClusterChanged( SELECTED_NAMED_CLUSTER, EDITED_NAMED_CLUSTER );
@@ -130,7 +128,7 @@ public class JobEntryHadoopTransJobExecutorControllerTest {
   public void testNewNamedCluster_NamedClusterIsSelected() throws MetaStoreException {
     testController.newNamedCluster();
 
-    verify( ncDelegateMock ).newNamedCluster( any( VariableSpace.class ), any( IMetaStore.class ), any( Shell.class ) );
+    verify( ncDelegateMock ).newNamedCluster( any( VariableSpace.class ), any(), any() );
     // verify the times of call
     verify( testController ).namedClustersChanged();
     verify( testController ).selectedNamedClusterChanged( SELECTED_NAMED_CLUSTER, A_NEW_NAMED_CLUSTER );
@@ -145,7 +143,7 @@ public class JobEntryHadoopTransJobExecutorControllerTest {
     testController.setSelectedNamedCluster( null );
     testController.newNamedCluster();
 
-    verify( ncDelegateMock ).newNamedCluster( any( VariableSpace.class ), any( IMetaStore.class ), any( Shell.class ) );
+    verify( ncDelegateMock ).newNamedCluster( any( VariableSpace.class ), any(), any() );
     // verify the times of call
     verify( testController ).namedClustersChanged();
     verify( testController ).selectedNamedClusterChanged( null, A_NEW_NAMED_CLUSTER );
