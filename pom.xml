@@ -78,6 +78,7 @@
     <dependency.commons-httpclient.revision>3.1</dependency.commons-httpclient.revision>
     <commons-lang3.version>3.12.0</commons-lang3.version>
     <mockito.version>5.10.0</mockito.version>
+    <mockito-inline.version>5.2.0</mockito-inline.version>
     <maven-surefire-plugin.argLine> --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED </maven-surefire-plugin.argLine>
   </properties>
 
