@@ -32,7 +32,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.pentaho.di.core.CheckResultInterface;
 
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.spy;
 import static org.pentaho.di.job.entries.spark.JobEntrySparkSubmit.JOB_TYPE_JAVA_SCALA;
