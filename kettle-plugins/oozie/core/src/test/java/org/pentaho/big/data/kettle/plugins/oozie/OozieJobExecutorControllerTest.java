@@ -58,10 +58,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.anyObject;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.doThrow;
 
@@ -151,7 +150,7 @@ public class OozieJobExecutorControllerTest {
       new OozieJobExecutorJobEntryController( new JobMeta(), new XulFragmentContainer( null ),
         jobEntry, new DefaultBindingFactory(),
         delegate );
-    when( jobEntry.getNamedClusterService().list( anyObject() ) ).thenThrow( new MetaStoreException() );
+    when( jobEntry.getNamedClusterService().list( any() ) ).thenThrow( new MetaStoreException() );
     List<NamedCluster> namedClusters = controller.getNamedClusters();
     assertEquals( namedClusters.size(), 0 );
   }
@@ -306,9 +305,9 @@ public class OozieJobExecutorControllerTest {
   }
 
   @Test
-  public void testAddProperty_exception() throws Exception {
+  public void testAddProperty_exception() {
     AbstractModelList<PropertyEntry> argumentsMock = mock( AbstractModelList.class );
-    doThrow( Exception.class ).when( argumentsMock ).add( (PropertyEntry) any() );
+    doThrow( RuntimeException.class ).when( argumentsMock ).add( any() );
     controller.advancedArguments = argumentsMock;
 
     XulTree treeMock = mock( XulTree.class );
