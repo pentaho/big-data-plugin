@@ -13,7 +13,6 @@
 
 package org.pentaho.big.data.kettle.plugins.hdfs;
 
-import org.pentaho.di.core.plugins.ParentPlugin;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.big.data.kettle.plugins.hdfs.vfs.HadoopVfsFileChooserDialog;
 import org.pentaho.big.data.kettle.plugins.hdfs.vfs.MapRFSFileChooserDialog;
