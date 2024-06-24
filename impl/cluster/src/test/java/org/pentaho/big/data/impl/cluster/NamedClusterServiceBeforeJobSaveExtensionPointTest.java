@@ -24,7 +24,7 @@ import org.pentaho.di.job.Job;
 import org.pentaho.di.job.JobExecutionExtension;
 import org.pentaho.di.job.JobMeta;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;

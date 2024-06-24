@@ -49,13 +49,13 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>${impl-cluster-mockito.version}</version>
+      <version>${mockito.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-inline</artifactId>
-      <version>${impl-cluster-mockito.version}</version>
+      <version>${mockito-inline.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>

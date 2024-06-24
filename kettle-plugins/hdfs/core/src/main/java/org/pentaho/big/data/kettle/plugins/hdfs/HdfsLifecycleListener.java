@@ -22,7 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.hdfs;
 
-import org.pentaho.di.core.plugins.ParentPlugin;
+//import org.pentaho.di.core.plugins.ParentPlugin;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.big.data.kettle.plugins.hdfs.vfs.HadoopVfsFileChooserDialog;
 import org.pentaho.big.data.kettle.plugins.hdfs.vfs.MapRFSFileChooserDialog;
@@ -50,7 +50,7 @@ import java.util.List;
  * Created by bryan on 11/23/15.
  */
 @LifecyclePlugin( id = "HdfsLifecycleListener", name = "HdfsLifecycleListener" )
-@ParentPlugin( pathFromDataIntegration = "plugins/pentaho-big-data-plugin" )
+//@ParentPlugin( pathFromDataIntegration = "plugins/pentaho-big-data-plugin" )
 public class HdfsLifecycleListener implements LifecycleListener {
 
   private final int hdfsPriority = 150;
