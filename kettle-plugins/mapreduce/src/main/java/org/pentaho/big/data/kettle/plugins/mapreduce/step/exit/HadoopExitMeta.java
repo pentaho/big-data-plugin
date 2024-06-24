@@ -54,7 +54,7 @@ import java.util.List;
 
 @Step( id = "HadoopExitPlugin", image = "MRO.svg", name = "HadoopExitPlugin.Name",
     description = "HadoopExitPlugin.Description",
-    documentationUrl = "Products/MapReduce_Output",
+    documentationUrl = "mk-95pdia003/pdi-transformation-steps/mapreduce-output",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     i18nPackageName = "org.pentaho.di.trans.steps.hadoopexit" )
 @InjectionSupported( localizationPrefix = "HadoopExitPlugin.Injection." )

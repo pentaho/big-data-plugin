@@ -62,7 +62,7 @@ import org.w3c.dom.Node;
 @JobEntry( id = "EMRJobExecutorPlugin", image = "EMR.svg", name = "EMRJobExecutorPlugin.Name",
   description = "EMRJobExecutorPlugin.Description",
   categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
-  documentationUrl = "Products/Amazon_EMR_Job_Executor",
+  documentationUrl = "mk-95pdia003/pdi-job-entries/amazon-emr-job-executor",
   i18nPackageName = "org.pentaho.amazon.emr.job" )
 public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobExecutor {
 
