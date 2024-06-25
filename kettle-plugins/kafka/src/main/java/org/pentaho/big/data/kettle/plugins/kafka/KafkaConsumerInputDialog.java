@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2023 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -65,7 +65,8 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.C
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.DIRECT;
 
 @SuppressWarnings ( { "FieldCanBeLocal", "unused" } )
-@PluginDialog ( id = "KafkaConsumerInput", pluginType = PluginDialog.PluginType.STEP, image = "KafkaConsumerInput.svg" )
+@PluginDialog ( id = "KafkaConsumerInput", pluginType = PluginDialog.PluginType.STEP, image = "KafkaConsumerInput.svg",
+        documentationUrl = "mk-95pdia003/pdi-transformation-steps/kafka-consumer" )
 public class KafkaConsumerInputDialog extends BaseStreamingDialog implements StepDialogInterface {
 
   private static final int INPUT_WIDTH = 350;
@@ -535,7 +536,6 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
         meta.getParentStepMeta() );
       kdh.clusterNameChanged( e );
     };
-
     topicsTable = new TableView(
       transMeta,
       parentWidget,

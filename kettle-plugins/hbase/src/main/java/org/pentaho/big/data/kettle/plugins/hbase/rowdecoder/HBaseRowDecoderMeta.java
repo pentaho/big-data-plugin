@@ -82,7 +82,7 @@ import static org.pentaho.di.core.CheckResult.TYPE_RESULT_WARNING;
 @Step( id = "HBaseRowDecoder", image = "HBRD.svg", name = "HBaseRowDecoder.Name",
     description = "HBaseRowDecoder.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
-    documentationUrl = "Products/HBase_Row_Decoder",
+    documentationUrl = "mk-95pdia003/pdi-transformation-steps/hbase-row-decoder",
     i18nPackageName = "org.pentaho.di.trans.steps.hbaserowdecoder" )
 @InjectionSupported( localizationPrefix = "HBaseRowDecoder.Injection.", groups = { "MAPPING" } )
 public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterface {

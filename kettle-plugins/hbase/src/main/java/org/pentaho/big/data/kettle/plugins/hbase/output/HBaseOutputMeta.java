@@ -76,7 +76,7 @@ import com.google.common.annotations.VisibleForTesting;
  */
 @Step( id = "HBaseOutput", image = "HBO.svg", name = "HBaseOutput.Name", description = "HBaseOutput.Description",
   categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
-  documentationUrl = "Products/HBase_Output",
+  documentationUrl = "mk-95pdia003/pdi-transformation-steps/hbase-output",
   i18nPackageName = "org.pentaho.di.trans.steps.hbaseoutput" )
 @InjectionSupported( localizationPrefix = "HBaseOutput.Injection.", groups = { "MAPPING" } )
 public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
