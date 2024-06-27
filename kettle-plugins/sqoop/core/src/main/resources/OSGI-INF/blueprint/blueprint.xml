@@ -21,6 +21,7 @@
     <argument ref="namedClusterServiceLocator"/>
     <argument ref="runtimeTestActionService"/>
     <argument ref="runtimeTester"/>
+
     <pen:di-plugin type="org.pentaho.di.core.plugins.JobEntryPluginType"/>
   </bean>
 
