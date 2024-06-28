@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -72,6 +72,9 @@ public class HDFSFileObject extends AbstractFileObject  {
   @Override
   protected FileType doGetType() throws Exception {
     HadoopFileStatus status = null;
+    if ( null == hdfs ) {
+      throw new IllegalStateException( "No HDFS file system present" );
+    }
     try {
       status = hdfs.getFileStatus( hdfs.getPath( getName().getPath() ) );
     } catch ( Exception ex ) {
