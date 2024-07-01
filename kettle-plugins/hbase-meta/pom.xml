@@ -8,10 +8,10 @@
     <parent>
         <groupId>pentaho</groupId>
         <artifactId>pentaho-big-data-kettle-plugins</artifactId>
-        <version>10.1.0.0-SNAPSHOT</version>
+        <version>10.1.0.1-348</version>
     </parent>
     <artifactId>pentaho-big-data-kettle-plugins-hbase-meta</artifactId>
-    <version>10.1.0.0-SNAPSHOT</version>
+    <version>10.1.0.1-348</version>
     <packaging>bundle</packaging>
     <dependencies>
         <dependency>
