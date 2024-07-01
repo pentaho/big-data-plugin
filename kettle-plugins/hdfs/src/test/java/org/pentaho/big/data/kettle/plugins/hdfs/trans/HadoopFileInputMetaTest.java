@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p/>
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  * <p/>
  * ******************************************************************************
  * <p/>
@@ -27,10 +27,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.di.core.KettleEnvironment;
 import org.pentaho.di.core.fileinput.FileInputList;
+import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
@@ -40,27 +39,34 @@ import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.steps.file.BaseFileField;
 import org.pentaho.di.trans.steps.fileinput.text.TextFileFilter;
 import org.pentaho.di.trans.steps.named.cluster.NamedClusterEmbedManager;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
 import org.pentaho.metastore.api.IMetaStore;
-import org.pentaho.runtime.test.RuntimeTester;
-import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Node;
 
+import java.net.URI;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Vasilina Terehova
@@ -74,12 +80,12 @@ public class HadoopFileInputMetaTest {
   private static Logger logger = LogManager.getLogger( HadoopFileInputMetaTest.class );
   // for message resolution
   private NamedClusterService namedClusterService;
-  private RuntimeTestActionService runtimeTestActionService;
-  private RuntimeTester runtimeTester;
+  private HadoopFileSystemLocator hadoopFileSystemLocator;
 
   @Before
   public void setUp() throws Exception {
     namedClusterService = mock( NamedClusterService.class );
+    hadoopFileSystemLocator = mock( HadoopFileSystemLocator.class );
   }
 
   /**
@@ -90,7 +96,7 @@ public class HadoopFileInputMetaTest {
    */
   @Test
   public void testSaveSourceCalledFromGetXml() throws Exception {
-    HadoopFileInputMeta hadoopFileInputMeta = new HadoopFileInputMeta( namedClusterService );
+    HadoopFileInputMeta hadoopFileInputMeta = new HadoopFileInputMeta( namedClusterService, hadoopFileSystemLocator );
     hadoopFileInputMeta.allocateFiles( 1 );
     //create spy to check whether saveSource now is called
     HadoopFileInputMeta spy = initHadoopMetaInput( hadoopFileInputMeta );
@@ -140,7 +146,7 @@ public class HadoopFileInputMetaTest {
 
   @Test
   public void testLoadSourceCalledFromLoadXml() throws Exception {
-    HadoopFileInputMeta hadoopFileInputMeta = new HadoopFileInputMeta( namedClusterService );
+    HadoopFileInputMeta hadoopFileInputMeta = new HadoopFileInputMeta( namedClusterService, hadoopFileSystemLocator );
     //set required data for step - empty
     HadoopFileInputMeta spy = Mockito.spy( hadoopFileInputMeta );
     Node node = loadNodeFromXml( SAMPLE_HADOOP_FILE_INPUT_STEP );
@@ -160,7 +166,7 @@ public class HadoopFileInputMetaTest {
     when( namedClusterService.getNamedClusterByName( TEST_CLUSTER_NAME, mockMetaStore ) ).thenReturn( mockNamedCluster );
     Repository mockRep = mock( Repository.class );
     when( mockRep.getJobEntryAttributeString( anyObject(), eq( 0 ), eq( "source_configuration_name" ) ) ).thenReturn( TEST_CLUSTER_NAME );
-    HadoopFileInputMeta hadoopFileInputMeta =  new HadoopFileInputMeta( namedClusterService );
+    HadoopFileInputMeta hadoopFileInputMeta =  new HadoopFileInputMeta( namedClusterService, hadoopFileSystemLocator );
     when( mockRep.getStepAttributeString( anyObject(), eq( 0 ), eq( "file_name" ) ) ).thenReturn( URL_FROM_CLUSTER );
 
     assertEquals( URL_FROM_CLUSTER, hadoopFileInputMeta.loadSourceRep( mockRep, null, 0, mockMetaStore ) );
@@ -168,6 +174,7 @@ public class HadoopFileInputMetaTest {
 
   @Test
   public void testGetFileInputList() {
+    KettleLogStore.init();
     final String URL_FROM_CLUSTER = "urlFromCluster";
     StepMeta parentStepMeta = mock( StepMeta.class );
     IMetaStore mockMetaStore = mock( IMetaStore.class );
@@ -177,7 +184,7 @@ public class HadoopFileInputMetaTest {
     when( parentTransMeta.getMetaStore() ).thenReturn( mockMetaStore );
     when( mockNamedCluster.processURLsubstitution( any(), eq( mockMetaStore ), any() ) ).thenReturn( URL_FROM_CLUSTER );
     when( namedClusterService.getNamedClusterByName( TEST_CLUSTER_NAME, mockMetaStore ) ).thenReturn( mockNamedCluster );
-    HadoopFileInputMeta hadoopFileInputMetaSpy =  initHadoopMetaInput( new HadoopFileInputMeta( namedClusterService ) );
+    HadoopFileInputMeta hadoopFileInputMetaSpy =  initHadoopMetaInput( new HadoopFileInputMeta( namedClusterService, hadoopFileSystemLocator ) );
     hadoopFileInputMetaSpy.environment = new String[] { TEST_CLUSTER_NAME };
     hadoopFileInputMetaSpy.setParentStepMeta( parentStepMeta );
     doReturn( new FileInputList() ).when( hadoopFileInputMetaSpy ).createFileList( any( VariableSpace.class ) );
@@ -225,5 +232,27 @@ public class HadoopFileInputMetaTest {
     String url = "hdfs://user@myhost:8020/myfile";
     String encrypted = meta.encryptDecryptPassword( url, HadoopFileInputMeta.EncryptDirection.ENCRYPT );
     assertEquals( url, meta.encryptDecryptPassword( encrypted, HadoopFileInputMeta.EncryptDirection.DECRYPT ) );
+  }
+
+  @Test
+  public void testCanAccessHdfs() throws ClusterInitializationException {
+    StepMeta parentStepMeta = mock( StepMeta.class );
+    IMetaStore mockMetaStore = mock( IMetaStore.class );
+    TransMeta parentTransMeta = mock( TransMeta.class );
+    when( parentStepMeta.getParentTransMeta() ).thenReturn( parentTransMeta );
+    when( parentTransMeta.getMetaStore() ).thenReturn( mockMetaStore );
+
+    HadoopFileInputMeta hadoopFileInputMeta = initHadoopMetaInput( new HadoopFileInputMeta( namedClusterService, hadoopFileSystemLocator ) );
+    hadoopFileInputMeta.setParentStepMeta( parentStepMeta );
+    NamedCluster mockCluster = mock( NamedCluster.class );
+    when( namedClusterService.getNamedClusterByName( eq( "fooCluster" ), nullable( IMetaStore.class ) ) ).thenReturn( mockCluster );
+    when( namedClusterService.getNamedClusterByHost( eq( "fooCluster" ), nullable( IMetaStore.class ) ) ).thenReturn( mockCluster );
+    when( hadoopFileSystemLocator.getHadoopFilesystem( eq( mockCluster ), nullable( URI.class ) ) ).thenReturn( null );
+    doCallRealMethod().when( hadoopFileInputMeta ).canAccessHdfs( anyString(), eq( true ) );
+
+    assertFalse( "Error checking hdfs file system", hadoopFileInputMeta.canAccessHdfs( "hdfs://fooCluster:8080/my/file/path", true ) );
+    assertFalse( "Error checking hc file system", hadoopFileInputMeta.canAccessHdfs( "hc://fooCluster/my/file/path", true ) );
+    assertTrue( "Error checking hc file system", hadoopFileInputMeta.canAccessHdfs( "file://some/file/path", true ) );
+    assertTrue( "Error checking hc file system", hadoopFileInputMeta.canAccessHdfs( "hc://fooCluster/my/file/path", false ) );
   }
 }

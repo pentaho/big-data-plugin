@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -24,10 +24,14 @@ package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 
 import org.apache.commons.lang.Validate;
 import org.apache.commons.vfs2.FileName;
+import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
+import org.pentaho.di.core.bowl.Bowl;
+import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.fileinput.FileInputList;
+import org.pentaho.di.core.fileinput.NonAccessibleFileObject;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.util.Utils;
@@ -37,8 +41,10 @@ import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.steps.fileinput.text.TextFileInputMeta;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
@@ -51,6 +57,7 @@ import java.util.Map;
 import static org.pentaho.big.data.kettle.plugins.hdfs.trans.HadoopFileInputDialog.LOCAL_ENVIRONMENT;
 import static org.pentaho.big.data.kettle.plugins.hdfs.trans.HadoopFileInputDialog.S3_ENVIRONMENT;
 import static org.pentaho.big.data.kettle.plugins.hdfs.trans.HadoopFileInputDialog.STATIC_ENVIRONMENT;
+import static org.pentaho.big.data.kettle.plugins.hdfs.vfs.Schemes.NAMED_CLUSTER_SCHEME;
 
 @Step( id = "HadoopFileInputPlugin", image = "HDI.svg", name = "HadoopFileInputPlugin.Name",
   description = "HadoopFileInputPlugin.Description",
@@ -74,6 +81,9 @@ public class HadoopFileInputMeta extends TextFileInputMeta implements HadoopFile
   public static final String S3_SOURCE_FILE = "S3-SOURCE-FILE-";
   public static final String S3_DEST_FILE = "S3-DEST-FILE-";
   private final NamedClusterService namedClusterService;
+  private final HadoopFileSystemLocator hadoopFileSystemLocator;
+  private final boolean fatalErrorOnHdfsNotFound = "Y".equalsIgnoreCase(
+    System.getProperty( Const.KETTLE_FATAL_ERROR_ON_HDFS_NOT_FOUND, Const.KETTLE_FATAL_ERROR_ON_HDFS_NOT_FOUND_DEFAULT ) );
 
   enum EncryptDirection { ENCRYPT, DECRYPT }
 
@@ -84,11 +94,12 @@ public class HadoopFileInputMeta extends TextFileInputMeta implements HadoopFile
   public String[] environment = {};
 
   public HadoopFileInputMeta() {
-    this( null );
+    this( null, null );
   }
 
-  public HadoopFileInputMeta( NamedClusterService namedClusterService ) {
+  public HadoopFileInputMeta( NamedClusterService namedClusterService, HadoopFileSystemLocator hadoopFileSystemLocator ) {
     this.namedClusterService = namedClusterService;
+    this.hadoopFileSystemLocator = hadoopFileSystemLocator;
     namedClusterURLMapping = new HashMap<>();
   }
 
@@ -202,6 +213,11 @@ public class HadoopFileInputMeta extends TextFileInputMeta implements HadoopFile
 
   @Override
   public FileInputList getFileInputList( VariableSpace space ) {
+    return getFileInputList( getParentStepMeta().getParentTransMeta().getBowl(), space );
+  }
+
+  @Override
+  public FileInputList getFileInputList( Bowl bowl, VariableSpace space ) {
     inputFiles.normalizeAllocation( inputFiles.fileName.length );
     for ( int i = 0; i < environment.length; i++ ) {
       if ( inputFiles.fileName[ i ].contains( "://" ) ) {
@@ -219,14 +235,50 @@ public class HadoopFileInputMeta extends TextFileInputMeta implements HadoopFile
         inputFiles.fileName[ i ] = "";
       }
     }
-    return createFileList( space );
+    FileInputList returnList = createFileList( bowl, space );
+    for ( int i = 0; i < inputFiles.fileName.length; i++ ) {
+      if ( !canAccessHdfs( inputFiles.fileName[ i ], fatalErrorOnHdfsNotFound ) ) {
+        returnList.addNonAccessibleFile( new NonAccessibleFileObject( inputFiles.fileName[ i ] ) );
+      }
+    }
+    return returnList;
+  }
+
+  /**
+   * If the KETTLE_FATAL_ERROR_ON_HDFS_NOT_FOUND property is set to Y, return false if we can find a named cluster that should
+   * be used to access the file AND there is no corresponding HDFS file system for that named cluster.
+   *
+   * @param fileName
+   * @return false if the filename should be accessed via a named cluster and HDFS and it cannot and the KETTLE_FATAL_ERROR_ON_HDFS_NOT_FOUND
+   * property is Y
+   */
+  protected boolean canAccessHdfs( String fileName, boolean checkHdfs ) {
+    if ( checkHdfs ) {
+      try {
+        URI fileUri = new URI( fileName );
+        NamedCluster c = namedClusterService.getNamedClusterByHost( fileUri.getHost(), getParentStepMeta().getParentTransMeta().getMetaStore() );
+        if ( null == c && NAMED_CLUSTER_SCHEME.equalsIgnoreCase( fileUri.getScheme() ) ) {
+          c = namedClusterService.getNamedClusterByName( fileUri.getHost(), getParentStepMeta().getParentTransMeta().getMetaStore() );
+        }
+        if ( null != c && null == hadoopFileSystemLocator.getHadoopFilesystem( c, fileUri ) ) {
+          return false;
+        }
+      } catch ( URISyntaxException | ClusterInitializationException e ) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  FileInputList createFileList( VariableSpace space ) {
+    return createFileList( null, space );
   }
 
   /**
    * Created for test purposes
    */
-  FileInputList createFileList( VariableSpace space ) {
-    return FileInputList.createFileList( space, inputFiles.fileName, inputFiles.fileMask, inputFiles.excludeFileMask,
+  FileInputList createFileList( Bowl bowl, VariableSpace space ) {
+    return FileInputList.createFileList( bowl, space, inputFiles.fileName, inputFiles.fileMask, inputFiles.excludeFileMask,
       inputFiles.fileRequired, inputFiles.includeSubFolderBoolean() );
   }
 
