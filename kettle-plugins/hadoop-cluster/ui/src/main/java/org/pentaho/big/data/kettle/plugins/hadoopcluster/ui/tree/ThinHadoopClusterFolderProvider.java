@@ -38,6 +38,7 @@ import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.Optional;
 
 public class ThinHadoopClusterFolderProvider extends TreeFolderProvider {
 
@@ -47,7 +48,7 @@ public class ThinHadoopClusterFolderProvider extends TreeFolderProvider {
   private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
 
   @Override
-  public void refresh( AbstractMeta meta, TreeNode treeNode, String filter ) {
+  public void refresh( Optional<AbstractMeta> meta, TreeNode treeNode, String filter ) {
     List<NamedCluster> namedClusters;
     List<MetaStoreException> exceptionList = new ArrayList<>();
     try {
