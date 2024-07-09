@@ -24,7 +24,8 @@
             </outputFileNameMapping>
             <includes>
               <include>pentaho:pentaho-big-data-legacy</include>
-                <include>pentaho:pentaho-big-data-legacy-amazon</include>
+              <include>pentaho:pentaho-big-data-legacy-amazon</include>
+              <include>pentaho:hadoop-cluster-ui</include>
             </includes>
         </dependencySet>
         <dependencySet>
@@ -45,6 +46,10 @@
             <outputFileNameMapping>${artifact.artifactId}-${artifact.baseVersion}.${artifact.extension}
             </outputFileNameMapping>
             <includes>
+                <include>pentaho:pentaho-big-data-api-runtimeTest</include>
+                <include>pentaho:pentaho-big-data-impl-cluster</include>
+                <include>pentaho:pentaho-big-data-kettle-plugins-common-ui</include>
+                <include>org.pentaho:shim-api-core</include>
                 <include>org.apache.avro:avro</include>
                 <include>joda-time:joda-time</include>
                 <include>com.amazonaws:aws-java-sdk-core</include>
