@@ -21,6 +21,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Tree;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDelegate;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClusterManager;
 import org.pentaho.di.core.extension.ExtensionPoint;
@@ -33,6 +34,7 @@ import org.pentaho.di.ui.core.ConstUI;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.spoon.TreeSelection;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,6 +68,12 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
   private String internalShim;
   private static final Logger logChannel = LoggerFactory.getLogger( HadoopClusterPopupMenuExtension.class );
   private NamedCluster lastNamedCluster;
+
+  public HadoopClusterPopupMenuExtension() {
+    this.namedClusterService = NamedClusterManager.getInstance();
+    this.hadoopClusterDelegate = new HadoopClusterDelegate( this.namedClusterService, RuntimeTesterImpl.getInstance() );
+    this.internalShim = "";
+  }
 
   public HadoopClusterPopupMenuExtension( HadoopClusterDelegate hadoopClusterDelegate,
                                           NamedClusterService namedClusterService, String internalShim ) {

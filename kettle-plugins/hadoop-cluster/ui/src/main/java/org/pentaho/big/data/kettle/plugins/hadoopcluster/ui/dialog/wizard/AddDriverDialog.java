@@ -16,7 +16,7 @@ package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-//import org.pentaho.big.data.impl.cluster.NamedClusterManager;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages.AddDriverPage;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages.AddDriverResultPage;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages.ClusterSettingsPage;
@@ -95,7 +95,6 @@ public class AddDriverDialog extends Wizard {
     return currentPage.equals( addDriverResultPage.getClass().getSimpleName() );
   }
 
-  /*
   public static void main( String[] args ) {
     try {
       KettleLogStore.init();
@@ -111,5 +110,4 @@ public class AddDriverDialog extends Wizard {
       log.logError( e.getMessage() );
     }
   }
-  */
 }
