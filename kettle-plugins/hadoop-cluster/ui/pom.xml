@@ -116,6 +116,10 @@
       <artifactId>org.eclipse.jface</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.eclipse.platform</groupId>
+      <artifactId>org.eclipse.jface</artifactId>
+    </dependency>
+    <dependency>
       <!--this is required by OSGi bean declared in src/main/resources-filtered/OSGI-INF/blueprint/blueprint.xml-->
       <groupId>com.fasterxml.jackson.jaxrs</groupId>
       <artifactId>jackson-jaxrs-json-provider</artifactId>
