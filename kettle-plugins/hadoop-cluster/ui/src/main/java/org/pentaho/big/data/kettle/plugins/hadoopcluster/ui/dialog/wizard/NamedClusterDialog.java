@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -24,7 +24,7 @@ package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-//import org.pentaho.big.data.impl.cluster.NamedClusterManager;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages.ClusterSettingsPage;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages.KerberosSettingsPage;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages.KnoxSettingsPage;
@@ -68,7 +68,7 @@ import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.processSiteFiles;
 
 /*
- * To run this dialog as stand alone for development purposes do the following:
+ * To run this dialog as stand alone for development purposes under UBUNTU do the following:
  * 1.Look for the following comment in the module:
  *   FOR UI EXECUTION AS A STANDALONE
  *   And either comment or uncomment the referred section as requested
@@ -339,7 +339,6 @@ public class NamedClusterDialog extends Wizard {
     return isEditMode;
   }
 
-  /*
   public static void main( String[] args ) {
     try {
       PluginRegistry.addPluginType( TwoWayPasswordEncoderPluginType.getInstance() );
@@ -359,5 +358,4 @@ public class NamedClusterDialog extends Wizard {
       log.logError( e.getMessage() );
     }
   }
-  */
 }
