@@ -88,6 +88,12 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
       new HadoopClusterManager( spoonSupplier.get(), namedClusterService, spoonSupplier.get().getMetaStore(), internalShim );
   }
 
+  public HadoopClusterPopupMenuExtension() {
+    this.namedClusterService = NamedClusterManager.getInstance();
+    this.hadoopClusterDelegate = new HadoopClusterDelegate( this.namedClusterService, RuntimeTesterImpl.getInstance() );
+    this.internalShim = "";
+  }
+
   public HadoopClusterPopupMenuExtension( HadoopClusterDelegate hadoopClusterDelegate,
                                           NamedClusterService namedClusterService, String internalShim ) {
     this.hadoopClusterDelegate = hadoopClusterDelegate;
