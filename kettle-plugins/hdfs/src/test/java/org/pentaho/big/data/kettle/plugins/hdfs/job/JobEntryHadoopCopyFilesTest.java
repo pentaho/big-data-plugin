@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -24,6 +24,7 @@ package org.pentaho.big.data.kettle.plugins.hdfs.job;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.pentaho.di.job.entries.copyfiles.JobEntryCopyFiles;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
@@ -112,6 +113,7 @@ public class JobEntryHadoopCopyFilesTest {
         .thenReturn( testNewUrl );
     assertEquals( testNewUrl, jobEntryHadoopCopyFiles.loadURL( testUrl, testNcName, metaStore, mappings ) );
     verify( mappings ).put( testNewUrl, testNcName );
+    assertEquals( testUrl, jobEntryHadoopCopyFiles.fileFolderUrlMappings.get( testNewUrl ) );
   }
 
   @Test
@@ -123,6 +125,7 @@ public class JobEntryHadoopCopyFilesTest {
         .thenReturn( testNewUrl );
     assertEquals( testNewUrl, jobEntryHadoopCopyFiles.loadURL( testUrl, testNcName, metaStore, mappings ) );
     verify( mappings ).put( testNewUrl, testNcName );
+    assertEquals( testUrl, jobEntryHadoopCopyFiles.fileFolderUrlMappings.get( testNewUrl ) );
   }
 
   @Test
@@ -134,5 +137,63 @@ public class JobEntryHadoopCopyFilesTest {
         .thenReturn( testNewUrl );
     assertEquals( testNewUrl, jobEntryHadoopCopyFiles.loadURL( testUrl, testNcName, metaStore, mappings ) );
     verify( mappings ).put( testNewUrl, testNcName );
+    assertEquals( testUrl, jobEntryHadoopCopyFiles.fileFolderUrlMappings.get( testNewUrl ) );
+  }
+
+  @Test
+  public void testLoadUrlHdfsEMPTY_SOURCE_URL() {
+    when( namedClusterManager.getNamedClusterByName( testNcName, metaStore ) ).thenReturn( namedCluster );
+    when( namedCluster.isMapr() ).thenReturn( false );
+    String testNewUrl = HadoopSpoonPlugin.HDFS_SCHEME + "://" + "testNewUrl";
+    when( namedCluster.processURLsubstitution( testUrl, metaStore, jobEntryHadoopCopyFiles.getVariables() ) )
+      .thenReturn( testNewUrl );
+    String prefixUrlSource = JobEntryCopyFiles.SOURCE_URL + 8 + "-";
+    String testPrefixSourceUrl = prefixUrlSource + testUrl;
+    String expectedPrefixSourceLoadUrl = prefixUrlSource + testNewUrl;
+    assertEquals( expectedPrefixSourceLoadUrl, jobEntryHadoopCopyFiles.loadURL( testPrefixSourceUrl, testNcName, metaStore, mappings ) );
+    verify( mappings ).put( expectedPrefixSourceLoadUrl, testNcName );
+    assertEquals( testPrefixSourceUrl, jobEntryHadoopCopyFiles.fileFolderUrlMappings.get( expectedPrefixSourceLoadUrl ) );
+  }
+
+  @Test
+  public void testLoadUrlHdfsEMPTY_DEST_URL() {
+    when( namedClusterManager.getNamedClusterByName( testNcName, metaStore ) ).thenReturn( namedCluster );
+    when( namedCluster.isMapr() ).thenReturn( false );
+    String testNewUrl = HadoopSpoonPlugin.HDFS_SCHEME + "://" + "testNewUrl";
+    when( namedCluster.processURLsubstitution( testUrl, metaStore, jobEntryHadoopCopyFiles.getVariables() ) )
+      .thenReturn( testNewUrl );
+    String prefixUrlDest = JobEntryCopyFiles.DEST_URL + 5 + "-";
+    String testPrefixDestUrl = prefixUrlDest + testUrl;
+    String expectedPrefixDestLoadUrl = prefixUrlDest + testNewUrl;
+    assertEquals( expectedPrefixDestLoadUrl, jobEntryHadoopCopyFiles.loadURL( testPrefixDestUrl, testNcName, metaStore, mappings ) );
+    verify( mappings ).put( expectedPrefixDestLoadUrl, testNcName );
+    assertEquals( testPrefixDestUrl, jobEntryHadoopCopyFiles.fileFolderUrlMappings.get( expectedPrefixDestLoadUrl ) );
+  }
+
+  @Test
+  public void testSaveUrlMappingsKeyMisses() {
+    String testUrl = "/src/path/";
+    jobEntryHadoopCopyFiles.fileFolderUrlMappings.clear();
+    // populating with other values
+    jobEntryHadoopCopyFiles.fileFolderUrlMappings.put( "KeyA", "ValueA" );
+    jobEntryHadoopCopyFiles.fileFolderUrlMappings.put( "KeyB", "ValueB" );
+    jobEntryHadoopCopyFiles.fileFolderUrlMappings.put( "/src", "ValueC" );
+    jobEntryHadoopCopyFiles.fileFolderUrlMappings.put( "/src/path/anotherPath", "ValueD" );
+    assertEquals( testUrl, jobEntryHadoopCopyFiles.saveURL( testUrl, testNcName, metaStore, mappings ) );
+
+    assertNull( testUrl, jobEntryHadoopCopyFiles.saveURL( null, testNcName, metaStore, mappings ) );
+  }
+
+  @Test
+  public void testSaveUrlMappingsKeyHits() {
+    String testUrl = "/src/path/";
+    String testUrlSubstituted = "hdfs://someHostname/src/path";
+    // populating with other values
+    jobEntryHadoopCopyFiles.fileFolderUrlMappings.put( "KeyA", "ValueA" );
+    jobEntryHadoopCopyFiles.fileFolderUrlMappings.put( "KeyB", "ValueB" );
+    jobEntryHadoopCopyFiles.fileFolderUrlMappings.put( "/src", "ValueC" );
+    jobEntryHadoopCopyFiles.fileFolderUrlMappings.put( "/src/path/anotherPath", "ValueD" );
+    jobEntryHadoopCopyFiles.fileFolderUrlMappings.put( testUrlSubstituted, testUrl );
+    assertEquals( testUrl, jobEntryHadoopCopyFiles.saveURL( testUrl, testNcName, metaStore, mappings ) );
   }
 }
