@@ -57,7 +57,6 @@
                 <include>commons-cli:commons-cli</include>
                 <include>com.github.stephenc.high-scale-lib:high-scale-lib</include>
                 <include>org.codehaus.jackson:jackson-core-asl</include>
-                <include>org.codehaus.jackson:jackson-mapper-asl</include>
                 <include>net.java.dev.jets3t:jets3t</include>
                 <include>jline:jline</include>
                 <include>com.googlecode.json-simple:json-simple</include>
