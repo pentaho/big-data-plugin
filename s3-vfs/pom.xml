@@ -7,12 +7,12 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-bundles</artifactId>
-    <version>10.2.0.0-SNAPSHOT</version>
+    <version>10.2.0.0-216</version>
   </parent>
 
   <groupId>pentaho</groupId>
   <artifactId>pentaho-s3-vfs</artifactId>
-  <version>10.2.0.0-SNAPSHOT</version>
+  <version>10.2.0.0-216</version>
   <packaging>jar</packaging>
 
   <licenses>
@@ -27,8 +27,8 @@
   <properties>
 
     <!-- pentaho dependencies -->
-    <pdi.version>10.2.0.0-SNAPSHOT</pdi.version>
-    <encryption-support.version>10.2.0.0-SNAPSHOT</encryption-support.version>
+    <pdi.version>10.2.0.0-216</pdi.version>
+    <encryption-support.version>10.2.0.0-216</encryption-support.version>
 
     <!-- License Configuration -->
     <license.licenseName>apache_v2</license.licenseName>
