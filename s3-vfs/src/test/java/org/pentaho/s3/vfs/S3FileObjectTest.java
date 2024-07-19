@@ -1,5 +1,5 @@
 /*!
-* Copyright 2010 - 2021 Hitachi Vantara.  All rights reserved.
+* Copyright 2010 - 2024 Hitachi Vantara.  All rights reserved.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -62,8 +62,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.atMost;
@@ -81,12 +81,11 @@ public class S3FileObjectTest {
   public static final String OBJECT_NAME = "obj";
 
   private S3FileName filename;
-  private S3FileSystem fileSystemSpy;
+  private S3FileSystem fileSystem;
   private S3FileObject s3FileObjectBucketSpy;
   private S3FileObject s3FileObjectFileSpy;
   private S3FileObject s3FileObjectSpyRoot;
   private AmazonS3 s3ServiceMock;
-  private static final String S3VFS_USE_TEMPORARY_FILE_ON_UPLOAD_DATA = "s3.vfs.useTempFileOnUploadData";
   private ObjectListing childObjectListing;
   private S3Object s3ObjectMock;
   private S3ObjectInputStream s3ObjectInputStream;
@@ -114,24 +113,28 @@ public class S3FileObjectTest {
     S3FileName rootFileName = new S3FileName( SCHEME, BUCKET_NAME, "", FileType.FOLDER );
     S3KettleProperty s3KettleProperty  = mock( S3KettleProperty.class );
     when( s3KettleProperty.getPartSize() ).thenReturn( "5MB" );
-    S3FileSystem fileSystem = new S3FileSystem( rootFileName, new FileSystemOptions(), new StorageUnitConverter(),
-            s3KettleProperty );
-    fileSystemSpy = spy( fileSystem );
+    fileSystem =
+        new S3FileSystem( rootFileName, new FileSystemOptions(), new StorageUnitConverter(), s3KettleProperty ) {
+          @Override
+          public AmazonS3 getS3Client() {
+            return s3ServiceMock;
+          }
+        };
     VfsComponentContext context = mock( VfsComponentContext.class );
     final DefaultFileSystemManager fsm = new DefaultFileSystemManager();
     FilesCache cache = mock( FilesCache.class );
     fsm.setFilesCache( cache );
     fsm.setCacheStrategy( CacheStrategy.ON_RESOLVE );
     when( context.getFileSystemManager() ).thenReturn( fsm );
-    fileSystemSpy.setContext( context );
+    fileSystem.setContext( context );
 
-    S3FileObject s3FileObject = new S3FileObject( filename, fileSystemSpy );
+    S3FileObject s3FileObject = new S3FileObject( filename, fileSystem );
     s3FileObjectBucketSpy = spy( s3FileObject );
 
     s3FileObjectFileSpy = spy( new S3FileObject(
-      new S3FileName( SCHEME, BUCKET_NAME, BUCKET_NAME + "/" + origKey, FileType.IMAGINARY ), fileSystemSpy ) );
+      new S3FileName( SCHEME, BUCKET_NAME, BUCKET_NAME + "/" + origKey, FileType.IMAGINARY ), fileSystem ) );
 
-    S3FileObject s3FileObjectRoot = new S3FileObject( rootFileName, fileSystemSpy );
+    S3FileObject s3FileObjectRoot = new S3FileObject( rootFileName, fileSystem );
     s3FileObjectSpyRoot = spy( s3FileObjectRoot );
 
     // specify the behaviour of S3 Service
@@ -159,14 +162,12 @@ public class S3FileObjectTest {
     when( s3ObjectMetadata.getContentLength() ).thenReturn( contentLength );
     when( s3ObjectMetadata.getLastModified() ).thenReturn( testDate );
     when( s3ServiceMock.getObject( anyString(), anyString() ) ).thenReturn( s3ObjectMock );
-
-    when( fileSystemSpy.getS3Client() ).thenReturn( s3ServiceMock );
   }
 
   @Test
   public void testGetS3Object() throws Exception {
     when( s3ServiceMock.getObject( anyString(), anyString() ) ).thenReturn( new S3Object() );
-    S3FileObject s3FileObject = new S3FileObject( filename, fileSystemSpy );
+    S3FileObject s3FileObject = new S3FileObject( filename, fileSystem );
     S3Object s3Object = s3FileObject.getS3Object();
     assertNotNull( s3Object );
   }
@@ -219,9 +220,9 @@ public class S3FileObjectTest {
 
   @Test
   public void testDoCreateFolder() throws Exception {
-    S3FileObject notRootBucket = spy(
-      new S3FileObject( new S3FileName( SCHEME, BUCKET_NAME, BUCKET_NAME + "/" + origKey, FileType.IMAGINARY ),
-        fileSystemSpy ) );
+    S3FileObject notRootBucket =
+        spy( new S3FileObject( new S3FileName( SCHEME, BUCKET_NAME, BUCKET_NAME + "/" + origKey, FileType.IMAGINARY ),
+            fileSystem ) );
     notRootBucket.createFolder();
     ArgumentCaptor<PutObjectRequest> putObjectRequestArgumentCaptor = ArgumentCaptor.forClass( PutObjectRequest.class );
     verify( s3ServiceMock ).putObject( putObjectRequestArgumentCaptor.capture() );
@@ -245,7 +246,7 @@ public class S3FileObjectTest {
 
   @Test
   public void testDoDelete() throws Exception {
-    fileSystemSpy.init();
+    fileSystem.init();
     s3FileObjectBucketSpy.doDelete();
     verify( s3ServiceMock ).deleteObject( "bucket3", "key0" );
     verify( s3ServiceMock ).deleteObject( "bucket3", "key1" );
@@ -258,7 +259,7 @@ public class S3FileObjectTest {
     String someNewBucketName = "someNewBucketName";
     String someNewKey = "some/newKey";
     S3FileName newFileName = new S3FileName( SCHEME, someNewBucketName, someNewBucketName + "/" + someNewKey, FileType.FILE );
-    S3FileObject newFile = new S3FileObject( newFileName, fileSystemSpy );
+    S3FileObject newFile = new S3FileObject( newFileName, fileSystem );
     ArgumentCaptor<CopyObjectRequest> copyObjectRequestArgumentCaptor = ArgumentCaptor.forClass( CopyObjectRequest.class );
     when( s3ServiceMock.doesBucketExistV2( someNewBucketName ) ).thenReturn( true );
     s3FileObjectFileSpy.doAttach();
@@ -286,7 +287,7 @@ public class S3FileObjectTest {
 
   @Test
   public void testListChildrenNotRoot() throws FileSystemException {
-    fileSystemSpy.init();
+    fileSystem.init();
     FileObject[] children = s3FileObjectBucketSpy.getChildren();
     assertTrue( children.length == 6 );
     List<String> childNameArray = Arrays.asList( children ).stream()
@@ -297,7 +298,7 @@ public class S3FileObjectTest {
 
   @Test
   public void testListChildrenRoot() throws FileSystemException {
-    fileSystemSpy.init();
+    fileSystem.init();
     FileObject[] children = s3FileObjectSpyRoot.getChildren();
     assertTrue( children.length == 4 );
     List<String> childNameArray = Arrays.asList( children ).stream()
@@ -380,7 +381,7 @@ public class S3FileObjectTest {
       summary.setBucketName( BUCKET_NAME );
       summary.setKey( "key" + i );
       summaries.add( summary );
-      childObjectNameComp.add( BUCKET_NAME + "/" + "key" + i );
+      childObjectNameComp.add( "/" + BUCKET_NAME + "/" + "key" + i );
     }
     return summaries;
   }
@@ -389,7 +390,7 @@ public class S3FileObjectTest {
     List<String> prefixes = new ArrayList<>();
     for ( int i = startnum; i < startnum + 3; i++ ) {
       prefixes.add( "key" + i );
-      childObjectNameComp.add( BUCKET_NAME + "/" + "key" + i );
+      childObjectNameComp.add( "/" + BUCKET_NAME + "/" + "key" + i );
     }
     return prefixes;
   }
