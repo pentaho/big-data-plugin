@@ -1,5 +1,5 @@
 /*!
-* Copyright 2010 - 2021 Hitachi Vantara.  All rights reserved.
+* Copyright 2010 - 2024 Hitachi Vantara.  All rights reserved.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.pentaho.amazon.s3.S3Util;
 
 public class S3FileNameParser extends AbstractFileNameParser {
   private static final S3FileNameParser INSTANCE = new S3FileNameParser();
+  private static final String[] SCHEMES = new String[] { S3FileProvider.SCHEME };
 
   public S3FileNameParser() {
     super();
@@ -47,7 +48,7 @@ public class S3FileNameParser extends AbstractFileNameParser {
   public FileName parseUri( VfsComponentContext context, FileName base, String uri ) throws FileSystemException {
     StringBuilder buffer = new StringBuilder();
 
-    String scheme = UriParser.extractScheme( uri, buffer );
+    String scheme = UriParser.extractScheme( SCHEMES, uri, buffer );
     UriParser.canonicalizePath( buffer, 0, buffer.length(), this );
 
     // Normalize separators in the path

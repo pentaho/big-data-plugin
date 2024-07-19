@@ -27,6 +27,7 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
@@ -39,6 +40,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,6 +75,13 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
     return new S3CommonFileInputStream( streamS3Object.getObjectContent(), streamS3Object );
   }
 
+  @Override
+  public Path getPath() {
+    // default impl will only work for schemes registered with nio
+    String namePath = getName().getPath();
+    String[] pathElements = StringUtils.split( namePath, DELIMITER );
+    return Path.of( "", pathElements );
+  }
 
   @Override public void createFile() throws FileSystemException {
     //PDI-19598: Copied from super.createFile() but it was a way to force the file creation on S3
@@ -212,7 +221,7 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
 
   @Override
   public void doAttach() throws Exception {
-    logger.debug( "Attach called on {}", getQualifiedName() );
+    logger.trace( "Attach called on {}", getQualifiedName() );
     injectType( FileType.IMAGINARY );
 
     if ( isRootBucket() ) {
@@ -311,7 +320,7 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
 
   @Override
   public void doDetach() throws Exception {
-    logger.debug( "detaching {}", getQualifiedName() );
+    logger.trace( "detaching {}", getQualifiedName() );
     closeS3Object();
   }
 
@@ -353,7 +362,7 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
       return s3ObjectMetadata.getLastModified().getTime();
     } else {
       // In some case s3 system might not return modified time.
-      logger.info( "No last modified date is available for this object" );
+      logger.trace( "No last modified date is available for this object" );
       return 0L;
     }
   }
@@ -383,6 +392,7 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
     }
   }
 
+
   protected PutObjectRequest createPutObjectRequest( String bucketName, String key, InputStream inputStream, ObjectMetadata objectMetadata ) {
     return new PutObjectRequest( bucketName, key, inputStream, objectMetadata );
   }
@@ -391,7 +401,9 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
   protected void doRename( FileObject newFile ) throws Exception {
     // no folder renames on S3
     if ( getType().equals( FileType.FOLDER ) ) {
-      throw new FileSystemException( "vfs.provider/rename-not-supported.error" );
+      logger.debug( "recursively moving folder [{}] -> [{}]", this.getPublicURIString(), newFile.getPublicURIString() );
+      doFolderMove( this, newFile );
+      return;
     }
 
     s3ObjectMetadata = fileSystem.getS3Client().getObjectMetadata( bucketName, key );
@@ -409,6 +421,22 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
 
     // 2. delete self
     delete();
+  }
+
+  private void doFolderMove( FileObject sourceFolder, FileObject targetFolder ) throws FileSystemException {
+    logger.trace( "creating folder [{}]", targetFolder.getPublicURIString() );
+    FileObject[] children = sourceFolder.getChildren();
+    targetFolder.createFolder();
+    for ( FileObject child : children ) {
+      FileObject targetChild = targetFolder.resolveFile( child.getName().getBaseName() );
+      if ( child.isFolder() ) {
+        doFolderMove( child, targetChild );
+      } else if ( child.isFile() ) {
+        logger.trace( "moving file [{}] -> [{}]", child.getPublicURIString(), targetChild.getPublicURIString() );
+        child.moveTo( targetChild );
+      }
+    }
+    sourceFolder.delete();
   }
 
   protected CopyObjectRequest createCopyObjectRequest( String sourceBucket, String sourceKey, String destBucket, String destKey ) {
