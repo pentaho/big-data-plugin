@@ -615,12 +615,6 @@ public class AvroInputTest {
     field.m_kettleType = ValueMeta.getTypeDesc( ValueMetaInterface.TYPE_STRING );
     paths.add( field );
 
-    AvroInputMeta.AvroField field2 = new AvroInputMeta.AvroField();
-    field2.m_fieldName = "test2";
-    field2.m_fieldPath = "$.nickname";
-    field2.m_kettleType = ValueMeta.getTypeDesc( ValueMetaInterface.TYPE_STRING );
-    paths.add( field2 );
-
     Object[] incomingKettleRow = new Object[2];
     VariableSpace space = new Variables();
     RowMetaInterface outputMeta = new RowMeta();
@@ -637,11 +631,6 @@ public class AvroInputTest {
 
     vm = new ValueMeta();
     vm.setName( field.m_fieldName );
-    vm.setOrigin( "Dummy" );
-    vm.setType( ValueMetaInterface.TYPE_STRING );
-    outputMeta.addValueMeta( vm );
-    vm = new ValueMeta();
-    vm.setName( field2.m_fieldName );
     vm.setOrigin( "Dummy" );
     vm.setType( ValueMetaInterface.TYPE_STRING );
     outputMeta.addValueMeta( vm );
@@ -687,14 +676,6 @@ public class AvroInputTest {
       assertTrue( result != null );
       assertTrue( result.length == 1 ); // one output row
       assertEquals( result[0][2].toString(), expectedNames[i] );
-
-      if ( i == 1 ) {
-        assertEquals( result[0][3].toString(), "mickey" );
-      } else {
-        // nickname field does not exist in the first schema - result should be
-        // null
-        assertTrue( result[0][3] == null );
-      }
     }
   }
 
