@@ -2,7 +2,7 @@
   *
   * Pentaho Data Integration
   *
-  * Copyright (C) 2018-2019 by Hitachi Vantara : http://www.pentaho.com
+  * Copyright (C) 2018-2024 by Hitachi Vantara : http://www.pentaho.com
   *
   *******************************************************************************
   *
@@ -263,7 +263,7 @@ public abstract class BaseOrcStepDialog<T extends BaseStepMeta & StepMetaInterfa
     props.setLook( wbBrowse );
     wbBrowse.setText( getMsg( "System.Button.Browse" ) );
     wbBrowse.addSelectionListener( new SelectionAdapterFileDialogTextVar(
-      log, wPath, transMeta, new SelectionAdapterOptions( selectionOperation() ) ) );
+      log, wPath, transMeta, new SelectionAdapterOptions( transMeta.getBowl(), selectionOperation() ) ) );
     int bOffset = ( wbBrowse.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y
       - wPath.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y ) / 2;
     new FD( wbBrowse ).left( wPath, FIELD_LABEL_SEP ).top( wlPath, FIELD_LABEL_SEP - bOffset ).apply();
