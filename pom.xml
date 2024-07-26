@@ -74,7 +74,6 @@
     <dependency.xmlpull.revision>1.1.3.1</dependency.xmlpull.revision>
     <dependency.bean-matchers.revision>0.9</dependency.bean-matchers.revision>
     <dependency.avro.revision>1.6.2</dependency.avro.revision>
-    <aws-java-sdk.version>1.11.275</aws-java-sdk.version>
     <dependency.hamcrest.revision>1.3</dependency.hamcrest.revision>
     <commons-xul.version>10.3.0.0-SNAPSHOT</commons-xul.version>
     <platform.version>10.3.0.0-SNAPSHOT</platform.version>
