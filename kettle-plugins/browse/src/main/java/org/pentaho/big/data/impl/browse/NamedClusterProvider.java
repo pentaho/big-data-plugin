@@ -242,7 +242,7 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
   public boolean fileExists( Bowl bowl, NamedClusterFile dir, String path, VariableSpace space ) throws FileException {
     path = sanitizeName( bowl, dir, path );
     try {
-      FileObject fileObject = KettleVFS.getFileObject( path );
+      FileObject fileObject = KettleVFS.getInstance( bowl ).getFileObject( path );
       return fileObject.exists();
     } catch ( KettleFileException | FileSystemException e ) {
       throw new FileException();
