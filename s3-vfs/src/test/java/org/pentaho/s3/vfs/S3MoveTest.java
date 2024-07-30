@@ -51,6 +51,7 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemOptions;
@@ -193,8 +194,8 @@ public class S3MoveTest {
 
     assertEquals( 2, s3.deleteObjectRequests.size() );
     Set<String> deleted = s3.deleteObjectRequests.stream().map( arr -> arr[1] ).collect(Collectors.toSet());
-    assertTrue( "file1 deleted", deleted.contains( "dir/orig/file1" ) ); 
-    assertTrue( "file2 deleted", deleted.contains( "dir/orig/folder/file2" ) ); 
+    assertTrue( "file1 deleted", deleted.contains( "dir/orig/file1" ) );
+    assertTrue( "file2 deleted", deleted.contains( "dir/orig/folder/file2" ) );
   }
 
   private static class TestAmazonS3 extends AbstractAmazonS3 {
@@ -216,14 +217,15 @@ public class S3MoveTest {
       ObjectListing list = new ObjectListing();
       List<String> commonPrefixes = new ArrayList<>();
       list.setTruncated( false );
-      list.getObjectSummaries().add( getObjectSummary( prefix ) );
+      list.getObjectSummaries().add( getObjectSummary( StringUtils.appendIfMissing( prefix, "/" ) ) );
+      list.setPrefix( StringUtils.removeEnd( prefix, "/" ) );
       for ( String child : children ) {
-        child = prefix + child;
+        child = StringUtils.appendIfMissing( prefix, "/" ) + child;
         if ( child.endsWith("/") ) {
           commonPrefixes.add( child );
         } else {
           buc.objects.add( child );
-          list.getObjectSummaries().add( getObjectSummary(child) );
+          list.getObjectSummaries().add( getObjectSummary( child ) );
         }
       }
       list.setCommonPrefixes( commonPrefixes );

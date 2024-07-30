@@ -248,10 +248,7 @@ public class S3FileObjectTest {
   public void testDoDelete() throws Exception {
     fileSystem.init();
     s3FileObjectBucketSpy.doDelete();
-    verify( s3ServiceMock ).deleteObject( "bucket3", "key0" );
-    verify( s3ServiceMock ).deleteObject( "bucket3", "key1" );
-    verify( s3ServiceMock ).deleteObject( "bucket3", "key2" );
-    verify( s3ServiceMock ).deleteObject( "bucket3", "" );
+    verify( s3ServiceMock ).deleteObject( "bucket3", "/" );
   }
 
   @Test
