@@ -332,22 +332,10 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
   protected void doDelete( String key, String bucketName ) throws FileSystemException {
     // can only delete folder if empty
     if ( getType() == FileType.FOLDER ) {
-
-      // list all children inside the folder
-      ObjectListing ol = fileSystem.getS3Client().listObjects( bucketName, key );
-      ArrayList<S3ObjectSummary> allSummaries = new ArrayList<>( ol.getObjectSummaries() );
-
-      // get full list
-      while ( ol.isTruncated() ) {
-        ol = fileSystem.getS3Client().listNextBatchOfObjects( ol );
-        allSummaries.addAll( ol.getObjectSummaries() );
-      }
-
-      for ( S3ObjectSummary s3os : allSummaries ) {
-        fileSystem.getS3Client().deleteObject( bucketName, s3os.getKey() );
-      }
+      // AbstractFileObject.delete is recursive, by the time it gets here the folder must be empty
+      key = StringUtils.appendIfMissing( key, DELIMITER );
     }
-
+    logger.debug( "deleteObject([{}], [{}])", bucketName, key );
     fileSystem.getS3Client().deleteObject( bucketName, key );
   }
 
@@ -417,6 +405,7 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
 
     // 1. copy the file
     CopyObjectRequest copyObjRequest = createCopyObjectRequest( bucketName, key, dest.bucketName, dest.key );
+    logger.debug( "copyObject ([{}], [{}]) -> ([{}], [{}])", bucketName, key, dest.bucketName, dest.key );
     fileSystem.getS3Client().copyObject( copyObjRequest );
 
     // 2. delete self
@@ -424,7 +413,7 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
   }
 
   private void doFolderMove( FileObject sourceFolder, FileObject targetFolder ) throws FileSystemException {
-    logger.trace( "creating folder [{}]", targetFolder.getPublicURIString() );
+    logger.debug( "creating folder [{}]", targetFolder.getPublicURIString() );
     FileObject[] children = sourceFolder.getChildren();
     targetFolder.createFolder();
     for ( FileObject child : children ) {
@@ -432,7 +421,7 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
       if ( child.isFolder() ) {
         doFolderMove( child, targetChild );
       } else if ( child.isFile() ) {
-        logger.trace( "moving file [{}] -> [{}]", child.getPublicURIString(), targetChild.getPublicURIString() );
+        logger.debug( "moving file [{}] -> [{}]", child.getPublicURIString(), targetChild.getPublicURIString() );
         child.moveTo( targetChild );
       }
     }
