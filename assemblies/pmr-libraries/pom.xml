@@ -708,8 +708,8 @@
       <version>${snappy-java.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.hitachivantara</groupId>
-      <artifactId>safeyaml</artifactId>
+      <groupId>org.yaml</groupId>
+      <artifactId>snakeyaml</artifactId>
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
