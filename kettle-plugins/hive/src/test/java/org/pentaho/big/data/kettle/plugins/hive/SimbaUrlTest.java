@@ -29,7 +29,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 import static org.pentaho.di.core.database.DatabaseMeta.TYPE_ACCESS_JNDI;
 import static org.pentaho.di.core.database.DatabaseMeta.TYPE_ACCESS_NATIVE;
-import static org.pentaho.di.core.database.DatabaseMeta.TYPE_ACCESS_ODBC;
 
 public class SimbaUrlTest {
 
@@ -72,16 +71,6 @@ public class SimbaUrlTest {
         .withHostname( "localhost" )
         .build().getURL(),
       containsString( "foo:bar://localhost:202020/mydatabase" ) );
-  }
-
-  @Test
-  public void testOdbc() {
-    assertThat(
-      builder
-        .withAccessType( TYPE_ACCESS_ODBC )
-        .withDatabaseName( "mydatabase" )
-        .build().getURL(),
-      containsString( "jdbc:odbc:mydatabase" ) );
   }
 
   @Test

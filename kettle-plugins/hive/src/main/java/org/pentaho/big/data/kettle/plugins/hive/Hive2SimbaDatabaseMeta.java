@@ -47,11 +47,7 @@ public class Hive2SimbaDatabaseMeta extends BaseSimbaDatabaseMeta {
 
   @Override
   public String getDriverClass() {
-    if ( getAccessType() == DatabaseMeta.TYPE_ACCESS_ODBC ) {
-      return ODBC_DRIVER_CLASS_NAME;
-    } else {
-      return DRIVER_CLASS_NAME;
-    }
+    return DRIVER_CLASS_NAME;
   }
 
   @Override
