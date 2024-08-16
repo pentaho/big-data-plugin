@@ -23,7 +23,6 @@ public class SimbaUrl {
   @VisibleForTesting static final String KRB_HOST_FQDN = "KrbHostFQDN";
   @VisibleForTesting static final String KRB_SERVICE_NAME = "KrbServiceName";
   @VisibleForTesting static final String URL_IS_CONFIGURED_THROUGH_JNDI = "Url is configured through JNDI";
-  @VisibleForTesting static final String JDBC_ODBC_S = "jdbc:odbc:%s";
 
   final String jdbcPrefix;
   private String username;
@@ -62,9 +61,6 @@ public class SimbaUrl {
       databaseName = DEFAULT_DB;
     }
     switch ( accessType ) {
-      case DatabaseMeta.TYPE_ACCESS_ODBC: {
-        return String.format( JDBC_ODBC_S, databaseName );
-      }
       case DatabaseMeta.TYPE_ACCESS_JNDI: {
         return URL_IS_CONFIGURED_THROUGH_JNDI;
       }

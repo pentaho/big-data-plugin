@@ -53,15 +53,6 @@ public class Hive2SimbaDatabaseDialectTest {
   }
 
   @Test
-  public void testGetUrlODBC() throws DatabaseDialectException {
-    DatabaseConnection conn = new DatabaseConnection();
-    conn.setAccessType( DatabaseAccessType.ODBC );
-    conn.setDatabaseName( "mydb" );
-    assertThat( dialect.getURL( conn ),
-      is( "jdbc:odbc:mydb" ) );
-  }
-
-  @Test
   public void testGetUsedLibraries() {
     assertEquals( dialect.getUsedLibraries()[0], "HiveJDBC41.jar" );
   }
