@@ -34,6 +34,7 @@ import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.encryption.TwoWayPasswordEncoderPluginType;
 import org.pentaho.di.core.logging.KettleLogStore;
+import org.pentaho.di.core.plugins.DatabasePluginType;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
@@ -75,6 +76,7 @@ public class AbstractSqoopJobEntryTest {
   @Before
   public void setUp() throws Exception {
     PluginRegistry.addPluginType( TwoWayPasswordEncoderPluginType.getInstance() );
+    PluginRegistry.addPluginType( DatabasePluginType.getInstance() );
     PluginRegistry.init( false );
     Encr.init( "Kettle" );
     KettleLogStore.init();
