@@ -30,9 +30,7 @@ import static org.pentaho.big.data.kettle.plugins.hive.SimbaUrl.KRB_SERVICE_NAME
 
 abstract class BaseSimbaDatabaseMeta extends Hive2DatabaseMeta {
 
-  @VisibleForTesting static final String ODBC_DRIVER_CLASS_NAME = "sun.jdbc.odbc.JdbcOdbcDriver";
   @VisibleForTesting static final String URL_IS_CONFIGURED_THROUGH_JNDI = "Url is configured through JNDI";
-  @VisibleForTesting static final String JDBC_ODBC_S = "jdbc:odbc:%s";
 
   BaseSimbaDatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService,
                          MetastoreLocator metastoreLocator ) {
@@ -49,7 +47,7 @@ abstract class BaseSimbaDatabaseMeta extends Hive2DatabaseMeta {
   public abstract String getDriverClass();
 
   @Override public int[] getAccessTypeList() {
-    return new int[] { DatabaseMeta.TYPE_ACCESS_NATIVE, DatabaseMeta.TYPE_ACCESS_ODBC, DatabaseMeta.TYPE_ACCESS_JNDI };
+    return new int[] { DatabaseMeta.TYPE_ACCESS_NATIVE, DatabaseMeta.TYPE_ACCESS_JNDI };
   }
 
   @Override public String getURL( String hostname, String port, String databaseName ) {

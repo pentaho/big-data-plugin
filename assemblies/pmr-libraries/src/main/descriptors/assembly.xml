@@ -157,7 +157,6 @@
         <include>org.eclipse.jetty:jetty-util</include>
         <include>org.eobjects.sassyreader:SassyReader</include>
         <include>org.fife.ui:rsyntaxtextarea</include>
-        <include>org.hibernate:hibernate-c3p0</include>
         <include>org.hibernate:hibernate-commons-annotations</include>
         <include>org.hibernate:hibernate-core</include>
         <include>org.hibernate:hibernate-ehcache</include>
