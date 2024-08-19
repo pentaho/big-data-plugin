@@ -100,7 +100,7 @@ public class BaseSimbaDatabaseMetaTest {
   @Test
   public void testGetAccessTypeList() {
     assertArrayEquals(
-      new int[] { DatabaseMeta.TYPE_ACCESS_NATIVE, DatabaseMeta.TYPE_ACCESS_ODBC, DatabaseMeta.TYPE_ACCESS_JNDI },
+      new int[] { DatabaseMeta.TYPE_ACCESS_NATIVE, DatabaseMeta.TYPE_ACCESS_JNDI },
       baseSimbaDatabaseMeta.getAccessTypeList() );
   }
 
@@ -119,14 +119,6 @@ public class BaseSimbaDatabaseMetaTest {
     assertEquals( testHost, url.getHost() );
     assertEquals( baseSimbaDatabaseMeta.getDefaultDatabasePort(), url.getPort() );
     assertEquals( "/default;AuthMech=0", url.getPath() );
-  }
-
-  @Test
-  public void testGetUrlOdbc() throws KettleDatabaseException {
-    String testDbName = "testDbName";
-    baseSimbaDatabaseMeta.setAccessType( DatabaseMeta.TYPE_ACCESS_ODBC );
-    assertEquals( String.format( Hive2SimbaDatabaseMeta.JDBC_ODBC_S, testDbName ),
-      baseSimbaDatabaseMeta.getURL( "", "", testDbName ) );
   }
 
   @Test
