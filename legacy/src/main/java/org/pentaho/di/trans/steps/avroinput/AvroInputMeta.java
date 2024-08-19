@@ -601,10 +601,10 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
       if ( field == null ) {
         fieldS = defaultSchema.getField( part );
-        if ( fieldS == null || fieldS.defaultValue() == null ) {
+        if ( fieldS == null || fieldS.defaultVal() == null ) {
           return null;
         }
-        field = fieldS.defaultValue();
+        field = fieldS.defaultVal();
       }
 
       Schema.Type fieldT = fieldS.schema().getType();
