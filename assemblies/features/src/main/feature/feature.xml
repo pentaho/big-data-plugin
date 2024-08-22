@@ -6,7 +6,7 @@
     <bundle>mvn:commons-cli/commons-cli/1.2</bundle>
     <bundle>wrap:mvn:com.github.stephenc.high-scale-lib/high-scale-lib/1.1.2</bundle>
     <bundle>mvn:org.codehaus.jackson/jackson-core-asl/${codehaus-jackson.version}</bundle>
-    <bundle>mvn:com.fasterxml.jackson.core/jackson-databind/${fasterxml-jackson-databind.version}</bundle>
+    <bundle>mvn:org.codehaus.jackson/jackson-mapper-asl/${codehaus-jackson.version}</bundle>
     <bundle>wrap:mvn:net.java.dev.jets3t/jets3t/0.9.4</bundle>
     <bundle>wrap:mvn:jline/jline/0.9.94</bundle>
     <bundle>wrap:mvn:com.googlecode.json-simple/json-simple/1.1</bundle>
