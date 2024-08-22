@@ -295,9 +295,9 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     response.put( NAMED_CLUSTER, "" );
     try {
       NamedCluster nc = convertToNamedCluster( model );
+      deleteConfigFolder( nc.getName() );
       installSiteFiles( siteFilesSource, nc );
       namedClusterService.create( nc, metaStore );
-      deleteConfigFolder( nc.getName() );
       createConfigProperties( nc );
       setupKerberosSecurity( model, siteFilesSource, "", "" );
       response.put( NAMED_CLUSTER, nc.getName() );
@@ -370,6 +370,11 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       log.logError( e.getMessage() );
     }
     return response;
+  }
+
+  public InputStream getSiteFileInputStream( String namedCluster, String siteFile ) {
+    NamedCluster nc = namedClusterService.getNamedClusterByName( namedCluster, this.metaStore );
+    return nc.getSiteFileInputStream( siteFile );
   }
 
   public ThinNameClusterModel getNamedCluster( String namedCluster ) {
@@ -918,6 +923,10 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     return shims;
   }
 
+  public NamedCluster getNamedClusterByName( String namedCluster) {
+    return namedClusterService.getNamedClusterByName( namedCluster, this.metaStore );
+  }
+
   public Object runTests( RuntimeTester runtimeTester, String namedCluster ) {
     NamedCluster nc = namedClusterService.getNamedClusterByName( namedCluster, this.metaStore );
     if ( nc != null ) {
@@ -940,7 +949,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  private Object[] produceTestCategories( RuntimeTestStatus runtimeTestStatus, NamedCluster nc ) {
+  public Object[] produceTestCategories( RuntimeTestStatus runtimeTestStatus, NamedCluster nc ) {
 
     LinkedHashMap<String, TestCategory> categories = new LinkedHashMap<>();
     categories.put( HADOOP_FILE_SYSTEM, new TestCategory( "Hadoop file system" ) );
