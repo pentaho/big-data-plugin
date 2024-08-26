@@ -22,7 +22,6 @@
 
 package org.pentaho.di.trans.steps.avroinput;
 
-import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.util.Utf8;
@@ -348,7 +347,7 @@ public class AvroInputMetaAvroFieldTest {
     avroField.convertToKettleValue( new GenericData.Record( schema ), mock( Schema.class ), mock( Schema.class ), false );
   }
 
-  @Test( expected = AvroRuntimeException.class )
+  @Test( expected = KettleException.class )
   public void testConvertToKettleValueRecordNullSchema() throws KettleException {
     avroField.m_fieldPath = "key";
     avroField.init( 0 );
@@ -393,7 +392,7 @@ public class AvroInputMetaAvroFieldTest {
     GenericData.Record record = mock( GenericData.Record.class );
     when( record.get( avroField.m_fieldPath ) ).thenReturn( null );
     when( defaultSchema.getField( avroField.m_fieldPath ) ).thenReturn( field );
-    when( field.defaultVal() ).thenReturn( node );
+    when( field.defaultValue() ).thenReturn( node ).thenReturn( node );
     when( field.schema() ).thenReturn( fieldSchema );
     when( fieldSchema.getType() ).thenReturn( Schema.Type.INT );
     assertEquals( 5L, avroField.convertToKettleValue( record, schemaToUse, defaultSchema, true ) );
