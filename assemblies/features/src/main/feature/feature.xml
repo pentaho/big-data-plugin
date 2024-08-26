@@ -1,7 +1,7 @@
 <features name="pentaho-big-data-features" xmlns="http://karaf.apache.org/xmlns/features/v1.2.1">
 
   <feature name="pentaho-big-data-common" version="1.0">
-    <bundle>wrap:mvn:org.apache.avro/avro/1.6.2</bundle>
+    <bundle>wrap:mvn:org.apache.avro/avro/1.12.0</bundle>
     <bundle>wrap:mvn:com.amazonaws/aws-java-sdk/1.11.275</bundle>
     <bundle>mvn:commons-cli/commons-cli/1.2</bundle>
     <bundle>wrap:mvn:com.github.stephenc.high-scale-lib/high-scale-lib/1.1.2</bundle>
