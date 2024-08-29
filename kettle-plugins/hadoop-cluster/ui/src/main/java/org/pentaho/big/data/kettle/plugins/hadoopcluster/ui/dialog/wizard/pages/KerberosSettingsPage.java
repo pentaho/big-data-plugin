@@ -79,7 +79,6 @@ public class KerberosSettingsPage extends WizardPage {
     variableSpace = variables;
     thinNameClusterModel = model;
     setTitle( BaseMessages.getString( PKG, "NamedClusterDialog.newCluster" ) );
-    setDescription( BaseMessages.getString( PKG, "NamedClusterDialog.title" ) );
     setPageComplete( false );
   }
 
@@ -144,7 +143,7 @@ public class KerberosSettingsPage extends WizardPage {
     validate();
   }
 
-  private void clear() {
+  private void disposeComponents() {
     if ( passwordAuthenticationPanel != null ) {
       passwordAuthenticationPanel.dispose();
       passwordAuthenticationPanel = null;
@@ -157,7 +156,7 @@ public class KerberosSettingsPage extends WizardPage {
   }
 
   private void createPasswordAuthenticationFields() {
-    clear();
+    disposeComponents();
     passwordAuthenticationPanel = new Composite( mainPanel, SWT.NONE );
     GridLayout authenticationPanelGridLayout = new GridLayout( TWO_COLUMNS, true );
     authenticationPanelGridLayout.marginWidth = 0;
@@ -216,7 +215,7 @@ public class KerberosSettingsPage extends WizardPage {
   }
 
   private void createKeytabAuthenticationFields() {
-    clear();
+    disposeComponents();
     keytabAuthenticationPanel = new Composite( mainPanel, SWT.NONE );
     GridLayout authenticationPanelGridLayout = new GridLayout( ONE_COLUMN, true );
     authenticationPanelGridLayout.marginWidth = 0;
@@ -376,6 +375,10 @@ public class KerberosSettingsPage extends WizardPage {
   }
 
   public void initialize( ThinNameClusterModel model ) {
+    setDescription( ( (NamedClusterDialog) getWizard() ).isEditMode() ?
+      BaseMessages.getString( PKG, "NamedClusterDialog.editCluster.title" ) :
+      BaseMessages.getString( PKG, "NamedClusterDialog.newCluster.title" ) );
+
     thinNameClusterModel = model;
     securityMethodCombo.setText( model.getKerberosSubType() );
     if ( securityMethodCombo.getText().equals( password ) ) {

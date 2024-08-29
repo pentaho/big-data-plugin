@@ -123,7 +123,11 @@ public abstract class NamedClusterHelper {
         fileInputStream = new FileInputStream( siteFile );
       } catch ( FileNotFoundException e ) {
         if ( file.getKey().isEmpty() ) {
-          fileInputStream = manager.getSiteFileInputStream( model.getName(), file.getValue() );
+          if ( manager.getNamedClusterByName( model.getName() ) != null ) {
+            fileInputStream = manager.getSiteFileInputStream( model.getName(), file.getValue() );
+          } else {
+            fileInputStream = manager.getSiteFileInputStream( model.getOldName(), file.getValue() );
+          }
         } else {
           throw new BadSiteFilesException();
         }

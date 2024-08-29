@@ -24,6 +24,7 @@ package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+//import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages.ClusterSettingsPage;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages.KerberosSettingsPage;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages.KnoxSettingsPage;
@@ -83,7 +84,9 @@ import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard
 
 public class NamedClusterDialog extends Wizard {
 
-  private boolean isEditMode = false;
+  private String dialogState;
+  private boolean isEditMode;
+  private boolean isDuplicating;
   private ClusterSettingsPage clusterSettingsPage;
   private SecuritySettingsPage securitySettingsPage;
   private KerberosSettingsPage kerberosSettingsPage;
@@ -92,6 +95,7 @@ public class NamedClusterDialog extends Wizard {
   private TestResultsPage testResultsPage;
   private final HadoopClusterManager hadoopClusterManager;
   private ThinNameClusterModel thinNameClusterModel;
+  private boolean isDevMode = false;
   private final RuntimeTester runtimeTester;
   private final VariableSpace variableSpace;
   private final Supplier<Spoon> spoonSupplier = Spoon::getInstance;
@@ -99,14 +103,22 @@ public class NamedClusterDialog extends Wizard {
   private static final LogChannelInterface log =
     KettleLogStore.getLogChannelInterfaceFactory().create( "NamedClusterDialog" );
 
-  private boolean isDevMode = false;
-
   public NamedClusterDialog( NamedClusterService namedClusterService, IMetaStore metastore, VariableSpace variables,
-                             RuntimeTester tester, Map<String, String> params ) {
+                             RuntimeTester tester, Map<String, String> params, String dialogState ) {
     variableSpace = variables;
     runtimeTester = tester;
     hadoopClusterManager = new HadoopClusterManager( spoonSupplier.get(), namedClusterService, metastore, "" );
-    thinNameClusterModel = createModel( hadoopClusterManager.getNamedCluster( params.get( "name" ) ) );
+    String namedClusterNameParam = params.get( "name" );
+    isEditMode = namedClusterNameParam != null;
+    thinNameClusterModel = createModel( hadoopClusterManager.getNamedCluster( namedClusterNameParam ) );
+    String duplicateNamedClusterParam = params.get( "duplicateName" );
+    if ( duplicateNamedClusterParam != null ) {
+      thinNameClusterModel.setOldName( thinNameClusterModel.getName() );
+      thinNameClusterModel.setName( "copy-of-" + thinNameClusterModel.getName() );
+      isEditMode = false;
+      isDuplicating = true;
+    }
+    this.dialogState = dialogState;
   }
 
   public boolean isConnectedToRepo() {
@@ -135,7 +147,7 @@ public class NamedClusterDialog extends Wizard {
     model.setZooKeeperPort( model.getZooKeeperPort() == null ? "2181" : model.getZooKeeperPort() );
     model.setOozieUrl( model.getOozieUrl() == null ? "" : model.getOozieUrl() );
     model.setKafkaBootstrapServers( model.getKafkaBootstrapServers() == null ? "" : model.getKafkaBootstrapServers() );
-    model.setOldName( model.getOldName() == null ? "" : model.getOldName() );
+    model.setOldName( model.getName() );
     model.setSecurityType( model.getSecurityType() == null ? "None" : model.getSecurityType() );
     model.setKerberosSubType( model.getKerberosSubType() == null ? "Password" : model.getKerberosSubType() );
     model.setKerberosAuthenticationUsername(
@@ -158,66 +170,95 @@ public class NamedClusterDialog extends Wizard {
   }
 
   public void initialize( ThinNameClusterModel model ) {
-    thinNameClusterModel = model == null ? createModel( null ) : createModel( model );
-    clusterSettingsPage.initialize( thinNameClusterModel );
-    securitySettingsPage.initialize( thinNameClusterModel );
-    knoxSettingsPage.initialize( thinNameClusterModel );
-    kerberosSettingsPage.initialize( thinNameClusterModel );
-    reportPage.initialize( thinNameClusterModel );
-    testResultsPage.initialize( thinNameClusterModel );
+    if ( !dialogState.equals( "testing" ) ) {
+      thinNameClusterModel = model == null ? createModel( null ) : createModel( model );
+      clusterSettingsPage.initialize( thinNameClusterModel );
+      securitySettingsPage.initialize( thinNameClusterModel );
+      knoxSettingsPage.initialize( thinNameClusterModel );
+      kerberosSettingsPage.initialize( thinNameClusterModel );
+      reportPage.initialize( thinNameClusterModel );
+      testResultsPage.initialize( thinNameClusterModel );
+    } else {
+      try {
+        testResultsPage.initialize( model );
+        testResultsPage.setTestResults( getTestResults() );
+      } catch ( KettleException e ) {
+        log.logError( e.getMessage() );
+      }
+    }
   }
 
   public void addPages() {
-    clusterSettingsPage =
-      new ClusterSettingsPage( variableSpace, thinNameClusterModel );
-    addPage( clusterSettingsPage );
-    securitySettingsPage = new SecuritySettingsPage( thinNameClusterModel );
-    addPage( securitySettingsPage );
-    knoxSettingsPage = new KnoxSettingsPage( variableSpace, thinNameClusterModel );
-    addPage( knoxSettingsPage );
-    kerberosSettingsPage = new KerberosSettingsPage( variableSpace, thinNameClusterModel );
-    addPage( kerberosSettingsPage );
-    reportPage = new ReportPage( thinNameClusterModel );
-    addPage( reportPage );
-    testResultsPage = new TestResultsPage( variableSpace, thinNameClusterModel );
-    addPage( testResultsPage );
+    if ( !dialogState.equals( "testing" ) ) {
+      clusterSettingsPage =
+        new ClusterSettingsPage( variableSpace, thinNameClusterModel );
+      addPage( clusterSettingsPage );
+      securitySettingsPage = new SecuritySettingsPage( thinNameClusterModel );
+      addPage( securitySettingsPage );
+      knoxSettingsPage = new KnoxSettingsPage( variableSpace, thinNameClusterModel );
+      addPage( knoxSettingsPage );
+      kerberosSettingsPage = new KerberosSettingsPage( variableSpace, thinNameClusterModel );
+      addPage( kerberosSettingsPage );
+      reportPage = new ReportPage( thinNameClusterModel );
+      addPage( reportPage );
+      testResultsPage = new TestResultsPage( variableSpace, thinNameClusterModel );
+      addPage( testResultsPage );
+    } else {
+      testResultsPage = new TestResultsPage( variableSpace, thinNameClusterModel );
+      addPage( testResultsPage );
+    }
   }
 
   public void editCluster() {
+    dialogState = "new-edit";
     ThinNameClusterModel model = hadoopClusterManager.getNamedCluster( thinNameClusterModel.getName() );
     if ( model != null ) {
       isEditMode = true;
-      model.setOldName( thinNameClusterModel.getName() );
+      isDuplicating = false;
       initialize( model );
     } else {
       isEditMode = false;
+      isDuplicating = false;
     }
     getContainer().showPage( getPage( ClusterSettingsPage.class.getSimpleName() ) );
   }
 
   public void createNewCluster() {
+    dialogState = "new-edit";
     isEditMode = false;
+    isDuplicating = false;
     initialize( null );
     getContainer().showPage( getPage( ClusterSettingsPage.class.getSimpleName() ) );
   }
 
   public boolean performFinish() {
-    if ( isEditMode ) {
-      saveEditedNamedCluster();
+    boolean finish = false;
+    String currentPage = super.getContainer().getCurrentPage().getName();
+    if ( !currentPage.equals( reportPage.getClass().getSimpleName() ) ) {
+      if ( isEditMode || isDuplicating ) {
+        saveEditedNamedCluster();
+      } else {
+        saveNewNamedCluster();
+      }
     } else {
-      saveNewNamedCluster();
+      finish = true;
     }
     if ( spoonSupplier.get() != null ) {
       spoonSupplier.get().refreshTree( BaseMessages.getString( PKG, "HadoopClusterTree.Title" ) );
     }
-    return false;
+    return finish;
   }
 
   private void saveNewNamedCluster() {
     try {
       Map<String, CachedFileItemStream> siteFiles = processSiteFiles( thinNameClusterModel, hadoopClusterManager );
-      hadoopClusterManager.createNamedCluster( thinNameClusterModel, siteFiles );
-      processTestResults();
+      if ( dialogState.equals( "new-edit" ) ) {
+        hadoopClusterManager.createNamedCluster( thinNameClusterModel, siteFiles );
+      }
+      if ( dialogState.equals( "import" ) ) {
+        hadoopClusterManager.importNamedCluster( thinNameClusterModel, siteFiles );
+      }
+      reportPage.setTestResults( getTestResults() );
     } catch ( BadSiteFilesException e ) {
       reportPage.setTestResult( BaseMessages.getString( PKG, "NamedClusterDialog.test.importFailed" ) );
     } catch ( IOException | KettleException e ) {
@@ -229,8 +270,8 @@ public class NamedClusterDialog extends Wizard {
   private void saveEditedNamedCluster() {
     try {
       Map<String, CachedFileItemStream> siteFiles = processSiteFiles( thinNameClusterModel, hadoopClusterManager );
-      hadoopClusterManager.editNamedCluster( thinNameClusterModel, true, siteFiles );
-      processTestResults();
+      hadoopClusterManager.editNamedCluster( thinNameClusterModel, isEditMode, siteFiles );
+      reportPage.setTestResults( getTestResults() );
     } catch ( BadSiteFilesException e ) {
       reportPage.setTestResult( BaseMessages.getString( PKG, "NamedClusterDialog.test.importFailed" ) );
     } catch ( IOException | KettleException e ) {
@@ -239,21 +280,51 @@ public class NamedClusterDialog extends Wizard {
     getContainer().showPage( reportPage );
   }
 
-  private void processTestResults() throws KettleException {
+  private Object[] getTestResults() throws KettleException {
     NamedCluster namedCluster = hadoopClusterManager.getNamedClusterByName( thinNameClusterModel.getName() );
-    RuntimeTestStatus runtimeTestStatus = ClusterTestDialog.create( getShell(), namedCluster, runtimeTester ).open();
-    Object[] testResults = hadoopClusterManager.produceTestCategories( runtimeTestStatus, namedCluster );
-    reportPage.processTestResults( testResults );
+    if ( isDevMode() ) {
+      if ( !dialogState.equals( "testing" ) ) {
+        return (Object[]) hadoopClusterManager.runTests( runtimeTester, thinNameClusterModel.getName() );
+      } else {
+        return new Object[] {};
+      }
+    } else {
+      RuntimeTestStatus runtimeTestStatus =
+        ClusterTestDialog.create( spoonSupplier.get().getShell(), namedCluster, runtimeTester ).open();
+      return hadoopClusterManager.produceTestCategories( runtimeTestStatus, namedCluster );
+    }
   }
 
   public boolean canFinish() {
+    // Hack to style the CustomWizardDialog.
     ( (CustomWizardDialog) getContainer() ).style();
+    // Couldn't be done elsewhere because the "TestResultsPage" was not initialized by the wizard.
+
     String currentPage = super.getContainer().getCurrentPage().getName();
-    return
-      ( currentPage.equals( securitySettingsPage.getClass().getSimpleName() ) && securitySettingsPage.getSecurityType()
-        .equals( NONE ) ) || ( currentPage.equals( kerberosSettingsPage.getClass().getSimpleName() )
-        && kerberosSettingsPage.isPageComplete() || ( currentPage.equals( knoxSettingsPage.getClass().getSimpleName() )
-        && knoxSettingsPage.isPageComplete() ) );
+    if ( !dialogState.equals( "testing" ) ) {
+      if ( currentPage.equals( clusterSettingsPage.getClass().getSimpleName() ) ) {
+        ( (CustomWizardDialog) getContainer() ).enableCancelButton( true );
+      }
+      if ( currentPage.equals( reportPage.getClass().getSimpleName() ) ) {
+        ( (CustomWizardDialog) getContainer() ).enableCancelButton( false );
+      }
+      return
+        ( currentPage.equals( securitySettingsPage.getClass().getSimpleName() )
+          && securitySettingsPage.getSecurityType()
+          .equals( NONE ) ) || ( currentPage.equals( kerberosSettingsPage.getClass().getSimpleName() )
+          && kerberosSettingsPage.isPageComplete() || (
+          currentPage.equals( knoxSettingsPage.getClass().getSimpleName() )
+            && knoxSettingsPage.isPageComplete() ) || currentPage.equals( reportPage.getClass().getSimpleName() ) );
+    } else {
+      // Set to Initialize "TestResultsPage" when "dialogState" is "testing" and disable its "Finish" button.
+      // Couldn't be done elsewhere because the "TestResultsPage" was not initialized by the wizard.
+      initialize( thinNameClusterModel );
+      return false;
+    }
+  }
+
+  public String getDialogState() {
+    return dialogState;
   }
 
   public void setDevMode( boolean devMode ) {
@@ -263,4 +334,30 @@ public class NamedClusterDialog extends Wizard {
   public boolean isDevMode() {
     return isDevMode;
   }
+
+  public boolean isEditMode() {
+    return isEditMode;
+  }
+
+  /*
+  public static void main( String[] args ) {
+    try {
+      PluginRegistry.addPluginType( TwoWayPasswordEncoderPluginType.getInstance() );
+      PluginRegistry.init( false );
+      Encr.init( "Kettle" );
+      KettleLogStore.init();
+      Display display = new Display();
+      Shell shell = new Shell( display );
+      PropsUI.init( display, Props.TYPE_PROPERTIES_SPOON );
+      NamedClusterDialog namedClusterDialog =
+        new NamedClusterDialog( NamedClusterManager.getInstance(), MetaStoreConst.openLocalPentahoMetaStore(),
+          new Variables(), RuntimeTesterImpl.getInstance(), new HashMap<String, String>(), "new-edit" );
+      namedClusterDialog.setDevMode( true );
+      CustomWizardDialog namedClusterWizardDialog = new CustomWizardDialog( shell, namedClusterDialog );
+      namedClusterWizardDialog.open();
+    } catch ( Exception e ) {
+      log.logError( e.getMessage() );
+    }
+  }
+  */
 }
