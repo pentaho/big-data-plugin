@@ -44,7 +44,6 @@ import org.pentaho.di.core.Const;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.PropsUI;
-import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.util.HelpUtils;
 import org.pentaho.hadoop.shim.api.core.ShimIdentifierInterface;
@@ -68,6 +67,7 @@ public class ClusterSettingsPage extends WizardPage {
   private PropsUI props;
   private Composite parent;
   private Composite mainPanel;
+  private ScrolledComposite clusterScrollPanel;
   private TextVar hostNameTextFieldHdfsGroup;
   private TextVar portTextFieldHdfsGroup;
   private TextVar userNameTextFieldHdfsGroup;
@@ -83,6 +83,11 @@ public class ClusterSettingsPage extends WizardPage {
   private Table siteFilesTable;
   private CCombo shimVendorCombo;
   private CCombo shimVersionCombo;
+  private Group hdfsGroup;
+  private Group jobTrackerGroup;
+  private Group zooKeeperGroup;
+  private Group oozieGroup;
+  private Group kafkaGroup;
   private Map<String, String> siteFilesPath;
   private ThinNameClusterModel thinNameClusterModel;
   private final Listener clusterListener = e -> validate();
@@ -95,7 +100,6 @@ public class ClusterSettingsPage extends WizardPage {
     variableSpace = variables;
     thinNameClusterModel = model;
     setTitle( BaseMessages.getString( PKG, "NamedClusterDialog.newCluster" ) );
-    setDescription( BaseMessages.getString( PKG, "NamedClusterDialog.title" ) );
     setPageComplete( false );
   }
 
@@ -141,7 +145,9 @@ public class ClusterSettingsPage extends WizardPage {
     //END OF HEADER
 
     //START OF CLUSTER SCROLLABLE PANEL
-    ScrolledComposite clusterScrollPanel = new ScrolledComposite( basePanel, SWT.V_SCROLL | SWT.NONE );
+    clusterScrollPanel = new ScrolledComposite( basePanel, SWT.V_SCROLL | SWT.NONE );
+    clusterScrollPanel.setExpandHorizontal( true );
+    clusterScrollPanel.setExpandVertical( true );
     clusterScrollPanel.setLayout( new GridLayout( ONE_COLUMN, false ) );
     GridData clusterScrollPanelGridData = new GridData( SWT.FILL, SWT.FILL, false, false );
     clusterScrollPanelGridData.heightHint = 490; //Height of the scrollable panel (WILL NEED TO ADJUST)
@@ -158,20 +164,11 @@ public class ClusterSettingsPage extends WizardPage {
 
     createDriverGroup();
     createSiteXMLFilesGroup();
-    createHdfsGroup();
-    createJobTrackerGroup();
-    createZooKeeperGroup();
-    createOozieGroup();
-    createKafkaGroup();
-
-    clusterScrollPanel.setContent( mainPanel );
-    clusterScrollPanel.setExpandHorizontal( true );
-    clusterScrollPanel.setExpandVertical( true );
-    clusterScrollPanel.setMinSize( mainPanel.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
     //END OF CLUSTER SCROLLABLE PANEL
 
-    setControl( parent );
+    clusterScrollPanel.setContent( mainPanel );
     initialize( thinNameClusterModel );
+    setControl( parent );
   }
 
   private void createDriverGroup() {
@@ -231,14 +228,12 @@ public class ClusterSettingsPage extends WizardPage {
     Listener browseListener = e -> browse();
     browseButton.addListener( SWT.Selection, browseListener );
     props.setLook( browseButton );
-
     deleteSiteFilesButton = new Button( buttonsPanel, SWT.PUSH );
+    deleteSiteFilesButton.setText( BaseMessages.getString( PKG, "NamedClusterDialog.remove" ) );
     deleteSiteFilesButton.setToolTipText( BaseMessages.getString( PKG, "NamedClusterDialog.removeSiteFile" ) );
     deleteSiteFilesButton.setEnabled( false );
     GridData deleteButtonGridData = new GridData( SWT.END, SWT.FILL, true, false );
     deleteSiteFilesButton.setLayoutData( deleteButtonGridData );
-    deleteSiteFilesButton.setImage(
-      GUIResource.getInstance().getImage( "images/delete.svg", getClass().getClassLoader(), 16, 16 ) );
 
     Listener removeSiteFileListener = e -> removeSelectedSiteFiles();
     deleteSiteFilesButton.addListener( SWT.Selection, removeSiteFileListener );
@@ -291,32 +286,34 @@ public class ClusterSettingsPage extends WizardPage {
   }
 
   private void createHdfsGroup() {
-    Group hdfsGroup = new Group( mainPanel, SWT.NONE );
+    hdfsGroup = new Group( mainPanel, SWT.NONE );
     hdfsGroup.setText( BaseMessages.getString( PKG, "NamedClusterDialog.hdfs" ) );
     hdfsGroup.setLayout( new GridLayout( ONE_COLUMN, false ) );
     GridData hdfsGroupGridData = new GridData( SWT.FILL, SWT.FILL, false, false );
     hdfsGroup.setLayoutData( hdfsGroupGridData );
     props.setLook( hdfsGroup );
 
-    GridData hostNameLabelHdfsGroupGridData = new GridData();
-    hostNameLabelHdfsGroupGridData.widthHint = 400; // Label width
-    createLabel( hdfsGroup, BaseMessages.getString( PKG, "NamedClusterDialog.hostname" ),
-      hostNameLabelHdfsGroupGridData, props );
+    if ( ( (NamedClusterDialog) getWizard() ).getDialogState().equals( "new-edit" ) ) {
+      GridData hostNameLabelHdfsGroupGridData = new GridData();
+      hostNameLabelHdfsGroupGridData.widthHint = 400; // Label width
+      createLabel( hdfsGroup, BaseMessages.getString( PKG, "NamedClusterDialog.hostname" ),
+        hostNameLabelHdfsGroupGridData, props );
 
-    GridData hostNameTextFieldHdfsGroupdGridData = new GridData();
-    hostNameTextFieldHdfsGroupdGridData.widthHint = 400; // TextField width
-    hostNameTextFieldHdfsGroup =
-      createText( hdfsGroup, "", hostNameTextFieldHdfsGroupdGridData, props, variableSpace, clusterListener );
+      GridData hostNameTextFieldHdfsGroupdGridData = new GridData();
+      hostNameTextFieldHdfsGroupdGridData.widthHint = 400; // TextField width
+      hostNameTextFieldHdfsGroup =
+        createText( hdfsGroup, "", hostNameTextFieldHdfsGroupdGridData, props, variableSpace, clusterListener );
 
-    GridData portLabelHdfsGroupGridData = new GridData();
-    portLabelHdfsGroupGridData.widthHint = 400; // Label width
-    createLabel( hdfsGroup, BaseMessages.getString( PKG, "NamedClusterDialog.port" ), portLabelHdfsGroupGridData,
-      props );
+      GridData portLabelHdfsGroupGridData = new GridData();
+      portLabelHdfsGroupGridData.widthHint = 400; // Label width
+      createLabel( hdfsGroup, BaseMessages.getString( PKG, "NamedClusterDialog.port" ), portLabelHdfsGroupGridData,
+        props );
 
-    GridData portTextFieldHdfsGroupGridData = new GridData();
-    portTextFieldHdfsGroupGridData.widthHint = 400; // TextField width
-    portTextFieldHdfsGroup =
-      createText( hdfsGroup, "", portTextFieldHdfsGroupGridData, props, variableSpace, clusterListener );
+      GridData portTextFieldHdfsGroupGridData = new GridData();
+      portTextFieldHdfsGroupGridData.widthHint = 400; // TextField width
+      portTextFieldHdfsGroup =
+        createText( hdfsGroup, "", portTextFieldHdfsGroupGridData, props, variableSpace, clusterListener );
+    }
 
     Composite userPasswordHdfsGroupPanel = new Composite( hdfsGroup, SWT.NONE );
     GridLayout userPasswordHdfsGroupGridLayout = new GridLayout( TWO_COLUMNS, true );
@@ -346,10 +343,11 @@ public class ClusterSettingsPage extends WizardPage {
       createText( userPasswordHdfsGroupPanel, "", passwordTextFieldHdfsGroupGridData, props, variableSpace,
         clusterListener );
     passwordTextFieldHdfsGroup.setEchoChar( '*' );
+    mainPanel.pack();
   }
 
   private void createJobTrackerGroup() {
-    Group jobTrackerGroup = new Group( mainPanel, SWT.NONE );
+    jobTrackerGroup = new Group( mainPanel, SWT.NONE );
     jobTrackerGroup.setText( BaseMessages.getString( PKG, "NamedClusterDialog.jobTracker" ) );
     jobTrackerGroup.setLayout( new GridLayout( ONE_COLUMN, false ) );
     GridData jobTrackerGroupGridData = new GridData( SWT.FILL, SWT.FILL, false, false );
@@ -376,10 +374,11 @@ public class ClusterSettingsPage extends WizardPage {
     portTextFieldJobTrackerGroupGridData.widthHint = 400; // TextField width
     portTextFieldJobTrackerGroup =
       createText( jobTrackerGroup, "", portTextFieldJobTrackerGroupGridData, props, variableSpace, clusterListener );
+    mainPanel.pack();
   }
 
   private void createZooKeeperGroup() {
-    Group zooKeeperGroup = new Group( mainPanel, SWT.NONE );
+    zooKeeperGroup = new Group( mainPanel, SWT.NONE );
     zooKeeperGroup.setText( BaseMessages.getString( PKG, "NamedClusterDialog.zooKeeper" ) );
     zooKeeperGroup.setLayout( new GridLayout( ONE_COLUMN, false ) );
     GridData zooKeeperGroupGridData = new GridData( SWT.FILL, SWT.FILL, false, false );
@@ -405,10 +404,11 @@ public class ClusterSettingsPage extends WizardPage {
     portTextFieldZooKeeperGroupGridData.widthHint = 400; // TextField width
     portTextFieldZooKeeperGroup =
       createText( zooKeeperGroup, "", portTextFieldZooKeeperGroupGridData, props, variableSpace, clusterListener );
+    mainPanel.pack();
   }
 
   private void createOozieGroup() {
-    Group oozieGroup = new Group( mainPanel, SWT.NONE );
+    oozieGroup = new Group( mainPanel, SWT.NONE );
     oozieGroup.setText( BaseMessages.getString( PKG, "NamedClusterDialog.oozie" ) );
     oozieGroup.setLayout( new GridLayout( ONE_COLUMN, false ) );
     GridData oozieGroupGridData = new GridData( SWT.FILL, SWT.FILL, false, false );
@@ -424,10 +424,11 @@ public class ClusterSettingsPage extends WizardPage {
     hostNameTextFieldOozieGroupdGridData.widthHint = 400; // TextField width
     hostNameTextFieldOozieGroup =
       createText( oozieGroup, "", hostNameTextFieldOozieGroupdGridData, props, variableSpace, clusterListener );
+    mainPanel.pack();
   }
 
   private void createKafkaGroup() {
-    Group kafkaGroup = new Group( mainPanel, SWT.NONE );
+    kafkaGroup = new Group( mainPanel, SWT.NONE );
     kafkaGroup.setText( BaseMessages.getString( PKG, "NamedClusterDialog.kafka" ) );
     kafkaGroup.setLayout( new GridLayout( ONE_COLUMN, false ) );
     GridData kafkaGroupGridData = new GridData( SWT.FILL, SWT.FILL, false, false );
@@ -443,6 +444,7 @@ public class ClusterSettingsPage extends WizardPage {
     hostNameTextFieldKafkaGroupdGridData.widthHint = 400; // TextField width
     hostNameTextFieldKafkaGroup =
       createText( kafkaGroup, "", hostNameTextFieldKafkaGroupdGridData, props, variableSpace, clusterListener );
+    mainPanel.pack();
   }
 
   private void browse() {
@@ -468,19 +470,25 @@ public class ClusterSettingsPage extends WizardPage {
     thinNameClusterModel.setName( nameOfNamedCluster.getText() );
     thinNameClusterModel.setShimVendor( shimVendorCombo.getText() );
     thinNameClusterModel.setShimVersion( shimVersionCombo.getText() );
-    thinNameClusterModel.setHdfsHost( hostNameTextFieldHdfsGroup.getText() );
-    thinNameClusterModel.setHdfsPort( portTextFieldHdfsGroup.getText() );
-    thinNameClusterModel.setJobTrackerPort( portTextFieldJobTrackerGroup.getText() );
-    thinNameClusterModel.setZooKeeperPort( portTextFieldZooKeeperGroup.getText() );
     thinNameClusterModel.setHdfsUsername( userNameTextFieldHdfsGroup.getText() );
     thinNameClusterModel.setHdfsPassword( passwordTextFieldHdfsGroup.getText() );
-    thinNameClusterModel.setJobTrackerHost( hostNameTextFieldJobTrackerGroup.getText() );
-    thinNameClusterModel.setZooKeeperHost( hostNameTextFieldZooKeeperGroup.getText() );
-    thinNameClusterModel.setOozieUrl( hostNameTextFieldOozieGroup.getText() );
-    thinNameClusterModel.setKafkaBootstrapServers( hostNameTextFieldKafkaGroup.getText() );
     thinNameClusterModel.setSiteFiles( getTableItems( siteFilesTable.getItems() ) );
-    setPageComplete( !thinNameClusterModel.getName().isBlank() && !thinNameClusterModel.getHdfsHost().isBlank()
-      && !thinNameClusterModel.getShimVendor().isBlank() && !thinNameClusterModel.getShimVersion().isBlank() );
+
+    if ( ( (NamedClusterDialog) getWizard() ).getDialogState().equals( "new-edit" ) ) {
+      thinNameClusterModel.setHdfsHost( hostNameTextFieldHdfsGroup.getText() );
+      thinNameClusterModel.setHdfsPort( portTextFieldHdfsGroup.getText() );
+      thinNameClusterModel.setJobTrackerPort( portTextFieldJobTrackerGroup.getText() );
+      thinNameClusterModel.setZooKeeperPort( portTextFieldZooKeeperGroup.getText() );
+      thinNameClusterModel.setJobTrackerHost( hostNameTextFieldJobTrackerGroup.getText() );
+      thinNameClusterModel.setZooKeeperHost( hostNameTextFieldZooKeeperGroup.getText() );
+      thinNameClusterModel.setOozieUrl( hostNameTextFieldOozieGroup.getText() );
+      thinNameClusterModel.setKafkaBootstrapServers( hostNameTextFieldKafkaGroup.getText() );
+      setPageComplete( !thinNameClusterModel.getName().isBlank() && !thinNameClusterModel.getHdfsHost().isBlank()
+        && !thinNameClusterModel.getShimVendor().isBlank() && !thinNameClusterModel.getShimVersion().isBlank() );
+    }
+    if ( ( (NamedClusterDialog) getWizard() ).getDialogState().equals( "import" ) ) {
+      setPageComplete( !thinNameClusterModel.getName().isBlank() && !thinNameClusterModel.getSiteFiles().isEmpty() );
+    }
   }
 
   public IWizardPage getNextPage() {
@@ -490,7 +498,12 @@ public class ClusterSettingsPage extends WizardPage {
     return securitySettingsPage;
   }
 
+
   public void initialize( ThinNameClusterModel model ) {
+    setDescription( ( (NamedClusterDialog) getWizard() ).isEditMode() ?
+      BaseMessages.getString( PKG, "NamedClusterDialog.editCluster.title" ) :
+      BaseMessages.getString( PKG, "NamedClusterDialog.newCluster.title" ) );
+
     thinNameClusterModel = model;
     siteFilesPath = new HashMap<>();
     nameOfNamedCluster.setText( model.getName() );
@@ -507,18 +520,52 @@ public class ClusterSettingsPage extends WizardPage {
     } else {
       shimVersionCombo.select( 0 );
     }
-    hostNameTextFieldHdfsGroup.setText( model.getHdfsHost() );
-    portTextFieldHdfsGroup.setText( model.getHdfsPort() );
-    portTextFieldJobTrackerGroup.setText( model.getJobTrackerPort() );
-    portTextFieldZooKeeperGroup.setText( model.getZooKeeperPort() );
+    setTableItems( model.getSiteFiles() );
+    disposeComponents();
+    createHdfsGroup();
     userNameTextFieldHdfsGroup.setText( model.getHdfsUsername() );
     passwordTextFieldHdfsGroup.setText( model.getHdfsPassword() );
-    hostNameTextFieldJobTrackerGroup.setText( model.getJobTrackerHost() );
-    hostNameTextFieldZooKeeperGroup.setText( model.getZooKeeperHost() );
-    hostNameTextFieldOozieGroup.setText( model.getOozieUrl() );
-    hostNameTextFieldKafkaGroup.setText( model.getKafkaBootstrapServers() );
-    setTableItems( model.getSiteFiles() );
+    if ( ( (NamedClusterDialog) getWizard() ).getDialogState().equals( "new-edit" ) ) {
+      createJobTrackerGroup();
+      createZooKeeperGroup();
+      createOozieGroup();
+      createKafkaGroup();
+      hostNameTextFieldHdfsGroup.setText( model.getHdfsHost() );
+      portTextFieldHdfsGroup.setText( model.getHdfsPort() );
+      portTextFieldJobTrackerGroup.setText( model.getJobTrackerPort() );
+      portTextFieldZooKeeperGroup.setText( model.getZooKeeperPort() );
+      hostNameTextFieldJobTrackerGroup.setText( model.getJobTrackerHost() );
+      hostNameTextFieldZooKeeperGroup.setText( model.getZooKeeperHost() );
+      hostNameTextFieldOozieGroup.setText( model.getOozieUrl() );
+      hostNameTextFieldKafkaGroup.setText( model.getKafkaBootstrapServers() );
+    }
+    clusterScrollPanel.setMinSize( mainPanel.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
+    mainPanel.pack();
     validate();
+  }
+
+  private void disposeComponents() {
+    if ( hdfsGroup != null ) {
+      hdfsGroup.dispose();
+      hdfsGroup = null;
+    }
+    if ( jobTrackerGroup != null ) {
+      jobTrackerGroup.dispose();
+      jobTrackerGroup = null;
+    }
+    if ( zooKeeperGroup != null ) {
+      zooKeeperGroup.dispose();
+      zooKeeperGroup = null;
+    }
+    if ( oozieGroup != null ) {
+      oozieGroup.dispose();
+      oozieGroup = null;
+    }
+    if ( kafkaGroup != null ) {
+      kafkaGroup.dispose();
+      kafkaGroup = null;
+    }
+    mainPanel.pack();
   }
 
   private List<SimpleImmutableEntry<String, String>> getTableItems( TableItem[] tableItems ) {

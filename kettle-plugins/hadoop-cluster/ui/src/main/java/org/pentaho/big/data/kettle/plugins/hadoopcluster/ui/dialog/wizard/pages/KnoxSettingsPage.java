@@ -29,6 +29,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
+import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.NamedClusterDialog;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -62,7 +63,6 @@ public class KnoxSettingsPage extends WizardPage {
     thinNameClusterModel = model;
     variableSpace = variables;
     setTitle( BaseMessages.getString( PKG, "NamedClusterDialog.newCluster" ) );
-    setDescription( BaseMessages.getString( PKG, "NamedClusterDialog.title" ) );
   }
 
   public void createControl( Composite composite ) {
@@ -142,6 +142,10 @@ public class KnoxSettingsPage extends WizardPage {
   }
 
   public void initialize( ThinNameClusterModel model ) {
+    setDescription( ( (NamedClusterDialog) getWizard() ).isEditMode() ?
+      BaseMessages.getString( PKG, "NamedClusterDialog.editCluster.title" ) :
+      BaseMessages.getString( PKG, "NamedClusterDialog.newCluster.title" ) );
+
     gatewayURLTextField.setText( model.getGatewayUrl() );
     gatewayUsernameTextfield.setText( model.getGatewayUsername() );
     gatewayPasswordTextField.setText( model.getGatewayPassword() );

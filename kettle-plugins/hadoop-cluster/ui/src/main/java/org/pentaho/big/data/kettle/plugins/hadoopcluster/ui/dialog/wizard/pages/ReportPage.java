@@ -68,7 +68,6 @@ public class ReportPage extends WizardPage {
     super( ReportPage.class.getSimpleName() );
     thinNameClusterModel = model;
     setTitle( BaseMessages.getString( PKG, "NamedClusterDialog.newCluster" ) );
-    setDescription( BaseMessages.getString( PKG, "NamedClusterDialog.title" ) );
   }
 
   public void createControl( Composite composite ) {
@@ -181,7 +180,7 @@ public class ReportPage extends WizardPage {
     mainPanel.pack();
   }
 
-  public void processTestResults( Object[] categories ) {
+  public void setTestResults( Object[] categories ) {
     testResults = categories;
     String status = "";
     for ( Object category : testResults ) {
@@ -198,6 +197,10 @@ public class ReportPage extends WizardPage {
   }
 
   public void initialize( ThinNameClusterModel model ) {
+    setDescription( ( (NamedClusterDialog) getWizard() ).isEditMode() ?
+      BaseMessages.getString( PKG, "NamedClusterDialog.editCluster.title" ) :
+      BaseMessages.getString( PKG, "NamedClusterDialog.newCluster.title" ) );
+
     thinNameClusterModel = model;
   }
 

@@ -49,19 +49,18 @@ public class HadoopClusterDelegate {
   private static final LogChannelInterface log =
     KettleLogStore.getLogChannelInterfaceFactory().create( "HadoopClusterDelegate" );
 
-
   public HadoopClusterDelegate( NamedClusterService clusterService, RuntimeTester tester ) {
     namedClusterService = clusterService;
     runtimeTester = tester;
   }
 
-  public void openDialog( String thinAppState, Map<String, String> urlParams ) {
+  public void openDialog( String dialogState, Map<String, String> urlParams ) {
     try {
       Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
       IMetaStore metastore = metastoreLocators.stream().findFirst().get().getMetastore();
       CustomWizardDialog namedClusterWizardDialog = new CustomWizardDialog( spoonSupplier.get().getShell(),
         new NamedClusterDialog( namedClusterService, metastore, (AbstractMeta) spoonSupplier.get().getActiveMeta(),
-          runtimeTester, urlParams ) );
+          runtimeTester, urlParams, dialogState ) );
       namedClusterWizardDialog.open();
     } catch ( Exception e ) {
       log.logError( e.getMessage() );

@@ -66,7 +66,6 @@ public class TestResultsPage extends WizardPage {
     super( TestResultsPage.class.getSimpleName() );
     thinNameClusterModel = model;
     setTitle( BaseMessages.getString( PKG, "NamedClusterDialog.newCluster" ) );
-    setDescription( BaseMessages.getString( PKG, "NamedClusterDialog.title" ) );
   }
 
   public void createControl( Composite composite ) {

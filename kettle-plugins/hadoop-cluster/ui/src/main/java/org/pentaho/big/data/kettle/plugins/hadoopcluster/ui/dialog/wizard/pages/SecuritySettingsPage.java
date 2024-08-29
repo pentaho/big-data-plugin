@@ -29,6 +29,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Listener;
+import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.NamedClusterDialog;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.PropsUI;
@@ -59,7 +60,6 @@ public class SecuritySettingsPage extends WizardPage {
     securityType = NamedClusterSecurityType.NONE;
     thinNameClusterModel = model;
     setTitle( BaseMessages.getString( PKG, "NamedClusterDialog.newCluster" ) );
-    setDescription( BaseMessages.getString( PKG, "NamedClusterDialog.title" ) );
   }
 
   public void createControl( Composite composite ) {
@@ -132,6 +132,10 @@ public class SecuritySettingsPage extends WizardPage {
   }
 
   public void initialize( ThinNameClusterModel model ) {
+    setDescription( ( (NamedClusterDialog) getWizard() ).isEditMode() ?
+      BaseMessages.getString( PKG, "NamedClusterDialog.editCluster.title" ) :
+      BaseMessages.getString( PKG, "NamedClusterDialog.newCluster.title" ) );
+
     thinNameClusterModel = model;
     noneButton.setSelection( model.getSecurityType().equals( "None" ) );
     kerberosButton.setSelection( model.getSecurityType().equals( "Kerberos" ) );
