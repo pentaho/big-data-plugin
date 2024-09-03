@@ -462,6 +462,7 @@ public class ClusterSettingsPage extends WizardPage {
   private void displayShimVersions( boolean validate ) {
     shimVersionCombo.setItems( getVersionsForVendor( shimVendorCombo.getText() ) );
     if ( validate ) {
+      shimVersionCombo.select( 0 );
       validate();
     }
   }

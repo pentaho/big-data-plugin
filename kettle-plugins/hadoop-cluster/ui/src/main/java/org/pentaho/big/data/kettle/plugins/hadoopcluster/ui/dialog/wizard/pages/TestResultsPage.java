@@ -41,6 +41,7 @@ import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.util.HelpUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.ONE_COLUMN;
@@ -116,12 +117,34 @@ public class TestResultsPage extends WizardPage {
     initialize( thinNameClusterModel );
   }
 
+  private List<TestCategory> setTestResultsOrder( Object[] categories ) {
+    List<TestCategory> testCategories = new ArrayList<>();
+    String[] categoryNames = { "Hadoop", "Zookeeper", "Job", "Oozie", "Kafka" };
+    for ( String categoryName : categoryNames ) {
+      TestCategory category = getTestCategory( categoryName, categories );
+      if ( category != null ) {
+        testCategories.add( category );
+      }
+    }
+    return testCategories;
+  }
+
+  private TestCategory getTestCategory( String categoryName, Object[] categories ) {
+    TestCategory testCategory = null;
+    for ( Object category : categories ) {
+      if ( ( (TestCategory) category ).getCategoryName().startsWith( categoryName ) ) {
+        testCategory = (TestCategory) category;
+      }
+    }
+    return testCategory;
+  }
+
   public void setTestResults( Object[] categories ) {
     for ( ExpandItem item : testResultsExpandBar.getItems() ) {
       item.dispose();
     }
-    for ( Object category : categories ) {
-      TestCategory testCategory = (TestCategory) category;
+    List<TestCategory> testCategories = setTestResultsOrder( categories );
+    for ( TestCategory testCategory : testCategories ) {
       ExpandItem categoryItem = new ExpandItem( testResultsExpandBar, SWT.NONE, 0 );
       categoryItem.setText( testCategory.getCategoryName() );
       if ( testCategory.getCategoryStatus().equals( FAIL ) ) {
