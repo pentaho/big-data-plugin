@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumReader;
@@ -596,8 +597,9 @@ public class AvroInputTest {
     }
   }
 
-  @Test
-  public void testDecodeUsingSchemaInIncomingFieldTwoDifferentSchemasDontComplainAboutMissingField()
+  // PPP-5046 -  Higher versions of avro throws exception when schema field is empty [GenericData#get(String key)].
+  @Test( expected = AvroRuntimeException.class )
+  public void testDecodeUsingSchemaInIncomingFieldTwoDifferentSchemasDoComplainAboutMissingField()
     throws KettleException {
     Schema.Parser parser = new Schema.Parser();
     Schema defaultSchema = parser.parse( s_schemaTopLevelRecord );
