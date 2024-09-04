@@ -35,6 +35,7 @@ import org.eclipse.swt.widgets.Label;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.Test;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.TestCategory;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
+import org.pentaho.di.core.Const;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.PropsUI;
@@ -119,7 +120,20 @@ public class TestResultsPage extends WizardPage {
 
   private List<TestCategory> setTestResultsOrder( Object[] categories ) {
     List<TestCategory> testCategories = new ArrayList<>();
-    String[] categoryNames = { "Hadoop", "Zookeeper", "Job", "Oozie", "Kafka" };
+    String[] categoryNames = new String[ 5 ];
+    if ( Const.isWindows() ) {
+      categoryNames[ 0 ] = "Kafka";
+      categoryNames[ 1 ] = "Oozie";
+      categoryNames[ 2 ] = "Job";
+      categoryNames[ 3 ] = "Zookeeper";
+      categoryNames[ 4 ] = "Hadoop";
+    } else {
+      categoryNames[ 0 ] = "Hadoop";
+      categoryNames[ 1 ] = "Zookeeper";
+      categoryNames[ 2 ] = "Job";
+      categoryNames[ 3 ] = "Oozie";
+      categoryNames[ 4 ] = "Kafka";
+    }
     for ( String categoryName : categoryNames ) {
       TestCategory category = getTestCategory( categoryName, categories );
       if ( category != null ) {

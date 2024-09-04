@@ -379,6 +379,11 @@ public class KerberosSettingsPage extends WizardPage {
       BaseMessages.getString( PKG, "NamedClusterDialog.editCluster.title" ) :
       BaseMessages.getString( PKG, "NamedClusterDialog.newCluster.title" ) );
 
+    if ( isConnectedToRepo() ) {
+      setDescription(
+        getDescription() + " " + BaseMessages.getString( PKG, "NamedClusterDialog.repositoryNotification" ) );
+    }
+
     thinNameClusterModel = model;
     securityMethodCombo.setText( model.getKerberosSubType() );
     if ( securityMethodCombo.getText().equals( password ) ) {

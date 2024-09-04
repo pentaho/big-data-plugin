@@ -196,10 +196,31 @@ public class ReportPage extends WizardPage {
     setTestResult( status );
   }
 
+  // FOR DEV MODE ONLY
+  private boolean isDevMode() {
+    NamedClusterDialog namedClusterDialog = (NamedClusterDialog) getWizard();
+    return namedClusterDialog.isDevMode();
+  }
+  // FOR DEV MODE ONLY
+
+  private boolean isConnectedToRepo() {
+    NamedClusterDialog namedClusterDialog = (NamedClusterDialog) getWizard();
+    boolean isConnectedToRepo = namedClusterDialog.isConnectedToRepo();
+    if ( isDevMode() ) {
+      isConnectedToRepo = true;
+    }
+    return isConnectedToRepo;
+  }
+
   public void initialize( ThinNameClusterModel model ) {
     setDescription( ( (NamedClusterDialog) getWizard() ).isEditMode() ?
       BaseMessages.getString( PKG, "NamedClusterDialog.editCluster.title" ) :
       BaseMessages.getString( PKG, "NamedClusterDialog.newCluster.title" ) );
+
+    if ( isConnectedToRepo() ) {
+      setDescription(
+        getDescription() + " " + BaseMessages.getString( PKG, "NamedClusterDialog.repositoryNotification" ) );
+    }
 
     thinNameClusterModel = model;
   }
