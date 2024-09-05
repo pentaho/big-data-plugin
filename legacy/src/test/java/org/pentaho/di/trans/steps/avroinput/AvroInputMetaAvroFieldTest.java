@@ -22,12 +22,12 @@
 
 package org.pentaho.di.trans.steps.avroinput;
 
+import com.fasterxml.jackson.databind.node.IntNode;
+import com.fasterxml.jackson.databind.node.LongNode;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.util.Utf8;
-import org.codehaus.jackson.node.IntNode;
-import org.codehaus.jackson.node.LongNode;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
