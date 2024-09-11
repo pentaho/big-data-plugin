@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -1640,7 +1640,8 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
       if ( !StringUtils.isEmpty( filename ) && filename.startsWith( "s3://" ) ) {
         defaultFileObject = "s3://";
       }
-      FileObject defaultInitialFile = KettleVFS.getFileObject( defaultFileObject );
+      FileObject defaultInitialFile = KettleVFS.getInstance( transMeta.getBowl() )
+        .getFileObject( defaultFileObject );
 
       VfsFileChooserDialog fileChooserDialog =
         Spoon.getInstance().getVfsFileChooserDialog( defaultInitialFile, null );

@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019-2021 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,6 +25,7 @@ package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input;
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.kettle.plugins.formats.parquet.input.ParquetInputField;
 import org.pentaho.big.data.kettle.plugins.formats.parquet.input.ParquetInputMetaBase;
+import org.pentaho.di.core.bowl.Bowl;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.util.StringUtil;
@@ -60,10 +61,11 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
   }
 
   public static List<? extends IParquetInputField> retrieveSchema(
-    NamedClusterServiceLocator namedClusterServiceLocator, NamedCluster namedCluster, String path ) throws Exception {
+    Bowl bowl, NamedClusterServiceLocator namedClusterServiceLocator, NamedCluster namedCluster, String path )
+    throws Exception {
     FormatService formatService = namedClusterServiceLocator.getService( namedCluster, FormatService.class );
     IPentahoParquetInputFormat in = formatService.createInputFormat( IPentahoParquetInputFormat.class, namedCluster );
-    FileObject inputFileObject = KettleVFS.getFileObject( path );
+    FileObject inputFileObject = KettleVFS.getInstance( bowl ).getFileObject( path );
     if ( AliasedFileObject.isAliasedFile( inputFileObject ) ) {
       path = ( (AliasedFileObject) inputFileObject ).getOriginalURIString();
     }
@@ -128,7 +130,8 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
     int i = 0;
     for ( String file : meta.inputFiles.fileName ) {
       resolvedInputFileNames[ i ] = StringUtil.toUri( environmentSubstitute( file ) ).toString();
-      FileObject inputFileObject = KettleVFS.getFileObject( resolvedInputFileNames[ i ], getTransMeta() );
+      FileObject inputFileObject = KettleVFS.getInstance( getTransMeta().getBowl() )
+        .getFileObject( resolvedInputFileNames[ i ], getTransMeta() );
       if ( AliasedFileObject.isAliasedFile( inputFileObject ) ) {
         resolvedInputFileNames[ i ] = ( (AliasedFileObject) inputFileObject ).getOriginalURIString();
       }
@@ -140,8 +143,8 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
     // formatType to the formatType retrieved from the schema.
     List<? extends IParquetInputField>
       actualFileFields =
-      ParquetInput.retrieveSchema( meta.getNamedClusterResolver().getNamedClusterServiceLocator(), getNamedCluster(),
-        resolvedInputFileNames[ 0 ] );
+      ParquetInput.retrieveSchema( getTransMeta().getBowl(),
+        meta.getNamedClusterResolver().getNamedClusterServiceLocator(), getNamedCluster(), resolvedInputFileNames[ 0 ] );
 
     if ( meta.isIgnoreEmptyFolder() && ( actualFileFields.isEmpty() ) ) {
       data.splits = new ArrayList<>();

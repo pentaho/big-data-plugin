@@ -26,6 +26,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.di.core.RowSet;
+import org.pentaho.di.core.bowl.Bowl;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.logging.LoggingObjectInterface;
@@ -87,7 +88,8 @@ public class HadoopExitTest {
     assertFalse( hadoopExit
       .processRow( stepMockHelper.processRowsStepMetaInterface, stepMockHelper.processRowsStepDataInterface ) );
     verify( stepMockHelper.processRowsStepDataInterface )
-      .init( any( RowMetaInterface.class ), eq( stepMockHelper.processRowsStepMetaInterface ), eq( hadoopExit ) );
+      .init( any( Bowl.class), any( RowMetaInterface.class ), eq( stepMockHelper.processRowsStepMetaInterface ),
+             eq( hadoopExit ) );
     verify( outputRowSet ).putRow( eq( rowMetaInterface ), aryEq( row1 ) );
     verify( outputRowSet ).putRow( eq( rowMetaInterface ), aryEq( row2 ) );
   }

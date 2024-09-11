@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2020-2023 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2020-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -31,6 +31,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
+import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.KettleLogStore;
@@ -135,6 +136,7 @@ public class ParquetInputTest {
       parquetInputMeta.setParentStepMeta( mockStepMeta );
       when( mockStepMeta.getName() ).thenReturn( INPUT_STEP_NAME );
       when( mockTransMeta.findStep( INPUT_STEP_NAME ) ).thenReturn( mockStepMeta );
+      when( mockTransMeta.getBowl() ).thenReturn( DefaultBowl.getInstance() );
 
       parquetInputData.input = mockPentahoParquetInputFormat;
       when( mockFormatService.createInputFormat( IPentahoParquetInputFormat.class,
@@ -154,6 +156,7 @@ public class ParquetInputTest {
       parquetInput.setRowHandler( mockRowHandler );
       parquetInput.setInputRowMeta( inputRowMeta );
       parquetInput.setLogLevel( LogLevel.ERROR );
+      parquetInput.setTransMeta( mockTransMeta );
     }
   }
 

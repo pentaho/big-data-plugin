@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -948,11 +948,13 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
 
     FileObject initialFile = null;
 
+    // only used for UI
+    Spoon spoon = Spoon.getInstance();
     if ( path != null ) {
       String fileName = jobEntry.environmentSubstitute( path );
       if ( fileName != null && !fileName.equals( "" ) ) {
         try {
-          initialFile = KettleVFS.getFileObject( fileName );
+          initialFile = KettleVFS.getInstance( spoon.getExecutionBowl() ).getFileObject( fileName );
           if ( namedCluster.isMapr() ) {
             if ( !initialFile.getName().getScheme().startsWith( Schemes.MAPRFS_SCHEME ) ) {
               return null;

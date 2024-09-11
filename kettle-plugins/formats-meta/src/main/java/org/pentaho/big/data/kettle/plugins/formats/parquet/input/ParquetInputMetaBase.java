@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2018-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -24,6 +24,7 @@ package org.pentaho.big.data.kettle.plugins.formats.parquet.input;
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputFile;
 import org.pentaho.big.data.kettle.plugins.formats.parquet.ParquetTypeConverter;
+import org.pentaho.di.core.bowl.Bowl;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
@@ -327,13 +328,13 @@ public abstract class ParquetInputMetaBase extends
   }
 
   @Override
-  public void resolve() {
+  public void resolve( Bowl bowl ) {
     if ( inputFiles != null && inputFiles.fileName != null ) {
       for ( int i = 0; i < inputFiles.fileName.length; i++ ) {
         try {
           String realFileName =
             getParentStepMeta().getParentTransMeta().environmentSubstitute( inputFiles.fileName[ i ] );
-          FileObject fileObject = KettleVFS.getFileObject( realFileName );
+          FileObject fileObject = KettleVFS.getInstance( bowl ).getFileObject( realFileName );
           if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
             inputFiles.fileName[ i ] = ( (AliasedFileObject) fileObject ).getAELSafeURIString();
           }
@@ -345,7 +346,7 @@ public abstract class ParquetInputMetaBase extends
   }
 
   @Override
-  public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
+  public void getFields( Bowl bowl, RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
                          VariableSpace space, Repository repository, IMetaStore metaStore ) throws
     KettleStepException {
     try {

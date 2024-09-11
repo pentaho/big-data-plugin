@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -26,6 +26,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.pentaho.big.data.kettle.plugins.mapreduce.step.exit.HadoopExitMeta;
+import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
@@ -45,7 +46,7 @@ public class HadoopExitMetaTest {
     rowMeta.addValueMeta( valueMeta0 );
     rowMeta.addValueMeta( valueMeta1 );
 
-    meta.getFields( rowMeta, null, null, null, null );
+    meta.getFields( DefaultBowl.getInstance(), rowMeta, null, null, null, null );
 
     assertEquals( 2, rowMeta.getValueMetaList().size() );
     ValueMetaInterface vmi = rowMeta.getValueMeta( 0 );
@@ -67,7 +68,7 @@ public class HadoopExitMetaTest {
     rowMeta.addValueMeta( valueMeta1 );
 
     try {
-      meta.getFields( rowMeta, null, null, null, null );
+      meta.getFields( DefaultBowl.getInstance(), rowMeta, null, null, null, null );
       fail( "expected exception" );
     } catch ( Exception ex ) {
       assertEquals(
@@ -96,7 +97,7 @@ public class HadoopExitMetaTest {
     rowMeta.addValueMeta( valueMeta1 );
 
     try {
-      meta.getFields( rowMeta, null, null, null, null );
+      meta.getFields( DefaultBowl.getInstance(), rowMeta, null, null, null, null );
       fail( "expected exception" );
     } catch ( Exception ex ) {
       assertEquals(

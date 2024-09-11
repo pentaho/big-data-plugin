@@ -93,9 +93,10 @@ public abstract class AbstractAmazonJobExecutor extends AbstractAmazonJobEntry {
   public void setupLogFile() {
     String logFileName = "pdi-" + this.getName();
     try {
-      file = KettleVFS.createTempFile( logFileName, ".log", System.getProperty( "java.io.tmpdir" ) );
+      file = KettleVFS.getInstance( parentJobMeta.getBowl() )
+        .createTempFile( logFileName, ".log", System.getProperty( "java.io.tmpdir" ) );
       appender =  LogUtil.makeAppender( logFileName,
-              new OutputStreamWriter( KettleVFS.getOutputStream( file, true ),
+              new OutputStreamWriter( KettleVFS.getInstance( parentJobMeta.getBowl() ).getOutputStream( file, true ),
                 StandardCharsets.UTF_8 ), new Log4jKettleLayout( StandardCharsets.UTF_8, true ) );
       LogUtil.addAppender( appender, LogManager.getLogger( "org.pentaho.di.job.Job" ), getLog4jLevel( parentJob.getLogLevel() ) );
     } catch ( Exception e ) {
@@ -120,7 +121,8 @@ public abstract class AbstractAmazonJobExecutor extends AbstractAmazonJobEntry {
     FileSystemOptions opts = new FileSystemOptions();
     DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts,
       new StaticUserAuthenticator( null, getAWSAccessKeyId(), getAWSSecretKey() ) );
-    FileObject stagingDirFileObject = KettleVFS.getFileObject( stagingDir, getVariables(), opts );
+    FileObject stagingDirFileObject = KettleVFS.getInstance( parentJobMeta.getBowl() )
+      .getFileObject( stagingDir, getVariables(), opts );
 
     return stagingDirFileObject.getName().getPath();
   }
@@ -206,7 +208,7 @@ public abstract class AbstractAmazonJobExecutor extends AbstractAmazonJobEntry {
   @Override
   public Result execute( Result result, int arg1 ) throws KettleException {
 
-    setupLogFile();
+    setupLogFile(  );
 
     try {
       initAmazonClients();

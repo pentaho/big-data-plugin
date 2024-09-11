@@ -26,6 +26,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.exception.KettleStepException;
@@ -201,8 +202,8 @@ public class AvroInputMetaTest {
     avroField.m_indexedVals = new ArrayList<>( Arrays.asList( abc ) );
     avroInputMeta.setAvroFields( new ArrayList<>( Arrays.asList( avroField ) ) );
     RowMetaInterface rowMeta = mock( RowMetaInterface.class );
-    avroInputMeta.getFields( rowMeta, testOrigin, new RowMetaInterface[ 0 ], mock( StepMeta.class ),
-      mock( VariableSpace.class ) );
+    avroInputMeta.getFields( DefaultBowl.getInstance(), rowMeta, testOrigin, new RowMetaInterface[ 0 ],
+      mock( StepMeta.class ), mock( VariableSpace.class ) );
     ArgumentCaptor<ValueMetaInterface> valueMetaInterfaceArgumentCaptor = ArgumentCaptor.forClass( ValueMetaInterface.class );
     verify( rowMeta ).addValueMeta( valueMetaInterfaceArgumentCaptor.capture() );
     ValueMetaInterface valueMetaInterface = valueMetaInterfaceArgumentCaptor.getValue();

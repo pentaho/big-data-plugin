@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -527,17 +527,19 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     dialog.setFilterNames( Const.getTransformationFilterNames() );
     String prevName = jobEntry.environmentSubstitute( originalTransformationName );
     String parentFolder = null;
+    Spoon spoon = Spoon.getInstance();
     try {
       parentFolder =
-          KettleVFS.getFilename( KettleVFS.getFileObject( jobEntry.environmentSubstitute( jobEntry.getFilename() ) )
-              .getParent() );
+          KettleVFS.getFilename( KettleVFS.getInstance( spoon.getExecutionBowl() )
+              .getFileObject( jobEntry.environmentSubstitute( jobEntry.getFilename() ) ).getParent() );
     } catch ( Exception e ) {
       // not that important
     }
     if ( !StringUtils.isEmpty( prevName ) ) {
       try {
-        if ( KettleVFS.fileExists( prevName ) ) {
-          dialog.setFilterPath( KettleVFS.getFilename( KettleVFS.getFileObject( prevName ).getParent() ) );
+        if ( KettleVFS.getInstance( spoon.getExecutionBowl() ).fileExists( prevName ) ) {
+          dialog.setFilterPath( KettleVFS.getFilename( KettleVFS.getInstance( spoon.getExecutionBowl() )
+              .getFileObject( prevName ).getParent() ) );
         } else {
 
           if ( !prevName.endsWith( ".ktr" ) ) {
@@ -545,7 +547,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
                 "${" + Const.INTERNAL_VARIABLE_JOB_FILENAME_DIRECTORY + "}/" + Const.trim( originalTransformationName )
                     + ".ktr";
           }
-          if ( KettleVFS.fileExists( prevName ) ) {
+          if ( KettleVFS.getInstance( spoon.getExecutionBowl() ).fileExists( prevName ) ) {
             setter.set( prevName );
             return;
           }

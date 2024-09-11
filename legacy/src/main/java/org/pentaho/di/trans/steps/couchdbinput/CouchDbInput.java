@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -94,7 +94,8 @@ public class CouchDbInput extends BaseStep implements StepInterface {
         first = false;
 
         data.outputRowMeta = new RowMeta();
-        meta.getFields( data.outputRowMeta, getStepname(), null, null, this, repository, metaStore );
+        meta.getFields( getTransMeta().getBowl(), data.outputRowMeta, getStepname(), null, null, this, repository,
+                        metaStore );
 
         // Skip over first introduction row containing the number of results...
         //

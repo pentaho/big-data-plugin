@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2018-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -725,13 +725,13 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
   @Override
   public void check( List<CheckResultInterface> remarks, JobMeta jobMeta, VariableSpace space, Repository repository,
                      IMetaStore metaStore ) {
-    andValidator().validate( this, "scriptPath", remarks, putValidators( notBlankValidator() ) );
-    andValidator().validate( this, "scriptPath", remarks, putValidators( fileExistsValidator() ) );
-    andValidator().validate( this, "master", remarks, putValidators( notBlankValidator() ) );
+    andValidator().validate( jobMeta.getBowl(), this, "scriptPath", remarks, putValidators( notBlankValidator() ) );
+    andValidator().validate( jobMeta.getBowl(), this, "scriptPath", remarks, putValidators( fileExistsValidator() ) );
+    andValidator().validate( jobMeta.getBowl(), this, "master", remarks, putValidators( notBlankValidator() ) );
     if ( JOB_TYPE_JAVA_SCALA.equals( getJobType() ) ) {
-      andValidator().validate( this, "jar", remarks, putValidators( notBlankValidator() ) );
+      andValidator().validate( jobMeta.getBowl(), this, "jar", remarks, putValidators( notBlankValidator() ) );
     } else {
-      andValidator().validate( this, "pyFile", remarks, putValidators( notBlankValidator() ) );
+      andValidator().validate( jobMeta.getBowl(), this, "pyFile", remarks, putValidators( notBlankValidator() ) );
     }
   }
 
@@ -788,7 +788,7 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
   private String resolvePath( String path ) {
     if ( path != null && !path.isEmpty() ) {
       try {
-        FileObject fileObject = KettleVFS.getFileObject( path );
+        FileObject fileObject = KettleVFS.getInstance( parentJobMeta.getBowl() ).getFileObject( path );
         if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
           return  ( (AliasedFileObject) fileObject ).getAELSafeURIString();
         }

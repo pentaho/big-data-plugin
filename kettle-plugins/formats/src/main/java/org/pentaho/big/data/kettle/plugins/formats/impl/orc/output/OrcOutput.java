@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -128,8 +128,8 @@ public class OrcOutput extends BaseStep implements StepInterface {
     data.output = formatService.createOutputFormat( IPentahoOrcOutputFormat.class, getNamedCluster() );
 
     String outputFileName = environmentSubstitute( meta.constructOutputFilename() );
-    pvfsFileAliaser = new PvfsFileAliaser( outputFileName, getTransMeta(), data.output, meta.isOverrideOutput(),
-      getLogChannel() );
+    pvfsFileAliaser = new PvfsFileAliaser( getTransMeta().getBowl(), outputFileName, getTransMeta(), data.output,
+      meta.isOverrideOutput(), getLogChannel() );
 
     data.output.setOutputFile( pvfsFileAliaser.generateAlias(), meta.isOverrideOutput() );
     data.output.setFields( meta.getOutputFields() );

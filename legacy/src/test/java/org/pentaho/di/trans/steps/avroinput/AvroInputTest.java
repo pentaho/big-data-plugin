@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -42,6 +42,7 @@ import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.util.Utf8;
 import org.junit.Test;
+import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.row.RowMeta;
@@ -360,7 +361,7 @@ public class AvroInputTest {
       incomingKettleRow[0] = row;
       incomingKettleRow[1] = s_schemaTopLevelRecord;
 
-      Object[][] result = data.avroObjectToKettle( incomingKettleRow, space );
+      Object[][] result = data.avroObjectToKettle( DefaultBowl.getInstance(), incomingKettleRow, space );
       assertTrue( result != null );
       assertTrue( result.length == 1 ); // one output row
       assertEquals( result[0][2].toString(), expectedNames[count] );
@@ -432,7 +433,7 @@ public class AvroInputTest {
     incomingKettleRow[1] = s_schemaTopLevelRecord2;
 
     try {
-      Object[][] result = data.avroObjectToKettle( incomingKettleRow, space );
+      Object[][] result = data.avroObjectToKettle( DefaultBowl.getInstance(), incomingKettleRow, space );
       fail( "Was expecting an exception as the schema supplied is incompatible with the data" );
     } catch ( Exception ex ) {
       //expected
@@ -503,7 +504,7 @@ public class AvroInputTest {
       incomingKettleRow[0] = row;
       incomingKettleRow[1] = s_schemaTopLevelRecord;
 
-      Object[][] result = data.avroObjectToKettle( incomingKettleRow, space );
+      Object[][] result = data.avroObjectToKettle( DefaultBowl.getInstance(), incomingKettleRow, space );
       assertTrue( result != null );
       assertTrue( result.length == 1 ); // one output row
       assertEquals( result[0][2].toString(), expectedNames[count] );
@@ -589,7 +590,7 @@ public class AvroInputTest {
       incomingKettleRow[0] = row;
       incomingKettleRow[1] = schema;
 
-      Object[][] result = data.avroObjectToKettle( incomingKettleRow, space );
+      Object[][] result = data.avroObjectToKettle( DefaultBowl.getInstance(), incomingKettleRow, space );
       assertTrue( result != null );
       assertTrue( result.length == 1 ); // one output row
       assertEquals( result[0][2].toString(), expectedNames[i] );
@@ -683,7 +684,7 @@ public class AvroInputTest {
       incomingKettleRow[0] = row;
       incomingKettleRow[1] = schema;
 
-      Object[][] result = data.avroObjectToKettle( incomingKettleRow, space );
+      Object[][] result = data.avroObjectToKettle( DefaultBowl.getInstance(), incomingKettleRow, space );
       assertTrue( result != null );
       assertTrue( result.length == 1 ); // one output row
       assertEquals( result[0][2].toString(), expectedNames[i] );
@@ -768,7 +769,7 @@ public class AvroInputTest {
         incomingKettleRow[1] = s_schemaTopLevelRecord;
       }
 
-      Object[][] result = data.avroObjectToKettle( incomingKettleRow, space );
+      Object[][] result = data.avroObjectToKettle( DefaultBowl.getInstance(), incomingKettleRow, space );
       assertTrue( result != null );
       assertTrue( result.length == 1 ); // one output row
       assertEquals( result[0][2].toString(), expectedNames[count] );
@@ -833,7 +834,7 @@ public class AvroInputTest {
     data.m_outputRowMeta = outputMeta;
     data.init();
 
-    Object[][] result = data.avroObjectToKettle( incomingKettleRow, space );
+    Object[][] result = data.avroObjectToKettle( DefaultBowl.getInstance(), incomingKettleRow, space );
 
     assertTrue( result != null );
     assertTrue( result.length == 1 ); // one output row

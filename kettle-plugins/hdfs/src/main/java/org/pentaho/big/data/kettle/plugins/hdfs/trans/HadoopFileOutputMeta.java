@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -26,6 +26,7 @@ import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
+import org.pentaho.di.core.bowl.Bowl;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -185,7 +186,7 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta implements HadoopFi
   }
 
   @Override
-  public String exportResources( VariableSpace space, Map<String, org.pentaho.di.resource.ResourceDefinition>
+  public String exportResources( Bowl bowl, VariableSpace space, Map<String, org.pentaho.di.resource.ResourceDefinition>
           definitions, ResourceNamingInterface resourceNamingInterface, Repository repository, IMetaStore metaStore )
           throws KettleException {
     return null;

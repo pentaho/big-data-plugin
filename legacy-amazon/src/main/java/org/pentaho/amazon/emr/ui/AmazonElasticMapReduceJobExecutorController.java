@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.Text;
 import org.pentaho.amazon.AbstractAmazonJobEntry;
 import org.pentaho.amazon.AbstractAmazonJobExecutorController;
 import org.pentaho.amazon.emr.job.AmazonElasticMapReduceJobExecutor;
+import org.pentaho.di.core.bowl.Bowl;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.i18n.BaseMessages;
@@ -82,8 +83,8 @@ public class AmazonElasticMapReduceJobExecutorController extends AbstractAmazonJ
   }
 
   @Override
-  protected void syncModel() {
-    super.syncModel();
+  protected void syncModel( Bowl bowl ) {
+    super.syncModel( bowl );
     ExtTextbox tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_JAR_URL );
     this.jarUrl = ( (Text) tempBox.getTextControl() ).getText();
   }

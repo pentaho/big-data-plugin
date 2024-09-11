@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2020-2022 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2020-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.hadoop.shim.api.format.IPvfsAliasGenerator;
@@ -68,7 +69,8 @@ public class PvfsFileAliaserTest {
     new File( temporaryPath )
       .createNewFile();  //create the alias file so it and it's parent can be successfully deleted
     when( aliasGenerator.generateAlias( anyString() ) ).thenReturn( temporaryPath );
-    pvfsFileAliaser = new PvfsFileAliaser( finalPath, variableSpace, aliasGenerator, true, log );
+    pvfsFileAliaser = new PvfsFileAliaser( DefaultBowl.getInstance(), finalPath, variableSpace, aliasGenerator, true,
+      log );
   }
 
   @Test

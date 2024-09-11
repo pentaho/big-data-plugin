@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -126,7 +126,7 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobExecutor
   @Override
   public File createStagingFile() throws IOException, KettleException {
     // pull down .jar file from VSF
-    FileObject jarFile = KettleVFS.getFileObject( buildFilename( jarUrl ) );
+    FileObject jarFile = KettleVFS.getInstance( parentJobMeta.getBowl() ).getFileObject( buildFilename( jarUrl ) );
     File tmpFile = File.createTempFile( "customEMR", "jar" );
     tmpFile.deleteOnExit();
     FileOutputStream tmpFileOut = new FileOutputStream( tmpFile );

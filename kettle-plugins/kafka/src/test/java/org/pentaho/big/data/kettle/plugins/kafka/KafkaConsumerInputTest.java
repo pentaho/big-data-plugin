@@ -39,6 +39,7 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.verification.VerificationMode;
+import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.Props;
@@ -348,7 +349,7 @@ public class KafkaConsumerInputTest {
   @Test
   public void testRunsSubtransWhenPresent() throws Exception {
     String path = getClass().getResource( "/consumerParent.ktr" ).getPath();
-    TransMeta consumerParent = new TransMeta( path, new Variables() );
+    TransMeta consumerParent = new TransMeta( DefaultBowl.getInstance(), path, new Variables() );
     Trans trans = new Trans( consumerParent );
     KafkaConsumerInputMeta kafkaMeta =
             (KafkaConsumerInputMeta) consumerParent.getStep( 0 ).getStepMetaInterface();
@@ -394,7 +395,7 @@ public class KafkaConsumerInputTest {
   @Test
   public void testExecutesWhenDurationIsReached() throws Exception {
     String path = getClass().getResource( "/consumerParent.ktr" ).getPath();
-    TransMeta consumerParent = new TransMeta( path, new Variables() );
+    TransMeta consumerParent = new TransMeta( DefaultBowl.getInstance(), path, new Variables() );
     Trans trans = new Trans( consumerParent );
     KafkaConsumerInputMeta kafkaMeta =
             (KafkaConsumerInputMeta) consumerParent.getStep( 0 ).getStepMetaInterface();
@@ -427,7 +428,7 @@ public class KafkaConsumerInputTest {
   @Test
   public void testStopsPollingWhenPaused() throws Exception {
     String path = getClass().getResource( "/consumerParent.ktr" ).getPath();
-    TransMeta consumerParent = new TransMeta( path, new Variables() );
+    TransMeta consumerParent = new TransMeta( DefaultBowl.getInstance(), path, new Variables() );
     Trans trans = new Trans( consumerParent );
     KafkaConsumerInputMeta kafkaMeta =
             (KafkaConsumerInputMeta) consumerParent.getStep( 0 ).getStepMetaInterface();
@@ -477,7 +478,7 @@ public class KafkaConsumerInputTest {
   @Test
   public void testParentAbortsWithChild() throws Exception {
     String path = getClass().getResource( "/abortParent.ktr" ).getPath();
-    TransMeta consumerParent = new TransMeta( path, new Variables() );
+    TransMeta consumerParent = new TransMeta( DefaultBowl.getInstance(), path, new Variables() );
     Trans trans = new Trans( consumerParent );
     KafkaConsumerInputMeta kafkaMeta =
             (KafkaConsumerInputMeta) consumerParent.getStep( 0 ).getStepMetaInterface();
@@ -515,7 +516,7 @@ public class KafkaConsumerInputTest {
   @Test
   public void testSubTransStatuses() throws Exception {
     String path = getClass().getResource( "/consumerParent.ktr" ).getPath();
-    TransMeta consumerParent = new TransMeta( path, new Variables() );
+    TransMeta consumerParent = new TransMeta( DefaultBowl.getInstance(), path, new Variables() );
     Trans trans = new Trans( consumerParent );
     KafkaConsumerInputMeta kafkaMeta =
             (KafkaConsumerInputMeta) consumerParent.getStep( 0 ).getStepMetaInterface();

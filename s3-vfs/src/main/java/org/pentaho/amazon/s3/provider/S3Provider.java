@@ -43,6 +43,7 @@ import org.pentaho.di.connections.ConnectionDetails;
 import org.pentaho.di.connections.ConnectionManager;
 import org.pentaho.di.connections.vfs.BaseVFSConnectionProvider;
 import org.pentaho.di.connections.vfs.VFSRoot;
+import org.pentaho.di.core.bowl.Bowl;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
@@ -206,7 +207,7 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
   }
 
   @Override
-  public FileObject getDirectFile( S3Details s3Conn, String path ) throws KettleFileException {
+  public FileObject getDirectFile( Bowl bowl, S3Details s3Conn, String path ) throws KettleFileException {
     if ( !S3FileProvider.SCHEME.equals( s3Conn.getType() ) ) {
       return null;
     }
@@ -218,7 +219,7 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
 
     String uri = S3FileProvider.SCHEME + "://" + path;
     // use an empty Variables to prevent other "connection" values from causing StackOverflowErrors
-    return KettleVFS.getFileObject(uri, new Variables(), fsopts);
+    return KettleVFS.getInstance( bowl ).getFileObject( uri, new Variables(), fsopts );
   }
 
   private AmazonS3 getAmazonS3( S3Details s3Details, VariableSpace space ) throws KettleException {

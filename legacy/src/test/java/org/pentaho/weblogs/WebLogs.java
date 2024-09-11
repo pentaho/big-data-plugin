@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -40,6 +40,7 @@ import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.Reducer;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.trans.TransConfiguration;
 import org.pentaho.di.trans.TransExecutionConfiguration;
 import org.pentaho.di.trans.TransMeta;
@@ -94,11 +95,11 @@ public class WebLogs extends Configured implements Tool {
 
     TransExecutionConfiguration transExecConfig = new TransExecutionConfiguration();
 
-    TransMeta mapperTransMeta = new TransMeta( "./samples/jobs/hadoop/weblogs-mapper.ktr" );
+    TransMeta mapperTransMeta = new TransMeta( DefaultBowl.getInstance(), "./samples/jobs/hadoop/weblogs-mapper.ktr" );
     TransConfiguration mapperTransConfig = new TransConfiguration( mapperTransMeta, transExecConfig );
     conf.set( "transformation-map-xml", mapperTransConfig.getXML() );
 
-    TransMeta reducerTransMeta = new TransMeta( "./samples/jobs/hadoop/weblogs-reducer.ktr" );
+    TransMeta reducerTransMeta = new TransMeta( DefaultBowl.getInstance(), "./samples/jobs/hadoop/weblogs-reducer.ktr" );
     TransConfiguration reducerTransConfig = new TransConfiguration( reducerTransMeta, transExecConfig );
     conf.set( "transformation-reduce-xml", reducerTransConfig.getXML() );
 

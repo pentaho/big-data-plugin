@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2020-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -24,6 +24,7 @@ package org.pentaho.big.data.kettle.plugins.formats.orc.output;
 
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.bowl.Bowl;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
@@ -320,11 +321,11 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
   }
 
   @Override
-  public void resolve() {
+  public void resolve( Bowl bowl ) {
     if ( filename != null && !filename.isEmpty() ) {
       try {
         String realFileName = getParentStepMeta().getParentTransMeta().environmentSubstitute( filename );
-        FileObject fileObject = KettleVFS.getFileObject( realFileName );
+        FileObject fileObject = KettleVFS.getInstance( bowl ).getFileObject( realFileName );
         if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
           filename = ( (AliasedFileObject) fileObject ).getAELSafeURIString();
         }

@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -185,7 +185,10 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
 
     FileObject root = rootFile;
     try {
-      root = KettleVFS.getFileObject( nc.processURLsubstitution( FileName.ROOT_PATH, Spoon.getInstance().getMetaStore(), getVariableSpace() ) );
+      Spoon spoon = Spoon.getInstance();
+      root = KettleVFS.getInstance( spoon.getExecutionBowl() )
+        .getFileObject( nc.processURLsubstitution( FileName.ROOT_PATH, Spoon.getInstance().getMetaStore(),
+           getVariableSpace() ) );
     } catch ( KettleFileException exc ) {
       showMessageAndLog( BaseMessages.getString( PKG, "HadoopVfsFileChooserDialog.error" ), BaseMessages.getString( PKG,
         "HadoopVfsFileChooserDialog.Connection.error" ), exc.getMessage() );
@@ -197,16 +200,19 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
   }
 
   public FileObject resolveFile( String fileUri ) throws FileSystemException {
+    Spoon spoon = Spoon.getInstance();
     try {
-      return KettleVFS.getFileObject( fileUri, getVariableSpace(), getFileSystemOptions() );
+      return KettleVFS.getInstance( spoon.getExecutionBowl() )
+        .getFileObject( fileUri, getVariableSpace(), getFileSystemOptions() );
     } catch ( KettleFileException e ) {
       throw new FileSystemException( e );
     }
   }
 
   public FileObject resolveFile( String fileUri, FileSystemOptions opts ) throws FileSystemException {
+    Spoon spoon = Spoon.getInstance();
     try {
-      return KettleVFS.getFileObject( fileUri, getVariableSpace(), opts );
+      return KettleVFS.getInstance( spoon.getExecutionBowl() ).getFileObject( fileUri, getVariableSpace(), opts );
     } catch ( KettleFileException e ) {
       throw new FileSystemException( e );
     }

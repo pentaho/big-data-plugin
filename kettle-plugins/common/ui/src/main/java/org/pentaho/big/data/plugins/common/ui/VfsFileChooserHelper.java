@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -101,11 +101,13 @@ public class VfsFileChooserHelper {
     // Get current file
     FileObject rootFile = null;
     FileObject initialFile = null;
+    Spoon spoon = Spoon.getInstance();
 
     if ( fileUri != null ) {
-      initialFile = KettleVFS.getFileObject( fileUri, variableSpace, opts );
+      initialFile = KettleVFS.getInstance( spoon.getExecutionBowl() ).getFileObject( fileUri, variableSpace, opts );
     } else {
-      initialFile = KettleVFS.getFileObject( Spoon.getInstance().getLastFileOpened() );
+      initialFile = KettleVFS.getInstance( spoon.getExecutionBowl() )
+        .getFileObject( Spoon.getInstance().getLastFileOpened() );
     }
     rootFile = initialFile.getFileSystem().getRoot();
     fileChooserDialog.setRootFile( rootFile );

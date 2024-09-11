@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -144,7 +144,8 @@ public class HBaseRowDecoder extends BaseStep implements StepInterface {
       }
 
       hBaseRowDecoderData.setOutputRowMeta( getInputRowMeta().clone() );
-      hBaseRowDecoderMeta.getFields( hBaseRowDecoderData.getOutputRowMeta(), getStepname(), null, null, this );
+      hBaseRowDecoderMeta.getFields( getTransMeta().getBowl(), hBaseRowDecoderData.getOutputRowMeta(), getStepname(),
+        null, null, this );
 
       // check types first
       RowMetaInterface inputMeta = getInputRowMeta();

@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -33,6 +33,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.wiring.BundleWiring;
+import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.plugins.LifecyclePluginType;
@@ -102,7 +103,8 @@ public class ShimBridgingClassloaderTest {
     String testName = "testName";
 
     String canonicalName = ValueMetaInteger.class.getCanonicalName();
-    FileObject myFile = KettleVFS.getFileObject( "ram://testCreateSuccessWithArgs" );
+    FileObject myFile = KettleVFS.getInstance( DefaultBowl.getInstance() )
+      .getFileObject( "ram://testCreateSuccessWithArgs" );
     try ( FileObject fileObject = myFile ) {
       try ( OutputStream outputStream = fileObject.getContent().getOutputStream( false ) ) {
         IOUtils.copy( getClass().getClassLoader().getResourceAsStream(
@@ -167,7 +169,8 @@ public class ShimBridgingClassloaderTest {
     String testName = "testName";
 
     String canonicalName = ValueMetaInteger.class.getCanonicalName();
-    FileObject myFile = KettleVFS.getFileObject( "ram://testCreateSuccessWithArgs" );
+    FileObject myFile = KettleVFS.getInstance( DefaultBowl.getInstance() )
+      .getFileObject( "ram://testCreateSuccessWithArgs" );
     try ( FileObject fileObject = myFile ) {
       try ( OutputStream outputStream = fileObject.getContent().getOutputStream( false ) ) {
         IOUtils.copy( getClass().getClassLoader().getResourceAsStream(
@@ -195,7 +198,8 @@ public class ShimBridgingClassloaderTest {
   @Test
   public void testFindClassSuccess() throws ClassNotFoundException, IOException, KettleFileException {
     String canonicalName = ShimBridgingClassloader.class.getCanonicalName();
-    FileObject myFile = KettleVFS.getFileObject( "ram://testFindClassSuccess" );
+    FileObject myFile = KettleVFS.getInstance( DefaultBowl.getInstance() )
+      .getFileObject( "ram://testFindClassSuccess" );
     try ( FileObject fileObject = myFile ) {
       try ( OutputStream outputStream = fileObject.getContent().getOutputStream( false ) ) {
         IOUtils.copy( getClass().getClassLoader().getResourceAsStream(
@@ -223,7 +227,7 @@ public class ShimBridgingClassloaderTest {
 
   @Test( expected = ClassNotFoundException.class )
   public void testFindFailReading() throws ClassNotFoundException, IOException, KettleFileException {
-    FileObject myFile = KettleVFS.getFileObject( "ram://testFindFailReading" );
+    FileObject myFile = KettleVFS.getInstance( DefaultBowl.getInstance() ).getFileObject( "ram://testFindFailReading" );
     try ( FileObject fileObject = myFile ) {
       when( bundleWiring.findEntries( "/" + ShimBridgingClassloader.class.getPackage().getName().replace( ".", "/" ),
         ShimBridgingClassloader.class.getSimpleName() + ".class", 0 ) )
@@ -308,7 +312,8 @@ public class ShimBridgingClassloaderTest {
   @Test
   public void testLoadClassFindClass() throws ClassNotFoundException, IOException, KettleFileException {
     String canonicalName = ShimBridgingClassloader.class.getCanonicalName();
-    FileObject myFile = KettleVFS.getFileObject( "ram://testLoadClassFindClass" );
+    FileObject myFile = KettleVFS.getInstance( DefaultBowl.getInstance() )
+      .getFileObject( "ram://testLoadClassFindClass" );
     try ( FileObject fileObject = myFile ) {
       try ( OutputStream outputStream = fileObject.getContent().getOutputStream( false ) ) {
         IOUtils.copy( getClass().getClassLoader().getResourceAsStream(

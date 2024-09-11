@@ -212,11 +212,6 @@ public class HadoopFileInputMeta extends TextFileInputMeta implements HadoopFile
   }
 
   @Override
-  public FileInputList getFileInputList( VariableSpace space ) {
-    return getFileInputList( getParentStepMeta().getParentTransMeta().getBowl(), space );
-  }
-
-  @Override
   public FileInputList getFileInputList( Bowl bowl, VariableSpace space ) {
     inputFiles.normalizeAllocation( inputFiles.fileName.length );
     for ( int i = 0; i < environment.length; i++ ) {

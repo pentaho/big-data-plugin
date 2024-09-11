@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -102,7 +102,7 @@ public class AvroInput extends BaseStep implements StepInterface {
 
       int newFieldOffset = outRowMeta.size();
       m_data.setOutputRowMeta( outRowMeta );
-      m_meta.getFields( m_data.getOutputRowMeta(), getStepname(), null, null, this );
+      m_meta.getFields( getTransMeta().getBowl(), m_data.getOutputRowMeta(), getStepname(), null, null, this );
 
       // initialize substitution fields
       if ( m_meta.getLookupFields() != null && m_meta.getLookupFields().size() > 0 && getInputRowMeta() != null
@@ -115,17 +115,17 @@ public class AvroInput extends BaseStep implements StepInterface {
       if ( m_meta.getAvroInField() ) {
         // initialize for reading from a field
         if ( getInputRowMeta() != null ) {
-          m_data.initializeFromFieldDecoding( avroFieldName, readerSchema, m_meta.getAvroFields(), m_meta
-              .getAvroIsJsonEncoded(), newFieldOffset, m_meta.getSchemaInField(), schemaFieldName, m_meta
-              .getSchemaInFieldIsPath(), m_meta.getCacheSchemasInMemory(), m_meta.getDontComplainAboutMissingFields(),
-              log );
+          m_data.initializeFromFieldDecoding( getTransMeta().getBowl(), avroFieldName, readerSchema,
+              m_meta.getAvroFields(), m_meta.getAvroIsJsonEncoded(), newFieldOffset, m_meta.getSchemaInField(),
+              schemaFieldName, m_meta.getSchemaInFieldIsPath(), m_meta.getCacheSchemasInMemory(),
+              m_meta.getDontComplainAboutMissingFields(), log );
         }
       } else {
         // initialize for reading from a file
-        FileObject fileObject = KettleVFS.getFileObject(
+        FileObject fileObject = KettleVFS.getInstance( getTransMeta().getBowl() ).getFileObject(
           environmentSubstitute( m_meta.getFilename() ), getTransMeta() );
-        m_data.establishFileType( fileObject, readerSchema, m_meta.getAvroFields(), m_meta.getAvroIsJsonEncoded(),
-            newFieldOffset, m_meta.getDontComplainAboutMissingFields(), log );
+        m_data.establishFileType( getTransMeta().getBowl(), fileObject, readerSchema, m_meta.getAvroFields(),
+          m_meta.getAvroIsJsonEncoded(), newFieldOffset, m_meta.getDontComplainAboutMissingFields(), log );
       }
     }
 
@@ -145,7 +145,7 @@ public class AvroInput extends BaseStep implements StepInterface {
     Object[][] outputRow = null;
     try {
       if ( !m_meta.getAvroInField() || getInputRowMeta() != null ) {
-        outputRow = m_data.avroObjectToKettle( currentInputRow, this );
+        outputRow = m_data.avroObjectToKettle( getTransMeta().getBowl(), currentInputRow, this );
       }
     } catch ( Exception ex ) {
       if ( getStepMeta().isDoingErrorHandling() ) {

@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -51,6 +51,7 @@ import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
 import org.pentaho.big.data.kettle.plugins.job.PropertyEntry;
+import org.pentaho.di.core.bowl.DefaultBowl;
 
 import org.pentaho.di.core.KettleEnvironment;
 
@@ -58,6 +59,7 @@ import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.job.entry.JobEntryCopy;
+import org.pentaho.di.job.JobMeta;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
@@ -161,7 +163,7 @@ public class OozieJobExecutorJobEntryTest {
   public void testGetProperties() throws Exception {
     OozieJobExecutorConfig config = new OozieJobExecutorConfig();
     config.setOozieWorkflowConfig( "src/test/resources/job.properties" );
-    Properties props = OozieJobExecutorJobEntry.getProperties( config, new Variables() );
+    Properties props = OozieJobExecutorJobEntry.getProperties( DefaultBowl.getInstance(), config, new Variables() );
 
     assertEquals( 6, props.size() );
   }
@@ -171,6 +173,7 @@ public class OozieJobExecutorJobEntryTest {
     OozieJobExecutorConfig config = new OozieJobExecutorConfig();
     config.setOozieWorkflowConfig( "${propertiesFile}" );
     OozieJobExecutorJobEntry je = new OozieJobExecutorJobEntry();
+    je.setParentJobMeta( new JobMeta() );
     je.setVariable( "propertiesFile", "src/test/resources/job.properties" );
 
     Properties props = je.getProperties( config );
@@ -191,7 +194,7 @@ public class OozieJobExecutorJobEntryTest {
     config.setMode( JobEntryMode.ADVANCED_LIST );
 
     // make sure our properties are the advanced ones, not read in from the workflow config file
-    Properties props = OozieJobExecutorJobEntry.getProperties( config, new Variables() );
+    Properties props = OozieJobExecutorJobEntry.getProperties( DefaultBowl.getInstance(), config, new Variables() );
 
     assertTrue( "Advanced properties were not used", props.containsKey( "prop1" ) );
     assertEquals( 3, props.size() );

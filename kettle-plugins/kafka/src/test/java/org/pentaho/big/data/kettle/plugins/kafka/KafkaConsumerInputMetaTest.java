@@ -82,6 +82,7 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.C
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.DIRECT_BOOTSTRAP_SERVERS;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.TOPIC;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.TRANSFORMATION_PATH;
+import org.pentaho.di.core.bowl.DefaultBowl;
 import static org.pentaho.di.trans.streaming.common.BaseStreamStepMeta.PARALLELISM;
 import static org.pentaho.di.trans.streaming.common.BaseStreamStepMeta.SUB_STEP;
 
@@ -575,7 +576,8 @@ public class KafkaConsumerInputMetaTest {
 
   @Test
   public void testCheckErrorsOnZeroSizeAndDuration() throws Exception {
-    TransMeta transMeta = new TransMeta( getClass().getResource( "/zeroBatchAndDuration.ktr" ).getPath() );
+    TransMeta transMeta = new TransMeta( DefaultBowl.getInstance(),
+      getClass().getResource( "/zeroBatchAndDuration.ktr" ).getPath() );
     ProgressMonitorListener monitor = mock( ProgressMonitorListener.class );
     List<CheckResultInterface> remarks = new ArrayList<>();
     transMeta.checkSteps( remarks, false, monitor, new Variables(), rep, metastore );
@@ -587,7 +589,8 @@ public class KafkaConsumerInputMetaTest {
 
   @Test
   public void testCheckErrorsOnNaN() throws Exception {
-    TransMeta transMeta = new TransMeta( getClass().getResource( "/batchAndDurationNaN.ktr" ).getPath() );
+    TransMeta transMeta = new TransMeta( DefaultBowl.getInstance(),
+      getClass().getResource( "/batchAndDurationNaN.ktr" ).getPath() );
     ProgressMonitorListener monitor = mock( ProgressMonitorListener.class );
     List<CheckResultInterface> remarks = new ArrayList<>();
     transMeta.checkSteps( remarks, false, monitor, new Variables(), rep, metastore );
@@ -602,7 +605,8 @@ public class KafkaConsumerInputMetaTest {
 
   @Test
   public void testCheckErrorsOnVariablesNoSubstitute() throws Exception {
-    TransMeta transMeta = new TransMeta( getClass().getResource( "/batchAndDurationVariable.ktr" ).getPath() );
+    TransMeta transMeta = new TransMeta( DefaultBowl.getInstance(),
+      getClass().getResource( "/batchAndDurationVariable.ktr" ).getPath() );
     ProgressMonitorListener monitor = mock( ProgressMonitorListener.class );
     List<CheckResultInterface> remarks = new ArrayList<>();
     Variables space = new Variables();
@@ -615,7 +619,8 @@ public class KafkaConsumerInputMetaTest {
 
   @Test
   public void testCheckErrorsOnVariablesSubstitute() throws Exception {
-    TransMeta transMeta = new TransMeta( getClass().getResource( "/batchAndDurationVariable.ktr" ).getPath() );
+    TransMeta transMeta = new TransMeta( DefaultBowl.getInstance(),
+      getClass().getResource( "/batchAndDurationVariable.ktr" ).getPath() );
     ProgressMonitorListener monitor = mock( ProgressMonitorListener.class );
     List<CheckResultInterface> remarks = new ArrayList<>();
     Variables variables = new Variables();
@@ -628,7 +633,8 @@ public class KafkaConsumerInputMetaTest {
 
   @Test
   public void testCheckErrorsOnVariablesSubstituteError() throws Exception {
-    TransMeta transMeta = new TransMeta( getClass().getResource( "/batchAndDurationVariable.ktr" ).getPath() );
+    TransMeta transMeta = new TransMeta( DefaultBowl.getInstance(),
+      getClass().getResource( "/batchAndDurationVariable.ktr" ).getPath() );
     ProgressMonitorListener monitor = mock( ProgressMonitorListener.class );
     List<CheckResultInterface> remarks = new ArrayList<>();
     Variables variables = new Variables();
@@ -659,7 +665,8 @@ public class KafkaConsumerInputMetaTest {
   public void testLoadReferencedObject() throws KettleException {
     KafkaConsumerInputMeta meta = new KafkaConsumerInputMeta();
     meta.setFileName( getClass().getResource( "/consumerSub.ktr" ).getPath() );
-    TransMeta subTrans = (TransMeta) meta.loadReferencedObject( 0, null, null, new Variables() );
+    TransMeta subTrans = (TransMeta) meta.loadReferencedObject( DefaultBowl.getInstance(), 0, null, null,
+      new Variables() );
     assertThat( subTrans.getName(), is( "consumerSub" ) );
   }
 }
