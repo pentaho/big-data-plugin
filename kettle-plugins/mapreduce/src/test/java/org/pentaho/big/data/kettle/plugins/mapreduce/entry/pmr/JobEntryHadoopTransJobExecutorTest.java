@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2017-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2017-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -21,15 +21,16 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.mapreduce.entry.pmr;
 
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.job.Job;
+import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.repository.RepositoryDirectoryInterface;
@@ -60,7 +61,8 @@ public class JobEntryHadoopTransJobExecutorTest {
   public void testLoadTransMetaLocal() throws Exception {
     String testPath = "src/test/resources/testTrans.ktr";
     when( space.environmentSubstitute( testPath ) ).thenReturn( testPath );
-    TransMeta transMeta = JobEntryHadoopTransJobExecutor.loadTransMeta( space, null, testPath, objectId, null, null );
+    TransMeta transMeta = JobEntryHadoopTransJobExecutor.loadTransMeta( DefaultBowl.getInstance(), space, null,
+      testPath, objectId, null, null );
     Assert.assertEquals( testPath, transMeta.getFilename() );
   }
 
@@ -72,7 +74,8 @@ public class JobEntryHadoopTransJobExecutorTest {
     when( space.environmentSubstitute( file ) ).thenReturn( file );
     when( repository.loadRepositoryDirectoryTree() ).thenReturn( directoryInterface );
     when( directoryInterface.findDirectory( dir ) ).thenReturn( directoryInterface );
-    JobEntryHadoopTransJobExecutor.loadTransMeta( space, repository, dir + "/" + file, null, null, null );
+    JobEntryHadoopTransJobExecutor.loadTransMeta( DefaultBowl.getInstance(), space, repository, dir + "/" + file, null,
+      null, null );
     verify( repository ).loadTransformation( file, directoryInterface, null, true, null );
   }
 
@@ -85,7 +88,8 @@ public class JobEntryHadoopTransJobExecutorTest {
     when( space.environmentSubstitute( file ) ).thenReturn( file );
     when( repository.loadRepositoryDirectoryTree() ).thenReturn( directoryInterface );
     when( directoryInterface.findDirectory( dir ) ).thenReturn( directoryInterface );
-    JobEntryHadoopTransJobExecutor.loadTransMeta( space, repository, dir + "/" + file, null, null, null );
+    JobEntryHadoopTransJobExecutor.loadTransMeta( DefaultBowl.getInstance(), space, repository, dir + "/" + file, null,
+      null, null );
     verify( repository ).loadTransformation( file, directoryInterface, null, true, null );
   }
 
@@ -98,7 +102,7 @@ public class JobEntryHadoopTransJobExecutorTest {
     when( space.environmentSubstitute( file ) ).thenReturn( file );
     when( repository.loadRepositoryDirectoryTree() ).thenReturn( directoryInterface );
     when( directoryInterface.findDirectory( dir ) ).thenReturn( directoryInterface );
-    JobEntryHadoopTransJobExecutor.loadTransMeta( space, repository, null, null, dir, file );
+    JobEntryHadoopTransJobExecutor.loadTransMeta( DefaultBowl.getInstance(), space, repository, null, null, dir, file );
     verify( repository ).loadTransformation( file, directoryInterface, null, true, null );
   }
 
@@ -112,9 +116,13 @@ public class JobEntryHadoopTransJobExecutorTest {
     jobEntry.setVariable( dirVar, dir );
     jobEntry.setVariable( fileVar, file );
     when( jobEntry.getParentJob() ).thenReturn( mock( Job.class ) );
+    JobMeta parentJobMeta = mock( JobMeta.class );
+    when( parentJobMeta.getBowl() ).thenReturn( DefaultBowl.getInstance() );
+    when( jobEntry.getParentJobMeta() ).thenReturn( parentJobMeta );
     when( repository.loadRepositoryDirectoryTree() ).thenReturn( directoryInterface );
     when( directoryInterface.findDirectory( "/" + dir ) ).thenReturn( directoryInterface );
-    JobEntryHadoopTransJobExecutor.loadTransMeta( jobEntry, repository, null, null, "/${" + dirVar + "}", "${" + fileVar + "}" );
+    JobEntryHadoopTransJobExecutor.loadTransMeta( DefaultBowl.getInstance(), jobEntry, repository, null, null,
+      "/${" + dirVar + "}", "${" + fileVar + "}" );
     verify( repository ).loadTransformation( file, directoryInterface, null, true, null );
   }
 }

@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -248,7 +248,8 @@ public class HBaseInput extends BaseStep implements StepInterface {
 
         // set up the output fields (using the mapping)
         m_data.setOutputRowMeta( new RowMeta() );
-        m_meta.getFields( m_data.getOutputRowMeta(), getStepname(), null, null, this, repository, metaStore );
+        m_meta.getFields( getTransMeta().getBowl(), m_data.getOutputRowMeta(), getStepname(), null, null, this,
+          repository, metaStore );
       }
     }
 

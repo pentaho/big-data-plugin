@@ -26,6 +26,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.encryption.TwoWayPasswordEncoderPluginType;
 import org.pentaho.di.core.exception.KettleException;
@@ -114,7 +115,7 @@ public class CouchDbInputMetaTest {
   public void testGetFields() throws KettleStepException {
     RowMetaInterface rowMetaInterface = mock( RowMetaInterface.class );
     String testOrigin = "testOrigin";
-    couchDbInputMeta.getFields( rowMetaInterface, testOrigin, null, null, null, null, null );
+    couchDbInputMeta.getFields( DefaultBowl.getInstance(), rowMetaInterface, testOrigin, null, null, null, null, null );
     ArgumentCaptor<ValueMetaInterface> valueMetaInterfaceArgumentCaptor =
       ArgumentCaptor.forClass( ValueMetaInterface.class );
     verify( rowMetaInterface ).addValueMeta( valueMetaInterfaceArgumentCaptor.capture() );

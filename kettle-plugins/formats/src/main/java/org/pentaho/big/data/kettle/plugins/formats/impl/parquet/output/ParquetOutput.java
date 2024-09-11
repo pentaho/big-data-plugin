@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019-2021 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -116,8 +116,8 @@ public class ParquetOutput extends BaseStep implements StepInterface {
     data.output = formatService.createOutputFormat( IPentahoParquetOutputFormat.class, getNamedCluster() );
 
     String outputFileName = environmentSubstitute( meta.constructOutputFilename() );
-    pvfsFileAliaser = new PvfsFileAliaser( outputFileName, getTransMeta(), data.output, meta.overrideOutput,
-      getLogChannel() );
+    pvfsFileAliaser = new PvfsFileAliaser( getTransMeta().getBowl(), outputFileName, getTransMeta(), data.output,
+      meta.overrideOutput, getLogChannel() );
     data.output.setOutputFile( pvfsFileAliaser.generateAlias(), meta.overrideOutput );
     data.output.setFields( meta.getOutputFields() );
 

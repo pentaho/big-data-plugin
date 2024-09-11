@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -26,6 +26,7 @@ import org.pentaho.big.data.kettle.plugins.mapreduce.DialogClassUtil;
 import org.pentaho.di.core.CheckResult;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.annotations.Step;
+import org.pentaho.di.core.bowl.Bowl;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleStepException;
@@ -123,8 +124,8 @@ public class HadoopExitMeta extends BaseStepMeta implements StepMetaInterface {
     rep.saveStepAttribute( id_transformation, id_step, HadoopExitMeta.OUT_VALUE_FIELDNAME, getOutValueFieldname() ); //$NON-NLS-1$
   }
 
-  @Override public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
-      VariableSpace space ) throws KettleStepException {
+  @Override public void getFields( Bowl bowl, RowMetaInterface rowMeta, String origin, RowMetaInterface[] info,
+      StepMeta nextStep, VariableSpace space ) throws KettleStepException {
 
     ValueMetaInterface key = rowMeta.searchValueMeta( getOutKeyFieldname() );
     ValueMetaInterface value = rowMeta.searchValueMeta( getOutValueFieldname() );

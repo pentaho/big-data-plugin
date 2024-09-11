@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -42,6 +42,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.bowl.Bowl;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.row.RowDataUtil;
 import org.pentaho.di.core.row.RowMetaInterface;
@@ -1039,12 +1040,12 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
    * @throws KettleException
    *           if a problem occurs
    */
-  protected static Schema loadSchema( String schemaFile ) throws KettleException {
+  protected static Schema loadSchema( Bowl bowl, String schemaFile ) throws KettleException {
 
     Schema s = null;
     Schema.Parser p = new Schema.Parser();
 
-    FileObject fileO = KettleVFS.getFileObject( schemaFile );
+    FileObject fileO = KettleVFS.getInstance( bowl ).getFileObject( schemaFile );
     try {
       InputStream in = KettleVFS.getInputStream( fileO );
       s = p.parse( in );
@@ -1068,10 +1069,10 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
    * @throws KettleException
    *           if a problem occurs
    */
-  protected static Schema loadSchemaFromContainer( String containerFilename ) throws KettleException {
+  protected static Schema loadSchemaFromContainer( Bowl bowl, String containerFilename ) throws KettleException {
     Schema s = null;
 
-    FileObject fileO = KettleVFS.getFileObject( containerFilename );
+    FileObject fileO = KettleVFS.getInstance( bowl ).getFileObject( containerFilename );
     InputStream in = null;
 
     try {
@@ -1129,7 +1130,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
    *          for logging
    * @throws KettleException
    */
-  public void initializeFromFieldDecoding( String fieldNameToDecode, String readerSchemaFile,
+  public void initializeFromFieldDecoding( Bowl bowl, String fieldNameToDecode, String readerSchemaFile,
       List<AvroInputMeta.AvroField> fields, boolean jsonEncoded, int newFieldOffset, boolean schemaInField,
       String schemaFieldName, boolean schemaFieldIsPath, boolean cacheSchemas, boolean ignoreMissing,
       LogChannelInterface log ) throws KettleException {
@@ -1169,7 +1170,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
     }
 
     if ( !Const.isEmpty( readerSchemaFile ) ) {
-      m_schemaToUse = loadSchema( readerSchemaFile );
+      m_schemaToUse = loadSchema( bowl, readerSchemaFile );
       m_defaultSchema = m_schemaToUse;
       m_datumReader = new GenericDatumReader( m_schemaToUse );
       m_defaultDatumReader = m_datumReader;
@@ -1214,8 +1215,9 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
    * @throws KettleException
    *           if a problem occurs
    */
-  public void establishFileType( FileObject avroFile, String readerSchemaFile, List<AvroInputMeta.AvroField> fields,
-      boolean jsonEncoded, int newFieldOffset, boolean ignoreMissing, LogChannelInterface log ) throws KettleException {
+  public void establishFileType( Bowl bowl, FileObject avroFile, String readerSchemaFile,
+      List<AvroInputMeta.AvroField> fields, boolean jsonEncoded, int newFieldOffset, boolean ignoreMissing,
+      LogChannelInterface log ) throws KettleException {
 
     m_log = log;
     m_newFieldOffset = newFieldOffset;
@@ -1236,7 +1238,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
 
     // load and handle reader schema....
     if ( !Const.isEmpty( readerSchemaFile ) ) {
-      m_schemaToUse = loadSchema( readerSchemaFile );
+      m_schemaToUse = loadSchema( bowl, readerSchemaFile );
       m_defaultSchema = m_schemaToUse;
     } else if ( jsonEncoded ) {
       throw new KettleException( BaseMessages.getString( AvroInputMeta.PKG, "AvroInput.Error.NoSchemaProvided" ) );
@@ -1361,7 +1363,8 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
     }
   }
 
-  protected void setSchemaToUse( String schemaKey, boolean useCache, VariableSpace space ) throws KettleException {
+  protected void setSchemaToUse( Bowl bowl, String schemaKey, boolean useCache, VariableSpace space )
+    throws KettleException {
 
     if ( Const.isEmpty( schemaKey ) ) {
       // switch to default
@@ -1400,7 +1403,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
               BaseMessages.getString( AvroInputMeta.PKG, "AvroInput.Message.LoadingSchema", schemaKey ) );
         }
         try {
-          toUse = loadSchema( schemaKey );
+          toUse = loadSchema( bowl, schemaKey );
         } catch ( KettleException ex ) {
           // fall back to default (if possible)
           if ( m_defaultDatumReader != null ) {
@@ -1651,7 +1654,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
    * @throws KettleException
    *           if a problem occurs
    */
-  public Object[][] avroObjectToKettle( Object[] incoming, VariableSpace space ) throws KettleException {
+  public Object[][] avroObjectToKettle( Bowl bowl, Object[] incoming, VariableSpace space ) throws KettleException {
 
     if ( m_containerReader != null ) {
       // container file
@@ -1707,7 +1710,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
           if ( m_schemaInField ) {
             ValueMetaInterface schemaMeta = m_outputRowMeta.getValueMeta( m_schemaFieldIndex );
             String schemaToUse = schemaMeta.getString( incoming[m_schemaFieldIndex] );
-            setSchemaToUse( schemaToUse, m_cacheSchemas, space );
+            setSchemaToUse( bowl, schemaToUse, m_cacheSchemas, space );
           }
 
           if ( m_jsonEncoded ) {

@@ -32,7 +32,9 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.amazon.hive.job.AmazonHiveJobExecutor;
+import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.core.vfs.KettleVFS;
+import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.junit.rules.RestorePDIEngineEnvironment;
 
 import java.io.File;
@@ -62,6 +64,9 @@ public class AbstractAmazonJobExecutorTest {
   @Before
   public void setUp() throws Exception {
     jobExecutor = spy( new AmazonHiveJobExecutor() );
+    JobMeta parentJobMeta = mock( JobMeta.class );
+    when( parentJobMeta.getBowl() ).thenReturn( DefaultBowl.getInstance() );
+    jobExecutor.setParentJobMeta( parentJobMeta );
     stagingFolder = temporaryFolder.newFolder( "emr" );
     stagingFile = temporaryFolder.newFile( stagingFolder.getName() + "/hive.q" );
   }
@@ -109,7 +114,8 @@ public class AbstractAmazonJobExecutorTest {
     String bucketKey = "key/subkey";
     String expectedKey = bucketKey + "/" + stagingFile.getName();
 
-    FileObject stagingFileObject = KettleVFS.getFileObject( stagingFile.getPath() );
+    FileObject stagingFileObject = KettleVFS.getInstance( DefaultBowl.getInstance() )
+      .getFileObject( stagingFile.getPath() );
 
     when( jobExecutor.getKeyFromS3StagingDir() ).thenReturn( bucketKey );
     doCallRealMethod().when( jobExecutor ).setS3BucketKey( any() );
@@ -127,7 +133,8 @@ public class AbstractAmazonJobExecutorTest {
     String bucketKey = null;
     String expectedKey = stagingFile.getName();
 
-    FileObject stagingFileObject = KettleVFS.getFileObject( stagingFile.getPath() );
+    FileObject stagingFileObject = KettleVFS.getInstance( DefaultBowl.getInstance() )
+      .getFileObject( stagingFile.getPath() );
 
     when( jobExecutor.getKeyFromS3StagingDir() ).thenReturn( bucketKey );
     doCallRealMethod().when( jobExecutor ).setS3BucketKey( any() );
@@ -145,7 +152,8 @@ public class AbstractAmazonJobExecutorTest {
     String bucketKey = "";
     String expectedKey = stagingFile.getName();
 
-    FileObject stagingFileObject = KettleVFS.getFileObject( stagingFile.getPath() );
+    FileObject stagingFileObject = KettleVFS.getInstance( DefaultBowl.getInstance() )
+      .getFileObject( stagingFile.getPath() );
 
     when( jobExecutor.getKeyFromS3StagingDir() ).thenReturn( bucketKey );
     doCallRealMethod().when( jobExecutor ).setS3BucketKey( any() );

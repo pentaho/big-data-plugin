@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -26,10 +26,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.pentaho.big.data.kettle.plugins.hdfs.trans.HadoopFileMeta;
+import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.trans.step.BaseStepMeta;
+import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.steps.file.BaseFileMeta;
+import org.pentaho.di.trans.TransMeta;
 import org.pentaho.dictionary.DictionaryConst;
 import org.pentaho.metaverse.api.IComponentDescriptor;
+import org.pentaho.metaverse.api.IMetaverseBuilder;
 import org.pentaho.metaverse.api.IMetaverseNode;
 import org.pentaho.metaverse.api.INamespace;
 import org.pentaho.metaverse.api.MetaverseComponentDescriptor;
@@ -47,6 +51,8 @@ public abstract class HadoopBaseStepAnalyzerTest<A extends HadoopBaseStepAnalyze
 
   @Mock private INamespace mockNamespace;
   private IComponentDescriptor descriptor;
+  private M meta;
+  @Mock private TransMeta transMeta;
 
   @Before
   public void setUp() throws Exception {
@@ -54,7 +60,16 @@ public abstract class HadoopBaseStepAnalyzerTest<A extends HadoopBaseStepAnalyze
     descriptor = new MetaverseComponentDescriptor( "test", DictionaryConst.NODE_TYPE_TRANS_STEP, mockNamespace );
     analyzer = spy( getAnalyzer() );
     analyzer.setDescriptor( descriptor );
-    when( analyzer.getMetaverseObjectFactory() ).thenReturn( new MetaverseObjectFactory() );
+    IMetaverseBuilder builder = mock( IMetaverseBuilder.class );
+    analyzer.setMetaverseBuilder( builder );
+    analyzer.setObjectFactory( new MetaverseObjectFactory() );
+
+    meta = getMetaMock();
+    StepMeta mockStepMeta = mock( StepMeta.class );
+    when( meta.getParentStepMeta() ).thenReturn( mockStepMeta );
+
+    lenient().when( transMeta.getBowl() ).thenReturn( DefaultBowl.getInstance() );
+    lenient().when( mockStepMeta.getParentTransMeta() ).thenReturn( transMeta );
   }
 
   protected abstract A getAnalyzer();
@@ -91,6 +106,7 @@ public abstract class HadoopBaseStepAnalyzerTest<A extends HadoopBaseStepAnalyze
     // local
     IExternalResourceInfo localResource = mock( IExternalResourceInfo.class );
     when( localResource.getName() ).thenReturn( "file:///Users/home/tmp/xyz.ktr" );
+    analyzer.validateState( descriptor, getMetaMock() );
     IMetaverseNode resourceNode = analyzer.createResourceNode( getMetaMock(), localResource );
     assertNotNull( resourceNode );
     assertEquals( DictionaryConst.NODE_TYPE_FILE, resourceNode.getType() );

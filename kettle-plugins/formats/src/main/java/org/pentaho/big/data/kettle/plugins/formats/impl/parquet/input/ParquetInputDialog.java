@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -196,7 +196,8 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
     String parquetFileName = getProcessedFileName();
     List<? extends IParquetInputField> inputFields = null;
     try {
-      inputFields = ParquetInput.retrieveSchema( meta.getNamedClusterResolver().getNamedClusterServiceLocator(),
+      inputFields = ParquetInput.retrieveSchema( transMeta.getBowl(),
+        meta.getNamedClusterResolver().getNamedClusterServiceLocator(),
         meta.getNamedClusterResolver().resolveNamedCluster( parquetFileName ), parquetFileName );
     } catch ( Exception ex ) {
       if ( !failQuietly ) {

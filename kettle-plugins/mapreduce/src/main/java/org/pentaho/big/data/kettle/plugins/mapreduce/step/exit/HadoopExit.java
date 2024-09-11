@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -44,7 +44,7 @@ public class HadoopExit extends BaseStep implements StepInterface {
   }
 
   public void runtimeInit() throws KettleException {
-    data.init( getInputRowMeta(), meta, this );
+    data.init( getTransMeta().getBowl(), getInputRowMeta(), meta, this );
   }
 
   public boolean processRow( StepMetaInterface smi, StepDataInterface sdi ) throws KettleException {

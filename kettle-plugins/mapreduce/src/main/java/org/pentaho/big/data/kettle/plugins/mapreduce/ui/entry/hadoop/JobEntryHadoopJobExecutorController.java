@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -305,23 +305,26 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
     dialog.setFilterNames( new String[] { "Java Archives (jar)" } );
     String prevName = jobEntry.environmentSubstitute( jarUrl );
     String parentFolder = null;
+    Spoon spoon = Spoon.getInstance();
     try {
       parentFolder =
-        KettleVFS.getFilename( KettleVFS.getFileObject( jobEntry.environmentSubstitute( jobEntry.getFilename() ) )
+        KettleVFS.getFilename( KettleVFS.getInstance( spoon.getExecutionBowl() )
+                                 .getFileObject( jobEntry.environmentSubstitute( jobEntry.getFilename() ) )
           .getParent() );
     } catch ( Exception e ) {
       // not that important
     }
     if ( !Const.isEmpty( prevName ) ) {
       try {
-        if ( KettleVFS.fileExists( prevName ) ) {
-          dialog.setFilterPath( KettleVFS.getFilename( KettleVFS.getFileObject( prevName ).getParent() ) );
+        if ( KettleVFS.getInstance( spoon.getExecutionBowl() ).fileExists( prevName ) ) {
+          dialog.setFilterPath( KettleVFS.getFilename( KettleVFS.getInstance( spoon.getExecutionBowl() )
+                                                         .getFileObject( prevName ).getParent() ) );
         } else {
 
           if ( !prevName.endsWith( ".jar" ) && !prevName.endsWith( ".zip" ) ) {
             prevName = "${" + Const.INTERNAL_VARIABLE_JOB_FILENAME_DIRECTORY + "}/" + Const.trim( jarUrl ) + ".jar";
           }
-          if ( KettleVFS.fileExists( prevName ) ) {
+          if ( KettleVFS.getInstance( spoon.getExecutionBowl() ).fileExists( prevName ) ) {
             setJarUrl( prevName );
             return;
           }

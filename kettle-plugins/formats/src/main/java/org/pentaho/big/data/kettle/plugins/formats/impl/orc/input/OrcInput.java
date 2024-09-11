@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -27,6 +27,7 @@ import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.formats.orc.input.OrcInputMetaBase;
+import org.pentaho.di.core.bowl.Bowl;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
@@ -66,7 +67,7 @@ public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
         }
         data.input = formatService.createInputFormat( IPentahoOrcInputFormat.class, getNamedCluster() );
 
-        String inputFileName = getKettleVFSFileName(
+        String inputFileName = getKettleVFSFileName( getTransMeta().getBowl(),
           meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getFilename() ) );
 
         data.input.setInputFile( inputFileName );
@@ -119,12 +120,12 @@ public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
     return null;
   }
 
-  public static List<IOrcInputField> retrieveSchema( NamedClusterServiceLocator namedClusterServiceLocator,
+  public static List<IOrcInputField> retrieveSchema( Bowl bowl, NamedClusterServiceLocator namedClusterServiceLocator,
                                                      NamedCluster namedCluster, String dataPath ) throws Exception {
     FormatService formatService = namedClusterServiceLocator.getService( namedCluster, FormatService.class );
     IPentahoOrcInputFormat in = formatService.createInputFormat( IPentahoOrcInputFormat.class, namedCluster );
 
-    in.setInputFile( getKettleVFSFileName( dataPath ) );
+    in.setInputFile( getKettleVFSFileName( bowl, dataPath ) );
     return in.readSchema();
   }
 
@@ -132,9 +133,9 @@ public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
     return Arrays.asList( meta.getInputFields() );
   }
 
-  public static String getKettleVFSFileName( String path ) throws KettleFileException {
+  public static String getKettleVFSFileName( Bowl bowl, String path ) throws KettleFileException {
     String inputFileName = path;
-    FileObject inputFileObject = KettleVFS.getFileObject( path );
+    FileObject inputFileObject = KettleVFS.getInstance( bowl ).getFileObject( path );
     if ( AliasedFileObject.isAliasedFile( inputFileObject ) ) {
       inputFileName = ( (AliasedFileObject) inputFileObject ).getOriginalURIString();
     }

@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -31,6 +31,7 @@ import org.pentaho.di.core.Const;
 import org.pentaho.di.core.ObjectLocationSpecificationMethod;
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.annotations.JobEntry;
+import org.pentaho.di.core.bowl.Bowl;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
@@ -152,7 +153,7 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
     combiningSingleThreaded = false;
   }
 
-  protected static final TransMeta loadTransMeta( VariableSpace space, Repository rep, String filename,
+  protected static final TransMeta loadTransMeta( Bowl bowl, VariableSpace space, Repository rep, String filename,
                                                 ObjectId transformationId, String repositoryDir, String repositoryFile )
           throws KettleException {
 
@@ -161,7 +162,7 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
     if ( rep == null ) {
       if ( !Const.isEmpty( filename ) ) {
         String realFilename = space.environmentSubstitute( filename );
-        transMeta = new TransMeta( realFilename );
+        transMeta = new TransMeta( bowl, realFilename );
       }
     } else {
       if ( !Const.isEmpty( filename ) ) {
@@ -202,7 +203,8 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
     if ( space instanceof JobEntryHadoopTransJobExecutor ) {
       CurrentDirectoryResolver r = new CurrentDirectoryResolver();
       JobEntryHadoopTransJobExecutor jobEntry = (JobEntryHadoopTransJobExecutor) space;
-      space = r.resolveCurrentDirectory( jobEntry, jobEntry.getParentJob().getRepositoryDirectory(), null );
+      space = r.resolveCurrentDirectory( jobEntry.getParentJobMeta().getBowl(), jobEntry,
+        jobEntry.getParentJob().getRepositoryDirectory(), null );
     }
     String repositoryDirS = space.environmentSubstitute( repositoryDir );
     if ( repositoryDirS.isEmpty() ) {
@@ -560,7 +562,8 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
       // mapper
       TransExecutionConfiguration transExecConfig = new TransExecutionConfiguration();
       TransMeta transMeta =
-        loadTransMeta( this, rep, mapTrans, mapRepositoryReference, mapRepositoryDir, mapRepositoryFile );
+        loadTransMeta( parentJobMeta.getBowl(), this, rep, mapTrans, mapRepositoryReference, mapRepositoryDir,
+          mapRepositoryFile );
       TransConfiguration transConfig = new TransConfiguration( transMeta, transExecConfig );
       String mapInputStepNameS = environmentSubstitute( mapInputStepName );
       String mapOutputStepNameS = environmentSubstitute( mapOutputStepName );
@@ -628,8 +631,8 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
 
       // combiner
       transMeta =
-        loadTransMeta( this, rep, combinerTrans, combinerRepositoryReference, combinerRepositoryDir,
-          combinerRepositoryFile );
+        loadTransMeta( parentJobMeta.getBowl(), this, rep, combinerTrans, combinerRepositoryReference,
+          combinerRepositoryDir, combinerRepositoryFile );
       if ( transMeta != null ) {
 
         if ( combiningSingleThreaded ) {
@@ -654,7 +657,8 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
 
       // reducer
       transMeta =
-        loadTransMeta( this, rep, reduceTrans, reduceRepositoryReference, reduceRepositoryDir, reduceRepositoryFile );
+        loadTransMeta( parentJobMeta.getBowl(), this, rep, reduceTrans, reduceRepositoryReference, reduceRepositoryDir,
+          reduceRepositoryFile );
 
       if ( transMeta != null ) {
 
@@ -1351,13 +1355,14 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
   public Object loadReferencedObject( int index, Repository rep, VariableSpace space ) throws KettleException {
     switch ( index ) {
       case 0:
-        return loadTransMeta( space, rep, mapTrans, mapRepositoryReference, mapRepositoryDir, mapRepositoryFile );
+        return loadTransMeta( parentJobMeta.getBowl(), space, rep, mapTrans, mapRepositoryReference, mapRepositoryDir,
+          mapRepositoryFile );
       case 1:
-        return loadTransMeta( space, rep, combinerTrans, combinerRepositoryReference, combinerRepositoryDir,
-          combinerRepositoryFile );
+        return loadTransMeta( parentJobMeta.getBowl(), space, rep, combinerTrans, combinerRepositoryReference,
+          combinerRepositoryDir, combinerRepositoryFile );
       case 2:
-        return loadTransMeta( space, rep, reduceTrans, reduceRepositoryReference, reduceRepositoryDir,
-          reduceRepositoryFile );
+        return loadTransMeta( parentJobMeta.getBowl(), space, rep, reduceTrans, reduceRepositoryReference,
+          reduceRepositoryDir, reduceRepositoryFile );
     }
     return null;
 
@@ -1383,7 +1388,7 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
    *           in case something goes wrong during the export
    */
   @Override
-  public String exportResources( VariableSpace space, Map<String, ResourceDefinition> definitions,
+  public String exportResources( Bowl bowl, VariableSpace space, Map<String, ResourceDefinition> definitions,
                                  ResourceNamingInterface namingInterface, Repository repository, IMetaStore metaStore )
     throws KettleException {
 
@@ -1406,7 +1411,7 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
         // Also go down into the transformation and export the files there. (mapping recursively down)
         //
         String proposedNewFilename =
-          transMeta.exportResources( transMeta, definitions, namingInterface, repository, metaStore );
+          transMeta.exportResources( bowl, transMeta, definitions, namingInterface, repository, metaStore );
         // To get a relative path to it, we inject ${Internal.Job.Filename.Directory}
         //
         String newFilename = "${" + Const.INTERNAL_VARIABLE_JOB_FILENAME_DIRECTORY + "}/" + proposedNewFilename;

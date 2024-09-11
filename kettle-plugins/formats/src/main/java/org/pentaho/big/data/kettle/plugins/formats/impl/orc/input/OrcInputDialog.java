@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -185,7 +185,8 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
     String orcFileName = getProcessedFileName();
     List<? extends IOrcInputField> inputFields = null;
     try {
-      inputFields = OrcInput.retrieveSchema( meta.getNamedClusterResolver().getNamedClusterServiceLocator(),
+      inputFields = OrcInput.retrieveSchema( transMeta.getBowl(),
+        meta.getNamedClusterResolver().getNamedClusterServiceLocator(),
         meta.getNamedClusterResolver().resolveNamedCluster( orcFileName ), orcFileName );
     } catch ( Exception ex ) {
       if ( !failQuietly ) {

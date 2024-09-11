@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -38,6 +38,7 @@ import org.apache.commons.vfs2.FileSelectInfo;
 import org.apache.commons.vfs2.FileSelector;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.JobEntry;
+import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.plugins.JobEntryPluginType;
@@ -84,7 +85,8 @@ public class ShimDependentJobEntryPluginType extends JobEntryPluginType {
         try {
           // Find all the jar files in this folder...
           //
-          FileObject folderObject = KettleVFS.getFileObject( this.getFolder() );
+          FileObject folderObject = KettleVFS.getInstance( DefaultBowl.getInstance() )
+            .getFileObject( this.getFolder() );
           FileObject[] fileObjects = folderObject.findFiles( new FileSelector() {
             @Override
             public boolean traverseDescendents( FileSelectInfo fileSelectInfo ) throws Exception {

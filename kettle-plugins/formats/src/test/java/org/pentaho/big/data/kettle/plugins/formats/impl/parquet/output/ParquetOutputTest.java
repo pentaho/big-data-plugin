@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019-2023 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -33,6 +33,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
 import org.pentaho.big.data.kettle.plugins.formats.parquet.output.ParquetOutputField;
+import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.KettleLogStore;
@@ -146,6 +147,7 @@ public class ParquetOutputTest {
       when( mockStepMeta.getName() ).thenReturn( OUTPUT_STEP_NAME );
       when( mockTransMeta.findStep( OUTPUT_STEP_NAME ) ).thenReturn( mockStepMeta );
       when( mockTransMeta.findStep( OUTPUT_STEP_NAME ) ).thenReturn( mockStepMeta );
+      when( mockTransMeta.getBowl() ).thenReturn( DefaultBowl.getInstance() );
 
       try {
         when( mockRowHandler.getRow() ).thenAnswer( answer -> returnNextParquetRow() );
@@ -165,6 +167,7 @@ public class ParquetOutputTest {
       parquetOutput.setInputRowMeta( dataInputRowMeta );
       parquetOutput.setRowHandler( mockRowHandler );
       parquetOutput.setLogLevel( LogLevel.ERROR );
+      parquetOutput.setTransMeta( mockTransMeta );
     }
   }
 
