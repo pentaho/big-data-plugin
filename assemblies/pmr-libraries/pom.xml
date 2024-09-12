@@ -17,7 +17,7 @@
     <jsch.version>0.2.9</jsch.version>
     <encryption-support.version>10.3.0.0-SNAPSHOT</encryption-support.version>
     <pdi-osgi-bridge.version>10.3.0.0-SNAPSHOT</pdi-osgi-bridge.version>
-    <jetty.version>9.4.52.v20230823</jetty.version>
+    <jetty.version>9.4.54.v20240208</jetty.version>
   </properties>
   <dependencies>
     <dependency>
