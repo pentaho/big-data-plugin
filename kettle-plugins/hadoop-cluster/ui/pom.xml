@@ -85,12 +85,6 @@
       <artifactId>org.eclipse.swt.gtk.linux.x86_64</artifactId>
     </dependency>
     <dependency>
-      <!--this is required by OSGi bean declared in src/main/resources-filtered/OSGI-INF/blueprint/blueprint.xml-->
-      <groupId>com.fasterxml.jackson.jaxrs</groupId>
-      <artifactId>jackson-jaxrs-json-provider</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>org.ops4j.pax.web</groupId>
       <artifactId>pax-web-spi</artifactId>
       <version>${pax-web.version}</version>
@@ -115,32 +109,6 @@
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.webjars.npm</groupId>
-      <artifactId>prantlf__requirejs</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.webjars.bower</groupId>
-      <artifactId>angular</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.webjars.npm</groupId>
-      <artifactId>angular-i18n</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.webjars.bower</groupId>
-      <artifactId>requirejs-text</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.webjars.bower</groupId>
-      <artifactId>require-css</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.webjars.npm</groupId>
-      <artifactId>jquery</artifactId>
-      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.osgi</groupId>
@@ -198,7 +166,6 @@
         <excludes>
           <exclude>META-INF/**/*</exclude>
           <exclude>OSGI-INF/**/*</exclude>
-          <exclude>app/index.html</exclude>
         </excludes>
       </resource>
       <resource>
@@ -207,13 +174,6 @@
         <includes>
           <include>META-INF/**/*</include>
           <include>OSGI-INF/**/*</include>
-          <include>app/index.html</include>
-        </includes>
-      </resource>
-      <resource>
-        <directory>src/main/javascript</directory>
-        <includes>
-          <include>**/*</include>
         </includes>
       </resource>
     </resources>

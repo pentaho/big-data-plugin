@@ -76,7 +76,6 @@
     <dependency.pdi-osgi-bridge-core.revision>${project.version}</dependency.pdi-osgi-bridge-core.revision>
     <thoughtworks.paranamer.version>2.7</thoughtworks.paranamer.version>
     <dependency.commons-httpclient.revision>3.1</dependency.commons-httpclient.revision>
-    <requirejs-text.version>2.0.10</requirejs-text.version>
     <commons-lang3.version>3.12.0</commons-lang3.version>
     <mockito.version>5.10.0</mockito.version>
     <maven-surefire-plugin.argLine> --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED </maven-surefire-plugin.argLine>
@@ -179,7 +178,5 @@
       </releases>
     </pluginRepository>
   </pluginRepositories>
-
-
 </project>
 
