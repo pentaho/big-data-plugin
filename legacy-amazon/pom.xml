@@ -26,7 +26,6 @@
     <hbase.version>0.90.3</hbase.version>
     <xml-apis.version>2.0.2</xml-apis.version>
     <commands.version>3.3.0-I20070605-0010</commands.version>
-    <avro.version>1.6.2</avro.version>
     <libthrift.version>0.6</libthrift.version>
     <publish-sonar-phase>site</publish-sonar-phase>
     <oozie.version>3.1.3-incubating</oozie.version>
@@ -137,7 +136,7 @@
     <dependency>
       <groupId>org.apache.avro</groupId>
       <artifactId>avro</artifactId>
-      <version>${avro.version}</version>
+      <version>${org.apache.avro.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.core</groupId>
