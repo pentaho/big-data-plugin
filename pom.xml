@@ -34,10 +34,7 @@
     <pentaho-hadoop-shims-hdp26.version>10.2.0.0-SNAPSHOT</pentaho-hadoop-shims-hdp26.version>
     <pentaho-hadoop-shims-hdp30.version>10.2.0.0-SNAPSHOT</pentaho-hadoop-shims-hdp30.version>
     <pentaho-hadoop-shims-mapr60.version>10.2.0.0-SNAPSHOT</pentaho-hadoop-shims-mapr60.version>
-    <pentaho-hadoop-shims-emr521.version>10.2.0.0-SNAPSHOT</pentaho-hadoop-shims-emr521.version>
-    <pentaho-hadoop-shims-dataproc1421.version>10.2.0.0-SNAPSHOT</pentaho-hadoop-shims-dataproc1421.version>
     <pentaho-hadoop-shims-cdpdc71.version>10.2.0.0-SNAPSHOT</pentaho-hadoop-shims-cdpdc71.version>
-    <pentaho-hadoop-shims-hdi40.version>10.2.0.0-SNAPSHOT</pentaho-hadoop-shims-hdi40.version>
 
     <dependency.mockito.revision>1.10.19</dependency.mockito.revision>
     <dependency.joda-time.revision>2.9.4</dependency.joda-time.revision>
