@@ -59,7 +59,6 @@ public class SecuritySettingsPage extends WizardPage {
     super( SecuritySettingsPage.class.getSimpleName() );
     securityType = NamedClusterSecurityType.NONE;
     thinNameClusterModel = model;
-    setTitle( BaseMessages.getString( PKG, "NamedClusterDialog.newCluster" ) );
   }
 
   public void createControl( Composite composite ) {
@@ -148,13 +147,12 @@ public class SecuritySettingsPage extends WizardPage {
   }
 
   public void initialize( ThinNameClusterModel model ) {
-    setDescription( ( (NamedClusterDialog) getWizard() ).isEditMode() ?
+    setTitle( ( (NamedClusterDialog) getWizard() ).isEditMode() ?
       BaseMessages.getString( PKG, "NamedClusterDialog.editCluster.title" ) :
       BaseMessages.getString( PKG, "NamedClusterDialog.newCluster.title" ) );
 
     if ( isConnectedToRepo() ) {
-      setDescription(
-        getDescription() + " " + BaseMessages.getString( PKG, "NamedClusterDialog.repositoryNotification" ) );
+      setDescription( BaseMessages.getString( PKG, "NamedClusterDialog.repositoryNotification" ) );
     }
 
     thinNameClusterModel = model;
