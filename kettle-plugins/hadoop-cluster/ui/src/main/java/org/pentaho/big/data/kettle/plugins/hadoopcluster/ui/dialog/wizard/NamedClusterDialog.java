@@ -104,6 +104,7 @@ public class NamedClusterDialog extends Wizard {
 
   public NamedClusterDialog( NamedClusterService namedClusterService, IMetaStore metastore, VariableSpace variables,
                              RuntimeTester tester, Map<String, String> params, String dialogState ) {
+    setWindowTitle( BaseMessages.getString( PKG, "NamedClusterDialog.newCluster" )  );
     variableSpace = variables;
     runtimeTester = tester;
     hadoopClusterManager = new HadoopClusterManager( spoonSupplier.get(), namedClusterService, metastore, "" );
