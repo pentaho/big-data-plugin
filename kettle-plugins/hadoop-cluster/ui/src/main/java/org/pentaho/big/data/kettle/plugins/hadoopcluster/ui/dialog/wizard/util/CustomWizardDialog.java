@@ -30,11 +30,13 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Shell;
 import org.pentaho.di.ui.core.PropsUI;
+import org.pentaho.di.ui.core.gui.GUIResource;
 
 public class CustomWizardDialog extends WizardDialog {
 
   public CustomWizardDialog( Shell parentShell, IWizard newWizard ) {
     super( parentShell, newWizard );
+    setDefaultImage( GUIResource.getInstance().getImageWizard() );
     setHelpAvailable( true );
     setShellStyle( SWT.CLOSE | SWT.TITLE | SWT.BORDER
       | SWT.APPLICATION_MODAL | getDefaultOrientation() );
@@ -44,7 +46,6 @@ public class CustomWizardDialog extends WizardDialog {
     getShell().setLocation( shellBounds.x + ( shellBounds.width - dialogSize.x ) / 2,
       shellBounds.y + ( shellBounds.height - dialogSize.y ) / 2 );
   }
-
 
   public void style() {
     PropsUI propsUI = PropsUI.getInstance();
