@@ -19,7 +19,7 @@
     <pentaho-metaverse.version>10.3.0.0-SNAPSHOT</pentaho-metaverse.version>
     <dependency.com.tinkerpop.frames.version>2.5.0</dependency.com.tinkerpop.frames.version>
     <dependency.com.tinkerpop.blueprints.version>2.6.0</dependency.com.tinkerpop.blueprints.version>
-    <osgi.version>5.0.0</osgi.version>
+    <osgi.version>8.0.0</osgi.version>
   </properties>
   <dependencies>
     <dependency>
@@ -142,7 +142,7 @@
         </dependency>
         <dependency>
           <groupId>org.osgi</groupId>
-          <artifactId>org.osgi.core</artifactId>
+          <artifactId>osgi.core</artifactId>
           <version>${osgi.version}</version>
           <scope>test</scope>
         </dependency>
