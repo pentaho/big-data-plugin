@@ -51,7 +51,6 @@
     <dependency.commons-configuration.revision>1.9</dependency.commons-configuration.revision>
     <dependency.high-scale-lib.revision>1.1.2</dependency.high-scale-lib.revision>
     <mondrian.version>10.2.0.0-SNAPSHOT</mondrian.version>
-    <oss-licenses.version>10.2.0.0-SNAPSHOT</oss-licenses.version>
     <pdi.version>10.2.0.0-SNAPSHOT</pdi.version>
     <pentaho-reporting.version>10.2.0.0-SNAPSHOT</pentaho-reporting.version>
     <dependency.xpp3.revision>1.1.4c</dependency.xpp3.revision>
@@ -190,4 +189,3 @@
 
 
 </project>
-

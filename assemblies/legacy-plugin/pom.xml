@@ -280,13 +280,6 @@
       <type>zip</type>
       <classifier>plugin</classifier>
     </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>oss-licenses</artifactId>
-      <version>${oss-licenses.version}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-    </dependency>
   </dependencies>
   <build>
     <resources>
