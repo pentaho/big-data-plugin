@@ -47,6 +47,7 @@ public class JobEntryHadoopCopyFiles extends JobEntryCopyFiles {
     this.namedClusterService = NamedClusterManager.getInstance();
     this.runtimeTestActionService = RuntimeTestActionServiceImpl.getInstance();
     this.runtimeTester = RuntimeTesterImpl.getInstance();
+    this.fileFolderUrlMappings = new HashMap<>();
   }
 
   /**

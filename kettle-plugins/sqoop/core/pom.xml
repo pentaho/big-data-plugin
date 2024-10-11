@@ -5,13 +5,13 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-kettle-plugins-sqoop</artifactId>
-    <version>10.2.0.0-SNAPSHOT</version>
+    <version>10.3.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>pdi-sqoop-core</artifactId>
   <name>PDI Sqoop Core</name>
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
-    <platform.version>10.2.0.0-SNAPSHOT</platform.version>
+    <platform.version>10.3.0.0-SNAPSHOT</platform.version>
   </properties>
 
   <!-- VERIFY THESE IMPORTS THAT WERE IN THE BUILD SECTION WHEN THE PLUGIN WAS OSGI. ARE THEY NEEDED?
