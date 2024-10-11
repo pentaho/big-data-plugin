@@ -7,7 +7,7 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-kettle-plugins-oozie</artifactId>
-    <version>10.2.0.0-SNAPSHOT</version>
+    <version>10.3.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>oozie-assemblies</artifactId>
