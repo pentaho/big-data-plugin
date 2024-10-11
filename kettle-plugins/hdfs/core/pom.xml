@@ -5,13 +5,13 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-kettle-plugins-hdfs</artifactId>
-    <version>10.2.0.0-SNAPSHOT</version>
+    <version>10.3.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>pdi-hdfs-core</artifactId>
   <name>PDI Hdfs Core</name>
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
-    <platform.version>10.2.0.0-SNAPSHOT</platform.version>
+    <platform.version>10.3.0.0-SNAPSHOT</platform.version>
     <jdom.version>1.1.3</jdom.version>
   </properties>
 
@@ -182,7 +182,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pdi-legacy-core</artifactId>
-      <version>10.2.0.0-SNAPSHOT</version>
+      <version>10.3.0.0-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
