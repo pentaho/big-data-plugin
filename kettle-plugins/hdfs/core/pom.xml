@@ -189,7 +189,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pdi-legacy-core</artifactId>
-      <version>10.2.0.0-SNAPSHOT</version>
+      <version>10.3.0.0-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
