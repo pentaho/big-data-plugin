@@ -29,6 +29,7 @@
     <swt.version>4.6</swt.version>
     <dependency.javax.servlet-api.version>3.0.1</dependency.javax.servlet-api.version>
     <dependency.javax.ws.rs-api.version>2.0</dependency.javax.ws.rs-api.version>
+    <jface.version>3.34.0</jface.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -36,19 +37,19 @@
         <groupId>pentaho-kettle</groupId>
         <artifactId>kettle-core</artifactId>
         <version>${pdi.version}</version>
-        <scope>provided</scope>
+        <scope>provided</scope><!--FOR UI EXECUTION AS A STANDALONE (comment scope)-->
       </dependency>
       <dependency>
         <groupId>pentaho-kettle</groupId>
         <artifactId>kettle-ui-swt</artifactId>
         <version>${pdi.version}</version>
-        <scope>provided</scope>
+        <scope>provided</scope><!--FOR UI EXECUTION AS A STANDALONE (comment scope)-->
       </dependency>
       <dependency>
         <groupId>pentaho-kettle</groupId>
         <artifactId>kettle-engine</artifactId>
         <version>${pdi.version}</version>
-        <scope>provided</scope>
+        <scope>provided</scope><!--FOR UI EXECUTION AS A STANDALONE (comment scope)-->
       </dependency>
       <dependency>
         <groupId>pentaho</groupId>
@@ -108,6 +109,12 @@
         <groupId>org.eclipse.swt</groupId>
         <artifactId>org.eclipse.swt.gtk.linux.x86_64</artifactId>
         <version>${swt.version}</version>
+        <!--scope>provided</scope--><!--FOR UI EXECUTION AS A STANDALONE (comment scope)-->
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.platform</groupId>
+        <artifactId>org.eclipse.jface</artifactId>
+        <version>${jface.version}</version>
         <scope>provided</scope>
       </dependency>
       <dependency>

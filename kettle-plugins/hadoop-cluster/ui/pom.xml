@@ -19,9 +19,30 @@
     <maven-replacer-plugin.version>1.5.2</maven-replacer-plugin.version>
     <platform.version>10.3.0.0-SNAPSHOT</platform.version>
     <mockito4.version>4.0.0</mockito4.version>
+    <!--FOR UI EXECUTION AS A STANDALONE (uncomment "exec.mainClass" property)-->
+    <exec.mainClass>org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.NamedClusterDialog</exec.mainClass>
+    <!--exec.mainClass>org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.AddDriverDialog</exec.mainClass-->
   </properties>
 
   <dependencies>
+    <!--FOR UI EXECUTION AS A STANDALONE (uncomment "batik-bridge" dependency)-->
+    <!--dependency>
+      <groupId>org.apache.xmlgraphics</groupId>
+      <artifactId>batik-bridge</artifactId>
+      <version>1.17</version>
+    </dependency-->
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-big-data-api-runtimeTest</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope><!--FOR UI EXECUTION AS A STANDALONE (comment scope)-->
+    </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-big-data-impl-cluster</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope><!--FOR UI EXECUTION AS A STANDALONE (comment scope)-->
+    </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-core</artifactId>
@@ -38,7 +59,7 @@
       <groupId>org.pentaho.di.plugins</groupId>
       <artifactId>pentaho-metastore-locator-api</artifactId>
       <version>${pdi.version}</version>
-      <scope>provided</scope>
+      <scope>provided</scope><!--FOR UI EXECUTION AS A STANDALONE (comment scope)-->
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
@@ -48,25 +69,25 @@
       <groupId>pentaho</groupId>
       <artifactId>pentaho-platform-core</artifactId>
       <version>${platform.version}</version>
-      <scope>provided</scope>
+      <scope>provided</scope><!--FOR UI EXECUTION AS A STANDALONE (comment scope)-->
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>shim-api-core</artifactId>
       <version>${pentaho-hadoop-shims.version}</version>
-      <scope>provided</scope>
+      <scope>provided</scope><!--FOR UI EXECUTION AS A STANDALONE (comment scope)-->
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>shim-api</artifactId>
       <version>${pentaho-hadoop-shims.version}</version>
-      <scope>provided</scope>
+      <scope>provided</scope><!--FOR UI EXECUTION AS A STANDALONE (comment scope)-->
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-kettle-plugins-common-ui</artifactId>
       <version>${pdi.version}</version>
-      <scope>provided</scope>
+      <scope>provided</scope><!--FOR UI EXECUTION AS A STANDALONE (comment scope)-->
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
@@ -83,6 +104,16 @@
     <dependency>
       <groupId>org.eclipse.swt</groupId>
       <artifactId>org.eclipse.swt.gtk.linux.x86_64</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.platform</groupId>
+      <artifactId>org.eclipse.jface</artifactId>
+    </dependency>
+    <dependency>
+      <!--this is required by OSGi bean declared in src/main/resources-filtered/OSGI-INF/blueprint/blueprint.xml-->
+      <groupId>com.fasterxml.jackson.jaxrs</groupId>
+      <artifactId>jackson-jaxrs-json-provider</artifactId>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.ops4j.pax.web</groupId>
@@ -105,7 +136,7 @@
       <groupId>commons-configuration</groupId>
       <artifactId>commons-configuration</artifactId>
       <version>${dependency.commons-configuration.revision}</version>
-      <scope>provided</scope>
+      <scope>provided</scope><!--FOR UI EXECUTION AS A STANDALONE (comment scope)-->
     </dependency>
     <!--END OF CHANGES-->
     <dependency>
@@ -226,6 +257,8 @@
             <Import-Package>org.pentaho.di.osgi,
               org.pentaho.di.core.plugins,
               org.pentaho.di.core.extension,
+              org.pentaho.big.data.impl.cluster;resolution:=optional,
+              org.osgi.framework;resolution:=optional,
               org.pentaho.di.webspoon;resolution:=optional,
               *</Import-Package>
             <Provide-Capability>

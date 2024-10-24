@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,6 +22,7 @@
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.tree;
 
 import com.google.common.collect.ImmutableMap;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDelegate;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.extension.ExtensionPoint;
@@ -30,6 +31,7 @@ import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.ui.spoon.SelectionTreeExtension;
 import org.pentaho.di.ui.spoon.Spoon;
+import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +44,10 @@ public class ThinHadoopClusterEditExtension implements ExtensionPointInterface {
 
   HadoopClusterDelegate hadoopClusterDelegate;
   private static final Logger logChannel = LoggerFactory.getLogger( ThinHadoopClusterEditExtension.class );
+
+  public ThinHadoopClusterEditExtension() {
+    this.hadoopClusterDelegate = new HadoopClusterDelegate( NamedClusterManager.getInstance(), RuntimeTesterImpl.getInstance() );
+  }
 
   public ThinHadoopClusterEditExtension( HadoopClusterDelegate hadoopClusterDelegate ) {
     this.hadoopClusterDelegate = hadoopClusterDelegate;
