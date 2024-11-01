@@ -13,6 +13,10 @@
             <directory>target/plugins/pentaho-big-data-plugin/hadoop-configurations</directory>
             <outputDirectory>/hadoop-configurations</outputDirectory>
         </fileSet>
+        <fileSet>
+            <directory>target/plugins/pentaho-big-data-plugin/plugins</directory>
+            <outputDirectory>/plugins</outputDirectory>
+        </fileSet>
     </fileSets>
     <dependencySets>
         <dependencySet>
@@ -50,6 +54,7 @@
                 <include>pentaho:pentaho-big-data-impl-cluster</include>
                 <include>pentaho:pentaho-big-data-kettle-plugins-common-ui</include>
                 <include>org.pentaho:shim-api-core</include>
+                <include>org.pentaho:pentaho-hadoop-shims-common-services-api</include>
                 <include>org.apache.avro:avro</include>
                 <include>joda-time:joda-time</include>
                 <include>com.amazonaws:aws-java-sdk-core</include>
