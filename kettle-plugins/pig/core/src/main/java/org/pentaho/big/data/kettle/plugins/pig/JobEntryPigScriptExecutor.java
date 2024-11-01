@@ -42,6 +42,10 @@ import org.pentaho.hadoop.shim.api.pig.PigResult;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
+import org.pentaho.runtime.test.action.impl.RuntimeTestActionServiceImpl;
+import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
+import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
 import org.w3c.dom.Node;
 
 
@@ -102,6 +106,13 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
    * Parameters for the script
    */
   protected Map<String, String> m_params = new HashMap<String, String>();
+
+  public JobEntryPigScriptExecutor() {
+    this.namedClusterService = NamedClusterManager.getInstance();
+    this.runtimeTester = RuntimeTesterImpl.getInstance();
+    this.runtimeTestActionService = RuntimeTestActionServiceImpl.getInstance();
+    this.namedClusterServiceLocator = new NamedClusterServiceLocatorImpl( "", namedClusterService );
+  }
 
   public JobEntryPigScriptExecutor( NamedClusterService namedClusterService,
                                     RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester,
