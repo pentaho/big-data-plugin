@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,6 +25,7 @@ package org.pentaho.big.data.kettle.plugins.pig;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.vfs2.FileObject;
+import org.pentaho.di.core.plugins.PluginClasspath;
 import org.pentaho.hadoop.shim.api.HadoopClientServices;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
@@ -51,6 +52,10 @@ import org.pentaho.hadoop.shim.api.pig.PigResult;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
+import org.pentaho.runtime.test.action.impl.RuntimeTestActionServiceImpl;
+import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
+import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
 import org.w3c.dom.Node;
 
 
@@ -70,6 +75,7 @@ import java.util.Map;
   categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
   i18nPackageName = "org.pentaho.di.job.entries.pig",
   documentationUrl = "https://pentaho-community.atlassian.net/wiki/display/EAI/Pig+Script+Executor" )
+@PluginClasspath( libPaths = { "../../lib" } )
 public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable, JobEntryInterface {
   public static final Class<?> PKG = JobEntryPigScriptExecutor.class; // for i18n purposes, needed by Translator2!!
 
@@ -111,6 +117,13 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
    * Parameters for the script
    */
   protected Map<String, String> m_params = new HashMap<String, String>();
+
+  public JobEntryPigScriptExecutor() {
+    this.namedClusterService = NamedClusterManager.getInstance();
+    this.runtimeTester = RuntimeTesterImpl.getInstance();
+    this.runtimeTestActionService = RuntimeTestActionServiceImpl.getInstance();
+    this.namedClusterServiceLocator = new NamedClusterServiceLocatorImpl( "", namedClusterService );
+  }
 
   public JobEntryPigScriptExecutor( NamedClusterService namedClusterService,
                                     RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester,
