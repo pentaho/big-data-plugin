@@ -68,7 +68,6 @@
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-hbase/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-hbase-meta/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-mapreduce/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-oozie/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-sqoop/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-hive/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-spark/${project.version}</bundle>
