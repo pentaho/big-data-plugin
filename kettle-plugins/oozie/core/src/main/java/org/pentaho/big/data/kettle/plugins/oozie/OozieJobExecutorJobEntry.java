@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,6 +22,38 @@
 
 package org.pentaho.big.data.kettle.plugins.oozie;
 
+import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.lang.StringUtils;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
+import org.pentaho.big.data.kettle.plugins.job.AbstractJobEntry;
+import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
+import org.pentaho.big.data.kettle.plugins.job.JobEntryUtils;
+import org.pentaho.big.data.kettle.plugins.job.PropertyEntry;
+import org.pentaho.di.core.Result;
+import org.pentaho.di.core.annotations.JobEntry;
+import org.pentaho.di.core.exception.KettleFileException;
+import org.pentaho.di.core.plugins.PluginClasspath;
+import org.pentaho.di.core.util.StringUtil;
+import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.di.core.vfs.KettleVFS;
+import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.job.entry.JobEntryInterface;
+import org.pentaho.hadoop.shim.api.HadoopClientServices;
+import org.pentaho.hadoop.shim.api.HadoopClientServicesException;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.oozie.OozieJobInfo;
+import org.pentaho.hadoop.shim.api.oozie.OozieServiceException;
+import org.pentaho.metastore.api.exceptions.MetaStoreException;
+import org.pentaho.runtime.test.RuntimeTester;
+import org.pentaho.runtime.test.action.RuntimeTestActionService;
+import org.pentaho.runtime.test.action.impl.RuntimeTestActionServiceImpl;
+import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
+import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
+
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ConnectException;
@@ -29,33 +61,6 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-
-import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.lang.StringUtils;
-import org.pentaho.big.data.kettle.plugins.job.JobEntryUtils;
-import org.pentaho.hadoop.shim.api.HadoopClientServices;
-import org.pentaho.hadoop.shim.api.HadoopClientServicesException;
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
-import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
-import org.pentaho.big.data.kettle.plugins.job.AbstractJobEntry;
-import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
-import org.pentaho.big.data.kettle.plugins.job.PropertyEntry;
-import org.pentaho.di.core.Result;
-import org.pentaho.di.core.annotations.JobEntry;
-import org.pentaho.di.core.exception.KettleFileException;
-import org.pentaho.di.core.util.StringUtil;
-import org.pentaho.di.core.variables.VariableSpace;
-import org.pentaho.di.core.vfs.KettleVFS;
-import org.pentaho.di.i18n.BaseMessages;
-import org.pentaho.di.job.entry.JobEntryInterface;
-import org.pentaho.hadoop.shim.api.oozie.OozieJobInfo;
-import org.pentaho.hadoop.shim.api.oozie.OozieServiceException;
-import org.pentaho.metastore.api.exceptions.MetaStoreException;
-import org.pentaho.runtime.test.RuntimeTester;
-import org.pentaho.runtime.test.action.RuntimeTestActionService;
-
 /**
  * User: RFellows Date: 6/4/12
  */
@@ -64,6 +69,7 @@ import org.pentaho.runtime.test.action.RuntimeTestActionService;
   categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData", image = "oozie-job-executor.svg",
   documentationUrl = "https://pentaho-community.atlassian.net/wiki/display/EAI/Oozie+Job+Executor",
   i18nPackageName = "org.pentaho.di.job.entries.oozie", version = "1" )
+@PluginClasspath( libPaths = { "../../lib" } )
 public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorConfig> implements Cloneable,
   JobEntryInterface {
 
@@ -78,6 +84,12 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
   private final RuntimeTester runtimeTester;
   private HadoopClientServices hadoopClientServices = null;
 
+  public OozieJobExecutorJobEntry() {
+    this.namedClusterService = NamedClusterManager.getInstance();
+    this.runtimeTester = RuntimeTesterImpl.getInstance();
+    this.runtimeTestActionService = RuntimeTestActionServiceImpl.getInstance();
+    this.namedClusterServiceLocator = new NamedClusterServiceLocatorImpl( "", namedClusterService );
+  }
   public OozieJobExecutorJobEntry(
     NamedClusterService namedClusterService,
     RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester,
@@ -86,13 +98,6 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
     this.namedClusterServiceLocator = namedClusterServiceLocator;
     this.runtimeTestActionService = runtimeTestActionService;
     this.runtimeTester = runtimeTester;
-  }
-
-  @VisibleForTesting OozieJobExecutorJobEntry() {
-    namedClusterService = null;
-    namedClusterServiceLocator = null;
-    runtimeTestActionService = null;
-    runtimeTester = null;
   }
 
   @Override
@@ -244,7 +249,7 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
    * properties file</li> </ul>
    *
    * @param config Configuration to validate
-   * @return
+   * @return List<String> of validations warnings
    */
   @Override
   public List<String> getValidationWarnings( OozieJobExecutorConfig config ) {
