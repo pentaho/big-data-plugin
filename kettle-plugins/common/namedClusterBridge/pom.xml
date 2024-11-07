@@ -5,10 +5,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-kettle-plugins-common</artifactId>
-    <version>10.3.0.0-SNAPSHOT</version>
+    <version>10.3.0.0-147</version>
   </parent>
   <artifactId>pentaho-big-data-kettle-plugins-common-named-cluster-bridge</artifactId>
-  <version>10.3.0.0-SNAPSHOT</version>
+  <version>10.3.0.0-147</version>
   <packaging>bundle</packaging>
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <description>a Pentaho open source project</description>
