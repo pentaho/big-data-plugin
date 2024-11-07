@@ -185,7 +185,7 @@
         <include>org.syslog4j:syslog4j</include>
         <include>org.w3c.css:sac</include>
         <include>org.xerial.snappy:snappy-java</include>
-        <include>org.hitachivantara:safeyaml</include>
+        <include>org.yaml:snakeyaml</include>
         <include>pentaho-kettle:kettle-core</include>
         <include>pentaho-kettle:kettle-engine</include>
         <include>pentaho-kettle:kettle-ui-swt</include>
@@ -203,7 +203,7 @@
         <include>org.pentaho.reporting.library:libswing</include>
         <include>org.pentaho.reporting.library:libxml</include>
         <include>pentaho:pdi-osgi-bridge-core</include>
-        <include>org.osgi:org.osgi.core</include>
+        <include>org.osgi:osgi.core</include>
         <include>pentaho:pentaho-platform-api</include>
         <include>pentaho:pentaho-platform-core</include>
         <include>pentaho:pentaho-platform-extensions</include>

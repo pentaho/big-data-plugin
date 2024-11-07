@@ -73,7 +73,7 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Import-Package>org.pentaho.di.osgi,*</Import-Package>
+            <Import-Package>org.pentaho.di.osgi,javax.servlet.http,*</Import-Package>
             <Provide-Capability>
               org.pentaho.webpackage;root=/app
             </Provide-Capability>
