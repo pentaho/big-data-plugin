@@ -112,7 +112,7 @@
     </dependency>
     <dependency>
       <groupId>org.osgi</groupId>
-      <artifactId>org.osgi.core</artifactId>
+      <artifactId>osgi.core</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -153,6 +153,11 @@
       <artifactId>mockito-inline</artifactId>
       <version>${mockito4.version}</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-configuration</groupId>
+      <artifactId>commons-configuration</artifactId>
+      <version>1.6</version>
     </dependency>
   </dependencies>
   <build>
@@ -197,6 +202,7 @@
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
+        <version>2.4.0</version>
         <extensions>true</extensions>
         <configuration>
           <instructions>
@@ -213,7 +219,6 @@
             since no such package should be in karaf now.
             -->
             <Export-Package>
-              org.ops4j.pax.web.service.spi.util,
               org.apache.commons.collections4.*,
               org.ops4j.pax.swissbox.core,
               org.ops4j.lang</Export-Package>
