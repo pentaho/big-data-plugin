@@ -15,17 +15,6 @@ package org.pentaho.di.job.entries.spark;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.StreamTokenizer;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import com.sun.jna.Platform;
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.di.cluster.SlaveServer;
@@ -54,6 +43,16 @@ import org.pentaho.di.repository.Repository;
 import org.pentaho.dictionary.MetaverseAnalyzers;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.StreamTokenizer;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.pentaho.di.job.entry.validator.AndValidator.putValidators;
 import static org.pentaho.di.job.entry.validator.JobEntryValidatorUtils.andValidator;
