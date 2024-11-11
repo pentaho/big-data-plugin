@@ -80,7 +80,7 @@
   <feature name="pentaho-hadoop-cluster-ui" version="1.0">
     <bundle>mvn:org.pentaho.di.plugins/core-ui/${project.version}</bundle>
     <bundle>mvn:pentaho/hadoop-cluster-ui/${project.version}</bundle>
-    <bundle>mvn:commons-fileupload/commons-fileupload/${commons-fileupload.version}</bundle>
+    <bundle>mvn:org.apache.commons/commons-fileupload2-core/${commons-fileupload.version}</bundle>
   </feature>
 
 </features>
