@@ -132,8 +132,9 @@
       <artifactId>core-ui</artifactId>
     </dependency>
     <dependency>
-      <groupId>commons-fileupload</groupId>
-      <artifactId>commons-fileupload</artifactId>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-fileupload2-core</artifactId>
+      <version>${commons-fileupload.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>

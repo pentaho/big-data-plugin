@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2021 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,7 +25,7 @@ package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.fileupload.FileItemStream;
+import org.apache.commons.fileupload2.core.FileItem;
 import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONObject;
 import org.junit.After;
@@ -449,9 +449,9 @@ public class HadoopClusterManagerTest {
 
     File driverFile = new File( "src/test/resources/driver-source/driver.kar" );
 
-    FileItemStream fileItemStream = mock( FileItemStream.class );
+    FileItem fileItemStream = mock( FileItem.class );
     when( fileItemStream.getFieldName() ).thenReturn( driverFile.getName() );
-    when( fileItemStream.openStream() ).thenReturn( new FileInputStream( driverFile ) );
+    when( fileItemStream.getInputStream() ).thenReturn( new FileInputStream( driverFile ) );
 
     JSONObject response = hadoopClusterManager.installDriver( fileItemStream );
     boolean isSuccess = (boolean) response.get( "installed" );
