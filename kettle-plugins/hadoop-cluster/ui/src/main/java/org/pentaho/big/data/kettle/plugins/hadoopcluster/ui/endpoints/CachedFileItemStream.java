@@ -13,7 +13,7 @@
 
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints;
 
-import org.apache.commons.fileupload.FileItemStream;
+import org.apache.commons.fileupload2.core.FileItem;
 import org.apache.commons.io.IOUtils;
 
 import java.io.ByteArrayInputStream;
@@ -24,10 +24,10 @@ import java.io.InputStream;
 /**
  * Cached File Item Stream
  * <p>
- * {@link FileItemStream} interface is not extended because {@link FileItemStream#openStream()} doesn't represent
- * returning cached bytes. Additionally {@link FileItemStream} throws a
- * {@link org.apache.commons.fileupload.FileItemStream.ItemSkippedException}
- * when a previous stream is accessed after {@link FileItemIterator#next()} is called, which is not applicable here.
+ * {@link FileItem} interface is not extended because {@link FileItem#getInputStream()} doesn't represent
+ * returning cached bytes. Additionally {@link FileItem} throws a
+ * {@link org.apache.commons.fileupload2.core.FileItemInput.ItemSkippedException}
+ * when a previous stream is accessed after {@link org.apache.commons.fileupload2.core.FileItemInputIterator#next()} is called, which is not applicable here.
  */
 public class CachedFileItemStream {
 
@@ -37,15 +37,15 @@ public class CachedFileItemStream {
   private long lastModified; //optional file last modified date
 
   /**
-   * Create a {@link CachedFileItemStream} from a {@link FileItemStream}
+   * Create a {@link CachedFileItemStream} from a {@link FileItem}
    * <p>
-   * The {@link FileItemStream}'s {@link InputStream} is cached
+   * The {@link FileItem}'s {@link InputStream} is cached
    *
    * @param fileItemStream
    * @throws IOException
    */
-  public CachedFileItemStream( FileItemStream fileItemStream ) throws IOException {
-    this( fileItemStream.openStream(), fileItemStream.getName(), fileItemStream.getFieldName() );
+  public CachedFileItemStream( FileItem fileItemStream ) throws IOException {
+    this( fileItemStream.getInputStream(), fileItemStream.getName(), fileItemStream.getFieldName() );
   }
 
   public CachedFileItemStream( InputStream inputStream, String name, String fieldName ) throws IOException {
