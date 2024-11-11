@@ -59,7 +59,7 @@
         <include>org.apache.commons:commons-dbcp2</include>
         <include>commons-digester:commons-digester</include>
         <include>commons-discovery:commons-discovery</include>
-        <include>commons-fileupload:commons-fileupload</include>
+        <include>org.apache.commons:commons-fileupload2-core</include>
         <include>org.apache.httpcomponents:httpclient</include>
         <include>org.apache.httpcomponents:httpcore</include>
         <include>commons-io:commons-io</include>
