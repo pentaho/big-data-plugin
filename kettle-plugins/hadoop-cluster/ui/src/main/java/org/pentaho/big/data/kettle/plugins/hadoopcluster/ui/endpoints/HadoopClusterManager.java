@@ -16,7 +16,7 @@ package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.fileupload.FileItemStream;
+import org.apache.commons.fileupload2.core.FileItem;
 import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONObject;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDialog;
@@ -554,12 +554,12 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  public JSONObject installDriver( FileItemStream driver ) {
+  public JSONObject installDriver( FileItem driver ) {
     boolean success = false;
     if ( driver != null ) {
       String destination = Const.getShimDriverDeploymentLocation();
 
-      try ( final InputStream driverStream = driver.openStream() ) {
+      try ( final InputStream driverStream = driver.getInputStream() ) {
         FileUtils.copyInputStreamToFile( driverStream,
           new File( destination + fileSeparator + driver.getFieldName() ) );
         success = true;
