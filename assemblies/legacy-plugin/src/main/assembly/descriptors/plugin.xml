@@ -53,6 +53,7 @@
                 <include>pentaho:pentaho-big-data-api-runtimeTest</include>
                 <include>pentaho:pentaho-big-data-impl-cluster</include>
                 <include>pentaho:pentaho-big-data-kettle-plugins-common-ui</include>
+                <include>pentaho:pentaho-big-data-kettle-plugins-common-job</include>
                 <include>org.pentaho:shim-api-core</include>
                 <include>org.pentaho:pentaho-hadoop-shims-common-services-api</include>
                 <include>org.apache.avro:avro</include>
