@@ -69,7 +69,6 @@ import java.util.Properties;
   categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData", image = "oozie-job-executor.svg",
   documentationUrl = "https://pentaho-community.atlassian.net/wiki/display/EAI/Oozie+Job+Executor",
   i18nPackageName = "org.pentaho.di.job.entries.oozie", version = "1" )
-@PluginClasspath( libPaths = { "../../lib" } )
 public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorConfig> implements Cloneable,
   JobEntryInterface {
 
