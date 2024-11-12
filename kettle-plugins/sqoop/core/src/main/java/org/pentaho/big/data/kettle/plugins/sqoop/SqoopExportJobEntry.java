@@ -13,6 +13,7 @@
 
 package org.pentaho.big.data.kettle.plugins.sqoop;
 
+import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.di.cluster.SlaveServer;
@@ -27,6 +28,9 @@ import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
+import org.pentaho.runtime.test.action.impl.RuntimeTestActionServiceImpl;
+import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.w3c.dom.Node;
 
 import java.util.List;
@@ -43,6 +47,12 @@ public class SqoopExportJobEntry extends AbstractSqoopJobEntry<SqoopExportConfig
 
   // Database meta object for UI interactions. Populated during transformation load or configuration changes via UI.
   private transient DatabaseMeta databaseMeta;
+
+  public SqoopExportJobEntry() {
+    super( NamedClusterManager.getInstance(),
+      new NamedClusterServiceLocatorImpl( "", NamedClusterManager.getInstance() ),
+      RuntimeTestActionServiceImpl.getInstance(), RuntimeTesterImpl.getInstance() );
+  }
 
   public SqoopExportJobEntry( NamedClusterService namedClusterService,
                               NamedClusterServiceLocator namedClusterServiceLocator,
