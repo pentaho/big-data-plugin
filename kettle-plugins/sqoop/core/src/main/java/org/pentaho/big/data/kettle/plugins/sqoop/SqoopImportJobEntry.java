@@ -19,6 +19,10 @@ import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
+import org.pentaho.runtime.test.action.impl.RuntimeTestActionServiceImpl;
+import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
+import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
 
 import java.util.Properties;
 
@@ -30,6 +34,12 @@ import java.util.Properties;
     i18nPackageName = "org.pentaho.di.job.entries.sqoop", version = "1",
     documentationUrl = "https://pentaho-community.atlassian.net/wiki/display/EAI/Sqoop+Import" )
 public class SqoopImportJobEntry extends AbstractSqoopJobEntry<SqoopImportConfig> {
+
+  public SqoopImportJobEntry() {
+    super( NamedClusterManager.getInstance(),
+      new NamedClusterServiceLocatorImpl( "", NamedClusterManager.getInstance() ),
+      RuntimeTestActionServiceImpl.getInstance(), RuntimeTesterImpl.getInstance() );
+  }
 
   public SqoopImportJobEntry( NamedClusterService namedClusterService,
                               NamedClusterServiceLocator serviceLocator,
