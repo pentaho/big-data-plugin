@@ -25,7 +25,6 @@ package org.pentaho.big.data.kettle.plugins.pig;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.vfs2.FileObject;
-import org.pentaho.di.core.plugins.PluginClasspath;
 import org.pentaho.hadoop.shim.api.HadoopClientServices;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
@@ -75,7 +74,6 @@ import java.util.Map;
   categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
   i18nPackageName = "org.pentaho.di.job.entries.pig",
   documentationUrl = "https://pentaho-community.atlassian.net/wiki/display/EAI/Pig+Script+Executor" )
-@PluginClasspath( libPaths = { "../../lib" } )
 public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable, JobEntryInterface {
   public static final Class<?> PKG = JobEntryPigScriptExecutor.class; // for i18n purposes, needed by Translator2!!
 
