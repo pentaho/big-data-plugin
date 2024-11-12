@@ -370,6 +370,19 @@
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
+      <artifactId>pdi-sqoop-plugin</artifactId>
+      <version>${project.version}</version>
+      <type>zip</type>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
       <artifactId>pdi-hbase-plugin</artifactId>
       <version>${project.version}</version>
       <type>zip</type>

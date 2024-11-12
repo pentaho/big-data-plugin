@@ -47,9 +47,6 @@
       <excludes>
         <exclude>pentaho:pdi-sqoop-core:*</exclude>
       </excludes>
-      <includes>
-        <include>pentaho:pentaho-big-data-kettle-plugins-common-job</include>
-      </includes>
     </dependencySet>
   </dependencySets>
 </assembly>
