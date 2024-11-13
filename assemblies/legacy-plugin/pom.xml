@@ -71,6 +71,11 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.pentaho</groupId>
+      <artifactId>pentaho-hadoop-shims-common-services-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>pentaho</groupId>
       <artifactId>hadoop-cluster-ui</artifactId>
       <version>${project.version}</version>
@@ -336,28 +341,6 @@
       <type>zip</type>
       <classifier>plugin</classifier>
     </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>oss-licenses</artifactId>
-      <version>${oss-licenses.version}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-    </dependency>
-<!--    <dependency>-->
-<!--      <groupId>pentaho</groupId>-->
-<!--      <artifactId>pentaho-big-data-impl-cluster</artifactId>-->
-<!--      <version>${big-data-plugin.version}</version>-->
-<!--    </dependency>-->
-<!--    <dependency>-->
-<!--      <groupId>pentaho</groupId>-->
-<!--      <artifactId>pentaho-big-data-kettle-plugins-common-ui</artifactId>-->
-<!--      <version>${big-data-plugin.version}</version>-->
-<!--    </dependency>-->
-<!--    <dependency>-->
-<!--      <groupId>org.pentaho</groupId>-->
-<!--      <artifactId>shim-api</artifactId>-->
-<!--      <version>${project.version}</version>-->
-<!--    </dependency>-->
   </dependencies>
   <build>
     <resources>
