@@ -89,13 +89,6 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
     this.runtimeTester = runtimeTester;
   }
 
-  @VisibleForTesting OozieJobExecutorJobEntry() {
-    namedClusterService = null;
-    namedClusterServiceLocator = null;
-    runtimeTestActionService = null;
-    runtimeTester = null;
-  }
-
   @Override
   protected OozieJobExecutorConfig createJobConfig() {
     return new OozieJobExecutorConfig();

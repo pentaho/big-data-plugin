@@ -13,6 +13,7 @@
     <publish-sonar-phase>site</publish-sonar-phase>
     <platform.version>10.3.0.0-SNAPSHOT</platform.version>
     <jdom.version>1.1.3</jdom.version>
+    <dependency.com.tinkerpop.blueprints.version>2.6.0</dependency.com.tinkerpop.blueprints.version>
   </properties>
 
   <!-- VERIFY THESE IMPORTS THAT WERE IN THE BUILD SECTION WHEN THE PLUGIN WAS OSGI. ARE THEY NEEDED?
@@ -67,6 +68,12 @@
       <artifactId>kettle-ui-swt</artifactId>
       <version>${pdi.version}</version>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.tinkerpop.blueprints</groupId>
+      <artifactId>blueprints-core</artifactId>
+      <version>${dependency.com.tinkerpop.blueprints.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
