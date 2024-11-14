@@ -125,7 +125,7 @@ public class S3FileObjectTest {
     s3FileObjectBucketSpy = spy( s3FileObject );
 
     s3FileObjectFileSpy = spy( new S3FileObject(
-      new S3FileName( SCHEME, BUCKET_NAME, BUCKET_NAME + "/" + origKey, FileType.IMAGINARY ), fileSystemSpy ) );
+      new S3FileName( SCHEME, BUCKET_NAME, "/" + BUCKET_NAME + "/" + origKey, FileType.IMAGINARY ), fileSystemSpy ) );
 
     S3FileObject s3FileObjectRoot = new S3FileObject( rootFileName, fileSystemSpy );
     s3FileObjectSpyRoot = spy( s3FileObjectRoot );
@@ -216,7 +216,7 @@ public class S3FileObjectTest {
   @Test
   public void testDoCreateFolder() throws Exception {
     S3FileObject notRootBucket = spy(
-      new S3FileObject( new S3FileName( SCHEME, BUCKET_NAME, BUCKET_NAME + "/" + origKey, FileType.IMAGINARY ),
+      new S3FileObject( new S3FileName( SCHEME, BUCKET_NAME, "/" + BUCKET_NAME + "/" + origKey, FileType.IMAGINARY ),
         fileSystemSpy ) );
     notRootBucket.createFolder();
     ArgumentCaptor<PutObjectRequest> putObjectRequestArgumentCaptor = ArgumentCaptor.forClass( PutObjectRequest.class );
@@ -253,7 +253,7 @@ public class S3FileObjectTest {
   public void testDoRename() throws Exception {
     String someNewBucketName = "someNewBucketName";
     String someNewKey = "some/newKey";
-    S3FileName newFileName = new S3FileName( SCHEME, someNewBucketName, someNewBucketName + "/" + someNewKey, FileType.FILE );
+    S3FileName newFileName = new S3FileName( SCHEME, someNewBucketName, "/" + someNewBucketName + "/" + someNewKey, FileType.FILE );
     S3FileObject newFile = new S3FileObject( newFileName, fileSystemSpy );
     ArgumentCaptor<CopyObjectRequest> copyObjectRequestArgumentCaptor = ArgumentCaptor.forClass( CopyObjectRequest.class );
     when( s3ServiceMock.doesBucketExistV2( someNewBucketName ) ).thenReturn( true );
