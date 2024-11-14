@@ -19,6 +19,7 @@
     <maven-replacer-plugin.version>1.5.2</maven-replacer-plugin.version>
     <platform.version>10.2.0.0-SNAPSHOT</platform.version>
     <mockito4.version>4.0.0</mockito4.version>
+    <commons-configuration.version>1.6</commons-configuration.version>
   </properties>
 
   <dependencies>
@@ -101,6 +102,11 @@
       <artifactId>pax-swissbox-core</artifactId>
       <version>1.7.1</version>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-configuration</groupId>
+      <artifactId>commons-configuration</artifactId>
+      <version>${commons-configuration.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>

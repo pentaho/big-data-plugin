@@ -76,6 +76,11 @@ public class ThinHadoopClusterFolderProvider extends TreeFolderProvider {
     return STRING_NEW_HADOOP_CLUSTER;
   }
 
+  @Override
+  public Class getType() {
+    return NamedCluster.class;
+  }
+
   private Image getHadoopClusterImage() {
     return SwtSvgImageUtil
       .getImage( spoonSupplier.get().getShell().getDisplay(), getClass().getClassLoader(), "images/hadoop_clusters.svg",

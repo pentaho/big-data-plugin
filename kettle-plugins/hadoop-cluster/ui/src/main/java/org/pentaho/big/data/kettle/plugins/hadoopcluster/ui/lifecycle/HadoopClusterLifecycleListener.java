@@ -39,8 +39,7 @@ public class HadoopClusterLifecycleListener implements LifecycleListener {
   public void onStart( LifeEventHandler handler ) throws LifecycleException {
     Spoon spoon = spoonSupplier.get();
     if ( spoon != null ) {
-      spoon.getTreeManager().addTreeProvider( Spoon.STRING_TRANSFORMATIONS, new ThinHadoopClusterFolderProvider( ) );
-      spoon.getTreeManager().addTreeProvider( Spoon.STRING_JOBS, new ThinHadoopClusterFolderProvider( ) );
+      spoon.getTreeManager().addTreeProvider( Spoon.STRING_CONFIGURATIONS, new ThinHadoopClusterFolderProvider( ) );
     }
   }
 

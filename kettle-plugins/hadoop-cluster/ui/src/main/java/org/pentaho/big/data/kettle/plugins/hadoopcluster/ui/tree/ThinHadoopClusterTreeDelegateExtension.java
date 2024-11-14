@@ -53,18 +53,18 @@ public class ThinHadoopClusterTreeDelegateExtension implements ExtensionPointInt
 
     TreeSelection object = null;
     switch ( caseNumber ) {
-      case 3:
-        if ( path[ 2 ].equals( ThinHadoopClusterFolderProvider.STRING_NEW_HADOOP_CLUSTER ) ) {
-          object = new TreeSelection( path[ 2 ], NamedCluster.class, meta );
+      case 2:
+        if ( path[ 1 ].equals( ThinHadoopClusterFolderProvider.STRING_NEW_HADOOP_CLUSTER ) ) {
+          object = new TreeSelection( path[ 1 ], NamedCluster.class, meta );
         }
         break;
-      case 4:
-        if ( path[ 2 ].equals( ThinHadoopClusterFolderProvider.STRING_NEW_HADOOP_CLUSTER ) ) {
+      case 3:
+        if ( path[ 1 ].equals( ThinHadoopClusterFolderProvider.STRING_NEW_HADOOP_CLUSTER ) ) {
           try {
             NamedClusterManager ncm = NamedClusterManager.getInstance();
-            String name = path[ 3 ];
+            String name = path[ 2 ];
             NamedCluster nc = ncm.read( name, spoonSupplier.get().getMetaStore() );
-            object = new TreeSelection( path[ 3 ], nc, meta );
+            object = new TreeSelection( path[ 2 ], nc, meta );
           } catch ( MetaStoreException e ) {
             // Ignore
           }
