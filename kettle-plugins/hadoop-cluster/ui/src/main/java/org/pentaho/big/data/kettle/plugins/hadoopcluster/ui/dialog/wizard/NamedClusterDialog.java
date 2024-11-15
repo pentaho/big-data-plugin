@@ -234,7 +234,8 @@ public class NamedClusterDialog extends Wizard {
   public boolean performFinish() {
     boolean finish = false;
     String currentPage = super.getContainer().getCurrentPage().getName();
-    if ( !currentPage.equals( reportPage.getClass().getSimpleName() ) ) {
+    if ( !currentPage.equals( reportPage.getClass().getSimpleName() ) &&
+      !currentPage.equals( testResultsPage.getClass().getSimpleName() ) ) {
       if ( isEditMode || isDuplicating ) {
         saveEditedNamedCluster();
       } else {
@@ -314,7 +315,9 @@ public class NamedClusterDialog extends Wizard {
           .equals( NONE ) ) || ( currentPage.equals( kerberosSettingsPage.getClass().getSimpleName() )
           && kerberosSettingsPage.isPageComplete() || (
           currentPage.equals( knoxSettingsPage.getClass().getSimpleName() )
-            && knoxSettingsPage.isPageComplete() ) || currentPage.equals( reportPage.getClass().getSimpleName() ) );
+            && knoxSettingsPage.isPageComplete() )
+            || currentPage.equals( reportPage.getClass().getSimpleName() )
+            || currentPage.equals( testResultsPage.getClass().getSimpleName() ) );
     } else {
       // Set to Initialize "TestResultsPage" when "dialogState" is "testing" and disable its "Finish" button.
       // Couldn't be done elsewhere because the "TestResultsPage" was not initialized by the wizard.
