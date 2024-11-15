@@ -491,7 +491,8 @@ public class ClusterSettingsPage extends WizardPage {
       thinNameClusterModel.setOozieUrl( hostNameTextFieldOozieGroup.getText() );
       thinNameClusterModel.setKafkaBootstrapServers( hostNameTextFieldKafkaGroup.getText() );
       setPageComplete( !thinNameClusterModel.getName().isBlank() && !thinNameClusterModel.getHdfsHost().isBlank()
-        && !thinNameClusterModel.getShimVendor().isBlank() && !thinNameClusterModel.getShimVersion().isBlank() );
+        && !thinNameClusterModel.getShimVendor().isBlank() && !thinNameClusterModel.getShimVersion().isBlank()
+        && thinNameClusterModel.getName().matches( "^[a-zA-Z0-9-]+$" ) );
     }
     if ( ( (NamedClusterDialog) getWizard() ).getDialogState().equals( "import" ) ) {
       setPageComplete( !thinNameClusterModel.getName().isBlank() && !thinNameClusterModel.getSiteFiles().isEmpty() );
