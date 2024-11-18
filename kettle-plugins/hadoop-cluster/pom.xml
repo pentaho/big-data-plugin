@@ -27,8 +27,6 @@
     <platform.version>10.3.0.0-SNAPSHOT</platform.version>
     <cxf.karaf.version>3.0.13</cxf.karaf.version>
     <swt.version>4.6</swt.version>
-    <dependency.javax.servlet-api.version>3.0.1</dependency.javax.servlet-api.version>
-    <dependency.javax.ws.rs-api.version>2.0</dependency.javax.ws.rs-api.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -93,15 +91,15 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>javax.ws.rs</groupId>
-        <artifactId>javax.ws.rs-api</artifactId>
-        <version>${dependency.javax.ws.rs-api.version}</version>
+        <groupId>jakarta.ws.rs</groupId>
+        <artifactId>jakarta.ws.rs-api</artifactId>
+        <version>${jakarta.ws.rs-api.version}</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
-        <groupId>javax.servlet</groupId>
-        <artifactId>javax.servlet-api</artifactId>
-        <version>${dependency.javax.servlet-api.version}</version>
+        <groupId>jakarta.servlet</groupId>
+        <artifactId>jakarta.servlet-api</artifactId>
+        <version>${jakarta.servlet.version}</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
