@@ -86,6 +86,7 @@ public class NamedClusterDialog extends Wizard {
   private String dialogState;
   private boolean isEditMode;
   private boolean isDuplicating;
+  private boolean isImporting;
   private ClusterSettingsPage clusterSettingsPage;
   private SecuritySettingsPage securitySettingsPage;
   private KerberosSettingsPage kerberosSettingsPage;
@@ -104,7 +105,7 @@ public class NamedClusterDialog extends Wizard {
 
   public NamedClusterDialog( NamedClusterService namedClusterService, IMetaStore metastore, VariableSpace variables,
                              RuntimeTester tester, Map<String, String> params, String dialogState ) {
-    setWindowTitle( BaseMessages.getString( PKG, "NamedClusterDialog.newCluster" )  );
+    setWindowTitle( BaseMessages.getString( PKG, "NamedClusterDialog.newCluster" ) );
     variableSpace = variables;
     runtimeTester = tester;
     hadoopClusterManager = new HadoopClusterManager( spoonSupplier.get(), namedClusterService, metastore, "" );
@@ -118,6 +119,7 @@ public class NamedClusterDialog extends Wizard {
       isEditMode = false;
       isDuplicating = true;
     }
+    isImporting = dialogState.equals( "import" );
     this.dialogState = dialogState;
   }
 
@@ -342,6 +344,10 @@ public class NamedClusterDialog extends Wizard {
 
   public boolean isEditMode() {
     return isEditMode;
+  }
+
+  public boolean isImporting() {
+    return isImporting;
   }
 
   /*
