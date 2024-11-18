@@ -19,6 +19,7 @@ import org.eclipse.swt.widgets.Shell;
 //import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages.AddDriverPage;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages.AddDriverResultPage;
+import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages.ClusterSettingsPage;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.CustomWizardDialog;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClusterManager;
@@ -27,6 +28,7 @@ import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
+import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.metastore.MetaStoreConst;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.spoon.Spoon;
@@ -42,10 +44,12 @@ public class AddDriverDialog extends Wizard {
   private final VariableSpace variableSpace;
   private final HadoopClusterManager hadoopClusterManager;
   private final Supplier<Spoon> spoonSupplier = Spoon::getInstance;
+  private static final Class<?> PKG = ClusterSettingsPage.class;
   private static final LogChannelInterface log =
     KettleLogStore.getLogChannelInterfaceFactory().create( "AddDriverDialog" );
 
   public AddDriverDialog( VariableSpace variables, NamedClusterService namedClusterService, IMetaStore metastore ) {
+    setWindowTitle( BaseMessages.getString( PKG, "NamedClusterDialog.newCluster" ) );
     variableSpace = variables;
     hadoopClusterManager = new HadoopClusterManager( spoonSupplier.get(), namedClusterService, metastore, "" );
   }
