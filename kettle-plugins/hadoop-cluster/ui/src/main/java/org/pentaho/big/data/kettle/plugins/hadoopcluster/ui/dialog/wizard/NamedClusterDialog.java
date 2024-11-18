@@ -122,20 +122,22 @@ public class NamedClusterDialog extends Wizard {
   }
 
   private ThinNameClusterModel createModel( ThinNameClusterModel model ) {
+    boolean isCreatingCluster = false;
     if ( model == null ) {
       model = new ThinNameClusterModel();
+      isCreatingCluster = true;
     }
     model.setName( model.getName() == null ? "" : model.getName() );
     model.setShimVendor( model.getShimVendor() == null ? "" : model.getShimVendor() );
     model.setShimVersion( model.getShimVersion() == null ? "" : model.getShimVersion() );
     model.setHdfsHost( model.getHdfsHost() == null ? "" : model.getHdfsHost() );
-    model.setHdfsPort( model.getHdfsPort() == null ? "8020" : model.getHdfsPort() );
+    model.setHdfsPort( model.getHdfsPort() == null && isCreatingCluster? "8020" : model.getHdfsPort() == null ? "" : model.getHdfsPort() );
     model.setHdfsUsername( model.getHdfsUsername() == null ? "" : model.getHdfsUsername() );
     model.setHdfsPassword( model.getHdfsPassword() == null ? "" : model.getHdfsPassword() );
     model.setJobTrackerHost( model.getJobTrackerHost() == null ? "" : model.getJobTrackerHost() );
-    model.setJobTrackerPort( model.getJobTrackerPort() == null ? "8032" : model.getJobTrackerPort() );
+    model.setJobTrackerPort( model.getJobTrackerPort() == null && isCreatingCluster? "8032" : model.getJobTrackerPort() == null ? "" : model.getJobTrackerPort() );
     model.setZooKeeperHost( model.getZooKeeperHost() == null ? "" : model.getZooKeeperHost() );
-    model.setZooKeeperPort( model.getZooKeeperPort() == null ? "2181" : model.getZooKeeperPort() );
+    model.setZooKeeperPort( model.getZooKeeperPort() == null && isCreatingCluster? "2181" : model.getZooKeeperPort() == null ? "" : model.getZooKeeperPort() );
     model.setOozieUrl( model.getOozieUrl() == null ? "" : model.getOozieUrl() );
     model.setKafkaBootstrapServers( model.getKafkaBootstrapServers() == null ? "" : model.getKafkaBootstrapServers() );
     model.setOldName( model.getName() );
