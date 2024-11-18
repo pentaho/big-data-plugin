@@ -120,7 +120,7 @@ public class TestResultsPage extends WizardPage {
   private List<TestCategory> setTestResultsOrder( Object[] categories ) {
     List<TestCategory> testCategories = new ArrayList<>();
     String[] categoryNames = new String[ 5 ];
-    if ( Const.isWindows() ) {
+    if ( Const.isWindows() || Const.isOSX() ) {
       categoryNames[ 0 ] = "Kafka";
       categoryNames[ 1 ] = "Oozie";
       categoryNames[ 2 ] = "Job";
