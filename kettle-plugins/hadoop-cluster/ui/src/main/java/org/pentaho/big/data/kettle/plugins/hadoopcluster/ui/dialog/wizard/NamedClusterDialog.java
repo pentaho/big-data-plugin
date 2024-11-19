@@ -229,7 +229,7 @@ public class NamedClusterDialog extends Wizard {
   public boolean performFinish() {
     boolean finish = false;
     String currentPage = super.getContainer().getCurrentPage().getName();
-    if ( !currentPage.equals( reportPage.getClass().getSimpleName() ) &&
+    if ( reportPage != null && !currentPage.equals( reportPage.getClass().getSimpleName() ) &&
       !currentPage.equals( testResultsPage.getClass().getSimpleName() ) ) {
       if ( isEditMode || isDuplicating ) {
         saveEditedNamedCluster();
@@ -301,9 +301,6 @@ public class NamedClusterDialog extends Wizard {
       if ( currentPage.equals( clusterSettingsPage.getClass().getSimpleName() ) ) {
         ( (CustomWizardDialog) getContainer() ).enableCancelButton( true );
       }
-      if ( currentPage.equals( reportPage.getClass().getSimpleName() ) ) {
-        ( (CustomWizardDialog) getContainer() ).enableCancelButton( false );
-      }
       return
         ( currentPage.equals( securitySettingsPage.getClass().getSimpleName() )
           && securitySettingsPage.getSecurityType()
@@ -317,7 +314,7 @@ public class NamedClusterDialog extends Wizard {
       // Set to Initialize "TestResultsPage" when "dialogState" is "testing" and disable its "Finish" button.
       // Couldn't be done elsewhere because the "TestResultsPage" was not initialized by the wizard.
       initialize( thinNameClusterModel );
-      return false;
+      return true;
     }
   }
 
