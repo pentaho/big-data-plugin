@@ -486,7 +486,9 @@ public class ClusterSettingsPage extends WizardPage {
         && thinNameClusterModel.getName().matches( "^[a-zA-Z0-9-]+$" ) );
     }
     if ( ( (NamedClusterDialog) getWizard() ).getDialogState().equals( "import" ) ) {
-      setPageComplete( !thinNameClusterModel.getName().isBlank() && !thinNameClusterModel.getSiteFiles().isEmpty() );
+      setPageComplete( !thinNameClusterModel.getName().isBlank()
+        && !thinNameClusterModel.getSiteFiles().isEmpty()
+        && thinNameClusterModel.getName().matches( "^[a-zA-Z0-9-]+$" ) );
     }
   }
 
