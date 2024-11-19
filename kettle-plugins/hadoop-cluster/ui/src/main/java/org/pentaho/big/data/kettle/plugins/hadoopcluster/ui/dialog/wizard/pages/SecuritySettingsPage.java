@@ -140,7 +140,9 @@ public class SecuritySettingsPage extends WizardPage {
   public void initialize( ThinNameClusterModel model ) {
     setTitle( ( (NamedClusterDialog) getWizard() ).isEditMode() ?
       BaseMessages.getString( PKG, "NamedClusterDialog.editCluster.title" ) :
-      BaseMessages.getString( PKG, "NamedClusterDialog.newCluster.title" ) );
+      ( (NamedClusterDialog) getWizard() ).isImporting() ?
+        BaseMessages.getString( PKG, "NamedClusterDialog.importCluster.title" ) :
+        BaseMessages.getString( PKG, "NamedClusterDialog.newCluster.title" ) );
 
     if ( isConnectedToRepo() ) {
       setDescription( BaseMessages.getString( PKG, "NamedClusterDialog.repositoryNotification" ) );
