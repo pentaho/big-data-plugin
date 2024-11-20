@@ -54,6 +54,7 @@ public class TestResultsPage extends WizardPage {
   private static final String WARNING_IMG = "images/warning_category.svg";
   private static final String FAIL_IMG = "images/fail_category.svg";
   private static final String PASS_IMG = "images/success_category.svg";
+  private Composite testComposite;
 
   public TestResultsPage( VariableSpace variables, ThinNameClusterModel model ) {
     super( TestResultsPage.class.getSimpleName() );
@@ -166,7 +167,10 @@ public class TestResultsPage extends WizardPage {
           GUIResource.getInstance().getImage( PASS_IMG, getClass().getClassLoader(), 16, 16 ) );
       }
       List<Test> tests = testCategory.getTests();
-      Composite testComposite = new Composite( testResultsExpandBar, SWT.NONE );
+      if ( testComposite != null ) {
+        testComposite.dispose();
+      }
+      testComposite = new Composite( testResultsExpandBar, SWT.NONE );
       props.setLook( testComposite );
       for ( Test test : tests ) {
         GridLayout testLayout = new GridLayout();
