@@ -174,7 +174,7 @@
         <include>org.samba.jcifs:jcifs</include>
         <include>org.scannotation:scannotation</include>
         <include>org.slf4j:slf4j-api</include>
-        <include>org.apache.logging.log4j:log4j-slf4j-impl</include>
+        <include>org.apache.logging.log4j:log4j-slf4j2-impl</include>
         <include>org.snmp4j:snmp4j</include>
         <include>org.springframework.security:spring-security-core</include>
         <include>org.springframework:spring-core</include>
