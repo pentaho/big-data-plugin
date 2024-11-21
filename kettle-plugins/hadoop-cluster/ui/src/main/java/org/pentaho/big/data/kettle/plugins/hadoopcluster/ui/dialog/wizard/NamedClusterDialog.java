@@ -77,7 +77,6 @@ public class NamedClusterDialog extends Wizard {
   private String dialogState;
   private boolean isEditMode;
   private boolean isDuplicating;
-  private boolean isImporting;
   private ClusterSettingsPage clusterSettingsPage;
   private SecuritySettingsPage securitySettingsPage;
   private KerberosSettingsPage kerberosSettingsPage;
@@ -110,7 +109,6 @@ public class NamedClusterDialog extends Wizard {
       isEditMode = false;
       isDuplicating = true;
     }
-    isImporting = dialogState.equals( "import" );
     this.dialogState = dialogState;
   }
 
@@ -328,10 +326,6 @@ public class NamedClusterDialog extends Wizard {
 
   public boolean isEditMode() {
     return isEditMode;
-  }
-
-  public boolean isImporting() {
-    return isImporting;
   }
 
   public static void main( String[] args ) {
