@@ -123,7 +123,7 @@ public class ReportPage extends WizardPage {
 
     Button editClusterButton = new Button( mainPanel, SWT.PUSH );
     GridData editButtonGridData = new GridData( SWT.BEGINNING, SWT.FILL, true, false );
-    editButtonGridData.widthHint = 150;
+    editButtonGridData.widthHint = 155;
     editButtonGridData.horizontalAlignment = SWT.CENTER;
     editClusterButton.setLayoutData( editButtonGridData );
     editClusterButton.setText( BaseMessages.getString( PKG, "NamedClusterDialog.editCluster" ) );
@@ -133,17 +133,20 @@ public class ReportPage extends WizardPage {
 
     Button newClusterButton = new Button( mainPanel, SWT.PUSH );
     GridData newButtonGridData = new GridData( SWT.BEGINNING, SWT.FILL, true, false );
-    newButtonGridData.widthHint = 150;
+    newButtonGridData.widthHint = 155;
     newButtonGridData.horizontalAlignment = SWT.CENTER;
     newClusterButton.setLayoutData( newButtonGridData );
-    newClusterButton.setText( BaseMessages.getString( PKG, "NamedClusterDialog.createNewCluster" ) );
+
+    newClusterButton.setText( ( (NamedClusterDialog) getWizard() ).getDialogState().equals( "import" ) ?
+      BaseMessages.getString( PKG, "NamedClusterDialog.importNewCluster" ) :
+      BaseMessages.getString( PKG, "NamedClusterDialog.createNewCluster" ) );
     Listener newClusterListener = e -> createNewCluster();
     newClusterButton.addListener( SWT.Selection, newClusterListener );
     props.setLook( newClusterButton );
 
     viewTestResultsButton = new Button( mainPanel, SWT.PUSH );
     GridData viewTestResultsButtonGridData = new GridData( SWT.BEGINNING, SWT.FILL, true, false );
-    viewTestResultsButtonGridData.widthHint = 150;
+    viewTestResultsButtonGridData.widthHint = 155;
     viewTestResultsButtonGridData.horizontalAlignment = SWT.CENTER;
     viewTestResultsButton.setLayoutData( viewTestResultsButtonGridData );
     viewTestResultsButton.setText( BaseMessages.getString( PKG, "NamedClusterDialog.viewTestResults" ) );
@@ -214,7 +217,7 @@ public class ReportPage extends WizardPage {
   public void initialize( ThinNameClusterModel model ) {
     setTitle( ( (NamedClusterDialog) getWizard() ).isEditMode() ?
       BaseMessages.getString( PKG, "NamedClusterDialog.editCluster.title" ) :
-      ( (NamedClusterDialog) getWizard() ).isImporting() ?
+      ( (NamedClusterDialog) getWizard() ).getDialogState().equals( "import" ) ?
         BaseMessages.getString( PKG, "NamedClusterDialog.importCluster.title" ) :
         BaseMessages.getString( PKG, "NamedClusterDialog.newCluster.title" ) );
 

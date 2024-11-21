@@ -149,7 +149,7 @@ public class SecuritySettingsPage extends WizardPage {
   public void initialize( ThinNameClusterModel model ) {
     setTitle( ( (NamedClusterDialog) getWizard() ).isEditMode() ?
       BaseMessages.getString( PKG, "NamedClusterDialog.editCluster.title" ) :
-      ( (NamedClusterDialog) getWizard() ).isImporting() ?
+      ( (NamedClusterDialog) getWizard() ).getDialogState().equals( "import" ) ?
         BaseMessages.getString( PKG, "NamedClusterDialog.importCluster.title" ) :
         BaseMessages.getString( PKG, "NamedClusterDialog.newCluster.title" ) );
 
