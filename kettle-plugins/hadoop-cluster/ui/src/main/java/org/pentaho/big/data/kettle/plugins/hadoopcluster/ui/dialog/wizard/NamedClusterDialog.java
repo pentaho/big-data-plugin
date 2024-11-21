@@ -59,7 +59,7 @@ import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.processSiteFiles;
 
 /*
- * To run this dialog as stand alone for development purposes do the following:
+ * To run this dialog as stand alone for development purposes under UBUNTU do the following:
  * 1.Look for the following comment in the module:
  *   FOR UI EXECUTION AS A STANDALONE
  *   And either comment or uncomment the referred section as requested
@@ -77,7 +77,6 @@ public class NamedClusterDialog extends Wizard {
   private String dialogState;
   private boolean isEditMode;
   private boolean isDuplicating;
-  private boolean isImporting;
   private ClusterSettingsPage clusterSettingsPage;
   private SecuritySettingsPage securitySettingsPage;
   private KerberosSettingsPage kerberosSettingsPage;
@@ -110,7 +109,6 @@ public class NamedClusterDialog extends Wizard {
       isEditMode = false;
       isDuplicating = true;
     }
-    isImporting = dialogState.equals( "import" );
     this.dialogState = dialogState;
   }
 
@@ -219,7 +217,6 @@ public class NamedClusterDialog extends Wizard {
   }
 
   public void createNewCluster() {
-    dialogState = "new-edit";
     isEditMode = false;
     isDuplicating = false;
     initialize( null );
@@ -332,10 +329,6 @@ public class NamedClusterDialog extends Wizard {
 
   public boolean isEditMode() {
     return isEditMode;
-  }
-
-  public boolean isImporting() {
-    return isImporting;
   }
 
   /*
