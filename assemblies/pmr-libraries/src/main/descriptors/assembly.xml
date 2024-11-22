@@ -99,7 +99,6 @@
         <include>javax.xml:jaxrpc-api</include>
         <include>jaxen:jaxen</include>
         <include>jcifs:jcifs</include>
-        <include>jdom:jdom</include>
         <include>jexcelapi:jxl</include>
         <include>jfree:jcommon</include>
         <include>jfree:jfreechart</include>
