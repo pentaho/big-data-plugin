@@ -58,12 +58,6 @@ public class Hive2SimbaDatabaseMetaTest {
   }
 
   @Test
-  public void testGetDriverClassODBC() {
-    hive2SimbaDatabaseMeta.setAccessType( DatabaseMeta.TYPE_ACCESS_ODBC );
-    assertEquals( Hive2SimbaDatabaseMeta.ODBC_DRIVER_CLASS_NAME, hive2SimbaDatabaseMeta.getDriverClass() );
-  }
-
-  @Test
   public void testGetJdbcPrefix() {
     assertEquals( Hive2SimbaDatabaseMeta.JDBC_URL_PREFIX,
       hive2SimbaDatabaseMeta.getJdbcPrefix() );

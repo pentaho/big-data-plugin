@@ -41,7 +41,7 @@ public class ImpalaSimbaDatabaseDialect extends Hive2SimbaDatabaseDialect {
   private static final IDatabaseType DBTYPE =
     new DatabaseType( "Cloudera Impala", DB_TYPE_NAME_SHORT,
       DatabaseAccessType.getList( DatabaseAccessType.NATIVE,
-        DatabaseAccessType.JNDI, DatabaseAccessType.ODBC ), DEFAULT_PORT,
+        DatabaseAccessType.JNDI ), DEFAULT_PORT,
       "http://go.cloudera.com/odbc-driver-hive-impala.html",
         "",
         ImmutableMap.<String, String>builder().put( Joiner.on( "." ).join( DB_TYPE_NAME_SHORT, SOCKET_TIMEOUT_OPTION ),
