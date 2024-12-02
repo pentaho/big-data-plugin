@@ -637,6 +637,12 @@
                 </artifactItem>
                 <artifactItem>
                   <groupId>pentaho</groupId>
+                  <artifactId>pdi-hdfs-plugin</artifactId>
+                  <type>zip</type>
+                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/plugins</outputDirectory>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>pentaho</groupId>
                   <artifactId>pdi-hbase-plugin</artifactId>
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/plugins</outputDirectory>
