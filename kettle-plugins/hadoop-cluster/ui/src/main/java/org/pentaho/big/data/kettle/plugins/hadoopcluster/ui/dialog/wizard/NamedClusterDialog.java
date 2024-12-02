@@ -319,6 +319,10 @@ public class NamedClusterDialog extends Wizard {
     return dialogState;
   }
 
+  public boolean clusterNameExists( String clusterName ) {
+    return hadoopClusterManager.getNamedCluster( clusterName ) != null;
+  }
+
   public void setDevMode( boolean devMode ) {
     this.isDevMode = devMode;
   }
