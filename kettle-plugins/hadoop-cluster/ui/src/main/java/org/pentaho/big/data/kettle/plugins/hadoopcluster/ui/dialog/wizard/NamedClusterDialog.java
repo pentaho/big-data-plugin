@@ -95,7 +95,7 @@ public class NamedClusterDialog extends Wizard {
 
   public NamedClusterDialog( NamedClusterService namedClusterService, IMetaStore metastore, VariableSpace variables,
                              RuntimeTester tester, Map<String, String> params, String dialogState ) {
-    setWindowTitle( BaseMessages.getString( PKG, "NamedClusterDialog.newCluster" )  );
+    setWindowTitle( BaseMessages.getString( PKG, "NamedClusterDialog.newCluster" ) );
     variableSpace = variables;
     runtimeTester = tester;
     hadoopClusterManager = new HadoopClusterManager( spoonSupplier.get(), namedClusterService, metastore, "" );
@@ -122,20 +122,22 @@ public class NamedClusterDialog extends Wizard {
   }
 
   private ThinNameClusterModel createModel( ThinNameClusterModel model ) {
+    boolean isCreatingCluster = false;
     if ( model == null ) {
       model = new ThinNameClusterModel();
+      isCreatingCluster = true;
     }
     model.setName( model.getName() == null ? "" : model.getName() );
     model.setShimVendor( model.getShimVendor() == null ? "" : model.getShimVendor() );
     model.setShimVersion( model.getShimVersion() == null ? "" : model.getShimVersion() );
     model.setHdfsHost( model.getHdfsHost() == null ? "" : model.getHdfsHost() );
-    model.setHdfsPort( model.getHdfsPort() == null ? "8020" : model.getHdfsPort() );
+    model.setHdfsPort( model.getHdfsPort() == null && isCreatingCluster? "8020" : model.getHdfsPort() == null ? "" : model.getHdfsPort() );
     model.setHdfsUsername( model.getHdfsUsername() == null ? "" : model.getHdfsUsername() );
     model.setHdfsPassword( model.getHdfsPassword() == null ? "" : model.getHdfsPassword() );
     model.setJobTrackerHost( model.getJobTrackerHost() == null ? "" : model.getJobTrackerHost() );
-    model.setJobTrackerPort( model.getJobTrackerPort() == null ? "8032" : model.getJobTrackerPort() );
+    model.setJobTrackerPort( model.getJobTrackerPort() == null && isCreatingCluster? "8032" : model.getJobTrackerPort() == null ? "" : model.getJobTrackerPort() );
     model.setZooKeeperHost( model.getZooKeeperHost() == null ? "" : model.getZooKeeperHost() );
-    model.setZooKeeperPort( model.getZooKeeperPort() == null ? "2181" : model.getZooKeeperPort() );
+    model.setZooKeeperPort( model.getZooKeeperPort() == null && isCreatingCluster? "2181" : model.getZooKeeperPort() == null ? "" : model.getZooKeeperPort() );
     model.setOozieUrl( model.getOozieUrl() == null ? "" : model.getOozieUrl() );
     model.setKafkaBootstrapServers( model.getKafkaBootstrapServers() == null ? "" : model.getKafkaBootstrapServers() );
     model.setOldName( model.getName() );
@@ -215,7 +217,6 @@ public class NamedClusterDialog extends Wizard {
   }
 
   public void createNewCluster() {
-    dialogState = "new-edit";
     isEditMode = false;
     isDuplicating = false;
     initialize( null );
@@ -225,7 +226,8 @@ public class NamedClusterDialog extends Wizard {
   public boolean performFinish() {
     boolean finish = false;
     String currentPage = super.getContainer().getCurrentPage().getName();
-    if ( !currentPage.equals( reportPage.getClass().getSimpleName() ) ) {
+    if ( reportPage != null && !currentPage.equals( reportPage.getClass().getSimpleName() ) &&
+      !currentPage.equals( testResultsPage.getClass().getSimpleName() ) ) {
       if ( isEditMode || isDuplicating ) {
         saveEditedNamedCluster();
       } else {
@@ -296,26 +298,29 @@ public class NamedClusterDialog extends Wizard {
       if ( currentPage.equals( clusterSettingsPage.getClass().getSimpleName() ) ) {
         ( (CustomWizardDialog) getContainer() ).enableCancelButton( true );
       }
-      if ( currentPage.equals( reportPage.getClass().getSimpleName() ) ) {
-        ( (CustomWizardDialog) getContainer() ).enableCancelButton( false );
-      }
       return
         ( currentPage.equals( securitySettingsPage.getClass().getSimpleName() )
           && securitySettingsPage.getSecurityType()
           .equals( NONE ) ) || ( currentPage.equals( kerberosSettingsPage.getClass().getSimpleName() )
           && kerberosSettingsPage.isPageComplete() || (
           currentPage.equals( knoxSettingsPage.getClass().getSimpleName() )
-            && knoxSettingsPage.isPageComplete() ) || currentPage.equals( reportPage.getClass().getSimpleName() ) );
+            && knoxSettingsPage.isPageComplete() )
+            || currentPage.equals( reportPage.getClass().getSimpleName() )
+            || currentPage.equals( testResultsPage.getClass().getSimpleName() ) );
     } else {
       // Set to Initialize "TestResultsPage" when "dialogState" is "testing" and disable its "Finish" button.
       // Couldn't be done elsewhere because the "TestResultsPage" was not initialized by the wizard.
       initialize( thinNameClusterModel );
-      return false;
+      return true;
     }
   }
 
   public String getDialogState() {
     return dialogState;
+  }
+
+  public boolean clusterNameExists( String clusterName ) {
+    return hadoopClusterManager.getNamedCluster( clusterName ) != null;
   }
 
   public void setDevMode( boolean devMode ) {

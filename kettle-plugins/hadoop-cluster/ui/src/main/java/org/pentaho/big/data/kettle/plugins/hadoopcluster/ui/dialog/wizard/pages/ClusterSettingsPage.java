@@ -482,14 +482,31 @@ public class ClusterSettingsPage extends WizardPage {
       thinNameClusterModel.setOozieUrl( hostNameTextFieldOozieGroup.getText() );
       thinNameClusterModel.setKafkaBootstrapServers( hostNameTextFieldKafkaGroup.getText() );
       setPageComplete( !thinNameClusterModel.getName().isBlank() && !thinNameClusterModel.getHdfsHost().isBlank()
-        && !thinNameClusterModel.getShimVendor().isBlank() && !thinNameClusterModel.getShimVersion().isBlank() );
+        && !thinNameClusterModel.getShimVendor().isBlank() && !thinNameClusterModel.getShimVersion().isBlank()
+        && thinNameClusterModel.getName().matches( "^[a-zA-Z0-9-]+$" ) );
     }
     if ( ( (NamedClusterDialog) getWizard() ).getDialogState().equals( "import" ) ) {
-      setPageComplete( !thinNameClusterModel.getName().isBlank() && !thinNameClusterModel.getSiteFiles().isEmpty() );
+      setPageComplete( !thinNameClusterModel.getName().isBlank()
+        && !thinNameClusterModel.getSiteFiles().isEmpty()
+        && thinNameClusterModel.getName().matches( "^[a-zA-Z0-9-]+$" ) );
     }
   }
 
   public IWizardPage getNextPage() {
+    boolean nextButtonPressed =
+      "nextPressed".equalsIgnoreCase( Thread.currentThread().getStackTrace()[ 2 ].getMethodName() );
+    boolean clusterNameExists =
+      ( (NamedClusterDialog) getWizard() ).clusterNameExists( thinNameClusterModel.getName() );
+    boolean notEditingUsingSameName =
+      !( ( (NamedClusterDialog) getWizard() ).isEditMode() && thinNameClusterModel.getName()
+        .equals( thinNameClusterModel.getOldName() ) );
+    if ( nextButtonPressed && clusterNameExists && notEditingUsingSameName ) {
+      MessageBox box = new MessageBox( mainPanel.getShell(), SWT.OK );
+      box.setMessage( BaseMessages.getString( PKG, "NamedClusterDialog.clusterNameExists" ) );
+      box.open();
+      return null;
+    }
+
     SecuritySettingsPage securitySettingsPage =
       (SecuritySettingsPage) getWizard().getPage( SecuritySettingsPage.class.getSimpleName() );
     securitySettingsPage.initialize( thinNameClusterModel );
@@ -508,7 +525,9 @@ public class ClusterSettingsPage extends WizardPage {
   public void initialize( ThinNameClusterModel model ) {
     setTitle( ( (NamedClusterDialog) getWizard() ).isEditMode() ?
       BaseMessages.getString( PKG, "NamedClusterDialog.editCluster.title" ) :
-      BaseMessages.getString( PKG, "NamedClusterDialog.newCluster.title" ) );
+      ( (NamedClusterDialog) getWizard() ).getDialogState().equals( "import" ) ?
+        BaseMessages.getString( PKG, "NamedClusterDialog.importCluster.title" ) :
+        BaseMessages.getString( PKG, "NamedClusterDialog.newCluster.title" ) );
 
     if ( isConnectedToRepo() ) {
       setDescription( BaseMessages.getString( PKG, "NamedClusterDialog.repositoryNotification" ) );
