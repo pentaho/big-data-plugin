@@ -493,6 +493,20 @@ public class ClusterSettingsPage extends WizardPage {
   }
 
   public IWizardPage getNextPage() {
+    boolean nextButtonPressed =
+      "nextPressed".equalsIgnoreCase( Thread.currentThread().getStackTrace()[ 2 ].getMethodName() );
+    boolean clusterNameExists =
+      ( (NamedClusterDialog) getWizard() ).clusterNameExists( thinNameClusterModel.getName() );
+    boolean notEditingUsingSameName =
+      !( ( (NamedClusterDialog) getWizard() ).isEditMode() && thinNameClusterModel.getName()
+        .equals( thinNameClusterModel.getOldName() ) );
+    if ( nextButtonPressed && clusterNameExists && notEditingUsingSameName ) {
+      MessageBox box = new MessageBox( mainPanel.getShell(), SWT.OK );
+      box.setMessage( BaseMessages.getString( PKG, "NamedClusterDialog.clusterNameExists" ) );
+      box.open();
+      return null;
+    }
+
     SecuritySettingsPage securitySettingsPage =
       (SecuritySettingsPage) getWizard().getPage( SecuritySettingsPage.class.getSimpleName() );
     securitySettingsPage.initialize( thinNameClusterModel );
