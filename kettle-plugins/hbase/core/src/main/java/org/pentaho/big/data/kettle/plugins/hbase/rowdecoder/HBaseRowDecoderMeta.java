@@ -16,6 +16,8 @@ package org.pentaho.big.data.kettle.plugins.hbase.rowdecoder;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.swt.widgets.Shell;
+import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.NamedClusterLoadSaveUtil;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingUtils;
@@ -57,6 +59,8 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.locator.api.MetastoreLocator;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
+import org.pentaho.runtime.test.action.impl.RuntimeTestActionServiceImpl;
+import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
 import org.w3c.dom.Node;
 
 import java.util.Collection;
@@ -107,6 +111,11 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
   private final RuntimeTester runtimeTester;
 
   private final NamedClusterLoadSaveUtil namedClusterLoadSaveUtil;
+
+  public HBaseRowDecoderMeta() {
+    this( new NamedClusterServiceLocatorImpl( "", NamedClusterManager.getInstance() ), NamedClusterManager.getInstance(),
+      RuntimeTestActionServiceImpl.getInstance(), RuntimeTesterImpl.getInstance() );
+  }
 
   public HBaseRowDecoderMeta( NamedClusterServiceLocator namedClusterServiceLocator,
                               NamedClusterService namedClusterService,
