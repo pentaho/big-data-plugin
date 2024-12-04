@@ -13,6 +13,8 @@
 
 package org.pentaho.big.data.kettle.plugins.mapreduce.entry.pmr;
 
+import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.kettle.plugins.mapreduce.DialogClassUtil;
 import org.pentaho.big.data.kettle.plugins.mapreduce.entry.NamedClusterLoadSaveUtil;
 import org.pentaho.big.data.kettle.plugins.mapreduce.entry.UserDefinedItem;
@@ -60,6 +62,8 @@ import org.pentaho.hadoop.shim.api.mapreduce.TaskCompletionEvent;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
+import org.pentaho.runtime.test.action.impl.RuntimeTestActionServiceImpl;
+import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
 import org.w3c.dom.Node;
 
 import java.io.IOException;
@@ -141,6 +145,13 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
     this.runtimeTester = runtimeTester;
     reducingSingleThreaded = false;
     combiningSingleThreaded = false;
+  }
+
+  public JobEntryHadoopTransJobExecutor() {
+    this.namedClusterService = NamedClusterManager.getInstance();
+    this.runtimeTester = RuntimeTesterImpl.getInstance();
+    this.runtimeTestActionService = RuntimeTestActionServiceImpl.getInstance();
+    this.namedClusterServiceLocator = new NamedClusterServiceLocatorImpl( "", namedClusterService );
   }
 
   protected static final TransMeta loadTransMeta( VariableSpace space, Repository rep, String filename,
