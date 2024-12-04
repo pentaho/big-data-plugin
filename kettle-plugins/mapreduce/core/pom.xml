@@ -99,6 +99,7 @@
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
+      <artifactId>pentaho-big-data-legacy</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
