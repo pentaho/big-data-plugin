@@ -46,7 +46,6 @@
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-kettle-plugins-common-ui</artifactId>
       <version>${project.version}</version>
-
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -134,7 +133,7 @@
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-legacy-core</artifactId>
       <version>${project.version}</version>
-      <scope>provided</scope>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
