@@ -735,14 +735,10 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
       // Resolve the keytab auth and impl files if set to be displayed in the UI.
       if ( !StringUtil.isEmpty( keytabAuthenticationLocation ) ) {
-        String keytabAuthFile =
-          keytabAuthenticationLocation.substring( keytabAuthenticationLocation.lastIndexOf( fileSeparator ) + 1 );
-        model.setKeytabAuthFile( keytabAuthFile );
+        model.setKeytabAuthFile( keytabAuthenticationLocation );
       }
       if ( !StringUtil.isEmpty( keytabImpersonationLocation ) ) {
-        String keytabImpFile =
-          keytabImpersonationLocation.substring( keytabImpersonationLocation.lastIndexOf( fileSeparator ) + 1 );
-        model.setKeytabImpFile( keytabImpFile );
+        model.setKeytabImpFile( keytabImpersonationLocation );
       }
 
       // If Kerberos security properties are empty then security type is None else if at least one of them has a
