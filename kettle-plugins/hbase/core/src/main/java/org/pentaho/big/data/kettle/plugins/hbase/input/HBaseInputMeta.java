@@ -14,6 +14,8 @@
 package org.pentaho.big.data.kettle.plugins.hbase.input;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.kettle.plugins.hbase.FilterDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.HbaseUtil;
 import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
@@ -69,6 +71,8 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.locator.api.MetastoreLocator;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
+import org.pentaho.runtime.test.action.impl.RuntimeTestActionServiceImpl;
+import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
 import org.w3c.dom.Node;
 
 import java.util.ArrayList;
@@ -176,6 +180,11 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   protected MappingDefinition mappingDefinition;
 
   private ServiceStatus serviceStatus = ServiceStatus.OK;
+
+  public HBaseInputMeta() {
+    this( NamedClusterManager.getInstance(), new NamedClusterServiceLocatorImpl( "", NamedClusterManager.getInstance() ),
+      RuntimeTestActionServiceImpl.getInstance(), RuntimeTesterImpl.getInstance() );
+  }
 
   public HBaseInputMeta( NamedClusterService namedClusterService,
                          NamedClusterServiceLocator namedClusterServiceLocator,
