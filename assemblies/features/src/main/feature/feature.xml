@@ -66,7 +66,6 @@
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-guiTestActionHandlers/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-hbase/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-hbase-meta/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-hive/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-formats-meta/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-formats/${project.version}</bundle>
   </feature>

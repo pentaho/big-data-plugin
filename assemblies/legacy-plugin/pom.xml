@@ -310,6 +310,19 @@
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
+      <artifactId>pdi-hive-plugin</artifactId>
+      <version>${project.version}</version>
+      <type>zip</type>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
       <artifactId>pdi-hdfs-plugin</artifactId>
       <version>${project.version}</version>
       <type>zip</type>
@@ -454,6 +467,12 @@
                 <artifactItem>
                   <groupId>pentaho</groupId>
                   <artifactId>pdi-mapreduce-plugin</artifactId>
+                  <type>zip</type>
+                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/plugins</outputDirectory>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>pentaho</groupId>
+                  <artifactId>pdi-hive-plugin</artifactId>
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/plugins</outputDirectory>
                 </artifactItem>
