@@ -13,6 +13,8 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.orc.output;
 
+import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
 import org.pentaho.big.data.kettle.plugins.formats.orc.output.OrcOutputMetaBase;
 import org.pentaho.di.core.annotations.Step;
@@ -32,6 +34,9 @@ public class OrcOutputMeta extends OrcOutputMetaBase {
 
   private final NamedClusterResolver namedClusterResolver;
 
+  public OrcOutputMeta() {
+    this( new NamedClusterResolver( new NamedClusterServiceLocatorImpl( "", NamedClusterManager.getInstance() ), NamedClusterManager.getInstance() ) );
+  }
   public OrcOutputMeta( NamedClusterResolver namedClusterResolver ) {
     this.namedClusterResolver = namedClusterResolver;
   }

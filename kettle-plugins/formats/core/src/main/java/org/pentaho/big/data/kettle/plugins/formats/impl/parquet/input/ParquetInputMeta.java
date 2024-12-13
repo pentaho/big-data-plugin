@@ -12,6 +12,8 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input;
 
+import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
 import org.pentaho.big.data.kettle.plugins.formats.parquet.input.ParquetInputMetaBase;
 import org.pentaho.di.core.annotations.Step;
@@ -43,6 +45,9 @@ public class ParquetInputMeta extends ParquetInputMetaBase {
 
   private final NamedClusterResolver namedClusterResolver;
 
+  public ParquetInputMeta() {
+    this( new NamedClusterResolver( new NamedClusterServiceLocatorImpl( "", NamedClusterManager.getInstance() ), NamedClusterManager.getInstance() ) );
+  }
   public ParquetInputMeta( NamedClusterResolver namedClusterResolver ) {
     this.namedClusterResolver = namedClusterResolver;
   }
