@@ -334,7 +334,6 @@
         </exclusion>
       </exclusions>
     </dependency>
-
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pdi-formats-plugin</artifactId>
@@ -348,7 +347,6 @@
         </exclusion>
       </exclusions>
     </dependency>
-
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pdi-hdfs-plugin</artifactId>
@@ -391,6 +389,19 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pdi-spark-plugin</artifactId>
+      <version>${project.version}</version>
+      <type>zip</type>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pdi-legacy-plugin</artifactId>
       <version>${project.version}</version>
       <type>zip</type>
       <scope>provided</scope>
@@ -513,6 +524,12 @@
                 <artifactItem>
                   <groupId>pentaho</groupId>
                   <artifactId>pdi-formats-plugin</artifactId>
+                  <type>zip</type>
+                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/plugins</outputDirectory>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>pentaho</groupId>
+                  <artifactId>pdi-legacy-plugin</artifactId>
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/plugins</outputDirectory>
                 </artifactItem>
