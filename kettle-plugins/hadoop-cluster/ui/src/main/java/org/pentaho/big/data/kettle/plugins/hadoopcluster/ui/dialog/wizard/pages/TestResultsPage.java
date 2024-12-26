@@ -54,7 +54,6 @@ public class TestResultsPage extends WizardPage {
   private static final String WARNING_IMG = "images/warning_category.svg";
   private static final String FAIL_IMG = "images/fail_category.svg";
   private static final String PASS_IMG = "images/success_category.svg";
-  private Composite testComposite;
 
   public TestResultsPage( VariableSpace variables, ThinNameClusterModel model ) {
     super( TestResultsPage.class.getSimpleName() );
@@ -96,15 +95,6 @@ public class TestResultsPage extends WizardPage {
         props, SWT.NONE );
     statusLabel.setFont( new Font( statusLabel.getDisplay(), new FontData( "Arial", 20, SWT.NONE ) ) );
     statusLabel.setAlignment( SWT.CENTER );
-
-    testResultsExpandBar = new ExpandBar( mainPanel, SWT.V_SCROLL );
-    GridData testResultsExpandBarLayoutData = new GridData( SWT.FILL, SWT.FILL, false, false );
-    testResultsExpandBarLayoutData.heightHint = 400; //Height of the panel (WILL NEED TO ADJUST)
-    testResultsExpandBarLayoutData.widthHint = 400; //Height of the panel (WILL NEED TO ADJUST)
-    testResultsExpandBar.setLayoutData( testResultsExpandBarLayoutData );
-    testResultsExpandBar.setSpacing( 8 );
-    props.setLook( testResultsExpandBar );
-
     setControl( parent );
     initialize( thinNameClusterModel );
   }
@@ -145,9 +135,18 @@ public class TestResultsPage extends WizardPage {
   }
 
   public void setTestResults( Object[] categories ) {
-    for ( ExpandItem item : testResultsExpandBar.getItems() ) {
-      item.dispose();
+    if ( testResultsExpandBar != null ) {
+      testResultsExpandBar.dispose();
+      mainPanel.pack();
     }
+    testResultsExpandBar = new ExpandBar( mainPanel, SWT.V_SCROLL );
+    GridData testResultsExpandBarLayoutData = new GridData( SWT.FILL, SWT.FILL, false, false );
+    testResultsExpandBarLayoutData.heightHint = 400; //Height of the panel (WILL NEED TO ADJUST)
+    testResultsExpandBarLayoutData.widthHint = 400; //Height of the panel (WILL NEED TO ADJUST)
+    testResultsExpandBar.setLayoutData( testResultsExpandBarLayoutData );
+    testResultsExpandBar.setSpacing( 8 );
+    props.setLook( testResultsExpandBar );
+    mainPanel.pack();
     List<TestCategory> testCategories = setTestResultsOrder( categories );
     for ( TestCategory testCategory : testCategories ) {
       ExpandItem categoryItem = new ExpandItem( testResultsExpandBar, SWT.NONE, 0 );
@@ -167,10 +166,7 @@ public class TestResultsPage extends WizardPage {
           GUIResource.getInstance().getImage( PASS_IMG, getClass().getClassLoader(), 16, 16 ) );
       }
       List<Test> tests = testCategory.getTests();
-      if ( testComposite != null ) {
-        testComposite.dispose();
-      }
-      testComposite = new Composite( testResultsExpandBar, SWT.NONE );
+      Composite testComposite = new Composite( testResultsExpandBar, SWT.NONE );
       props.setLook( testComposite );
       for ( Test test : tests ) {
         GridLayout testLayout = new GridLayout();
@@ -197,7 +193,9 @@ public class TestResultsPage extends WizardPage {
       }
       categoryItem.setHeight( testComposite.computeSize( SWT.DEFAULT, SWT.DEFAULT ).y );
       categoryItem.setControl( testComposite );
+      mainPanel.pack();
     }
+    mainPanel.pack();
   }
 
   public void initialize( ThinNameClusterModel model ) {

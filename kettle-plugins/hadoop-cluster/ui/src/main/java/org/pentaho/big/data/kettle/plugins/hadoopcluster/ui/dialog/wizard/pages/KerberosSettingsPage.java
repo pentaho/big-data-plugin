@@ -230,14 +230,16 @@ public class KerberosSettingsPage extends WizardPage {
       authenticationPasswordGridData, props );
 
     Composite authenticationKeytabPanel = new Composite( keytabAuthenticationPanel, SWT.NONE );
-    GridLayout authenticationKeytabPanelGridLayout = new GridLayout( TWO_COLUMNS, true );
+    GridLayout authenticationKeytabPanelGridLayout = new GridLayout( TWO_COLUMNS, false );
     authenticationKeytabPanelGridLayout.marginWidth = 0;
     authenticationKeytabPanel.setLayout( authenticationKeytabPanelGridLayout );
-    GridData authenticationKeytabTextGridData = new GridData(); //new GridData(GridData.FILL_BOTH);
+    GridData authenticationKeytabPanelGridData = new GridData( SWT.FILL, SWT.FILL, false, false );
+    authenticationKeytabPanel.setLayoutData( authenticationKeytabPanelGridData );
     props.setLook( authenticationKeytabPanel );
 
     authenticationKeytabText = new Text( authenticationKeytabPanel, SWT.BORDER );
     authenticationKeytabText.setEditable( false );
+    GridData authenticationKeytabTextGridData = new GridData();
     authenticationKeytabTextGridData.widthHint = Const.isLinux() ? 310 : 341;
     authenticationKeytabText.setLayoutData( authenticationKeytabTextGridData );
     props.setLook( authenticationKeytabText );
@@ -265,14 +267,16 @@ public class KerberosSettingsPage extends WizardPage {
         impersonationPasswordGridData, props );
 
       Composite impersonationKeytabPanel = new Composite( keytabAuthenticationPanel, SWT.NONE );
-      GridLayout impersonationKeytabPanelGridLayout = new GridLayout( TWO_COLUMNS, true );
+      GridLayout impersonationKeytabPanelGridLayout = new GridLayout( TWO_COLUMNS, false );
       impersonationKeytabPanelGridLayout.marginWidth = 0;
       impersonationKeytabPanel.setLayout( impersonationKeytabPanelGridLayout );
-      GridData impersonationKeytabTextGridData = new GridData();
+      GridData impersonationKeytabPanelGridData = new GridData( SWT.FILL, SWT.FILL, false, false );
+      impersonationKeytabPanel.setLayoutData( impersonationKeytabPanelGridData );
       props.setLook( impersonationKeytabPanel );
 
       impersonationKeytabText = new Text( impersonationKeytabPanel, SWT.BORDER );
       impersonationKeytabText.setEditable( false );
+      GridData impersonationKeytabTextGridData = new GridData();
       impersonationKeytabTextGridData.widthHint = Const.isLinux() ? 310 : 341;
       impersonationKeytabText.setLayoutData( impersonationKeytabTextGridData );
       props.setLook( impersonationKeytabText );

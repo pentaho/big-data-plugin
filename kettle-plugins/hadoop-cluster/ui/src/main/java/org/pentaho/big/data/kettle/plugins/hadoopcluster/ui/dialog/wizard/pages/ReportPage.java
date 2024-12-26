@@ -24,16 +24,12 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.NamedClusterDialog;
-import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.Test;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.TestCategory;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.util.HelpUtils;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.ONE_COLUMN;
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.createLabel;
@@ -175,15 +171,12 @@ public class ReportPage extends WizardPage {
 
   public void setTestResults( Object[] categories ) {
     testResults = categories;
-    String status = "";
+    String status = BaseMessages.getString( PKG, "NamedClusterDialog.test.pass" );
     for ( Object category : testResults ) {
       TestCategory testCategory = (TestCategory) category;
-      List<Test> tests =
-        testCategory.getTests().stream().filter( test -> test.getTestName()
-            .equals( BaseMessages.getString( PKG, "NamedClusterDialog.test.hadoopFileSystemConnection" ) ) )
-          .collect( Collectors.toList() );
-      if ( !tests.isEmpty() ) {
-        status = tests.get( 0 ).getTestStatus();
+      if ( !testCategory.getCategoryStatus().equals( status ) && testCategory.isCategoryActive() ) {
+        status = testCategory.getCategoryStatus();
+        break;
       }
     }
     setTestResult( status );
