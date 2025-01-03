@@ -56,9 +56,9 @@ import java.util.Map;
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  * @version $Revision$
  */
-@JobEntry( id = "HadoopPigScriptExecutorPlugin", image = "PIG.svg", name = "HadoopPigScriptExecutorPlugin.Name",
+@JobEntry( id = "HadoopPigScriptExecutorPlugin", image = "ui/images/deprecated.svg", name = "HadoopPigScriptExecutorPlugin.Name",
   description = "HadoopPigScriptExecutorPlugin.Description",
-  categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
+  categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.Deprecated",
   i18nPackageName = "org.pentaho.di.job.entries.pig",
   documentationUrl = "https://pentaho-community.atlassian.net/wiki/display/EAI/Pig+Script+Executor" )
 public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable, JobEntryInterface {
