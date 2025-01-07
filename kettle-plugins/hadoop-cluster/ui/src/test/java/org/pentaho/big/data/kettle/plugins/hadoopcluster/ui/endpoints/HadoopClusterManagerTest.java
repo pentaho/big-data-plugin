@@ -538,7 +538,7 @@ public class HadoopClusterManagerTest {
     File keytabFileDirectory = new File( "src/test/resources/keytab" );
     Map<String, CachedFileItemStream> keytabFileItems = getFiles( keytabFileDirectory.getPath(), "keytabAuthFile" );
 
-    hadoopClusterManager.createNamedCluster( model, keytabFileItems );
+    hadoopClusterManager.createNamedCluster( model, keytabFileItems, "src/test/resources/keytab/test.keytab", "" );
 
     String configFile = System.getProperty( "user.home" ) + File.separator + ".pentaho" + File.separator + "metastore"
       + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs" + File.separator
