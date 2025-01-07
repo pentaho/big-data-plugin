@@ -62,6 +62,7 @@ public class KerberosSettingsPage extends WizardPage {
   private final String password = "Password";
   private final String keytab = "Keytab";
   private final String NO_FILE_SELECTED = BaseMessages.getString( PKG, "NamedClusterDialog.noFileSelected" );
+  private final String fileSeparator = System.getProperty( "file.separator" );
 
   private static final Class<?> PKG = KerberosSettingsPage.class;
 
@@ -317,9 +318,9 @@ public class KerberosSettingsPage extends WizardPage {
     if ( securityMethodCombo.getText().equals( keytab ) ) {
       thinNameClusterModel.setKerberosSubType( keytab );
       thinNameClusterModel.setKerberosAuthenticationUsername( authenticationUserNameTextField.getText() );
-      thinNameClusterModel.setKeytabAuthFile( authenticationKeytabText.getText()
+      thinNameClusterModel.setKeytabAuthFile( authenticationKeytabText.getData()
         .equals( NO_FILE_SELECTED ) ? "" :
-        authenticationKeytabText.getText() );
+        (String) authenticationKeytabText.getData() );
       if ( !thinNameClusterModel.getKeytabAuthFile().isBlank() ) {
         List<SimpleImmutableEntry<String, String>> siteFiles = thinNameClusterModel.getSiteFiles();
         List<SimpleImmutableEntry<String, String>> result =
@@ -332,17 +333,17 @@ public class KerberosSettingsPage extends WizardPage {
       }
       if ( isConnectedToRepo() ) {
         thinNameClusterModel.setKerberosImpersonationUsername( impersonationUserNameTextField.getText() );
-        thinNameClusterModel.setKeytabImpFile( impersonationKeytabText.getText()
+        thinNameClusterModel.setKeytabImpFile( impersonationKeytabText.getData()
           .equals( NO_FILE_SELECTED ) ? "" :
-          impersonationKeytabText.getText() );
+          (String) impersonationKeytabText.getData() );
+        List<SimpleImmutableEntry<String, String>> siteFiles = thinNameClusterModel.getSiteFiles();
+        List<SimpleImmutableEntry<String, String>> result =
+          siteFiles.stream().filter( siteFile -> siteFile.getValue().equals( "keytabImpFile" ) ).collect(
+            Collectors.toList() );
+        if ( !result.isEmpty() ) {
+          siteFiles.remove( result.get( 0 ) );
+        }
         if ( !thinNameClusterModel.getKeytabImpFile().isBlank() ) {
-          List<SimpleImmutableEntry<String, String>> siteFiles = thinNameClusterModel.getSiteFiles();
-          List<SimpleImmutableEntry<String, String>> result =
-            siteFiles.stream().filter( siteFile -> siteFile.getValue().equals( "keytabImpFile" ) ).collect(
-              Collectors.toList() );
-          if ( !result.isEmpty() ) {
-            siteFiles.remove( result.get( 0 ) );
-          }
           siteFiles.add( new SimpleImmutableEntry<>( thinNameClusterModel.getKeytabImpFile(), "keytabImpFile" ) );
         }
         setPageComplete( !thinNameClusterModel.getKeytabAuthFile().isBlank() );
@@ -403,10 +404,16 @@ public class KerberosSettingsPage extends WizardPage {
 
   private void updateKeytabFields( ThinNameClusterModel model ) {
     authenticationKeytabText.setText(
+      model.getKeytabAuthFile().isBlank() ? NO_FILE_SELECTED :
+        model.getKeytabAuthFile().substring( model.getKeytabAuthFile().lastIndexOf( fileSeparator ) + 1 ) );
+    authenticationKeytabText.setData(
       model.getKeytabAuthFile().isBlank() ? NO_FILE_SELECTED : model.getKeytabAuthFile() );
     authenticationUserNameTextField.setText( model.getKerberosAuthenticationUsername() );
     if ( isConnectedToRepo() ) {
       impersonationKeytabText.setText(
+        model.getKeytabImpFile().isBlank() ? NO_FILE_SELECTED :
+          model.getKeytabImpFile().substring( model.getKeytabImpFile().lastIndexOf( fileSeparator ) + 1 ) );
+      impersonationKeytabText.setData(
         model.getKeytabImpFile().isBlank() ? NO_FILE_SELECTED : model.getKeytabImpFile() );
       impersonationUserNameTextField.setText( model.getKerberosImpersonationUsername() );
     }
@@ -419,6 +426,7 @@ public class KerberosSettingsPage extends WizardPage {
       File file = new File( path );
       if ( file.isFile() ) {
         authenticationKeytabText.setText( file.toString() );
+        authenticationKeytabText.setData( file.toString() );
         validate();
       }
     }
@@ -431,6 +439,7 @@ public class KerberosSettingsPage extends WizardPage {
       File file = new File( path );
       if ( file.isFile() ) {
         impersonationKeytabText.setText( file.toString() );
+        impersonationKeytabText.setData( file.toString() );
         validate();
       }
     }
@@ -438,6 +447,7 @@ public class KerberosSettingsPage extends WizardPage {
 
   private void clearImpersonation() {
     impersonationKeytabText.setText( "" );
+    impersonationKeytabText.setData( NO_FILE_SELECTED );
     validate();
   }
 
