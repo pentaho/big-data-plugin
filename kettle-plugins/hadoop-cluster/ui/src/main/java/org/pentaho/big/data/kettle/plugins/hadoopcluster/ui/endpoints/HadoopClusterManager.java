@@ -282,6 +282,13 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
   public JSONObject createNamedCluster( ThinNameClusterModel model,
                                         Map<String, CachedFileItemStream> siteFilesSource ) {
+    return createNamedCluster( model, siteFilesSource, "", "" );
+  }
+
+  @VisibleForTesting
+  public JSONObject createNamedCluster( ThinNameClusterModel model,
+                                        Map<String, CachedFileItemStream> siteFilesSource,
+                                        String keytabAuthenticationLocation, String keytabImpersonationLocation ) {
     JSONObject response = new JSONObject();
     response.put( NAMED_CLUSTER, "" );
     try {
@@ -290,7 +297,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       installSiteFiles( siteFilesSource, nc );
       namedClusterService.create( nc, metaStore );
       createConfigProperties( nc );
-      setupKerberosSecurity( model, siteFilesSource, "", "" );
+      setupKerberosSecurity( model, siteFilesSource, keytabAuthenticationLocation, keytabImpersonationLocation );
       response.put( NAMED_CLUSTER, nc.getName() );
     } catch ( Exception e ) {
       log.logError( e.getMessage() );
@@ -323,7 +330,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
       // Copy all files from the old config folder to the new config folder.
       if ( !oldConfigFolder.getName().equalsIgnoreCase( newConfigFolder.getName() ) ) {
-        deleteConfigFolder( nc.getName() );
         FileUtils.copyDirectory( oldConfigFolder, newConfigFolder );
       } else {
         boolean success = oldConfigFolder.renameTo( newConfigFolder );
@@ -812,26 +818,41 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
                                     Map<String, CachedFileItemStream> siteFilesSource,
                                     String keytabAuthenticationLocation, String keytabImpersonationLocation ) {
     String namedClusterName = model.getName();
-    CachedFileItemStream keytabAuthFile = siteFilesSource.get( KEYTAB_AUTH_FILE );
     CachedFileItemStream keytabImpFile = siteFilesSource.get( KEYTAB_IMPL_FILE );
+
+    // Process the keytabAuthenticationLocation in case the Named Cluster name changed.
+    // If it didn't then the resulting value should be the same.
+    // Required for deleting orphaned keytab files.
+    if ( !keytabAuthenticationLocation.isEmpty() ) {
+      String name = extractFileNameFromFullPath( keytabAuthenticationLocation );
+      keytabAuthenticationLocation =
+        getNamedClusterConfigsRootDir() + fileSeparator + namedClusterName + fileSeparator + name;
+    }
+    // Process the keytabImpersonationLocation in case the Named Cluster name changed.
+    // If it didn't then the resulting value should be the same.
+    if ( !keytabImpersonationLocation.isEmpty() ) {
+      String name = extractFileNameFromFullPath( keytabImpersonationLocation );
+      keytabImpersonationLocation =
+        getNamedClusterConfigsRootDir() + fileSeparator + namedClusterName + fileSeparator + name;
+    }
 
     String authenticationLocation = keytabAuthenticationLocation;
     String impersonationLocation = keytabImpersonationLocation;
 
-    if ( keytabAuthFile != null ) {
-      String name = extractFileNameFromFullPath( keytabAuthFile.getName() );
+    if ( model.getKeytabAuthFile() != null && !model.getKeytabAuthFile().isEmpty() ) {
+      String name = extractFileNameFromFullPath( model.getKeytabAuthFile() );
       authenticationLocation =
         getNamedClusterConfigsRootDir() + fileSeparator + namedClusterName + fileSeparator + name;
     }
-    if ( keytabImpFile != null ) {
-      String name = extractFileNameFromFullPath( keytabImpFile.getName() );
+
+    if ( model.getKeytabImpFile() != null && !model.getKeytabImpFile().isEmpty() ) {
+      String name = extractFileNameFromFullPath( model.getKeytabImpFile() );
       impersonationLocation =
         getNamedClusterConfigsRootDir() + fileSeparator + namedClusterName + fileSeparator + name;
     }
 
     try {
       PropertiesConfiguration config = new PropertiesConfiguration( configPropertiesPath.toFile() );
-
       // Authentication
       config.setProperty( KERBEROS_AUTHENTICATION_USERNAME, model.getKerberosAuthenticationUsername() );
       if ( !StringUtil.isEmpty( authenticationLocation ) ) {
@@ -844,6 +865,30 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         config.setProperty( KEYTAB_IMPERSONATION_LOCATION, "" );
       } else if ( !StringUtil.isEmpty( impersonationLocation ) ) {
         config.setProperty( KEYTAB_IMPERSONATION_LOCATION, impersonationLocation );
+      }
+
+      // If the keytabAuthFile is not used anymore delete it.
+      if ( !keytabAuthenticationLocation.isEmpty() ) {
+        if ( !keytabAuthenticationLocation.equals( authenticationLocation ) ) {
+          if ( !keytabAuthenticationLocation.equals( impersonationLocation ) ) {
+            File toDelete = new File( keytabAuthenticationLocation );
+            if ( toDelete.exists() ) {
+              toDelete.delete();
+            }
+          }
+        }
+      }
+
+      // If the keytabImpFile is not used anymore delete it.
+      if ( !keytabImpersonationLocation.isEmpty() ) {
+        if ( !keytabImpersonationLocation.equals( impersonationLocation ) || model.getKeytabImpFile().isEmpty() ) {
+          if ( !keytabImpersonationLocation.equals( authenticationLocation ) ) {
+            File toDelete = new File( keytabImpersonationLocation );
+            if ( toDelete.exists() ) {
+              toDelete.delete();
+            }
+          }
+        }
       }
 
       if ( !StringUtil.isEmpty( (String) config.getProperty( KEYTAB_AUTHENTICATION_LOCATION ) )
