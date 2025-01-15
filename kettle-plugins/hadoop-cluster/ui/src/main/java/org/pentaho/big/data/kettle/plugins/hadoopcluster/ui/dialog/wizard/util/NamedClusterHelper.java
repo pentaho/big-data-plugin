@@ -12,7 +12,6 @@
 
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util;
 
-import org.apache.commons.io.FileUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -21,10 +20,11 @@ import org.eclipse.swt.widgets.Listener;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.CachedFileItemStream;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClusterManager;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
-import org.pentaho.di.core.Const;
 import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.di.repository.Repository;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.widget.TextVar;
+import org.pentaho.di.ui.spoon.Spoon;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -33,9 +33,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -43,8 +45,11 @@ public abstract class NamedClusterHelper {
 
   public static final int ONE_COLUMN = 1;
   public static final int TWO_COLUMNS = 2;
+  public static final String USERNAME = "USERNAME";
+  public static final String PASSWORD = "PASSWORD";
+  private static final Supplier<Spoon> spoonSupplier = Spoon::getInstance;
 
-  enum FileType {
+  public enum FileType {
     CONFIGURATION( "configuration" ),
     DRIVER( ".kar" );
 
@@ -165,23 +170,33 @@ public abstract class NamedClusterHelper {
     return unzippedFileItemStreams;
   }
 
-  private static boolean isValidUpload( String fileName, FileType fileType, HadoopClusterManager manager ) {
+  public static boolean isValidUpload( String fileName, FileType fileType, HadoopClusterManager manager ) {
     boolean valid = ( fileType.equals( FileType.CONFIGURATION ) && manager.isValidConfigurationFile( fileName ) )
       ||
       ( fileType.equals( FileType.DRIVER ) && fileName.endsWith( FileType.DRIVER.getValue() ) );
     return valid;
   }
 
-  public static boolean processDriverFile( String driverFile, HadoopClusterManager manager ) throws Exception {
-    boolean result = false;
-    File file = new File( driverFile );
-    FileInputStream driverStream = new FileInputStream( file );
-    if ( isValidUpload( file.getName(), FileType.DRIVER, manager ) ) {
-      String destination = Const.getShimDriverDeploymentLocation();
-      FileUtils.copyInputStreamToFile( driverStream,
-        new File( destination + File.separator + file.getName() ) );
-      result = true;
-    }
-    return result;
+  public static boolean isConnectedToRepo() {
+    Repository repo = spoonSupplier.get().getRepository();
+    return repo != null && repo.getUri().isPresent();
+  }
+
+  public static String getEndpointURL( String endpoint ) {
+    double cacheBust = Math.round( new Date().getTime() / 1000 ) + Math.random();
+    return spoonSupplier.get().getRepository().getUri()
+      .orElseThrow( () -> new IllegalStateException( "Repo URI not defined" ) )
+      .toString() + "/osgi/cxf/hadoop-cluster/" + endpoint + "?v=" + cacheBust;
+  }
+
+  public static Map<String, String> getSecurityCredentials() {
+    Repository repo = spoonSupplier.get().getRepository();
+    String userName = repo.getUserInfo().getLogin();
+    String password = repo.getUserInfo().getPassword();
+    Map<String, String> credentials = new HashMap<>();
+    credentials.put( USERNAME, userName );
+    credentials.put( PASSWORD, password );
+    return credentials;
   }
 }
+
