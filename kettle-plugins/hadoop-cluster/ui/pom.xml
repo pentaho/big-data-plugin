@@ -138,6 +138,11 @@
       <version>${dependency.commons-configuration.revision}</version>
       <scope>provided</scope><!--FOR UI EXECUTION AS A STANDALONE (comment scope)-->
     </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpmime</artifactId>
+      <version>4.5.14</version>
+    </dependency>
     <!--END OF CHANGES-->
     <dependency>
       <groupId>javax.ws.rs</groupId>
@@ -257,6 +262,7 @@
             -->
             <Export-Package>
               org.apache.commons.collections4.*,
+              org.apache.http.entity.mime.*,
               org.ops4j.pax.swissbox.core,
               org.ops4j.lang</Export-Package>
             <Import-Package>org.pentaho.di.osgi,
