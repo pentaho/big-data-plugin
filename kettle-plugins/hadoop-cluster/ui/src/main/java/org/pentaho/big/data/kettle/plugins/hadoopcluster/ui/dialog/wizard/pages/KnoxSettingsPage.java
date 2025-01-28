@@ -95,6 +95,7 @@ public class KnoxSettingsPage extends WizardPage {
     gatewayURLTextField.setText( "" );
     gatewayURLTextField.setLayoutData( gatewayUrlTextfieldGridData );
     gatewayURLTextField.addListener( SWT.CHANGED, clusterListener );
+    gatewayURLTextField.addListener( SWT.MouseUp, clusterListener );
     props.setLook( gatewayURLTextField );
 
     Composite gatewayAuthenticationPanel = new Composite( mainPanel, SWT.NONE );
