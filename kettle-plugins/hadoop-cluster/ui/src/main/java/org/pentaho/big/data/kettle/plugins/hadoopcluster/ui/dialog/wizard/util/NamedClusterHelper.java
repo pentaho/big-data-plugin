@@ -88,6 +88,7 @@ public abstract class NamedClusterHelper {
     textVar.setLayoutData( gd );
     if ( listener != null ) {
       textVar.getTextWidget().addListener( SWT.CHANGED, listener );
+      textVar.getTextWidget().addListener( SWT.MouseUp, listener );
     }
     props.setLook( textVar );
     return textVar;
