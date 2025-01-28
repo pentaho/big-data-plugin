@@ -73,4 +73,21 @@
     <pen:di-plugin type="org.pentaho.di.core.plugins.LifecyclePluginType"/>
   </bean>
 
+  <jaxrs:server address="/hadoop-cluster" id="browser-endpoint">
+    <jaxrs:serviceBeans>
+      <bean class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClusterEndpoints">
+        <argument ref="namedClusterService"/>
+        <argument ref="runtimeTester"/>
+        <argument value="${internal.shim}"/>
+        <argument value="${secure.enabled}"/>
+      </bean>
+    </jaxrs:serviceBeans>
+    <jaxrs:extensionMappings>
+      <entry key="json" value="application/json"/>
+    </jaxrs:extensionMappings>
+    <jaxrs:providers>
+      <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider"/>
+    </jaxrs:providers>
+  </jaxrs:server>
+
 </blueprint>

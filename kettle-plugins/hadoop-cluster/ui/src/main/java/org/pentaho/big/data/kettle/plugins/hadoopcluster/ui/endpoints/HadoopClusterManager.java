@@ -18,8 +18,24 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.io.FileUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.AuthCache;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.client.BasicAuthCache;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.json.simple.JSONObject;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDialog;
+import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
 import org.pentaho.big.data.plugins.common.ui.HadoopClusterDelegateImpl;
 import org.pentaho.di.base.AbstractMeta;
@@ -60,6 +76,7 @@ import javax.xml.xpath.XPathFactory;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -1083,5 +1100,57 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   String getNamedClusterConfigsRootDir() {
     return System.getProperty( "user.home" ) + File.separator + ".pentaho" + File.separator + "metastore"
       + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs";
+  }
+
+  public boolean processDriverFile( String driverFile, HadoopClusterManager manager ) throws Exception {
+    boolean result = false;
+    if ( NamedClusterHelper.isConnectedToRepo() ) {
+      String installDriverEndpoint = NamedClusterHelper.getEndpointURL( "installDriver" );
+      HttpPost httpPost = new HttpPost( installDriverEndpoint );
+      MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+      File file = new File( driverFile );
+
+      final HttpHost targetHost = new HttpHost( httpPost.getURI().getHost(), httpPost.getURI().getPort() );
+      final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
+      AuthScope authScope = new AuthScope( targetHost );
+      String userName = NamedClusterHelper.getSecurityCredentials().get( NamedClusterHelper.USERNAME );
+      String password = NamedClusterHelper.getSecurityCredentials().get( NamedClusterHelper.PASSWORD );
+      credsProvider.setCredentials( authScope, new UsernamePasswordCredentials( userName, password ) );
+
+      // Create AuthCache instance
+      final AuthCache authCache = new BasicAuthCache();
+      // Generate BASIC scheme object and add it to the local auth cache
+      authCache.put( targetHost, new BasicScheme() );
+
+      final HttpClientContext context = HttpClientContext.create();
+      context.setCredentialsProvider( credsProvider );
+      context.setAuthCache( authCache );
+
+      if ( NamedClusterHelper.isValidUpload( file.getName(), NamedClusterHelper.FileType.DRIVER, manager ) ) {
+        builder.addBinaryBody(
+          file.getName(),
+          file,
+          ContentType.APPLICATION_OCTET_STREAM,
+          file.getName()
+        );
+        try ( CloseableHttpClient httpClient = HttpClients.createDefault() ) {
+          HttpEntity multipart = builder.build();
+          httpPost.setEntity( multipart );
+          try ( CloseableHttpResponse response = httpClient.execute( httpPost, context ) ) {
+            result = response.getStatusLine().getStatusCode() == 200;
+          }
+        }
+      }
+    } else {
+      File file = new File( driverFile );
+      FileInputStream driverStream = new FileInputStream( file );
+      if ( NamedClusterHelper.isValidUpload( file.getName(), NamedClusterHelper.FileType.DRIVER, manager ) ) {
+        String destination = Const.getShimDriverDeploymentLocation();
+        FileUtils.copyInputStreamToFile( driverStream,
+          new File( destination + File.separator + file.getName() ) );
+        result = true;
+      }
+    }
+    return result;
   }
 }
