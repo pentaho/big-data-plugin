@@ -53,6 +53,7 @@ import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.StepPluginType;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.repository.Repository;
+import org.pentaho.di.repository.RepositoryBowl;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepData;
@@ -194,6 +195,7 @@ public class KafkaConsumerInputTest {
   @Test
   public void testInitWithRepository() throws Exception {
     final Repository repository = mock( Repository.class );
+    when( repository.getBowl() ).thenReturn( new RepositoryBowl( repository ) );
     transMeta.setRepository( repository );
     meta.setConsumerGroup( "testGroup" );
     meta.setKafkaFactory( factory );
