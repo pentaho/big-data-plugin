@@ -24,6 +24,7 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.ContentType;
@@ -33,6 +34,7 @@ import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONObject;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDialog;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper;
@@ -1150,6 +1152,35 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           new File( destination + File.separator + file.getName() ) );
         result = true;
       }
+    }
+    return result;
+  }
+
+  public static String doGet( String endpointURL ) {
+    String result = null;
+    try {
+      HttpGet httpGet = new HttpGet( endpointURL );
+      HttpHost targetHost = new HttpHost( httpGet.getURI().getHost(), httpGet.getURI().getPort() );
+      BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
+      AuthScope authScope = new AuthScope( targetHost );
+      String userName = NamedClusterHelper.getSecurityCredentials().get( NamedClusterHelper.USERNAME );
+      String password = NamedClusterHelper.getSecurityCredentials().get( NamedClusterHelper.PASSWORD );
+      credsProvider.setCredentials( authScope, new UsernamePasswordCredentials( userName, password ) );
+      AuthCache authCache = new BasicAuthCache();
+      authCache.put( targetHost, new BasicScheme() );
+      HttpClientContext context = HttpClientContext.create();
+      context.setCredentialsProvider( credsProvider );
+      context.setAuthCache( authCache );
+      try ( CloseableHttpClient httpClient = HttpClients.createDefault() ) {
+        try ( CloseableHttpResponse response = httpClient.execute( httpGet, context ) ) {
+          HttpEntity entity = response.getEntity();
+          if ( entity != null ) {
+            result = EntityUtils.toString( entity );
+          }
+        }
+      }
+    } catch ( Exception e ) {
+      log.logError( e.getMessage() );
     }
     return result;
   }
