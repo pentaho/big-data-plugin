@@ -85,6 +85,12 @@
       <artifactId>org.eclipse.swt.gtk.linux.x86_64</artifactId>
     </dependency>
     <dependency>
+      <!--this is required by OSGi bean declared in src/main/resources-filtered/OSGI-INF/blueprint/blueprint.xml-->
+      <groupId>com.fasterxml.jackson.jaxrs</groupId>
+      <artifactId>jackson-jaxrs-json-provider</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>org.ops4j.pax.web</groupId>
       <artifactId>pax-web-spi</artifactId>
       <version>${pax-web.version}</version>
@@ -100,6 +106,11 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-collections4</artifactId>
       <version>4.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpmime</artifactId>
+      <version>4.5.14</version>
     </dependency>
     <!--END OF CHANGES-->
     <dependency>
@@ -220,6 +231,7 @@
             -->
             <Export-Package>
               org.apache.commons.collections4.*,
+              org.apache.http.entity.mime.*,
               org.ops4j.pax.swissbox.core,
               org.ops4j.lang</Export-Package>
             <Import-Package>org.pentaho.di.osgi,
