@@ -43,7 +43,7 @@ public class Hive2SimbaDatabaseDialect extends Hive2DatabaseDialect {
   private static final IDatabaseType DBTYPE =
     new DatabaseType( "Hadoop Hive 2 (Simba)", "HIVE2SIMBA",
       DatabaseAccessType.getList( DatabaseAccessType.NATIVE,
-        DatabaseAccessType.JNDI, DatabaseAccessType.ODBC ), DEFAULT_PORT,
+        DatabaseAccessType.JNDI ), DEFAULT_PORT,
       "http://www.simba.com/connectors/apache-hadoop-hive-driver" );
 
   public IDatabaseType getDatabaseType() {

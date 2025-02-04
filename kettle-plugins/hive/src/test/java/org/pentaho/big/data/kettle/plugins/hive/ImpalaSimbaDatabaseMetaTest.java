@@ -63,14 +63,8 @@ public class ImpalaSimbaDatabaseMetaTest {
   @Test
   public void testGetAccessTypeList() {
     assertArrayEquals(
-      new int[] { DatabaseMeta.TYPE_ACCESS_NATIVE, DatabaseMeta.TYPE_ACCESS_ODBC, DatabaseMeta.TYPE_ACCESS_JNDI },
+      new int[] { DatabaseMeta.TYPE_ACCESS_NATIVE, DatabaseMeta.TYPE_ACCESS_JNDI },
       impalaSimbaDatabaseMeta.getAccessTypeList() );
-  }
-
-  @Test
-  public void testGetDriverClassODBC() {
-    impalaSimbaDatabaseMeta.setAccessType( DatabaseMeta.TYPE_ACCESS_ODBC );
-    assertEquals( ImpalaSimbaDatabaseMeta.ODBC_DRIVER_CLASS_NAME, impalaSimbaDatabaseMeta.getDriverClass() );
   }
 
   @Test

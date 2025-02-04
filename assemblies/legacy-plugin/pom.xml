@@ -5,10 +5,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-assemblies</artifactId>
-    <version>10.2.0.0-SNAPSHOT</version>
+    <version>10.3.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>pentaho-big-data-plugin</artifactId>
-  <version>10.2.0.0-SNAPSHOT</version>
+  <version>10.3.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <licenses>
     <license>
@@ -38,7 +38,7 @@
       </dependency>
       <dependency>
         <groupId>org.apache.logging.log4j</groupId>
-        <artifactId>log4j-slf4j-impl</artifactId>
+        <artifactId>log4j-slf4j2-impl</artifactId>
         <scope>provided</scope>
       </dependency>
     </dependencies>
@@ -141,7 +141,7 @@
     <dependency>
       <groupId>org.apache.avro</groupId>
       <artifactId>avro</artifactId>
-      <version>${dependency.avro.revision}</version>
+      <version>${org.apache.avro.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.core</groupId>
@@ -177,9 +177,9 @@
       <version>${dependency.jline.revision}</version>
     </dependency>
     <dependency>
-      <groupId>libthrift</groupId>
+      <groupId>org.apache.thrift</groupId>
       <artifactId>libthrift</artifactId>
-      <version>${dependency.libthrift.revision}</version>
+      <version>${org.apache.thrift.version}</version>
     </dependency>
     <dependency>
       <groupId>xmlpull</groupId>
@@ -194,32 +194,6 @@
     <dependency>
       <groupId>com.thoughtworks.xstream</groupId>
       <artifactId>xstream</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho.hadoop.shims</groupId>
-      <artifactId>pentaho-hadoop-shims-cdh61-pmr-libs</artifactId>
-      <version>${pentaho-hadoop-shims-cdh61.version}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho.hadoop.shims</groupId>
-      <artifactId>pentaho-hadoop-shims-hdp30-pmr-libs</artifactId>
-      <version>${pentaho-hadoop-shims-hdp30.version}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.pentaho.hadoop.shims</groupId>
@@ -280,13 +254,6 @@
       <type>zip</type>
       <classifier>plugin</classifier>
     </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>oss-licenses</artifactId>
-      <version>${oss-licenses.version}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-    </dependency>
   </dependencies>
   <build>
     <resources>
@@ -317,18 +284,6 @@
             </goals>
             <configuration>
               <artifactItems>
-                <artifactItem>
-                  <groupId>org.pentaho.hadoop.shims</groupId>
-                  <artifactId>pentaho-hadoop-shims-cdh61-pmr-libs</artifactId>
-                  <type>zip</type>
-                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.pentaho.hadoop.shims</groupId>
-                  <artifactId>pentaho-hadoop-shims-hdp30-pmr-libs</artifactId>
-                  <type>zip</type>
-                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
-                </artifactItem>
                 <artifactItem>
                   <groupId>org.pentaho.hadoop.shims</groupId>
                   <artifactId>pentaho-hadoop-shims-emr521-pmr-libs</artifactId>

@@ -18,6 +18,8 @@ package org.pentaho.amazon;
  * Created by Aliaksandr_Zhuk on 1/20/2018.
  */
 public enum AmazonEmrReleases {
+  EMR_700( "emr-7.0.0" ),
+  EMR_5360( "emr-5.36.0" ),
   EMR_5110( "emr-5.11.0" ),
   EMR_5100( "emr-5.10.0" ),
   EMR_590( "emr-5.9.0" ),

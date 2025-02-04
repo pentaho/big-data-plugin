@@ -41,8 +41,13 @@
   <reference id="namedClusterService"
              interface="org.pentaho.hadoop.shim.api.cluster.NamedClusterService"/>
 
+  <reference id="runtimeTester" interface="org.pentaho.runtime.test.RuntimeTester"/>
+
   <bean id="HadoopClusterDelegate" scope="singleton"
-        class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDelegate"/>
+        class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDelegate">
+    <argument ref="namedClusterService"/>
+    <argument ref="runtimeTester"/>
+  </bean>
 
   <bean id="HadoopClusterTreeDelegateExtension" scope="singleton"
         class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.tree.ThinHadoopClusterTreeDelegateExtension">
@@ -68,8 +73,6 @@
     <pen:di-plugin type="org.pentaho.di.core.plugins.LifecyclePluginType"/>
   </bean>
 
-  <reference id="runtimeTester" interface="org.pentaho.runtime.test.RuntimeTester"/>
-
   <jaxrs:server address="/hadoop-cluster" id="browser-endpoint">
     <jaxrs:serviceBeans>
       <bean class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClusterEndpoints">
@@ -84,7 +87,6 @@
     </jaxrs:extensionMappings>
     <jaxrs:providers>
       <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider"/>
-      <bean class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.WebSpoonFilter"/>
     </jaxrs:providers>
   </jaxrs:server>
 

@@ -89,7 +89,7 @@ public class AbstractAmazonJobExecutorControllerTest {
   @Test
   public void testPopulateReleases_getValidCountOfEnumElements() throws Exception {
 
-    int expectedCountOfReleases = 32;
+    int expectedCountOfReleases = 34;
 
     AbstractModelList<String> listReleases = jobExecutorController.populateReleases();
 
@@ -99,7 +99,7 @@ public class AbstractAmazonJobExecutorControllerTest {
   @Test
   public void testPopulateReleases_setFirstEmrReleaseInJobEntry() throws Exception {
 
-    String expectedEmrRelease = "emr-5.11.0";
+    String expectedEmrRelease = "emr-7.0.0";
 
     AmazonHiveJobExecutor jobEntry = spy( new AmazonHiveJobExecutor() );
     AmazonHiveJobExecutorController hiveJobExecutorController =
@@ -131,7 +131,7 @@ public class AbstractAmazonJobExecutorControllerTest {
   @Test
   public void testPopulateReleases_addNewEmrReleaseToReleasesList() throws Exception {
 
-    int expectedCountOfReleases = 33;
+    int expectedCountOfReleases = 35;
 
     when( jobExecutorController.getJobEntry().getEmrRelease() ).thenReturn( "emr-5.12.0" );
     AbstractModelList<String> listReleases = jobExecutorController.populateReleases();
@@ -143,7 +143,7 @@ public class AbstractAmazonJobExecutorControllerTest {
   @Test
   public void testPopulateReleases_setEmrReleaseToFirstElementFromEmrReleasesList() throws Exception {
 
-    String expectedEmrRelease = "emr-5.11.0";
+    String expectedEmrRelease = "emr-7.0.0";
 
     AmazonHiveJobExecutor jobEntry = spy( new AmazonHiveJobExecutor() );
 

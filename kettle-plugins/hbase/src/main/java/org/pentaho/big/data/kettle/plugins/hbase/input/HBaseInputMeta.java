@@ -200,9 +200,9 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     return this.metaStoreService;
   }
 
-  HBaseInputMeta( NamedClusterService namedClusterService,
-                         NamedClusterServiceLocator namedClusterServiceLocator,
-                         RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester, MetastoreLocator metastoreLocator ) {
+  public HBaseInputMeta(NamedClusterService namedClusterService,
+                        NamedClusterServiceLocator namedClusterServiceLocator,
+                        RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester, MetastoreLocator metastoreLocator) {
     this.namedClusterService = namedClusterService;
     this.namedClusterServiceLocator = namedClusterServiceLocator;
     this.runtimeTestActionService = runtimeTestActionService;

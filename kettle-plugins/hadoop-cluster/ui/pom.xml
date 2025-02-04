@@ -6,18 +6,18 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-kettle-plugins-hadoop-cluster</artifactId>
-    <version>10.2.0.0-SNAPSHOT</version>
+    <version>10.3.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>hadoop-cluster-ui</artifactId>
-  <version>10.2.0.0-SNAPSHOT</version>
+  <version>10.3.0.0-SNAPSHOT</version>
   <packaging>bundle</packaging>
 
   <name>Hadoop Cluster Plugin UI</name>
 
   <properties>
     <maven-replacer-plugin.version>1.5.2</maven-replacer-plugin.version>
-    <platform.version>10.2.0.0-SNAPSHOT</platform.version>
+    <platform.version>10.3.0.0-SNAPSHOT</platform.version>
     <mockito4.version>4.0.0</mockito4.version>
     <commons-configuration.version>1.6</commons-configuration.version>
   </properties>
@@ -113,6 +113,11 @@
       <artifactId>commons-collections4</artifactId>
       <version>4.1</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpmime</artifactId>
+      <version>4.5.14</version>
+    </dependency>
     <!--END OF CHANGES-->
     <dependency>
       <groupId>javax.ws.rs</groupId>
@@ -123,34 +128,8 @@
       <artifactId>javax.servlet-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.webjars.npm</groupId>
-      <artifactId>prantlf__requirejs</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.webjars.bower</groupId>
-      <artifactId>angular</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.webjars.npm</groupId>
-      <artifactId>angular-i18n</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.webjars.bower</groupId>
-      <artifactId>requirejs-text</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.webjars.bower</groupId>
-      <artifactId>require-css</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.webjars.npm</groupId>
-      <artifactId>jquery</artifactId>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
       <groupId>org.osgi</groupId>
-      <artifactId>org.osgi.core</artifactId>
+      <artifactId>osgi.core</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -192,6 +171,11 @@
       <version>${mockito4.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>commons-configuration</groupId>
+      <artifactId>commons-configuration</artifactId>
+      <version>1.6</version>
+    </dependency>
   </dependencies>
   <build>
     <resources>
@@ -204,7 +188,6 @@
         <excludes>
           <exclude>META-INF/**/*</exclude>
           <exclude>OSGI-INF/**/*</exclude>
-          <exclude>app/index.html</exclude>
         </excludes>
       </resource>
       <resource>
@@ -213,13 +196,6 @@
         <includes>
           <include>META-INF/**/*</include>
           <include>OSGI-INF/**/*</include>
-          <include>app/index.html</include>
-        </includes>
-      </resource>
-      <resource>
-        <directory>src/main/javascript</directory>
-        <includes>
-          <include>**/*</include>
         </includes>
       </resource>
     </resources>
@@ -243,6 +219,7 @@
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
+        <version>2.4.0</version>
         <extensions>true</extensions>
         <configuration>
           <instructions>
@@ -259,8 +236,8 @@
             since no such package should be in karaf now.
             -->
             <Export-Package>
-              org.ops4j.pax.web.service.spi.util,
               org.apache.commons.collections4.*,
+              org.apache.http.entity.mime.*,
               org.ops4j.pax.swissbox.core,
               org.ops4j.lang</Export-Package>
             <Import-Package>org.pentaho.di.osgi,

@@ -99,7 +99,6 @@
         <include>javax.xml:jaxrpc-api</include>
         <include>jaxen:jaxen</include>
         <include>jcifs:jcifs</include>
-        <include>jdom:jdom</include>
         <include>jexcelapi:jxl</include>
         <include>jfree:jcommon</include>
         <include>jfree:jfreechart</include>
@@ -144,7 +143,7 @@
         <include>org.codehaus.groovy:groovy</include>
         <include>org.codehaus.jackson:jackson-core-asl</include>
         <include>org.codehaus.jackson:jackson-jaxrs</include>
-        <include>org.drools:knowledge-api</include>
+        <include>org.drools:drools-ruleunits-engine</include>
         <include>org.drools:drools-compiler</include>
         <include>org.drools:drools-core</include>
         <include>org.eclipse.jetty:jetty-continuation</include>
@@ -157,7 +156,6 @@
         <include>org.eclipse.jetty:jetty-util</include>
         <include>org.eobjects.sassyreader:SassyReader</include>
         <include>org.fife.ui:rsyntaxtextarea</include>
-        <include>org.hibernate:hibernate-c3p0</include>
         <include>org.hibernate:hibernate-commons-annotations</include>
         <include>org.hibernate:hibernate-core</include>
         <include>org.hibernate:hibernate-ehcache</include>
@@ -175,7 +173,7 @@
         <include>org.samba.jcifs:jcifs</include>
         <include>org.scannotation:scannotation</include>
         <include>org.slf4j:slf4j-api</include>
-        <include>org.apache.logging.log4j:log4j-slf4j-impl</include>
+        <include>org.apache.logging.log4j:log4j-slf4j2-impl</include>
         <include>org.snmp4j:snmp4j</include>
         <include>org.springframework.security:spring-security-core</include>
         <include>org.springframework:spring-core</include>
@@ -186,7 +184,7 @@
         <include>org.syslog4j:syslog4j</include>
         <include>org.w3c.css:sac</include>
         <include>org.xerial.snappy:snappy-java</include>
-        <include>org.hitachivantara:safeyaml</include>
+        <include>org.yaml:snakeyaml</include>
         <include>pentaho-kettle:kettle-core</include>
         <include>pentaho-kettle:kettle-engine</include>
         <include>pentaho-kettle:kettle-ui-swt</include>
@@ -204,7 +202,7 @@
         <include>org.pentaho.reporting.library:libswing</include>
         <include>org.pentaho.reporting.library:libxml</include>
         <include>pentaho:pdi-osgi-bridge-core</include>
-        <include>org.osgi:org.osgi.core</include>
+        <include>org.osgi:osgi.core</include>
         <include>pentaho:pentaho-platform-api</include>
         <include>pentaho:pentaho-platform-core</include>
         <include>pentaho:pentaho-platform-extensions</include>

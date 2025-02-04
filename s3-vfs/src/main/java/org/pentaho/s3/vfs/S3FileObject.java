@@ -50,6 +50,7 @@ public class S3FileObject extends S3CommonFileObject {
     String s3BucketName = getName().getPath();
     if ( s3BucketName.indexOf( DELIMITER, 1 ) > 1 ) {
       // this file is a file, to get the bucket, remove the name from the path
+      //aws-sdk-version 1.12.460 or later requires bucket name without special character "/" -> https://github.com/aws/aws-sdk-java/discussions/2976
       s3BucketName = s3BucketName.substring( 1, s3BucketName.indexOf( DELIMITER, 1 ) );
     } else {
       // this file is a bucket

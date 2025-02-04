@@ -1,19 +1,17 @@
 <features name="pentaho-big-data-features" xmlns="http://karaf.apache.org/xmlns/features/v1.2.1">
 
   <feature name="pentaho-big-data-common" version="1.0">
-    <bundle>wrap:mvn:org.apache.avro/avro/1.6.2</bundle>
-    <bundle>wrap:mvn:com.amazonaws/aws-java-sdk/1.11.275</bundle>
+    <bundle>wrap:mvn:com.amazonaws/aws-java-sdk/1.12.759</bundle>
     <bundle>mvn:commons-cli/commons-cli/1.2</bundle>
     <bundle>wrap:mvn:com.github.stephenc.high-scale-lib/high-scale-lib/1.1.2</bundle>
     <bundle>mvn:org.codehaus.jackson/jackson-core-asl/${codehaus-jackson.version}</bundle>
-    <bundle>mvn:org.codehaus.jackson/jackson-mapper-asl/${codehaus-jackson.version}</bundle>
     <bundle>wrap:mvn:net.java.dev.jets3t/jets3t/0.9.4</bundle>
     <bundle>wrap:mvn:jline/jline/0.9.94</bundle>
     <bundle>wrap:mvn:com.googlecode.json-simple/json-simple/1.1</bundle>
     <bundle>wrap:mvn:libthrift/libthrift/0.6</bundle>
     <bundle>wrap:mvn:xmlpull/xmlpull/1.1.3.1</bundle>
     <bundle>wrap:mvn:xpp3/xpp3_min/1.1.4c</bundle>
-    <bundle>wrap:mvn:com.thoughtworks.xstream/xstream/${xstream.version}$overwrite=merge&amp;Import-Package=com.bea.xml.stream;resolution:=optional,com.ctc.wstx.stax;resolution:=optional,com.ibm.xml.xlxp.api.stax;resolution:=optional,com.sun.xml.internal.stream;resolution:=optional,javax.activation;resolution:=optional,javax.security.auth;resolution:=optional,javax.swing;resolution:=optional,javax.swing.plaf;resolution:=optional,javax.xml.bind;version="[2.3,3)";resolution:=optional,javax.xml.datatype;resolution:=optional,javax.xml.namespace;resolution:=optional,javax.xml.parsers;resolution:=optional,javax.xml.stream;resolution:=optional,javax.xml.transform;resolution:=optional,javax.xml.transform.sax;resolution:=optional,javax.xml.transform.stream;resolution:=optional,net.sf.cglib.proxy;resolution:=optional,nu.xom;resolution:=optional,org.codehaus.jettison.mapped;version="[1.2,2)";resolution:=optional,org.codehaus.jettison;version="[1.2,2)";resolution:=optional,org.dom4j.io;resolution:=optional,org.dom4j.tree;resolution:=optional,org.dom4j;resolution:=optional,org.jdom.input;resolution:=optional,org.jdom2.input;resolution:=optional,org.jdom2;resolution:=optional,org.jdom;resolution:=optional,org.joda.time.format;version="[1.6,2)";resolution:=optional,org.joda.time;version="[1.6,2)";resolution:=optional,org.kxml2.io;resolution:=optional,org.w3c.dom;resolution:=optional,org.xml.sax;resolution:=optional,org.xml.sax.helpers;resolution:=optional,org.xmlpull.mxp1;resolution:=optional,org.xmlpull.v1;resolution:=optional,sun.misc;resolution:=optional</bundle>
+    <bundle>wrap:mvn:com.thoughtworks.xstream/xstream/${xstream.version}$overwrite=merge&amp;Import-Package=com.bea.xml.stream;resolution:=optional,com.ctc.wstx.stax;resolution:=optional,com.ibm.xml.xlxp.api.stax;resolution:=optional,com.sun.xml.internal.stream;resolution:=optional,javax.activation;resolution:=optional,javax.security.auth;resolution:=optional,javax.swing;resolution:=optional,javax.swing.plaf;resolution:=optional,javax.xml.bind;version="[2.3,3)";resolution:=optional,javax.xml.datatype;resolution:=optional,javax.xml.namespace;resolution:=optional,javax.xml.parsers;resolution:=optional,javax.xml.stream;resolution:=optional,javax.xml.transform;resolution:=optional,javax.xml.transform.sax;resolution:=optional,javax.xml.transform.stream;resolution:=optional,net.sf.cglib.proxy;resolution:=optional,nu.xom;resolution:=optional,org.codehaus.jettison.mapped;version="[1.2,2)";resolution:=optional,org.codehaus.jettison;version="[1.2,2)";resolution:=optional,org.dom4j.io;resolution:=optional,org.dom4j.tree;resolution:=optional,org.dom4j;resolution:=optional,org.joda.time.format;version="[1.6,2)";resolution:=optional,org.joda.time;version="[1.6,2)";resolution:=optional,org.kxml2.io;resolution:=optional,org.w3c.dom;resolution:=optional,org.xml.sax;resolution:=optional,org.xml.sax.helpers;resolution:=optional,org.xmlpull.mxp1;resolution:=optional,org.xmlpull.v1;resolution:=optional,sun.misc;resolution:=optional</bundle>
   </feature>
 
   <feature name="pentaho-big-data-plugin-osgi" version="1.0">
@@ -82,13 +80,6 @@
   <feature name="pentaho-hadoop-cluster-ui" version="1.0">
     <bundle>mvn:org.pentaho.di.plugins/core-ui/${project.version}</bundle>
     <bundle>mvn:pentaho/hadoop-cluster-ui/${project.version}</bundle>
-    <bundle>pentaho-webjars:mvn:org.webjars.bower/angular/${angular.version}</bundle>
-    <bundle>pentaho-webjars:mvn:org.webjars.bower/angular-animate/${angular.version}</bundle>
-    <bundle>pentaho-webjars:mvn:org.webjars.bower/angular-i18n/${angular.version}</bundle>
-    <bundle>pentaho-webjars:mvn:org.webjars.bower/requirejs-text/${requirejs-text.version}</bundle>
-    <bundle>pentaho-webjars:mvn:org.webjars.npm/uirouter__core/${uirouter-core.version}</bundle>
-    <bundle>pentaho-webjars:mvn:org.webjars.npm/uirouter__angularjs/${uirouter-angularjs.version}</bundle>
-    <bundle>pentaho-webjars:mvn:org.webjars.npm/jquery/${jquery.version}</bundle>
     <bundle>mvn:commons-fileupload/commons-fileupload/${commons-fileupload.version}</bundle>
   </feature>
 
