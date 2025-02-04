@@ -12,6 +12,9 @@
 
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -30,6 +33,8 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.NamedClusterDialog;
+import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper;
+import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClusterManager;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -54,7 +59,6 @@ import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.createText;
 
 public class ClusterSettingsPage extends WizardPage {
-
   private PropsUI props;
   private Composite parent;
   private Composite mainPanel;
@@ -707,7 +711,21 @@ public class ClusterSettingsPage extends WizardPage {
   }
 
   private List<ShimIdentifierInterface> getShimIdentifiers() {
-    List<ShimIdentifierInterface> shims = PentahoSystem.getAll( ShimIdentifierInterface.class );
+    List<ShimIdentifierInterface> shims = new ArrayList<>();
+    if ( NamedClusterHelper.isConnectedToRepo() ) {
+      String shimIdentifiersEndpoint = NamedClusterHelper.getEndpointURL( "getShimIdentifiers" );
+      String jsonResult = HadoopClusterManager.doGet( shimIdentifiersEndpoint );
+      ObjectMapper objectMapper = new ObjectMapper();
+      try {
+        List<ShimIdentifier> tempList = objectMapper.readValue(jsonResult, new TypeReference<List<ShimIdentifier>>() {});
+        shims.addAll( tempList );
+      } catch ( JsonProcessingException e ) {
+        throw new RuntimeException( e );
+      }
+
+    } else {
+      shims = PentahoSystem.getAll( ShimIdentifierInterface.class );
+    }
     shims.sort( Comparator.comparing( ShimIdentifierInterface::getVendor ) );
     if ( isDevMode() ) {
       shims = new ArrayList<>();
@@ -718,4 +736,48 @@ public class ClusterSettingsPage extends WizardPage {
     }
     return shims;
   }
+
+  private static class ShimIdentifier implements ShimIdentifierInterface {
+    private String id;
+    private String vendor;
+    private String version;
+    private ShimIdentifierInterface.ShimType type;
+
+    public ShimIdentifier() {
+      super();
+    }
+
+    public String getId() {
+      return this.id;
+    }
+
+    public void setId(String id) {
+      this.id = id;
+    }
+
+    public String getVendor() {
+      return this.vendor;
+    }
+
+    public void setVendor(String vendor) {
+      this.vendor = vendor;
+    }
+
+    public String getVersion() {
+      return this.version;
+    }
+
+    public void setVersion(String version) {
+      this.version = version;
+    }
+
+    public ShimIdentifierInterface.ShimType getType() {
+      return this.type;
+    }
+
+    public void setType(ShimIdentifierInterface.ShimType type) {
+      this.type = type;
+    }
+  }
+
 }
