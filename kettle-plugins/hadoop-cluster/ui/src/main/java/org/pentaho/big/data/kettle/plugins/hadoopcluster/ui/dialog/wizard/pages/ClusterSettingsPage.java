@@ -132,8 +132,10 @@ public class ClusterSettingsPage extends WizardPage {
     nameOfNamedCluster.setText( "" );
     nameOfNamedCluster.setLayoutData( clusterNameTextFieldGridData );
     nameOfNamedCluster.addListener( SWT.CHANGED, clusterListener );
+    nameOfNamedCluster.addListener( SWT.MouseUp, clusterListener );
     props.setLook( nameOfNamedCluster );
     //END OF HEADER
+
 
     //START OF CLUSTER SCROLLABLE PANEL
     clusterScrollPanel = new ScrolledComposite( basePanel, SWT.V_SCROLL | SWT.NONE );
@@ -193,7 +195,8 @@ public class ClusterSettingsPage extends WizardPage {
     shimVersionCombo =
       new CCombo( driverGroupPanel, SWT.SINGLE | SWT.READ_ONLY | SWT.BORDER );
     shimVersionCombo.setLayoutData( versionComboGroupGridData );
-    shimVersionCombo.addListener( SWT.Selection, clusterListener );
+    shimVersionCombo.addListener( SWT.CHANGED, clusterListener );
+    shimVersionCombo.addListener( SWT.MouseUp, clusterListener );
     props.setLook( shimVersionCombo );
   }
 
