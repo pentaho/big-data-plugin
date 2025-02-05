@@ -285,6 +285,20 @@ public class HadoopClusterEndpoints {
     return Response.ok( getClusterManager().runTests( runtimeTester, namedCluster ) ).build();
   }
 
+  //http://localhost:9051/cxf/hadoop-cluster/deleteNamedCluster?namedCluster=
+  @GET
+  @Path( "/deleteNamedCluster" )
+  @Produces( { MediaType.APPLICATION_JSON } )
+  public Response deleteNamedCluster( @QueryParam( "namedCluster" ) String namedCluster ) {
+    Response response = null;
+    try {
+      response = Response.ok( getClusterManager().deleteConfigFolder( namedCluster ) ).build();
+    } catch ( Exception e ) {
+      log.logError( e.getMessage() );
+    }
+    return response;
+  }
+
   //http://localhost:9051/cxf/hadoop-cluster/installDriver
   @POST
   @Path( "/installDriver" )

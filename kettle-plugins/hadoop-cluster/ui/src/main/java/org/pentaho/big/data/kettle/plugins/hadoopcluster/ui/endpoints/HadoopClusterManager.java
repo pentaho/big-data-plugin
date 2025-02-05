@@ -13,6 +13,7 @@
 
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -36,7 +37,10 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDialog;
+import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.BadSiteFilesException;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
 import org.pentaho.big.data.plugins.common.ui.HadoopClusterDelegateImpl;
@@ -108,6 +112,8 @@ import static org.pentaho.big.data.impl.cluster.tests.Constants.OOZIE;
 import static org.pentaho.big.data.impl.cluster.tests.Constants.KAFKA;
 import static org.pentaho.big.data.impl.cluster.tests.Constants.ZOOKEEPER;
 import static org.pentaho.big.data.impl.cluster.tests.Constants.MAP_REDUCE;
+import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.isConnectedToRepo;
+import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.processSiteFiles;
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel.NAME_KEY;
 
 //HadoopClusterDelegateImpl
@@ -286,7 +292,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     return nc;
   }
 
-  private void deleteConfigFolder( String configFolderName ) throws IOException {
+  public boolean deleteConfigFolder( String configFolderName ) throws IOException {
     File configFolder = new File( getNamedClusterConfigsRootDir() );
     File[] files = configFolder.listFiles();
     if ( files != null ) {
@@ -297,6 +303,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         }
       }
     }
+    return true;
   }
 
   public JSONObject createNamedCluster( ThinNameClusterModel model,
@@ -739,54 +746,86 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  private void resolveKerberosSecurity( ThinNameClusterModel model, NamedCluster nc ) {
+  private void retrieveKerberosSecurity( ThinNameClusterModel model, NamedCluster nc ) {
     try {
-      String configFile =
-        getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() + fileSeparator + CONFIG_PROPERTIES;
-      PropertiesConfiguration config = new PropertiesConfiguration( new File( configFile ) );
-      model.setKerberosAuthenticationUsername( (String) config.getProperty( KERBEROS_AUTHENTICATION_USERNAME ) );
-      model.setKerberosAuthenticationPassword(
-        Encr.decryptPasswordOptionallyEncrypted( (String) config.getProperty( KERBEROS_AUTHENTICATION_PASS ) ) );
-      model.setKerberosImpersonationUsername( (String) config.getProperty( KERBEROS_IMPERSONATION_USERNAME ) );
-      String impersonationPasswordValue =
-        Encr.decryptPasswordOptionallyEncrypted( (String) config.getProperty( KERBEROS_IMPERSONATION_PASS ) );
-      if ( "Encrypted".equals( impersonationPasswordValue ) ) {
-        impersonationPasswordValue = "";
-      }
-      model.setKerberosImpersonationPassword( impersonationPasswordValue );
+      String endpointURL = NamedClusterHelper.getEndpointURL( "getNamedCluster" );
+      endpointURL = endpointURL + "&namedCluster=" + nc.getName();
+      String result = doGet( endpointURL );
+      JSONObject jsonObject = (JSONObject) new JSONParser().parse( result );
+      String securityType = (String) jsonObject.get( "securityType" );
+      String kerberosSubType = (String) jsonObject.get( "kerberosSubType" );
+      String kerberosAuthenticationUsername = (String) jsonObject.get( "kerberosAuthenticationUsername" );
+      String kerberosAuthenticationPassword = (String) jsonObject.get( "kerberosAuthenticationPassword" );
+      String kerberosImpersonationUsername = (String) jsonObject.get( "kerberosImpersonationUsername" );
+      String kerberosImpersonationPassword = (String) jsonObject.get( "kerberosImpersonationPassword" );
+      String keytabAuthFile = (String) jsonObject.get( "keytabAuthFile" );
+      String keytabImpFile = (String) jsonObject.get( "keytabImpFile" );
 
-      String keytabAuthenticationLocation = (String) config.getProperty( KEYTAB_AUTHENTICATION_LOCATION );
-      String keytabImpersonationLocation = (String) config.getProperty( KEYTAB_IMPERSONATION_LOCATION );
-
-      // Resolve the keytab auth and impl files if set to be displayed in the UI.
-      if ( !StringUtil.isEmpty( keytabAuthenticationLocation ) ) {
-        model.setKeytabAuthFile( keytabAuthenticationLocation );
-      }
-      if ( !StringUtil.isEmpty( keytabImpersonationLocation ) ) {
-        model.setKeytabImpFile( keytabImpersonationLocation );
-      }
-
-      // If Kerberos security properties are empty then security type is None else if at least one of them has a
-      // value then the security type is Kerberos
-      if ( StringUtil.isEmpty( keytabAuthenticationLocation )
-        && StringUtil.isEmpty( keytabImpersonationLocation )
-        && StringUtil.isEmpty( model.getKerberosAuthenticationPassword() )
-        && StringUtil.isEmpty( model.getKerberosImpersonationPassword() ) ) {
-        model.setSecurityType( SECURITY_TYPE.NONE.getValue() );
-      } else {
-        model.setSecurityType( SECURITY_TYPE.KERBEROS.getValue() );
-      }
-
-      // If kerberos keytab impersonation and kerberos keytab impersonation location are empty then kerberos sub type
-      // is Password else is Keytab
-      if ( StringUtil.isEmpty( keytabAuthenticationLocation )
-        && StringUtil.isEmpty( keytabImpersonationLocation ) ) {
-        model.setKerberosSubType( KERBEROS_SUBTYPE.PASSWORD.getValue() );
-      } else {
-        model.setKerberosSubType( KERBEROS_SUBTYPE.KEYTAB.getValue() );
-      }
-    } catch ( ConfigurationException e ) {
+      model.setSecurityType( securityType );
+      model.setKerberosSubType( kerberosSubType );
+      model.setKerberosAuthenticationUsername( kerberosAuthenticationUsername );
+      model.setKerberosAuthenticationPassword( kerberosAuthenticationPassword );
+      model.setKerberosImpersonationUsername( kerberosImpersonationUsername );
+      model.setKerberosImpersonationPassword( kerberosImpersonationPassword );
+      model.setKeytabAuthFile( keytabAuthFile );
+      model.setKeytabImpFile( keytabImpFile );
+    } catch ( ParseException e  ) {
       log.logError( e.getMessage() );
+    }
+  }
+
+  private void resolveKerberosSecurity( ThinNameClusterModel model, NamedCluster nc ) {
+    if ( NamedClusterHelper.isConnectedToRepo() ) {
+      retrieveKerberosSecurity( model, nc );
+    } else {
+      try {
+        String configFile =
+          getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() + fileSeparator + CONFIG_PROPERTIES;
+        PropertiesConfiguration config = new PropertiesConfiguration( new File( configFile ) );
+        model.setKerberosAuthenticationUsername( (String) config.getProperty( KERBEROS_AUTHENTICATION_USERNAME ) );
+        model.setKerberosAuthenticationPassword(
+          Encr.decryptPasswordOptionallyEncrypted( (String) config.getProperty( KERBEROS_AUTHENTICATION_PASS ) ) );
+        model.setKerberosImpersonationUsername( (String) config.getProperty( KERBEROS_IMPERSONATION_USERNAME ) );
+        String impersonationPasswordValue =
+          Encr.decryptPasswordOptionallyEncrypted( (String) config.getProperty( KERBEROS_IMPERSONATION_PASS ) );
+        if ( "Encrypted".equals( impersonationPasswordValue ) ) {
+          impersonationPasswordValue = "";
+        }
+        model.setKerberosImpersonationPassword( impersonationPasswordValue );
+
+        String keytabAuthenticationLocation = (String) config.getProperty( KEYTAB_AUTHENTICATION_LOCATION );
+        String keytabImpersonationLocation = (String) config.getProperty( KEYTAB_IMPERSONATION_LOCATION );
+
+        // Resolve the keytab auth and impl files if set to be displayed in the UI.
+        if ( !StringUtil.isEmpty( keytabAuthenticationLocation ) ) {
+          model.setKeytabAuthFile( keytabAuthenticationLocation );
+        }
+        if ( !StringUtil.isEmpty( keytabImpersonationLocation ) ) {
+          model.setKeytabImpFile( keytabImpersonationLocation );
+        }
+
+        // If Kerberos security properties are empty then security type is None else if at least one of them has a
+        // value then the security type is Kerberos
+        if ( StringUtil.isEmpty( keytabAuthenticationLocation )
+          && StringUtil.isEmpty( keytabImpersonationLocation )
+          && StringUtil.isEmpty( model.getKerberosAuthenticationPassword() )
+          && StringUtil.isEmpty( model.getKerberosImpersonationPassword() ) ) {
+          model.setSecurityType( SECURITY_TYPE.NONE.getValue() );
+        } else {
+          model.setSecurityType( SECURITY_TYPE.KERBEROS.getValue() );
+        }
+
+        // If kerberos keytab impersonation and kerberos keytab impersonation location are empty then kerberos sub type
+        // is Password else is Keytab
+        if ( StringUtil.isEmpty( keytabAuthenticationLocation )
+          && StringUtil.isEmpty( keytabImpersonationLocation ) ) {
+          model.setKerberosSubType( KERBEROS_SUBTYPE.PASSWORD.getValue() );
+        } else {
+          model.setKerberosSubType( KERBEROS_SUBTYPE.KEYTAB.getValue() );
+        }
+      } catch ( ConfigurationException e ) {
+        log.logError( e.getMessage() );
+      }
     }
   }
 
@@ -955,7 +994,13 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     try {
       if ( namedClusterService.read( namedCluster, metaStore ) != null ) {
         namedClusterService.delete( namedCluster, metaStore );
-        deleteConfigFolder( namedCluster );
+        if ( isConnectedToRepo() ) {
+          String endpointURL = NamedClusterHelper.getEndpointURL( "deleteNamedCluster" );
+          endpointURL = endpointURL + "&namedCluster=" + namedCluster;
+          doGet( endpointURL );
+        } else {
+          deleteConfigFolder( namedCluster );
+        }
       }
       if ( refreshTree ) {
         refreshTree();
@@ -1001,38 +1046,49 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   }
 
   public Object[] produceTestCategories( RuntimeTestStatus runtimeTestStatus, NamedCluster nc ) {
-
     LinkedHashMap<String, TestCategory> categories = new LinkedHashMap<>();
-    categories.put( HADOOP_FILE_SYSTEM, new TestCategory( "Hadoop file system" ) );
-    categories.put( ZOOKEEPER, new TestCategory( "Zookeeper connection" ) );
-    categories.put( MAP_REDUCE, new TestCategory( "Job tracker / resource manager" ) );
-    categories.put( OOZIE, new TestCategory( "Oozie host connection" ) );
-    categories.put( KAFKA, new TestCategory( "Kafka connection" ) );
+    if ( NamedClusterHelper.isConnectedToRepo() ) {
+      String endpointURL = NamedClusterHelper.getEndpointURL( "runTests" );
+      endpointURL = endpointURL + "&namedCluster=" + nc.getName();
+      String result = doGet( endpointURL );
+      ObjectMapper mapper = new ObjectMapper();
+      try {
+        return mapper.readValue( result, TestCategory[].class );
+      } catch ( Exception e ) {
+        log.logError( e.getMessage() );
+      }
+    } else {
+      categories.put( HADOOP_FILE_SYSTEM, new TestCategory( "Hadoop file system" ) );
+      categories.put( ZOOKEEPER, new TestCategory( "Zookeeper connection" ) );
+      categories.put( MAP_REDUCE, new TestCategory( "Job tracker / resource manager" ) );
+      categories.put( OOZIE, new TestCategory( "Oozie host connection" ) );
+      categories.put( KAFKA, new TestCategory( "Kafka connection" ) );
 
-    if ( runtimeTestStatus != null && nc != null ) {
-      for ( RuntimeTestModuleResults moduleResults : runtimeTestStatus.getModuleResults() ) {
-        for ( RuntimeTestResult testResult : moduleResults.getRuntimeTestResults() ) {
-          RuntimeTest runtimeTest = testResult.getRuntimeTest();
-          String name = runtimeTest.getName();
-          String status = getTestStatus( testResult.getOverallStatusEntry() );
-          String module = runtimeTest.getModule();
-          Category category = categories.get( module );
-          category.setCategoryActive( true );
+      if ( runtimeTestStatus != null && nc != null ) {
+        for ( RuntimeTestModuleResults moduleResults : runtimeTestStatus.getModuleResults() ) {
+          for ( RuntimeTestResult testResult : moduleResults.getRuntimeTestResults() ) {
+            RuntimeTest runtimeTest = testResult.getRuntimeTest();
+            String name = runtimeTest.getName();
+            String status = getTestStatus( testResult.getOverallStatusEntry() );
+            String module = runtimeTest.getModule();
+            Category category = categories.get( module );
+            category.setCategoryActive( true );
 
-          if ( module.equals( HADOOP_FILE_SYSTEM ) ) {
-            Test test = new Test( name );
-            test.setTestStatus( status );
-            test.setTestActive( true );
-            category.addTest( test );
-            configureHadoopFileSystemTestCategory( category, !StringUtil.isEmpty( nc.getHdfsHost() ), status );
-          } else if ( module.equals( OOZIE ) ) {
-            configureTestCategories( category, !StringUtil.isEmpty( nc.getOozieUrl() ), status );
-          } else if ( module.equals( KAFKA ) ) {
-            configureTestCategories( category, !StringUtil.isEmpty( nc.getKafkaBootstrapServers() ), status );
-          } else if ( module.equals( ZOOKEEPER ) ) {
-            configureTestCategories( category, !StringUtil.isEmpty( nc.getZooKeeperHost() ), status );
-          } else if ( module.equals( MAP_REDUCE ) ) {
-            configureTestCategories( category, !StringUtil.isEmpty( nc.getJobTrackerHost() ), status );
+            if ( module.equals( HADOOP_FILE_SYSTEM ) ) {
+              Test test = new Test( name );
+              test.setTestStatus( status );
+              test.setTestActive( true );
+              category.addTest( test );
+              configureHadoopFileSystemTestCategory( category, !StringUtil.isEmpty( nc.getHdfsHost() ), status );
+            } else if ( module.equals( OOZIE ) ) {
+              configureTestCategories( category, !StringUtil.isEmpty( nc.getOozieUrl() ), status );
+            } else if ( module.equals( KAFKA ) ) {
+              configureTestCategories( category, !StringUtil.isEmpty( nc.getKafkaBootstrapServers() ), status );
+            } else if ( module.equals( ZOOKEEPER ) ) {
+              configureTestCategories( category, !StringUtil.isEmpty( nc.getZooKeeperHost() ), status );
+            } else if ( module.equals( MAP_REDUCE ) ) {
+              configureTestCategories( category, !StringUtil.isEmpty( nc.getJobTrackerHost() ), status );
+            }
           }
         }
       }
@@ -1104,58 +1160,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs";
   }
 
-  public boolean processDriverFile( String driverFile, HadoopClusterManager manager ) throws Exception {
-    boolean result = false;
-    if ( NamedClusterHelper.isConnectedToRepo() ) {
-      String installDriverEndpoint = NamedClusterHelper.getEndpointURL( "installDriver" );
-      HttpPost httpPost = new HttpPost( installDriverEndpoint );
-      MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-      File file = new File( driverFile );
-
-      final HttpHost targetHost = new HttpHost( httpPost.getURI().getHost(), httpPost.getURI().getPort() );
-      final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
-      AuthScope authScope = new AuthScope( targetHost );
-      String userName = NamedClusterHelper.getSecurityCredentials().get( NamedClusterHelper.USERNAME );
-      String password = NamedClusterHelper.getSecurityCredentials().get( NamedClusterHelper.PASSWORD );
-      credsProvider.setCredentials( authScope, new UsernamePasswordCredentials( userName, password ) );
-
-      // Create AuthCache instance
-      final AuthCache authCache = new BasicAuthCache();
-      // Generate BASIC scheme object and add it to the local auth cache
-      authCache.put( targetHost, new BasicScheme() );
-
-      final HttpClientContext context = HttpClientContext.create();
-      context.setCredentialsProvider( credsProvider );
-      context.setAuthCache( authCache );
-
-      if ( NamedClusterHelper.isValidUpload( file.getName(), NamedClusterHelper.FileType.DRIVER, manager ) ) {
-        builder.addBinaryBody(
-          file.getName(),
-          file,
-          ContentType.APPLICATION_OCTET_STREAM,
-          file.getName()
-        );
-        try ( CloseableHttpClient httpClient = HttpClients.createDefault() ) {
-          HttpEntity multipart = builder.build();
-          httpPost.setEntity( multipart );
-          try ( CloseableHttpResponse response = httpClient.execute( httpPost, context ) ) {
-            result = response.getStatusLine().getStatusCode() == 200;
-          }
-        }
-      }
-    } else {
-      File file = new File( driverFile );
-      FileInputStream driverStream = new FileInputStream( file );
-      if ( NamedClusterHelper.isValidUpload( file.getName(), NamedClusterHelper.FileType.DRIVER, manager ) ) {
-        String destination = Const.getShimDriverDeploymentLocation();
-        FileUtils.copyInputStreamToFile( driverStream,
-          new File( destination + File.separator + file.getName() ) );
-        result = true;
-      }
-    }
-    return result;
-  }
-
   public static String doGet( String endpointURL ) {
     String result = null;
     try {
@@ -1183,5 +1187,118 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       log.logError( e.getMessage() );
     }
     return result;
+  }
+
+  private boolean doMultipartHttpPost( String endpoint, ThinNameClusterModel thinNameClusterModel, File driverFile ) throws BadSiteFilesException, IOException {
+    boolean result;
+    String endpointURL = NamedClusterHelper.getEndpointURL( endpoint );
+    HttpPost httpPost = new HttpPost( endpointURL );
+    HttpHost targetHost = new HttpHost( httpPost.getURI().getHost(), httpPost.getURI().getPort() );
+    BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
+    AuthScope authScope = new AuthScope( targetHost );
+    String userName = NamedClusterHelper.getSecurityCredentials().get( NamedClusterHelper.USERNAME );
+    String password = NamedClusterHelper.getSecurityCredentials().get( NamedClusterHelper.PASSWORD );
+    credsProvider.setCredentials( authScope, new UsernamePasswordCredentials( userName, password ) );
+    AuthCache authCache = new BasicAuthCache();
+    authCache.put( targetHost, new BasicScheme() );
+    HttpClientContext context = HttpClientContext.create();
+    context.setCredentialsProvider( credsProvider );
+    context.setAuthCache( authCache );
+    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+    if ( driverFile != null ) {
+      builder.addBinaryBody(
+        driverFile.getName(),
+        driverFile,
+        ContentType.APPLICATION_OCTET_STREAM,
+        driverFile.getName()
+      );
+    } else {
+      Map<String, CachedFileItemStream>  siteFileSource = NamedClusterHelper.processSiteFiles( thinNameClusterModel, this );
+      for ( Map.Entry<String, CachedFileItemStream> siteFile : siteFileSource.entrySet() ) {
+        String name = siteFile.getValue().getFieldName();
+        if ( isValidConfigurationFile( name ) ) {
+          if ( name.equals( KEYTAB_AUTH_FILE ) || name.equals( KEYTAB_IMPL_FILE ) || !name.endsWith( "-site.xml" ) ) {
+            builder.addBinaryBody(
+              name,
+              siteFile.getValue().getCachedInputStream(),
+              ContentType.APPLICATION_OCTET_STREAM,
+              siteFile.getValue().getName()
+            );
+          } else {
+            builder.addBinaryBody(
+              siteFile.getValue().getName(),
+              siteFile.getValue().getCachedInputStream(),
+              ContentType.APPLICATION_OCTET_STREAM,
+              siteFile.getValue().getName()
+            );
+          }
+        }
+      }
+    }
+    if ( thinNameClusterModel != null ) {
+      ObjectMapper mapper = new ObjectMapper();
+      String json = mapper.writeValueAsString( thinNameClusterModel );
+      builder.addTextBody( "data", json, ContentType.APPLICATION_JSON );
+    }
+    try ( CloseableHttpClient httpClient = HttpClients.createDefault() ) {
+      HttpEntity multipart = builder.build();
+      httpPost.setEntity( multipart );
+      try ( CloseableHttpResponse response = httpClient.execute( httpPost, context ) ) {
+        result = response.getStatusLine().getStatusCode() == 200;
+      }
+    }
+    return result;
+  }
+
+  public boolean processDriverFile( String driverFile, HadoopClusterManager manager ) throws Exception {
+    boolean result = false;
+    if ( NamedClusterHelper.isConnectedToRepo() ) {
+      File file = new File( driverFile );
+      if ( NamedClusterHelper.isValidUpload( file.getName(), NamedClusterHelper.FileType.DRIVER, manager ) ) {
+        result = doMultipartHttpPost( "installDriver", null, file );
+      }
+    } else {
+      File file = new File( driverFile );
+      FileInputStream driverStream = new FileInputStream( file );
+      if ( NamedClusterHelper.isValidUpload( file.getName(), NamedClusterHelper.FileType.DRIVER, manager ) ) {
+        String destination = Const.getShimDriverDeploymentLocation();
+        FileUtils.copyInputStreamToFile( driverStream,
+          new File( destination + File.separator + file.getName() ) );
+        result = true;
+      }
+    }
+    return result;
+  }
+
+  public void saveNewNamedCluster( ThinNameClusterModel thinNameClusterModel, String dialogState ) throws IOException, BadSiteFilesException {
+    if ( NamedClusterHelper.isConnectedToRepo() ) {
+      if ( dialogState.equals( "new-edit" ) ) {
+        doMultipartHttpPost( "createNamedCluster", thinNameClusterModel, null );
+      }
+      if ( dialogState.equals( "import" ) ) {
+        doMultipartHttpPost( "importNamedCluster", thinNameClusterModel, null );
+      }
+    } else {
+      Map<String, CachedFileItemStream> siteFiles = processSiteFiles( thinNameClusterModel, this );
+      if ( dialogState.equals( "new-edit" ) ) {
+        createNamedCluster( thinNameClusterModel, siteFiles );
+      }
+      if ( dialogState.equals( "import" ) ) {
+        importNamedCluster( thinNameClusterModel, siteFiles );
+      }
+    }
+  }
+
+  public void saveEditedNamedCluster( ThinNameClusterModel thinNameClusterModel, boolean isEditMode ) throws IOException, BadSiteFilesException {
+    if ( NamedClusterHelper.isConnectedToRepo() ) {
+      if( isEditMode ) {
+        doMultipartHttpPost( "editNamedCluster", thinNameClusterModel, null );
+      } else {
+        doMultipartHttpPost( "duplicateNamedCluster", thinNameClusterModel, null );
+      }
+    } else {
+      Map<String, CachedFileItemStream> siteFiles = processSiteFiles( thinNameClusterModel, this );
+      editNamedCluster( thinNameClusterModel, isEditMode, siteFiles );
+    }
   }
 }
