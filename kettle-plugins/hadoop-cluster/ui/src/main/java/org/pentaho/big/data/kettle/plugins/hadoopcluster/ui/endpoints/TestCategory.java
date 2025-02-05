@@ -23,6 +23,9 @@ public class TestCategory implements Category {
   private String categoryStatus = "";
   private boolean isCategoryActive = false;
 
+  public TestCategory() {
+  }
+
   public TestCategory( String name ) {
     setCategoryName( name );
   }
