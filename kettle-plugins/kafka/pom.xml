@@ -5,10 +5,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-kettle-plugins</artifactId>
-    <version>10.3.0.0-SNAPSHOT</version>
+    <version>10.3.0.0-247</version>
   </parent>
   <artifactId>pentaho-big-data-kettle-plugins-kafka</artifactId>
-  <version>10.3.0.0-SNAPSHOT</version>
+  <version>10.3.0.0-247</version>
   <packaging>bundle</packaging>
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <description>a Pentaho open source project</description>
@@ -16,7 +16,7 @@
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
     <!-- Dependency versions -->
-    <pentaho-metaverse.version>10.3.0.0-SNAPSHOT</pentaho-metaverse.version>
+    <pentaho-metaverse.version>10.3.0.0-247</pentaho-metaverse.version>
     <dependency.com.tinkerpop.frames.version>2.5.0</dependency.com.tinkerpop.frames.version>
     <dependency.com.tinkerpop.blueprints.version>2.6.0</dependency.com.tinkerpop.blueprints.version>
     <osgi.version>8.0.0</osgi.version>
