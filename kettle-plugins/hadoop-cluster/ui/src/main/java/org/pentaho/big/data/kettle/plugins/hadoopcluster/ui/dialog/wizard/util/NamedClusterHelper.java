@@ -107,12 +107,9 @@ public abstract class NamedClusterHelper {
     for ( AbstractMap.SimpleImmutableEntry<String, String> file : files ) {
       File siteFile = null;
       String fileName = null;
-      if ( file.getValue().equals( "keytabAuthFile" ) ) {
+      if ( file.getValue().equals( "keytabAuthFile" ) || file.getValue().equals( "keytabImpFile" ) ) {
         siteFile = new File( file.getKey() );
-        fileName = "keytabAuthFile";
-      } else if ( file.getValue().equals( "keytabImpFile" ) ) {
-        siteFile = new File( file.getKey() );
-        fileName = "keytabImpFile";
+        fileName = file.getValue();
       } else {
         siteFile = new File( file.getKey() + file.getValue() );
         fileName = siteFile.getName();
@@ -128,7 +125,11 @@ public abstract class NamedClusterHelper {
             fileInputStream = manager.getSiteFileInputStream( model.getOldName(), file.getValue() );
           }
         } else {
-          throw new BadSiteFilesException();
+          if( !( file.getKey().contains( model.getName() ) || file.getKey().contains( model.getOldName() ) ) ) {
+            throw new BadSiteFilesException();
+          } else {
+            continue;
+          }
         }
       }
       List<CachedFileItemStream> fileItemStreams =
@@ -179,8 +180,13 @@ public abstract class NamedClusterHelper {
   }
 
   public static boolean isConnectedToRepo() {
-    Repository repo = spoonSupplier.get().getRepository();
-    return repo != null && repo.getUri().isPresent();
+    Spoon supplier = spoonSupplier.get();
+    if ( supplier != null ) {
+      Repository repo = supplier.getRepository();
+      return repo != null && repo.getUri().isPresent();
+    } else {
+      return false;
+    }
   }
 
   public static String getEndpointURL( String endpoint ) {

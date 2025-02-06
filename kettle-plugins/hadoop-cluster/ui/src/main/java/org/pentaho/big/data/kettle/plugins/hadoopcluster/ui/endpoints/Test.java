@@ -19,6 +19,9 @@ public class Test {
   private String testStatus = "";
   private boolean isTestActive = false;
 
+  public Test() {
+  }
+
   public Test( String name ) {
     setTestName( name );
   }
