@@ -136,7 +136,7 @@ public class ClusterSettingsPage extends WizardPage {
     nameOfNamedCluster.setText( "" );
     nameOfNamedCluster.setLayoutData( clusterNameTextFieldGridData );
     nameOfNamedCluster.addListener( SWT.CHANGED, clusterListener );
-    nameOfNamedCluster.addListener( SWT.MouseUp, clusterListener );
+    nameOfNamedCluster.addListener( SWT.MouseExit, clusterListener );
     props.setLook( nameOfNamedCluster );
     //END OF HEADER
 
@@ -200,7 +200,7 @@ public class ClusterSettingsPage extends WizardPage {
       new CCombo( driverGroupPanel, SWT.SINGLE | SWT.READ_ONLY | SWT.BORDER );
     shimVersionCombo.setLayoutData( versionComboGroupGridData );
     shimVersionCombo.addListener( SWT.CHANGED, clusterListener );
-    shimVersionCombo.addListener( SWT.MouseUp, clusterListener );
+    shimVersionCombo.addListener( SWT.MouseExit, clusterListener );
     props.setLook( shimVersionCombo );
   }
 
