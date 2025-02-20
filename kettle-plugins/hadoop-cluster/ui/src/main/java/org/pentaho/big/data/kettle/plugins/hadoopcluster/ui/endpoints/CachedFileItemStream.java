@@ -13,7 +13,7 @@
 
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints;
 
-import org.apache.commons.fileupload2.core.FileItem;
+import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.io.IOUtils;
 
 import java.io.ByteArrayInputStream;
@@ -44,8 +44,8 @@ public class CachedFileItemStream {
    * @param fileItemStream
    * @throws IOException
    */
-  public CachedFileItemStream( FileItem fileItemStream ) throws IOException {
-    this( fileItemStream.getInputStream(), fileItemStream.getName(), fileItemStream.getFieldName() );
+  public CachedFileItemStream( FileItemStream fileItemStream ) throws IOException {
+    this( fileItemStream.openStream(), fileItemStream.getName(), fileItemStream.getFieldName() );
   }
 
   public CachedFileItemStream( InputStream inputStream, String name, String fieldName ) throws IOException {
