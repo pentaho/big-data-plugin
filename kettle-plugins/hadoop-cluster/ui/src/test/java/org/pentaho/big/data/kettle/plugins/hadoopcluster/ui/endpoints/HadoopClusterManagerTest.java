@@ -16,7 +16,7 @@ package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.fileupload2.core.FileItem;
+import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONObject;
 import org.junit.After;
@@ -440,9 +440,9 @@ public class HadoopClusterManagerTest {
 
     File driverFile = new File( "src/test/resources/driver-source/driver.kar" );
 
-    FileItem fileItemStream = mock( FileItem.class );
+    FileItemStream fileItemStream = mock( FileItemStream.class );
     when( fileItemStream.getFieldName() ).thenReturn( driverFile.getName() );
-    when( fileItemStream.getInputStream() ).thenReturn( new FileInputStream( driverFile ) );
+    when( fileItemStream.openStream() ).thenReturn( new FileInputStream( driverFile ) );
 
     JSONObject response = hadoopClusterManager.installDriver( fileItemStream );
     boolean isSuccess = (boolean) response.get( "installed" );

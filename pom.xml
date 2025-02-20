@@ -28,6 +28,7 @@
     <url>scm:git:git@github.com:${github.user}/${project.artifactId}.git</url>
   </scm>
   <properties>
+    <commons.fileupload.version>1.5</commons.fileupload.version>
     <pentaho-hadoop-shims.version>10.3.0.0-SNAPSHOT</pentaho-hadoop-shims.version>
     <pentaho-hadoop-shims-cdh514.version>10.3.0.0-SNAPSHOT</pentaho-hadoop-shims-cdh514.version>
     <pentaho-hadoop-shims-emr521.version>10.3.0.0-SNAPSHOT</pentaho-hadoop-shims-emr521.version>
