@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.fileupload2.core.FileItem;
+import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -580,12 +580,12 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  public JSONObject installDriver( FileItem driver ) {
+  public JSONObject installDriver( FileItemStream driver ) {
     boolean success = false;
     if ( driver != null ) {
       String destination = Const.getShimDriverDeploymentLocation();
 
-      try ( final InputStream driverStream = driver.getInputStream() ) {
+      try ( final InputStream driverStream = driver.openStream() ) {
         FileUtils.copyInputStreamToFile( driverStream,
           new File( destination + fileSeparator + driver.getFieldName() ) );
         success = true;
