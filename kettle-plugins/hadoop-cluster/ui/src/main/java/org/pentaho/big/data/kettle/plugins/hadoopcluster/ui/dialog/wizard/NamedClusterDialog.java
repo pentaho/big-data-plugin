@@ -244,13 +244,7 @@ public class NamedClusterDialog extends Wizard {
 
   private void saveNewNamedCluster() {
     try {
-      Map<String, CachedFileItemStream> siteFiles = processSiteFiles( thinNameClusterModel, hadoopClusterManager );
-      if ( dialogState.equals( "new-edit" ) ) {
-        hadoopClusterManager.createNamedCluster( thinNameClusterModel, siteFiles );
-      }
-      if ( dialogState.equals( "import" ) ) {
-        hadoopClusterManager.importNamedCluster( thinNameClusterModel, siteFiles );
-      }
+      hadoopClusterManager.saveNewNamedCluster( thinNameClusterModel, dialogState );
       reportPage.setTestResults( getTestResults() );
     } catch ( BadSiteFilesException e ) {
       reportPage.setTestResult( BaseMessages.getString( PKG, "NamedClusterDialog.test.importFailed" ) );
@@ -262,8 +256,7 @@ public class NamedClusterDialog extends Wizard {
 
   private void saveEditedNamedCluster() {
     try {
-      Map<String, CachedFileItemStream> siteFiles = processSiteFiles( thinNameClusterModel, hadoopClusterManager );
-      hadoopClusterManager.editNamedCluster( thinNameClusterModel, isEditMode, siteFiles );
+      hadoopClusterManager.saveEditedNamedCluster( thinNameClusterModel, isEditMode );
       reportPage.setTestResults( getTestResults() );
     } catch ( BadSiteFilesException e ) {
       reportPage.setTestResult( BaseMessages.getString( PKG, "NamedClusterDialog.test.importFailed" ) );
