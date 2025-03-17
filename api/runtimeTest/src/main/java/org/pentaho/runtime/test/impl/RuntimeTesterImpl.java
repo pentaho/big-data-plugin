@@ -41,10 +41,7 @@ public class RuntimeTesterImpl implements RuntimeTester {
 
   public static RuntimeTester getInstance(){
     if ( instance == null ) {
-      //ToDo: populate runtimeTests with about 13 classes implementing RuntimeTest
       List<RuntimeTest> runtimeTests = new ArrayList<>();
-      //runtimeTests.add( new ???)
-
       instance = new RuntimeTesterImpl( runtimeTests, Executors.newCachedThreadPool(), "Hadoop Configuration,Hadoop File System,Map Reduce,Oozie,Zookeeper" );
     }
     return instance;
@@ -74,5 +71,9 @@ public class RuntimeTesterImpl implements RuntimeTester {
           .runTests();
       }
     } );
+  }
+
+  public void addRuntimeTest( RuntimeTest test ) {
+    this.runtimeTests.add( test );
   }
 }
