@@ -24,10 +24,10 @@ import java.io.InputStream;
 /**
  * Cached File Item Stream
  * <p>
- * {@link FileItem} interface is not extended because {@link FileItem#getInputStream()} doesn't represent
- * returning cached bytes. Additionally {@link FileItem} throws a
- * {@link org.apache.commons.fileupload2.core.FileItemInput.ItemSkippedException}
- * when a previous stream is accessed after {@link org.apache.commons.fileupload2.core.FileItemInputIterator#next()} is called, which is not applicable here.
+ * {@link FileItemStream} interface is not extended because {@link FileItemStream#openStream()} doesn't represent
+ * returning cached bytes. Additionally {@link FileItemStream} throws a
+ * {@link org.apache.commons.fileupload.FileItemStream.ItemSkippedException}
+ * when a previous stream is accessed after {@link FileItemIterator#next()} is called, which is not applicable here.
  */
 public class CachedFileItemStream {
 
