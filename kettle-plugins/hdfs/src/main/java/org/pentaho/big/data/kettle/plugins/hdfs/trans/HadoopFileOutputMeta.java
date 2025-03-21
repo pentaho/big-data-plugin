@@ -177,9 +177,10 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta implements HadoopFi
   }
 
   @Override
-  public String exportResources( Bowl bowl, VariableSpace space, Map<String, org.pentaho.di.resource.ResourceDefinition>
-          definitions, ResourceNamingInterface resourceNamingInterface, Repository repository, IMetaStore metaStore )
-          throws KettleException {
+  public String exportResources( Bowl executionBowl, Bowl globalManagementBowl, VariableSpace space,
+      Map<String, org.pentaho.di.resource.ResourceDefinition> definitions,
+      ResourceNamingInterface resourceNamingInterface, Repository repository, IMetaStore metaStore )
+      throws KettleException {
     return null;
   }
 }

@@ -1364,6 +1364,11 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
    * resource naming interface allows the object to name appropriately without worrying about those parts of the
    * implementation specific details.
    *
+   * @param executionBowl
+   *          For file access
+   * @param globalManagementBowl
+   *          if needed for access to the current "global" (System or Repository) level config for export. If null, no
+   *          global config will be exported.
    * @param space
    *          The variable space to resolve (environment) variables with.
    * @param definitions
@@ -1379,9 +1384,9 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
    *           in case something goes wrong during the export
    */
   @Override
-  public String exportResources( Bowl bowl, VariableSpace space, Map<String, ResourceDefinition> definitions,
-                                 ResourceNamingInterface namingInterface, Repository repository, IMetaStore metaStore )
-    throws KettleException {
+  public String exportResources( Bowl executionBowl, Bowl globalManagementBowl, VariableSpace space,
+      Map<String, ResourceDefinition> definitions, ResourceNamingInterface namingInterface, Repository repository,
+      IMetaStore metaStore ) throws KettleException {
 
     // Try to load the transformation from repository or file.
 
@@ -1402,7 +1407,8 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
         // Also go down into the transformation and export the files there. (mapping recursively down)
         //
         String proposedNewFilename =
-          transMeta.exportResources( bowl, transMeta, definitions, namingInterface, repository, metaStore );
+          transMeta.exportResources( executionBowl, globalManagementBowl, transMeta, definitions, namingInterface,
+            repository, metaStore );
         // To get a relative path to it, we inject ${Internal.Job.Filename.Directory}
         //
         String newFilename = "${" + Const.INTERNAL_VARIABLE_JOB_FILENAME_DIRECTORY + "}/" + proposedNewFilename;
