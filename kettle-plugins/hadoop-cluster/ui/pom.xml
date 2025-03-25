@@ -20,7 +20,6 @@
     <platform.version>11.0.0.0-SNAPSHOT</platform.version>
     <mockito4.version>4.0.0</mockito4.version>
     <commons-configuration.version>1.6</commons-configuration.version>
-    <commons.fileupload.version>1.5</commons.fileupload.version>
   </properties>
 
   <dependencies>
@@ -153,7 +152,7 @@
     <dependency>
       <groupId>commons-fileupload</groupId>
       <artifactId>commons-fileupload</artifactId>
-      <version>${commons.fileupload.version}</version>
+      <version>${commons-fileupload-osgi.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>

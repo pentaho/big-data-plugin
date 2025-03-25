@@ -17,7 +17,6 @@
     <jsch.version>0.2.9</jsch.version>
     <encryption-support.version>11.0.0.0-SNAPSHOT</encryption-support.version>
     <pdi-osgi-bridge.version>11.0.0.0-SNAPSHOT</pdi-osgi-bridge.version>
-    <commons.fileupload.version>1.5</commons.fileupload.version>
     <jetty1.version>9.4.56.v20240826</jetty1.version>
   </properties>
   <dependencies>
@@ -209,7 +208,7 @@
     <dependency>
       <groupId>commons-fileupload</groupId>
       <artifactId>commons-fileupload</artifactId>
-      <version>${commons.fileupload.version}</version>
+      <version>${commons-fileupload-osgi.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
