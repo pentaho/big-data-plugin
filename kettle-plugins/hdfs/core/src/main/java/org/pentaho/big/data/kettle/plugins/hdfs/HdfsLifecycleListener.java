@@ -24,7 +24,6 @@ import org.pentaho.di.core.lifecycle.LifecycleException;
 import org.pentaho.di.core.lifecycle.LifecycleListener;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.runtime.test.RuntimeTester;
-import org.pentaho.runtime.test.action.RuntimeTestActionHandler;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.pentaho.runtime.test.action.impl.RuntimeTestActionServiceImpl;
 import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
