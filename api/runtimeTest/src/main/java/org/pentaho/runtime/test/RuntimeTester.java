@@ -18,4 +18,5 @@ package org.pentaho.runtime.test;
  */
 public interface RuntimeTester {
   void runtimeTest( Object objectUnderTest, RuntimeTestProgressCallback runtimeTestProgressCallback );
+  void addRuntimeTest( RuntimeTest test );
 }
