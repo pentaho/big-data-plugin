@@ -65,11 +65,6 @@
       <version>${pdi.version}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pdi-legacy-core</artifactId>
-      <version>${pdi.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>shim-api-core</artifactId>
       <version>${pdi.version}</version>
