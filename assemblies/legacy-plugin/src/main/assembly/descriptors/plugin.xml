@@ -57,6 +57,7 @@
                 <include>pentaho:pentaho-big-data-kettle-plugins-common-job</include>
                 <include>org.pentaho:shim-api-core</include>
                 <include>org.pentaho.hadoop.shims:pentaho-hadoop-shims-common-fragment-V1</include>
+                <include>org.pentaho.hadoop.shims:pentaho-hadoop-shims-common-dependencies-V1</include>
                 <include>org.pentaho:pentaho-hadoop-shims-common-services-api</include>
                 <include>org.apache.avro:avro</include>
                 <include>joda-time:joda-time</include>
