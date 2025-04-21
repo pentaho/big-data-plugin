@@ -14,7 +14,6 @@
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.tree;
 
 import com.google.common.collect.ImmutableMap;
-import com.pentaho.big.data.bundles.impl.shim.hdfs.HadoopFileSystemFactoryImpl;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -22,51 +21,28 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Tree;
-import org.pentaho.big.data.api.services.BigDataServicesProxy;
 import org.pentaho.big.data.impl.cluster.NamedClusterManager;
-import org.pentaho.big.data.impl.cluster.tests.hdfs.GatewayListHomeDirectoryTest;
-import org.pentaho.big.data.impl.cluster.tests.hdfs.GatewayListRootDirectoryTest;
-import org.pentaho.big.data.impl.cluster.tests.hdfs.GatewayPingFileSystemEntryPoint;
-import org.pentaho.big.data.impl.cluster.tests.hdfs.GatewayWriteToAndDeleteFromUsersHomeFolderTest;
-import org.pentaho.big.data.impl.cluster.tests.kafka.KafkaConnectTest;
-import org.pentaho.big.data.impl.cluster.tests.mr.GatewayPingJobTrackerTest;
-import org.pentaho.big.data.impl.cluster.tests.oozie.GatewayPingOozieHostTest;
-import org.pentaho.big.data.impl.cluster.tests.zookeeper.GatewayPingZookeeperEnsembleTest;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDelegate;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClusterManager;
-import org.pentaho.bigdata.api.hdfs.impl.HadoopFileSystemLocatorImpl;
-import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.extension.ExtensionPoint;
 import org.pentaho.di.core.extension.ExtensionPointInterface;
-import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
-import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.ui.core.ConstUI;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.spoon.TreeSelection;
-import org.pentaho.hadoop.shim.HadoopConfiguration;
-import org.pentaho.hadoop.shim.HadoopConfigurationLocator;
-import org.pentaho.hadoop.shim.api.ConfigurationException;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
-import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemFactory;
 import org.pentaho.runtime.test.RuntimeTester;
-import org.pentaho.runtime.test.i18n.impl.BaseMessagesMessageGetterFactoryImpl;
 import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
-import org.pentaho.runtime.test.network.impl.ConnectivityTestFactoryImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -94,74 +70,14 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
   private static final Logger logChannel = LoggerFactory.getLogger( HadoopClusterPopupMenuExtension.class );
   private NamedCluster lastNamedCluster;
   private RuntimeTester runtimeTester = RuntimeTesterImpl.getInstance();
+  private HadoopClusterManager hadoopClusterManager;
 
   public HadoopClusterPopupMenuExtension() {
     this.namedClusterService = NamedClusterManager.getInstance();
     this.hadoopClusterDelegate = new HadoopClusterDelegate( this.namedClusterService, runtimeTester );
     this.internalShim = "";
-  }
-
-  private void initializeRuntimeTests( RuntimeTester runtimeTester ) {
-    try {
-    //HadoopConfigurationInfo info = new HadoopConfigurationInfo( "", "", true, true);
-    /*
-    String identifier = hadoopConfiguration.getIdentifier(); //MIGHT NOT BE NEEDED
-    HadoopShim hadoopShim = hadoopConfiguration.getHadoopShim(); //MIGHT NOT BE NEEDED
-    String name = hadoopConfiguration.getName(); //MIGHT NOT BE NEEDED
-    String id = hadoopConfiguration.getIdentifier(); //MIGHT NOT BE NEEDED
-    String version = hadoopShim.getHadoopVersion(); //MIGHT NOT BE NEEDED
-    Properties properties = hadoopConfiguration.getConfigProperties(); //MIGHT NOT BE NEEDED
-
-    //REFER TO THE FOLLOWING blueprint.xml IN ORDER TO CREATE AND INITALIZE ShimIdentifier AND HadoopFileSystemFactoryImpl
-    //https://github.com/pentaho/pentaho-hadoop-shims/blob/master/shims/cdpdc71/driver/src/main/resources/OSGI-INF/blueprint/blueprint.xml
-
-    //Hierarchy
-    //HadoopShim (cdpdc71) -> HadoopShimImpl -> CommonHadoopShim -> HadoopShim
-    //https://github.com/pentaho/pentaho-hadoop-shims/blob/master/common-fragment-V1/src/main/java/org/pentaho/hadoop/shim/common/HadoopShimImpl.java
-    //https://github.com/pentaho/pentaho-hadoop-shims/blob/master/common-fragment-V1/src/main/java/org/pentaho/hadoop/shim/common/ConfigurationProxyV2.java
-
-    ShimIdentifier shimIdentifier = new ShimIdentifier( "id", "vendor", hadoopShim.getHadoopVersion(), null );
-    HadoopFileSystemFactoryImpl hadoopFileSystemFactory = new HadoopFileSystemFactoryImpl( hadoopConfiguration.getHadoopShim(), shimIdentifier );*/
-    // Put it in ArrayList and feed it to the HadoopFileSystemLocatorImpl
-
-    //HadoopFileSystemLocatorImpl hadoopFileSystemLocator = new HadoopFileSystemLocatorImpl(  );
-
-    //To add the following runtimeTests it is necessary to add the dependency
-    //pentaho:pentaho-big-data-impl-clusterTests
-    //and this causes a cyclic reference with pentaho-big-data-impl-clusterTests
-
-    //Runtime tests taken from here:
-    //https://github.com/e-cuellar/big-data-plugin/blob/master/impl/clusterTests/src/main/resources/OSGI-INF/blueprint/blueprint.xml=
-    HadoopConfigurationBootstrap hadoopConfigurationBootstrap = HadoopConfigurationBootstrap.getInstance();
-    HadoopConfigurationLocator hadoopConfigurationProvider = (HadoopConfigurationLocator) hadoopConfigurationBootstrap.getProvider();
-    HadoopConfiguration hadoopConfiguration = hadoopConfigurationProvider.getActiveConfiguration();
-    HadoopFileSystemFactory hadoopFileSystemFactory =
-      new HadoopFileSystemFactoryImpl( hadoopConfiguration.getHadoopShim(), hadoopConfiguration.getHadoopShim().getShimIdentifier() );
-
-    List<HadoopFileSystemFactory> hadoopFileSystemFactoryList = new ArrayList<>();
-    hadoopFileSystemFactoryList.add( hadoopFileSystemFactory );
-    HadoopFileSystemLocatorImpl hadoopFileSystemLocator = new HadoopFileSystemLocatorImpl( hadoopFileSystemFactoryList );
-
-    runtimeTester.addRuntimeTest( new GatewayPingFileSystemEntryPoint(  BaseMessagesMessageGetterFactoryImpl.getInstance(), new ConnectivityTestFactoryImpl() ) );
-    runtimeTester.addRuntimeTest( new GatewayPingJobTrackerTest(  BaseMessagesMessageGetterFactoryImpl.getInstance(), new ConnectivityTestFactoryImpl() ) );
-    runtimeTester.addRuntimeTest( new GatewayPingOozieHostTest(  BaseMessagesMessageGetterFactoryImpl.getInstance(), new ConnectivityTestFactoryImpl() ) );
-    runtimeTester.addRuntimeTest( new GatewayPingZookeeperEnsembleTest(  BaseMessagesMessageGetterFactoryImpl.getInstance(), new ConnectivityTestFactoryImpl() ) );
-
-    runtimeTester.addRuntimeTest( new GatewayListRootDirectoryTest( BaseMessagesMessageGetterFactoryImpl.getInstance(), new ConnectivityTestFactoryImpl(), hadoopFileSystemLocator ) );
-    runtimeTester.addRuntimeTest( new GatewayListHomeDirectoryTest( BaseMessagesMessageGetterFactoryImpl.getInstance(), new ConnectivityTestFactoryImpl(), hadoopFileSystemLocator ) );
-    runtimeTester.addRuntimeTest( new GatewayWriteToAndDeleteFromUsersHomeFolderTest( BaseMessagesMessageGetterFactoryImpl.getInstance(), hadoopFileSystemLocator ) );
-
-        try {
-            Collection<BigDataServicesProxy> namedClusterServiceLocatorFactories = PluginServiceLoader.loadServices( BigDataServicesProxy.class );
-            NamedClusterServiceLocator namedClusterServiceLocator = namedClusterServiceLocatorFactories.stream().findFirst().get().getNamedClusterServiceLocator();
-            runtimeTester.addRuntimeTest( new KafkaConnectTest( BaseMessagesMessageGetterFactoryImpl.getInstance(), namedClusterServiceLocator ) );
-        } catch (KettlePluginException e) {
-            e.printStackTrace();
-        }
-
-    } catch ( ConfigurationException e ) {
-      throw new RuntimeException( e );
-    }
+    this.hadoopClusterManager =
+      new HadoopClusterManager( spoonSupplier.get(), namedClusterService, spoonSupplier.get().getMetaStore(), internalShim );
   }
 
   public HadoopClusterPopupMenuExtension( HadoopClusterDelegate hadoopClusterDelegate,
@@ -226,8 +142,6 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
       try {
         String name = URLEncoder.encode( namedCluster.getName(), "UTF-8" );
 
-        initializeRuntimeTests( runtimeTester );
-
         if ( showAdminFunctions() ) {
           createPopupMenuItem( itemMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Edit" ),
             NEW_EDIT_STATE, ImmutableMap.of( "name", name ) );
@@ -268,8 +182,6 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
       @Override
       public void widgetSelected( SelectionEvent selectionEvent ) {
         hadoopClusterDelegate.openDialog( state, urlParams );
-
-
       }
     } );
   }
@@ -298,10 +210,6 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
           if ( response != RESULT_YES ) {
             return;
           }
-          HadoopClusterManager hadoopClusterManager =
-            new HadoopClusterManager( spoonSupplier.get(), namedClusterService,
-              spoonSupplier.get().getMetaStore(),
-              internalShim );
           hadoopClusterManager.deleteNamedCluster( spoonSupplier.get().getMetaStore(), nCluster, true );
         } catch ( UnsupportedEncodingException e ) {
           logChannel.error( e.getMessage() );
@@ -311,4 +219,3 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
   }
 
 }
-
