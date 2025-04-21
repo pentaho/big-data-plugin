@@ -13,6 +13,14 @@
 package org.pentaho.big.data.services.bootstrap;
 
 import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
+import org.pentaho.big.data.impl.cluster.tests.hdfs.GatewayListHomeDirectoryTest;
+import org.pentaho.big.data.impl.cluster.tests.hdfs.GatewayListRootDirectoryTest;
+import org.pentaho.big.data.impl.cluster.tests.hdfs.GatewayPingFileSystemEntryPoint;
+import org.pentaho.big.data.impl.cluster.tests.hdfs.GatewayWriteToAndDeleteFromUsersHomeFolderTest;
+import org.pentaho.big.data.impl.cluster.tests.kafka.KafkaConnectTest;
+import org.pentaho.big.data.impl.cluster.tests.mr.GatewayPingJobTrackerTest;
+import org.pentaho.big.data.impl.cluster.tests.oozie.GatewayPingOozieHostTest;
+import org.pentaho.big.data.impl.cluster.tests.zookeeper.GatewayPingZookeeperEnsembleTest;
 import org.pentaho.big.data.impl.shim.format.FormatServiceFactory;
 import org.pentaho.big.data.impl.shim.mapreduce.MapReduceServiceFactoryImpl;
 import org.pentaho.big.data.impl.shim.mapreduce.TransformationVisitorService;
@@ -34,6 +42,10 @@ import org.pentaho.hadoop.shim.api.ConfigurationException;
 import org.pentaho.big.data.impl.vfs.hdfs.HDFSFileProvider;
 import org.apache.commons.vfs2.FileSystemException;
 import org.pentaho.hadoop.shim.common.CommonFormatShim;
+import org.pentaho.runtime.test.RuntimeTester;
+import org.pentaho.runtime.test.i18n.impl.BaseMessagesMessageGetterFactoryImpl;
+import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
+import org.pentaho.runtime.test.network.impl.ConnectivityTestFactoryImpl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -63,7 +75,8 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
                   new HadoopFileSystemFactoryImpl( hadoopConfiguration.getHadoopShim(), hadoopConfiguration.getHadoopShim().getShimIdentifier() );
           List<HadoopFileSystemFactory> hadoopFileSystemFactoryList = new ArrayList<>();
           hadoopFileSystemFactoryList.add( hadoopFileSystemFactory );
-          // TODO: Move the HadoopFileSystemLocatorImpl to a singleton
+          // TODO: Move the HadoopFileSystemLocatorImpl to a singleton. (NOTE: Might NOT be required anymore since
+          //  the Bootstrap the run time tests were added to this listener.
           HadoopFileSystemLocatorImpl hadoopFileSystemLocator = new HadoopFileSystemLocatorImpl( hadoopFileSystemFactoryList );
 
           // 2. Set up the namedClusterService (NamedClusterService)
@@ -128,8 +141,18 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
           //////////////////////////////////////////////////////////////////////////////////
           //  2. Add the hadoop client NamedClusterServiceFactory to the factory map
 
-
-
+          //////////////////////////////////////////////////////////////////////////////////
+          /// Bootstrap the run time tests
+          //////////////////////////////////////////////////////////////////////////////////
+          RuntimeTester runtimeTester = RuntimeTesterImpl.getInstance();
+          runtimeTester.addRuntimeTest( new GatewayPingFileSystemEntryPoint(  BaseMessagesMessageGetterFactoryImpl.getInstance(), new ConnectivityTestFactoryImpl() ) );
+          runtimeTester.addRuntimeTest( new GatewayPingJobTrackerTest(  BaseMessagesMessageGetterFactoryImpl.getInstance(), new ConnectivityTestFactoryImpl() ) );
+          runtimeTester.addRuntimeTest( new GatewayPingOozieHostTest(  BaseMessagesMessageGetterFactoryImpl.getInstance(), new ConnectivityTestFactoryImpl() ) );
+          runtimeTester.addRuntimeTest( new GatewayPingZookeeperEnsembleTest(  BaseMessagesMessageGetterFactoryImpl.getInstance(), new ConnectivityTestFactoryImpl() ) );
+          runtimeTester.addRuntimeTest( new GatewayListRootDirectoryTest( BaseMessagesMessageGetterFactoryImpl.getInstance(), new ConnectivityTestFactoryImpl(), hadoopFileSystemLocator ) );
+          runtimeTester.addRuntimeTest( new GatewayListHomeDirectoryTest( BaseMessagesMessageGetterFactoryImpl.getInstance(), new ConnectivityTestFactoryImpl(), hadoopFileSystemLocator ) );
+          runtimeTester.addRuntimeTest( new GatewayWriteToAndDeleteFromUsersHomeFolderTest( BaseMessagesMessageGetterFactoryImpl.getInstance(), hadoopFileSystemLocator ) );
+          runtimeTester.addRuntimeTest( new KafkaConnectTest( BaseMessagesMessageGetterFactoryImpl.getInstance(), namedClusterServiceLocator ) );
       } catch (ConfigurationException | FileSystemException e) {
           throw new RuntimeException(e);
       }
