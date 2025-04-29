@@ -19,7 +19,7 @@ import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
 import org.pentaho.di.core.row.ValueMetaInterface;
 
-@DatabaseMetaPlugin( type = "HIVE", typeDescription = "Hadoop Hive" )
+@DatabaseMetaPlugin( type = "HIVE", typeDescription = "Hadoop Hive (deprecated)" )
 public class HiveDatabaseMeta extends DatabaseMetaWithVersion {
 
   public static final String URL_PREFIX = "jdbc:hive://";
