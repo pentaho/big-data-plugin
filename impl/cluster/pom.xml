@@ -16,6 +16,7 @@
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
     <impl-cluster-mockito.version>3.12.4</impl-cluster-mockito.version>
+    <mockito-core.version>5.17.0</mockito-core.version>
   </properties>
   <dependencies>
     <dependency>
@@ -49,7 +50,7 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>${impl-cluster-mockito.version}</version>
+      <version>${mockito-core.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
