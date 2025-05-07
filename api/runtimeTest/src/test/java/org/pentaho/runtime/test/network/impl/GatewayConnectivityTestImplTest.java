@@ -36,7 +36,7 @@ import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.pentaho.runtime.test.RuntimeTestEntryUtil.verifyRuntimeTestResultEntry;
 
@@ -76,7 +76,7 @@ public class GatewayConnectivityTestImplTest {
     httpClient = mock( HttpClient.class, Mockito.CALLS_REAL_METHODS );
     HttpResponse httpResponseMock = mock(HttpResponse.class);
     StatusLine statusLineMock = mock(StatusLine.class);
-    doReturn( httpResponseMock ).when( httpClient ).execute( anyObject() );
+    doReturn( httpResponseMock ).when( httpClient ).execute( any() );
     doReturn( httpResponseMock ).when( httpClient ).execute( any( HttpUriRequest.class ), any( HttpContext.class) );
     doReturn( statusLineMock ).when( httpResponseMock ).getStatusLine();
     doReturn( 200 ).when( statusLineMock ).getStatusCode();
