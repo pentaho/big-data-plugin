@@ -34,7 +34,7 @@ public class HiveDatabaseDialect extends AbstractDatabaseDialect {
 
   private static final int DEFAULT_PORT = 10000;
 
-  private static final IDatabaseType DBTYPE = new DatabaseType( "Hadoop Hive", "HIVE", DatabaseAccessType.getList(
+  private static final IDatabaseType DBTYPE = new DatabaseType( "Hadoop Hive (deprecated)", "HIVE", DatabaseAccessType.getList(
       DatabaseAccessType.NATIVE, DatabaseAccessType.JNDI ), DEFAULT_PORT,
       "https://cwiki.apache.org/Hive/hiveclient.html" );
 

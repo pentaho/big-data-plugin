@@ -52,7 +52,7 @@ public class HiveDatabaseDialectTest {
   @Test
   public void testGetDatabaseType() {
     IDatabaseType dbType = dialect.getDatabaseType();
-    Assert.assertEquals( dbType.getName(), "Hadoop Hive" );
+    Assert.assertEquals( dbType.getName(), "Hadoop Hive (deprecated)" );
   }
 
   @Test
