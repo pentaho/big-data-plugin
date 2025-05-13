@@ -18,7 +18,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -26,6 +25,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Table;
@@ -77,8 +77,9 @@ public class ClusterSettingsPage extends WizardPage {
   private Button deleteSiteFilesButton;
   private Text nameOfNamedCluster;
   private Table siteFilesTable;
-  private CCombo shimVendorCombo;
-  private CCombo shimVersionCombo;
+  private Label loadedDriverLabel;
+  private Label originalDriverLabel;
+  private Label driverMismatchLabel;
   private Group hdfsGroup;
   private Group jobTrackerGroup;
   private Group zooKeeperGroup;
@@ -88,7 +89,6 @@ public class ClusterSettingsPage extends WizardPage {
   private Map<String, String> siteFilesPath;
   private ThinNameClusterModel thinNameClusterModel;
   private final Listener clusterListener = e -> validate();
-  private final Listener shimVendorListener = e -> displayShimVersions( true );
   private final VariableSpace variableSpace;
   private static final Class<?> PKG = ClusterSettingsPage.class;
 
@@ -170,39 +170,41 @@ public class ClusterSettingsPage extends WizardPage {
   }
 
   private void createDriverGroup() {
+    String originalDriverText = thinNameClusterModel.getShimVendor() + " " + thinNameClusterModel.getShimVersion();
+    String loadedDriverText = getLoadedDriverVender() + " " + getLoadedDriverVersion();
+
     Composite driverGroupPanel = new Composite( mainPanel, SWT.NONE );
-    GridLayout driverGroupGridLayout = new GridLayout( TWO_COLUMNS, true );
+    GridLayout driverGroupGridLayout = new GridLayout( ONE_COLUMN, true );
     driverGroupGridLayout.marginWidth = 0;
     driverGroupPanel.setLayout( driverGroupGridLayout );
     GridData driverGroupPanelGridData = new GridData( SWT.FILL, SWT.FILL, false, false );
     driverGroupPanel.setLayoutData( driverGroupPanelGridData );
     props.setLook( driverGroupPanel );
 
-    GridData driverLabelGroupGridData = new GridData( SWT.BEGINNING, SWT.FILL, true, false );
-    createLabel( driverGroupPanel, BaseMessages.getString( PKG, "NamedClusterDialog.driver" ),
-      driverLabelGroupGridData, props );
+    GridData driverInfoGroupGridData = new GridData();
+    driverInfoGroupGridData.widthHint = 204; // Combo width
+    loadedDriverLabel = new Label( driverGroupPanel, SWT.NONE );
+    loadedDriverLabel.setText( "Loaded Driver: " + loadedDriverText );
+    loadedDriverLabel.setLayoutData( driverInfoGroupGridData );
 
-    GridData versionLabelGroupGridData = new GridData();
-    createLabel( driverGroupPanel, BaseMessages.getString( PKG, "NamedClusterDialog.version" ),
-      versionLabelGroupGridData, props );
+    if ( ( (NamedClusterDialog) getWizard() ).isEditMode() ) {
+      originalDriverLabel = new Label( driverGroupPanel, SWT.NONE );
+      originalDriverLabel.setText( "Original Driver: " + originalDriverText );
+      originalDriverLabel.setLayoutData( driverInfoGroupGridData );
+      if ( !originalDriverText.equals( loadedDriverText ) ) {
+        driverMismatchLabel = new Label( driverGroupPanel, SWT.NONE );
+        driverMismatchLabel.setText( "Driver Mismatch" );
+        driverMismatchLabel.setLayoutData( driverInfoGroupGridData );
+      }
+    }
+  }
 
-    GridData driverComboGroupGridData = new GridData();
-    driverComboGroupGridData.widthHint = 204; // Combo width
-    shimVendorCombo =
-      new CCombo( driverGroupPanel, SWT.SINGLE | SWT.READ_ONLY | SWT.BORDER );
-    shimVendorCombo.setLayoutData( driverComboGroupGridData );
-    shimVendorCombo.setItems( getVendors() );
-    shimVendorCombo.addListener( SWT.Selection, shimVendorListener );
-    props.setLook( shimVendorCombo );
+  private String getLoadedDriverVersion() {
+    return "3.17";
+  }
 
-    GridData versionComboGroupGridData = new GridData();
-    versionComboGroupGridData.widthHint = 204; // Combo width
-    shimVersionCombo =
-      new CCombo( driverGroupPanel, SWT.SINGLE | SWT.READ_ONLY | SWT.BORDER );
-    shimVersionCombo.setLayoutData( versionComboGroupGridData );
-    shimVersionCombo.addListener( SWT.CHANGED, clusterListener );
-    shimVersionCombo.addListener( SWT.MouseExit, clusterListener );
-    props.setLook( shimVersionCombo );
+  private String getLoadedDriverVender() {
+    return "CDH";
   }
 
   private void createSiteXMLFilesGroup() {
@@ -464,21 +466,17 @@ public class ClusterSettingsPage extends WizardPage {
     }
   }
 
-  private void displayShimVersions( boolean validate ) {
-    shimVersionCombo.setItems( getVersionsForVendor( shimVendorCombo.getText() ) );
-    if ( validate ) {
-      shimVersionCombo.select( 0 );
-      validate();
-    }
-  }
 
   private void validate() {
     thinNameClusterModel.setName( nameOfNamedCluster.getText() );
-    thinNameClusterModel.setShimVendor( shimVendorCombo.getText() );
-    thinNameClusterModel.setShimVersion( shimVersionCombo.getText() );
     thinNameClusterModel.setHdfsUsername( userNameTextFieldHdfsGroup.getText() );
     thinNameClusterModel.setHdfsPassword( passwordTextFieldHdfsGroup.getText() );
     thinNameClusterModel.setSiteFiles( getTableItems( siteFilesTable.getItems() ) );
+
+    if ( !( (NamedClusterDialog) getWizard() ).isEditMode() ) {
+      thinNameClusterModel.setShimVendor( getLoadedDriverVender() );
+      thinNameClusterModel.setShimVersion( getLoadedDriverVersion() );
+    }
 
     if ( ( (NamedClusterDialog) getWizard() ).getDialogState().equals( "new-edit" ) ) {
       thinNameClusterModel.setHdfsHost( hostNameTextFieldHdfsGroup.getText() );
@@ -544,19 +542,7 @@ public class ClusterSettingsPage extends WizardPage {
     thinNameClusterModel = model;
     siteFilesPath = new HashMap<>();
     nameOfNamedCluster.setText( model.getName() );
-    if ( !model.getShimVendor().isBlank() ) {
-      shimVendorCombo.setText( model.getShimVendor() );
-    } else {
-      shimVendorCombo.select( 0 );
-    }
-    if ( !shimVendorCombo.getText().isBlank() ) {
-      displayShimVersions( false );
-    }
-    if ( !model.getShimVersion().isBlank() ) {
-      shimVersionCombo.setText( model.getShimVersion() );
-    } else {
-      shimVersionCombo.select( 0 );
-    }
+
     setTableItems( model.getSiteFiles() );
     disposeComponents();
     createHdfsGroup();
