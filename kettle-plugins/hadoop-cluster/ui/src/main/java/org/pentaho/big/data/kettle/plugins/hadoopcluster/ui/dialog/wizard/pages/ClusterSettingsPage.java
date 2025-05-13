@@ -496,6 +496,11 @@ public class ClusterSettingsPage extends WizardPage {
     thinNameClusterModel.setHdfsPassword( passwordTextFieldHdfsGroup.getText() );
     thinNameClusterModel.setSiteFiles( getTableItems( siteFilesTable.getItems() ) );
 
+    if ( !( (NamedClusterDialog) getWizard() ).isEditMode() ) {
+      thinNameClusterModel.setShimVendor( getLoadedDriverVender() );
+      thinNameClusterModel.setShimVersion( getLoadedDriverVersion() );
+    }
+
     if ( ( (NamedClusterDialog) getWizard() ).getDialogState().equals( "new-edit" ) ) {
       thinNameClusterModel.setHdfsHost( hostNameTextFieldHdfsGroup.getText() );
       thinNameClusterModel.setHdfsPort( portTextFieldHdfsGroup.getText() );
