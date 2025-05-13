@@ -271,6 +271,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
     NamedCluster nc = namedClusterService.getClusterTemplate();
     nc.setName( model.getName() );
+    nc.setShimVendor( model.getShimVendor() );
+    nc.setShimVersion( model.getShimVersion() );
     nc.setHdfsHost( model.getHdfsHost() );
     nc.setHdfsPort( model.getHdfsPort() );
     nc.setHdfsUsername( model.getHdfsUsername() );
@@ -413,6 +415,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         if ( nc.getName().equalsIgnoreCase( namedCluster ) ) {
           model = new ThinNameClusterModel();
           model.setName( nc.getName() );
+          model.setShimVendor( nc.getShimVendor() );
+          model.setShimVersion( nc.getShimVersion() );
           model.setHdfsHost( nc.getHdfsHost() );
           model.setHdfsUsername( nc.getHdfsUsername() );
           model.setHdfsPassword( nc.getHdfsPassword() );

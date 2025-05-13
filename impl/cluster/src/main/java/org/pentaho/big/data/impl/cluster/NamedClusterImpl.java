@@ -90,6 +90,12 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
   private String shimIdentifier;
 
   @MetaStoreAttribute
+  String shimVendor;
+
+  @MetaStoreAttribute
+  String shimVersion;
+
+  @MetaStoreAttribute
   private String storageScheme;
 
   @MetaStoreAttribute
@@ -159,6 +165,22 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
 
   public String getShimIdentifier() {
     return shimIdentifier;
+  }
+
+  @Override public String getShimVendor() {
+    return shimVendor;
+  }
+
+  @Override public void setShimVendor( String shimVendor ) {
+    this.shimVendor = shimVendor;
+  }
+
+  @Override public String getShimVersion() {
+    return shimVersion;
+  }
+
+  @Override public void setShimVersion( String shimVersion ) {
+    this.shimVersion = shimVersion;
   }
 
   public void setShimIdentifier( String shimIdentifier ) {
@@ -247,6 +269,8 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
     this.setName( nc.getName() );
     this.setShimIdentifier( nc.getShimIdentifier() );
     this.setStorageScheme( nc.getStorageScheme() );
+    this.setShimVendor( nc.getShimVendor() );
+    this.setShimVersion( nc.getShimVersion() );
     this.setHdfsHost( nc.getHdfsHost() );
     this.setHdfsPort( nc.getHdfsPort() );
     this.setHdfsUsername( nc.getHdfsUsername() );
