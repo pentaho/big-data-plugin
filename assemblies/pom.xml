@@ -18,9 +18,6 @@
           <name>!assemblyOnly</name>
         </property>
       </activation>
-      <modules>
-        <module>features</module>
-      </modules>
     </profile>
     <profile>
       <id>assemblyOnly</id>
