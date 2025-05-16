@@ -152,11 +152,8 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
       namedClusterService.getNamedClusterByName( activeNamedClusterName, spoonSupplier.get().getMetaStore() );
     Configuration configuration = hadoopConfiguration.getHadoopShim().createConfiguration( activeNamedCluster );
 
-    ShimIdentifier shimIdentifier =
-      new ShimIdentifier( hadoopConfiguration.getIdentifier(), hadoopConfiguration.getName(), hadoopConfiguration.getHadoopShim().getHadoopVersion(),
-      ShimIdentifierInterface.ShimType.COMMUNITY );
     HadoopFileSystemFactory hadoopFileSystemFactory =
-      new HadoopFileSystemFactoryImpl( hadoopConfiguration.getHadoopShim(), shimIdentifier );
+      new HadoopFileSystemFactoryImpl( hadoopConfiguration.getHadoopShim(), hadoopConfiguration.getHadoopShim().getShimIdentifier() );
 
     List<HadoopFileSystemFactory> hadoopFileSystemFactoryList = new ArrayList<>();
     hadoopFileSystemFactoryList.add( hadoopFileSystemFactory );
