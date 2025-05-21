@@ -86,7 +86,7 @@ public class ClusterSettingsPage extends WizardPage {
   private final VariableSpace variableSpace;
   private static final Class<?> PKG = ClusterSettingsPage.class;
   private String loadedShimVendor = BaseMessages.getString( PKG, "NamedClusterDialog.noDriver" );
-  private String loadedShimVersion = "!";
+  private String loadedShimVersion = "";
 
   public ClusterSettingsPage( VariableSpace variables, ThinNameClusterModel model ) {
     super( ClusterSettingsPage.class.getSimpleName() );
@@ -500,7 +500,7 @@ public class ClusterSettingsPage extends WizardPage {
       thinNameClusterModel.setOozieUrl( hostNameTextFieldOozieGroup.getText() );
       thinNameClusterModel.setKafkaBootstrapServers( hostNameTextFieldKafkaGroup.getText() );
       setPageComplete( !thinNameClusterModel.getName().isBlank() && !thinNameClusterModel.getHdfsHost().isBlank()
-        && !thinNameClusterModel.getShimVendor().isBlank() && !thinNameClusterModel.getShimVersion().isBlank()
+        && !thinNameClusterModel.getShimVendor().isBlank() && thinNameClusterModel.getShimVersion() != null
         && thinNameClusterModel.getName().matches( "^[a-zA-Z0-9-]+$" ) );
     }
     if ( ( (NamedClusterDialog) getWizard() ).getDialogState().equals( "import" ) ) {
