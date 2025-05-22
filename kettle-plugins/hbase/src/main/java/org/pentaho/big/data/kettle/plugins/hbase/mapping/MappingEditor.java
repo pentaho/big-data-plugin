@@ -177,7 +177,7 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
       namedClusterLabel.setLayoutData( fd );
 
       namedClusterWidget =
-        new NamedClusterWidgetImpl( this, false, namedClusterService, runtimeTestActionService, runtimeTester );
+        new NamedClusterWidgetImpl( this, false, namedClusterService, runtimeTestActionService, runtimeTester, false );
       namedClusterWidget.initiate();
       props.setLook( namedClusterWidget );
       fd = new FormData();

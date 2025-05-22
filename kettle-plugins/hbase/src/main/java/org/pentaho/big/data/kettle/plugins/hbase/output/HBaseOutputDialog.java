@@ -228,7 +228,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     namedClusterLab.setLayoutData( fd );
 
     namedClusterWidget =
-      new NamedClusterWidgetImpl( wConfigComp, false, namedClusterService, runtimeTestActionService, runtimeTester );
+      new NamedClusterWidgetImpl( wConfigComp, false, namedClusterService, runtimeTestActionService, runtimeTester, false );
     namedClusterWidget.initiate();
     props.setLook( namedClusterWidget );
     fd = new FormData();

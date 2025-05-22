@@ -86,7 +86,7 @@ public class HadoopVfsFileChooserDialogTest {
 
   private class NamedClusterWidgetImplExtend extends NamedClusterWidgetImpl {
     public NamedClusterWidgetImplExtend( Composite parent, boolean showLabel, NamedClusterService namedClusterService, RuntimeTestActionService runtimeTestActionService, RuntimeTester clusterTester ) {
-      super( parent, showLabel, namedClusterService, runtimeTestActionService, clusterTester );
+      super( parent, showLabel, namedClusterService, runtimeTestActionService, clusterTester, true );
     }
 
     /*Overriding for visibility change only*/
