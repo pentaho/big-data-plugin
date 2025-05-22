@@ -22,6 +22,7 @@ import org.pentaho.metaverse.api.IMetaverseNode;
 import org.pentaho.metaverse.api.MetaverseException;
 import org.pentaho.metaverse.api.StepField;
 import org.pentaho.metaverse.api.analyzer.kettle.step.ExternalResourceStepAnalyzer;
+import org.pentaho.metaverse.api.IMetaverseObjectFactory;
 import org.pentaho.metaverse.api.model.IExternalResourceInfo;
 
 import java.util.HashSet;
@@ -63,8 +64,13 @@ public abstract class HadoopBaseStepAnalyzer<M extends BaseFileMeta> extends Ext
 
   public abstract Class<M> getMetaClass();
 
+  // used for unit testing
+  protected void setObjectFactory( IMetaverseObjectFactory factory ) {
+    this.metaverseObjectFactory = factory;
+  }
+
   @Override public IMetaverseNode createResourceNode( final IExternalResourceInfo resource ) throws MetaverseException {
-    return createFileNode( resource.getName(), descriptor );
+    return createFileNode( parentTransMeta.getBowl(), resource.getName(), descriptor );
   }
 
   @Override public IMetaverseNode createResourceNode( final M meta, final IExternalResourceInfo resource )

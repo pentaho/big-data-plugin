@@ -15,6 +15,7 @@ package org.pentaho.big.data.kettle.plugins.mapreduce.step.exit;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -38,7 +39,7 @@ public class HadoopExitDataTest {
   @Test
   public void testInitNullRowMeta() throws KettleException {
     // This would npe if the rowmeta check wasn't there
-    hadoopExitData.init( null, null, null );
+    hadoopExitData.init( DefaultBowl.getInstance(), null, null, null );
   }
 
   @Test
@@ -58,10 +59,10 @@ public class HadoopExitDataTest {
     when( rowMetaInterface.indexOfValue( outKeyFieldName ) ).thenReturn( 5 );
     when( rowMetaInterface.indexOfValue( outValueFieldName ) ).thenReturn( 6 );
 
-    hadoopExitData.init( rowMetaInterface, hadoopExitMeta, space );
+    hadoopExitData.init( DefaultBowl.getInstance(), rowMetaInterface, hadoopExitMeta, space );
 
     assertEquals( outputRowMeta, hadoopExitData.getOutputRowMeta() );
-    verify( hadoopExitMeta ).getFields( outputRowMeta, name, null, null, space );
+    verify( hadoopExitMeta ).getFields( DefaultBowl.getInstance(), outputRowMeta, name, null, null, space );
     assertEquals( 5, hadoopExitData.getInKeyOrdinal() );
     assertEquals( 6, hadoopExitData.getInValueOrdinal() );
   }

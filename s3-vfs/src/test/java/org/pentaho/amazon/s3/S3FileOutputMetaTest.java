@@ -17,6 +17,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.pentaho.di.core.KettleEnvironment;
+import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.core.database.DatabaseMeta;
 
 import org.pentaho.di.core.xml.XMLHandler;
@@ -41,7 +42,7 @@ public class S3FileOutputMetaTest {
 
   @Before
   public void setUp() throws Exception {
-    Document doc = XMLHandler.loadXMLFile( "./src/test/resources/s3OutputMetaTest.ktr" );
+    Document doc = XMLHandler.loadXMLFile( DefaultBowl.getInstance(), "./src/test/resources/s3OutputMetaTest.ktr" );
     meta.loadXML( doc.getFirstChild(), Collections.<DatabaseMeta>emptyList(), (IMetaStore) null );
   }
 

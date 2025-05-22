@@ -283,13 +283,14 @@ public class AvroInputDialog extends BaseStepDialog implements StepDialogInterfa
             String fname = transMeta.environmentSubstitute( m_avroFilenameText.getText() );
 
             if ( !Const.isEmpty( fname ) ) {
-              initialFile = KettleVFS.getFileObject( fname );
+              initialFile = KettleVFS.getInstance( transMeta.getBowl() ).getFileObject( fname );
               rootFile = initialFile.getFileSystem().getRoot();
             } else {
-              defaultInitialFile = KettleVFS.getFileObject( Spoon.getInstance().getLastFileOpened() );
+              defaultInitialFile = KettleVFS.getInstance( transMeta.getBowl() )
+                .getFileObject( Spoon.getInstance().getLastFileOpened() );
             }
           } else {
-            defaultInitialFile = KettleVFS.getFileObject( "file:///c:/" );
+            defaultInitialFile = KettleVFS.getInstance( transMeta.getBowl() ).getFileObject( "file:///c:/" );
           }
 
           if ( rootFile == null ) {
@@ -432,13 +433,14 @@ public class AvroInputDialog extends BaseStepDialog implements StepDialogInterfa
             String fname = transMeta.environmentSubstitute( m_schemaFilenameText.getText() );
 
             if ( !Const.isEmpty( fname ) ) {
-              initialFile = KettleVFS.getFileObject( fname );
+              initialFile = KettleVFS.getInstance( transMeta.getBowl() ).getFileObject( fname );
               rootFile = initialFile.getFileSystem().getRoot();
             } else {
-              defaultInitialFile = KettleVFS.getFileObject( Spoon.getInstance().getLastFileOpened() );
+              defaultInitialFile = KettleVFS.getInstance( transMeta.getBowl() )
+                .getFileObject( Spoon.getInstance().getLastFileOpened() );
             }
           } else {
-            defaultInitialFile = KettleVFS.getFileObject( "file:///c:/" );
+            defaultInitialFile = KettleVFS.getInstance( transMeta.getBowl() ).getFileObject( "file:///c:/" );
           }
 
           if ( rootFile == null ) {
@@ -876,7 +878,7 @@ public class AvroInputDialog extends BaseStepDialog implements StepDialogInterfa
       String sName = m_schemaFilenameText.getText();
       sName = transMeta.environmentSubstitute( sName );
       try {
-        Schema s = AvroInputData.loadSchema( sName );
+        Schema s = AvroInputData.loadSchema( transMeta.getBowl(), sName );
         List<AvroInputMeta.AvroField> schemaFields = AvroInputData.getLeafFields( s );
 
         setTableFields( schemaFields );
@@ -890,7 +892,7 @@ public class AvroInputDialog extends BaseStepDialog implements StepDialogInterfa
       String avroFileName = m_avroFilenameText.getText();
       avroFileName = transMeta.environmentSubstitute( avroFileName );
       try {
-        Schema s = AvroInputData.loadSchemaFromContainer( avroFileName );
+        Schema s = AvroInputData.loadSchemaFromContainer( transMeta.getBowl(), avroFileName );
         List<AvroInputMeta.AvroField> schemaFields = AvroInputData.getLeafFields( s );
 
         setTableFields( schemaFields );

@@ -32,7 +32,7 @@ public class S3CommonFileSystemConfigBuilder extends FileSystemConfigBuilder {
   private static final String PROFILE_NAME = "profileName";
   private static final String ENDPOINT = "endpoint";
   private static final String SIGNATURE_VERSION = "signature_version";
-  private static final String PATHSTYLE_ACCESS = "pathSyleAccess";
+  public static final String PATHSTYLE_ACCESS = "pathStyleAccess";
   private static final String DEFAULT_S3_CONFIG = "defaultS3Config";
   private static final String CONNECTION_TYPE = "connectionType";
   private static final String USE_DEFAULTS = "useDefaults";
@@ -133,7 +133,7 @@ public class S3CommonFileSystemConfigBuilder extends FileSystemConfigBuilder {
   }
 
   public void setDefaultS3Config( String defaultS3Config ) {
-    this.setParam( getFileSystemOptions(), PATHSTYLE_ACCESS, defaultS3Config );
+    this.setParam( getFileSystemOptions(), DEFAULT_S3_CONFIG, defaultS3Config );
   }
 
   public String getDefaultS3Config() {

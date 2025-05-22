@@ -187,7 +187,8 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
     String parquetFileName = getProcessedFileName();
     List<? extends IParquetInputField> inputFields = null;
     try {
-      inputFields = ParquetInput.retrieveSchema( meta.getNamedClusterResolver().getNamedClusterServiceLocator(),
+      inputFields = ParquetInput.retrieveSchema( transMeta.getBowl(),
+        meta.getNamedClusterResolver().getNamedClusterServiceLocator(),
         meta.getNamedClusterResolver().resolveNamedCluster( parquetFileName ), parquetFileName );
     } catch ( Exception ex ) {
       if ( !failQuietly ) {

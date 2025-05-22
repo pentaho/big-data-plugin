@@ -45,6 +45,7 @@ import org.pentaho.ui.xul.containers.XulDialog;
 import org.pentaho.ui.xul.impl.AbstractXulEventHandler;
 import org.pentaho.ui.xul.stereotype.Bindable;
 import org.pentaho.ui.xul.swt.tags.SwtDialog;
+import com.google.common.annotations.VisibleForTesting;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -201,7 +202,8 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
   /**
    * @return the job entry this controller will modify configuration for
    */
-  protected E getJobEntry() {
+  @VisibleForTesting
+  public E getJobEntry() {
     return jobEntry;
   }
 
@@ -316,8 +318,10 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
 
   protected FileObject browseVfs( FileObject root, FileObject initial, int dialogMode, String[] schemeRestrictions,
       boolean showFileScheme, String defaultScheme, NamedCluster namedCluster, boolean showLocation, boolean showCustomUI ) throws KettleFileException {
+    Spoon spoon = Spoon.getInstance();
     if ( initial == null ) {
-      initial = KettleVFS.getFileObject( Spoon.getInstance().getLastFileOpened() );
+      initial = KettleVFS.getInstance( spoon.getExecutionBowl() )
+        .getFileObject( Spoon.getInstance().getLastFileOpened() );
     }
     if ( root == null ) {
       try {

@@ -119,8 +119,8 @@ public class OrcOutput extends BaseStep implements StepInterface {
     data.output = formatService.createOutputFormat( IPentahoOrcOutputFormat.class, getNamedCluster() );
 
     String outputFileName = environmentSubstitute( meta.constructOutputFilename() );
-    pvfsFileAliaser = new PvfsFileAliaser( outputFileName, getTransMeta(), data.output, meta.isOverrideOutput(),
-      getLogChannel() );
+    pvfsFileAliaser = new PvfsFileAliaser( getTransMeta().getBowl(), outputFileName, getTransMeta(), data.output,
+      meta.isOverrideOutput(), getLogChannel() );
 
     data.output.setOutputFile( pvfsFileAliaser.generateAlias(), meta.isOverrideOutput() );
     data.output.setFields( meta.getOutputFields() );

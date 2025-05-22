@@ -50,6 +50,7 @@ import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.job.dialog.JobDialog;
 import org.pentaho.di.ui.job.entry.JobEntryDialog;
+import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
@@ -376,9 +377,11 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     // String prevName = jobMeta.environmentSubstitute(m_pigScriptText.getText());
     String parentFolder = null;
 
+    Spoon spoon = Spoon.getInstance();
     try {
       parentFolder =
-        KettleVFS.getFilename( KettleVFS.getFileObject( jobMeta.environmentSubstitute( jobMeta.getFilename() ) ) );
+        KettleVFS.getFilename( KettleVFS.getInstance( spoon.getExecutionBowl() )
+          .getFileObject( jobMeta.environmentSubstitute( jobMeta.getFilename() ) ) );
 
       if ( !Const.isEmpty( parentFolder ) ) {
         openDialog.setFileName( parentFolder );
