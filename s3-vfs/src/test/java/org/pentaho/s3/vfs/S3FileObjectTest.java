@@ -35,11 +35,13 @@ import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.FilesCache;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.VfsComponentContext;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import java.io.OutputStream;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -58,6 +60,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.verify;
@@ -82,7 +86,6 @@ public class S3FileObjectTest {
   private S3FileObject s3FileObjectFileSpy;
   private S3FileObject s3FileObjectSpyRoot;
   private AmazonS3 s3ServiceMock;
-  private static final String S3VFS_USE_TEMPORARY_FILE_ON_UPLOAD_DATA = "s3.vfs.useTempFileOnUploadData";
   private ObjectListing childObjectListing;
   private S3Object s3ObjectMock;
   private S3ObjectInputStream s3ObjectInputStream;
@@ -94,8 +97,22 @@ public class S3FileObjectTest {
   private Date testDate = new Date();
 
   @BeforeClass
-  public static void initKettle() throws Exception {
+  public static void setClassUp() throws Exception {
     KettleEnvironment.init( false );
+  }
+
+  @AfterClass
+  public static void tearDownClass() {
+    KettleEnvironment.shutdown();
+
+    // Clean up logs directory created by KettleEnvironment
+    java.io.File logsDir = new java.io.File( "logs" );
+    if ( logsDir.exists() && logsDir.isDirectory() ) {
+      for ( java.io.File f : logsDir.listFiles() ) {
+        f.delete();
+      }
+      logsDir.delete();
+    }
   }
 
   @Before
@@ -165,6 +182,7 @@ public class S3FileObjectTest {
     S3FileObject s3FileObject = new S3FileObject( filename, fileSystemSpy );
     S3Object s3Object = s3FileObject.getS3Object();
     assertNotNull( s3Object );
+    s3FileObject.close();
   }
 
   @Test

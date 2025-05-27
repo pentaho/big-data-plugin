@@ -28,10 +28,16 @@ import java.util.Properties;
 public class S3KettleProperty {
   private static final Class<?> PKG = S3KettleProperty.class;
   private static final Logger logger = LoggerFactory.getLogger( S3KettleProperty.class );
+
   public static final String S3VFS_PART_SIZE = "s3.vfs.partSize";
+  public static final String S3VFS_THREAD_POOL_SIZE = "s3.vfs.threadPoolSize";
 
   public String getPartSize() {
     return getProperty( S3VFS_PART_SIZE );
+  }
+
+  public String getThreadPoolSize() {
+    return getProperty( S3VFS_THREAD_POOL_SIZE );
   }
 
   public String getProperty( String property ) {

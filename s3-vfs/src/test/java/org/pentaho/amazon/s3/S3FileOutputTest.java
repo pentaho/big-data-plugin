@@ -46,6 +46,15 @@ public class S3FileOutputTest {
   @AfterClass
   public static void tearDownClass() {
     KettleEnvironment.shutdown();
+
+    // Clean up logs directory created by KettleEnvironment
+    java.io.File logsDir = new java.io.File( "logs" );
+    if ( logsDir.exists() && logsDir.isDirectory() ) {
+      for ( java.io.File f : logsDir.listFiles() ) {
+        f.delete();
+      }
+      logsDir.delete();
+    }
   }
 
   @Before

@@ -19,6 +19,7 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.UserAuthenticator;
 import org.apache.commons.vfs2.impl.DefaultFileSystemConfigBuilder;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -47,8 +48,22 @@ public class S3FileSystemTest {
   S3FileName fileName;
 
   @BeforeClass
-  public static void initKettle() throws Exception {
+  public static void setClassUp() throws Exception {
     KettleEnvironment.init( false );
+  }
+
+  @AfterClass
+  public static void tearDownClass() {
+    KettleEnvironment.shutdown();
+
+    // Clean up logs directory created by KettleEnvironment
+    java.io.File logsDir = new java.io.File( "logs" );
+    if ( logsDir.exists() && logsDir.isDirectory() ) {
+      for ( java.io.File f : logsDir.listFiles() ) {
+        f.delete();
+      }
+      logsDir.delete();
+    }
   }
 
   @Before
