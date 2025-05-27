@@ -25,6 +25,8 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+
+import org.apache.commons.vfs2.Capability;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemOptions;
@@ -60,8 +62,7 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
     currentConnectionProperties = new HashMap<>();
   }
 
-  @SuppressWarnings( "unchecked" )
-  protected void addCapabilities( Collection caps ) {
+  protected void addCapabilities( Collection<Capability> caps ) {
     caps.addAll( S3CommonFileProvider.capabilities );
   }
 
