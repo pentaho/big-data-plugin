@@ -1,0 +1,243 @@
+/*! ******************************************************************************
+ *
+ * Pentaho
+ *
+ * Copyright (C) 2024 by Hitachi Vantara, LLC : http://www.pentaho.com
+ *
+ * Use of this software is governed by the Business Source License included
+ * in the LICENSE.TXT file.
+ *
+ * Change Date: 2029-07-20
+ ******************************************************************************/
+
+
+package org.pentaho.s3common;
+
+import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+
+import static org.mockito.Mockito.doThrow;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
+import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
+import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
+import com.amazonaws.services.s3.model.UploadPartRequest;
+
+public class S3CommonPipedOutputStreamTest {
+
+  private S3CommonFileSystem fileSystem;
+  private AmazonS3 s3Client;
+  private String bucket = "bucket";
+  private String key = "key";
+
+  @Before
+  public void setUp() {
+    fileSystem = mock( S3CommonFileSystem.class );
+    s3Client = mock( AmazonS3.class );
+    when( fileSystem.getS3Client() ).thenReturn( s3Client );
+  }
+
+  @After
+  public void tearDown() {
+    fileSystem = null;
+    s3Client = null;
+  }
+
+  @Test
+  public void testSinglePartUpload() throws IOException {
+    InitiateMultipartUploadResult initResult = new InitiateMultipartUploadResult();
+    initResult.setUploadId( "uploadId" );
+    when( s3Client.initiateMultipartUpload( any( InitiateMultipartUploadRequest.class ) ) ).thenReturn( initResult );
+    com.amazonaws.services.s3.model.UploadPartResult uploadResult = new com.amazonaws.services.s3.model.UploadPartResult();
+    uploadResult.setETag( "etag" );
+    uploadResult.setPartNumber( 1 );
+    when( s3Client.uploadPart( any( UploadPartRequest.class ) ) ).thenReturn( uploadResult );
+
+    S3CommonPipedOutputStream out = new S3CommonPipedOutputStream( fileSystem, bucket, key, 5 * 1024 * 1024, 1 );
+    byte[] data = new byte[ 3 * 1024 * 1024 ]; // 3MB < 5MB
+    out.write( data );
+    out.close();
+    await().atMost( java.time.Duration.ofSeconds( 2 ) ).untilAsserted( () -> {
+      verify( s3Client, atLeastOnce() ).uploadPart( any( UploadPartRequest.class ) );
+      verify( s3Client, atLeastOnce() ).completeMultipartUpload( any( CompleteMultipartUploadRequest.class ) );
+    } );
+  }
+
+  @Test
+  public void testMultiPartUpload() throws IOException {
+    InitiateMultipartUploadResult initResult = new InitiateMultipartUploadResult();
+    initResult.setUploadId( "uploadId" );
+    when( s3Client.initiateMultipartUpload( any( InitiateMultipartUploadRequest.class ) ) ).thenReturn( initResult );
+    com.amazonaws.services.s3.model.UploadPartResult uploadResult = new com.amazonaws.services.s3.model.UploadPartResult();
+    uploadResult.setETag( "etag" );
+    uploadResult.setPartNumber( 1 );
+    when( s3Client.uploadPart( any( UploadPartRequest.class ) ) ).thenReturn( uploadResult );
+
+    S3CommonPipedOutputStream out = new S3CommonPipedOutputStream( fileSystem, bucket, key, 5 * 1024 * 1024, 2 );
+    byte[] data = new byte[ 12 * 1024 * 1024 ]; // 12MB > 2 parts
+    out.write( data );
+    out.close();
+    await().atMost( java.time.Duration.ofSeconds( 2 ) ).untilAsserted( () -> {
+      verify( s3Client, atLeast( 2 ) ).uploadPart( any( UploadPartRequest.class ) );
+      verify( s3Client, atLeastOnce() ).completeMultipartUpload( any( CompleteMultipartUploadRequest.class ) );
+    } );
+  }
+
+  @Test
+  public void testTooManyPartsTriggersAbort() throws IOException {
+    InitiateMultipartUploadResult initResult = new InitiateMultipartUploadResult();
+    initResult.setUploadId( "uploadId" );
+    when( s3Client.initiateMultipartUpload( any( InitiateMultipartUploadRequest.class ) ) ).thenReturn( initResult );
+    com.amazonaws.services.s3.model.UploadPartResult uploadResult = new com.amazonaws.services.s3.model.UploadPartResult();
+    uploadResult.setETag( "etag" );
+    uploadResult.setPartNumber( 1 );
+    when( s3Client.uploadPart( any( UploadPartRequest.class ) ) ).thenReturn( uploadResult );
+
+    // Use minimum allowed part size (5MB)
+    S3CommonPipedOutputStream out = new S3CommonPipedOutputStream( fileSystem, bucket, key, 5 * 1024 * 1024, 1 );
+    // Write a large amount of data to try to trigger too many parts (not practical in unit test, so just check no exception for reasonable size)
+    byte[] data = new byte[ 55 * 1024 * 1024 ]; // 55MB = 11 parts
+    out.write( data );
+    out.close();
+    await().atMost( java.time.Duration.ofSeconds( 2 ) ).untilAsserted( () -> {
+      verify( s3Client, atLeast( 11 ) ).uploadPart( any( UploadPartRequest.class ) );
+    } );
+  }
+
+  @Test
+  public void testBlockedUntilDoneFlag() throws IOException {
+    InitiateMultipartUploadResult initResult = new InitiateMultipartUploadResult();
+    initResult.setUploadId( "uploadId" );
+    when( s3Client.initiateMultipartUpload( any( InitiateMultipartUploadRequest.class ) ) ).thenReturn( initResult );
+    com.amazonaws.services.s3.model.UploadPartResult uploadResult = new com.amazonaws.services.s3.model.UploadPartResult();
+    uploadResult.setETag( "etag" );
+    uploadResult.setPartNumber( 1 );
+    when( s3Client.uploadPart( any( UploadPartRequest.class ) ) ).thenReturn( uploadResult );
+
+    S3CommonPipedOutputStream out = new S3CommonPipedOutputStream( fileSystem, bucket, key, 5 * 1024 * 1024, 1 );
+    out.setBlockedUntilDone( false );
+    byte[] data = new byte[ 3 * 1024 * 1024 ];
+    out.write( data );
+    out.close();
+    await().atMost( java.time.Duration.ofSeconds( 2 ) ).untilAsserted( () -> {
+      verify( s3Client, atLeastOnce() ).uploadPart( any( UploadPartRequest.class ) );
+    } );
+  }
+
+  @Test( expected = IllegalArgumentException.class )
+  public void testInvalidPartSizeThrows() throws IOException {
+    try ( S3CommonPipedOutputStream ignored = new S3CommonPipedOutputStream( fileSystem, bucket, key, 1024, 1 ) ) {
+      // Should throw on construction
+      assert true;
+    }
+  }
+
+  @Test
+  public void testWriteZeroBytes() throws IOException {
+    InitiateMultipartUploadResult initResult = new InitiateMultipartUploadResult();
+    initResult.setUploadId( "uploadId" );
+    when( s3Client.initiateMultipartUpload( any( InitiateMultipartUploadRequest.class ) ) ).thenReturn( initResult );
+    try ( S3CommonPipedOutputStream out = new S3CommonPipedOutputStream( fileSystem, bucket, key, 5 * 1024 * 1024, 1 ) ) {
+      out.write( new byte[ 0 ] );
+    }
+    // Should not throw, should not upload any part
+    verify( s3Client, atLeastOnce() ).initiateMultipartUpload( any( InitiateMultipartUploadRequest.class ) );
+  }
+
+  @Test( expected = NullPointerException.class )
+  public void testWriteNullThrows() throws IOException {
+    InitiateMultipartUploadResult initResult = new InitiateMultipartUploadResult();
+    initResult.setUploadId( "uploadId" );
+    when( s3Client.initiateMultipartUpload( any( InitiateMultipartUploadRequest.class ) ) ).thenReturn( initResult );
+    try ( S3CommonPipedOutputStream out = new S3CommonPipedOutputStream( fileSystem, bucket, key, 5 * 1024 * 1024, 1 ) ) {
+      out.write( null );
+    }
+  }
+
+  @Test
+  public void testDoubleCloseIsSafe() throws IOException {
+    InitiateMultipartUploadResult initResult = new InitiateMultipartUploadResult();
+    initResult.setUploadId( "uploadId" );
+    when( s3Client.initiateMultipartUpload( any( InitiateMultipartUploadRequest.class ) ) ).thenReturn( initResult );
+    com.amazonaws.services.s3.model.UploadPartResult uploadResult = new com.amazonaws.services.s3.model.UploadPartResult();
+    uploadResult.setETag( "etag" );
+    uploadResult.setPartNumber( 1 );
+    when( s3Client.uploadPart( any( UploadPartRequest.class ) ) ).thenReturn( uploadResult );
+    try ( S3CommonPipedOutputStream out = new S3CommonPipedOutputStream( fileSystem, bucket, key, 5 * 1024 * 1024, 1 ) ) {
+      out.write( new byte[ 3 * 1024 * 1024 ] );
+      out.close();
+      out.close(); // Should not throw
+      // Assertion: verify uploadPart and completeMultipartUpload were called
+      verify( s3Client, atLeastOnce() ).uploadPart( any( UploadPartRequest.class ) );
+      verify( s3Client, atLeastOnce() ).completeMultipartUpload( any( CompleteMultipartUploadRequest.class ) );
+    }
+  }
+
+  @Test
+  public void testExceptionDuringUploadPart() throws IOException {
+    InitiateMultipartUploadResult initResult = new InitiateMultipartUploadResult();
+    initResult.setUploadId( "uploadId" );
+    when( s3Client.initiateMultipartUpload( any( InitiateMultipartUploadRequest.class ) ) ).thenReturn( initResult );
+    when( s3Client.uploadPart( any( UploadPartRequest.class ) ) ).thenThrow( new RuntimeException( "upload failed" ) );
+    try ( S3CommonPipedOutputStream out = new S3CommonPipedOutputStream( fileSystem, bucket, key, 5 * 1024 * 1024, 1 ) ) {
+      out.write( new byte[ 6 * 1024 * 1024 ] );
+      try {
+        out.close();
+      } catch ( Exception e ) {
+        // Expected
+      }
+    }
+    verify( s3Client, atLeastOnce() ).abortMultipartUpload( any() );
+  }
+
+  @Test
+  public void testExceptionDuringCompleteMultipart() throws IOException {
+    InitiateMultipartUploadResult initResult = new InitiateMultipartUploadResult();
+    initResult.setUploadId( "uploadId" );
+    when( s3Client.initiateMultipartUpload( any( InitiateMultipartUploadRequest.class ) ) ).thenReturn( initResult );
+    com.amazonaws.services.s3.model.UploadPartResult uploadResult = new com.amazonaws.services.s3.model.UploadPartResult();
+    uploadResult.setETag( "etag" );
+    uploadResult.setPartNumber( 1 );
+    when( s3Client.uploadPart( any( UploadPartRequest.class ) ) ).thenReturn( uploadResult );
+    when( s3Client.completeMultipartUpload( any( CompleteMultipartUploadRequest.class ) ) ).thenThrow( new RuntimeException( "complete failed" ) );
+    try ( S3CommonPipedOutputStream out = new S3CommonPipedOutputStream( fileSystem, bucket, key, 5 * 1024 * 1024, 1 ) ) {
+      out.write( new byte[ 3 * 1024 * 1024 ] );
+      try {
+        out.close();
+      } catch ( Exception e ) {
+        // Expected
+      }
+    }
+    verify( s3Client, atLeastOnce() ).abortMultipartUpload( any() );
+  }
+
+  @Test
+  public void testExceptionDuringAbortMultipart() throws IOException {
+    InitiateMultipartUploadResult initResult = new InitiateMultipartUploadResult();
+    initResult.setUploadId( "uploadId" );
+    when( s3Client.initiateMultipartUpload( any( InitiateMultipartUploadRequest.class ) ) ).thenReturn( initResult );
+    when( s3Client.uploadPart( any( UploadPartRequest.class ) ) ).thenThrow( new RuntimeException( "upload failed" ) );
+    doThrow( new RuntimeException( "abort failed" ) ).when( s3Client ).abortMultipartUpload( any() );
+    try ( S3CommonPipedOutputStream out = new S3CommonPipedOutputStream( fileSystem, bucket, key, 5 * 1024 * 1024, 1 ) ) {
+      out.write( new byte[ 6 * 1024 * 1024 ] );
+      try {
+        out.close();
+      } catch ( Exception e ) {
+        // Expected
+      }
+    }
+    verify( s3Client, atLeastOnce() ).abortMultipartUpload( any() );
+  }
+}

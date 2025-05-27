@@ -24,6 +24,8 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.s3common.S3CommonFileSystem;
 import org.pentaho.s3common.S3KettleProperty;
 
+import static org.pentaho.s3common.S3CommonPipedOutputStream.DEFAULT_THREAD_POOL_SIZE;
+
 public class S3FileSystem extends S3CommonFileSystem {
 
   private static final Class<?> PKG = S3FileSystem.class;
@@ -43,8 +45,12 @@ public class S3FileSystem extends S3CommonFileSystem {
    */
   private static final String MAX_PART_SIZE = "5GB";
 
+  private static final StorageUnitConverter STATIC_STORAGE_UNIT_CONVERTER = new StorageUnitConverter();
+  private static final long MIN_PART_SIZE_BYTES = STATIC_STORAGE_UNIT_CONVERTER.displaySizeToByteCount( MIN_PART_SIZE );
+  private static final long MAX_PART_SIZE_BYTES = STATIC_STORAGE_UNIT_CONVERTER.displaySizeToByteCount( MAX_PART_SIZE );
+
   protected S3FileSystem( final FileName rootName, final FileSystemOptions fileSystemOptions ) {
-    this( rootName, fileSystemOptions, new StorageUnitConverter(), new S3KettleProperty() );
+    this( rootName, fileSystemOptions, STATIC_STORAGE_UNIT_CONVERTER, new S3KettleProperty() );
   }
 
   protected S3FileSystem( final FileName rootName, final FileSystemOptions fileSystemOptions,
@@ -54,7 +60,7 @@ public class S3FileSystem extends S3CommonFileSystem {
     this.s3KettleProperty = s3KettleProperty;
   }
 
-  protected FileObject createFile( AbstractFileName name ) throws Exception {
+  protected FileObject createFile( AbstractFileName name ) {
     return new S3FileObject( name, this );
   }
 
@@ -65,13 +71,13 @@ public class S3FileSystem extends S3CommonFileSystem {
 
   protected long parsePartSize( String partSizeString ) {
     long parsePartSize = convertToLong( partSizeString );
-    if ( parsePartSize < convertToLong( MIN_PART_SIZE ) ) {
+    if ( parsePartSize < MIN_PART_SIZE_BYTES ) {
       consoleLog.logBasic( BaseMessages.getString( PKG, "WARN.S3MultiPart.DefaultPartSize", partSizeString, MIN_PART_SIZE ) );
-      parsePartSize = convertToLong( MIN_PART_SIZE );
+      parsePartSize = MIN_PART_SIZE_BYTES;
     }
 
     // still allow > 5GB, api might be updated in the future
-    if ( parsePartSize > convertToLong( MAX_PART_SIZE ) ) {
+    if ( parsePartSize > MAX_PART_SIZE_BYTES ) {
       consoleLog.logBasic( BaseMessages.getString( PKG, "WARN.S3MultiPart.MaximumPartSize", partSizeString, MAX_PART_SIZE ) );
     }
     return parsePartSize;
@@ -83,5 +89,23 @@ public class S3FileSystem extends S3CommonFileSystem {
 
   protected long convertToLong( String partSize ) {
     return storageUnitConverter.displaySizeToByteCount( partSize );
+  }
+
+  public int getThreadPoolSize() {
+    String poolSizeStr = s3KettleProperty.getThreadPoolSize();
+    int poolSize = DEFAULT_THREAD_POOL_SIZE;
+    try {
+      if ( poolSizeStr != null && !poolSizeStr.isEmpty() ) {
+        poolSize = Integer.parseInt( poolSizeStr );
+        if ( poolSize < 1 ) {
+          consoleLog.logBasic( BaseMessages.getString( PKG, "WARN.S3MultiPart.DefaultThreadPoolSize", poolSizeStr, Integer.toString( DEFAULT_THREAD_POOL_SIZE ) ) );
+          poolSize = DEFAULT_THREAD_POOL_SIZE;
+        }
+      }
+    } catch ( NumberFormatException e ) {
+      consoleLog.logBasic( BaseMessages.getString( PKG, "WARN.S3MultiPart.InvalidThreadPoolSize", poolSizeStr, Integer.toString( DEFAULT_THREAD_POOL_SIZE ) ) );
+      poolSize = DEFAULT_THREAD_POOL_SIZE;
+    }
+    return poolSize;
   }
 }
