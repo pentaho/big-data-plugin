@@ -13,6 +13,23 @@
 
 package org.pentaho.s3common;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileType;
+import org.apache.commons.vfs2.provider.AbstractFileName;
+import org.apache.commons.vfs2.provider.AbstractFileObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
@@ -23,22 +40,6 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
-import org.apache.commons.vfs2.FileType;
-import org.apache.commons.vfs2.provider.AbstractFileName;
-import org.apache.commons.vfs2.provider.AbstractFileObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFileSystem> {
 
@@ -90,10 +91,10 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
         }
 
         if ( !exists() ) {
-          OutputStream outputStream = getOutputStream();
-          //Force to write an empty array to force file creation on S3 bucket
-          outputStream.write( new byte[] {} );
-          outputStream.close();
+          try ( OutputStream outputStream = getOutputStream() ) {
+            //Force to write an empty array to force file creation on S3 bucket
+            outputStream.write( new byte[] {} );
+          }
           endOutput();
         }
       } catch ( final RuntimeException re ) {
@@ -333,11 +334,6 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
     }
     logger.debug( "deleteObject([{}], [{}])", bucketName, key );
     fileSystem.getS3Client().deleteObject( bucketName, key );
-  }
-
-  @Override
-  protected OutputStream doGetOutputStream( boolean bAppend ) throws Exception {
-    return new S3CommonPipedOutputStream( this.fileSystem, bucketName, key );
   }
 
   @Override
