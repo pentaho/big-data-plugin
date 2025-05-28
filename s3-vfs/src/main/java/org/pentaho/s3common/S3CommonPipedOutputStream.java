@@ -277,6 +277,15 @@ public class S3CommonPipedOutputStream extends PipedOutputStream {
               partBufferPos += copyLen;
               srcPos += copyLen;
               if ( partBufferPos == partSize ) {
+                if ( partNum > 10000 ) {
+                  logger.error( BaseMessages.getString( PKG, "ERROR.S3MultiPart.TooManyParts" ), partNum );
+                  producerFailed.set( true );
+                  // Insert POISON_PILLs to unblock consumers
+                  for ( int i = 0; i < threadPoolSize; i++ ) {
+                    queue.offer( new PartBuffer( POISON_PILL, -1, -1, -1 ), 5, java.util.concurrent.TimeUnit.SECONDS );
+                  }
+                  return;
+                }
                 logger.debug( BaseMessages.getString( PKG, "DEBUG.S3MultiPart.ProducerPuttingPart", partNum, offset, partSize ) );
                 queue.put( new PartBuffer( partBuffer, partNum++, offset, partSize ) );
                 offset += partSize;
@@ -287,6 +296,14 @@ public class S3CommonPipedOutputStream extends PipedOutputStream {
           }
           // enqueue any remaining data as the final part
           if ( partBufferPos > 0 ) {
+            if ( partNum > 10000 ) {
+              logger.error( BaseMessages.getString( PKG, "ERROR.S3MultiPart.TooManyParts" ), partNum );
+              producerFailed.set( true );
+              for ( int i = 0; i < threadPoolSize; i++ ) {
+                queue.offer( new PartBuffer( POISON_PILL, -1, -1, -1 ), 5, java.util.concurrent.TimeUnit.SECONDS );
+              }
+              return;
+            }
             byte[] lastPart = java.util.Arrays.copyOf( partBuffer, partBufferPos );
             logger.debug( BaseMessages.getString( PKG, "DEBUG.S3MultiPart.ProducerPuttingFinalPart", partNum, offset, partBufferPos ) );
             queue.put( new PartBuffer( lastPart, partNum++, offset, partBufferPos ) );
