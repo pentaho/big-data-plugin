@@ -13,6 +13,8 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl;
 
+import org.pentaho.big.data.api.services.BigDataServicesHelper;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.service.PluginServiceLoader;
@@ -31,12 +33,25 @@ public class NamedClusterResolver {
   private final NamedClusterServiceLocator namedClusterServiceLocator;
   private final NamedClusterService namedClusterService;
   private MetastoreLocator metaStoreService;
+  private static NamedClusterResolver namedClusterResolver = null;
 
-  public NamedClusterResolver( NamedClusterServiceLocator namedClusterServiceLocator,
+  private NamedClusterResolver() {
+    this( BigDataServicesHelper.getNamedClusterServiceLocator(),
+            NamedClusterManager.getInstance() );
+  }
+
+  private NamedClusterResolver( NamedClusterServiceLocator namedClusterServiceLocator,
                                NamedClusterService namedClusterService ) {
     this.namedClusterServiceLocator = namedClusterServiceLocator;
     this.namedClusterService = namedClusterService;
 
+  }
+
+  public static synchronized NamedClusterResolver getInstance() {
+    if ( namedClusterResolver == null ) {
+      namedClusterResolver = new NamedClusterResolver();
+    }
+    return namedClusterResolver;
   }
 
   protected synchronized MetastoreLocator getMetastoreLocator() {
