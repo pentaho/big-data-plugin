@@ -16,6 +16,7 @@ package org.pentaho.big.data.kettle.plugins.pig;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.vfs2.FileObject;
+import org.pentaho.big.data.api.services.BigDataServicesHelper;
 import org.pentaho.hadoop.shim.api.HadoopClientServices;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
@@ -111,7 +112,7 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
     this.namedClusterService = NamedClusterManager.getInstance();
     this.runtimeTester = RuntimeTesterImpl.getInstance();
     this.runtimeTestActionService = RuntimeTestActionServiceImpl.getInstance();
-    this.namedClusterServiceLocator = new NamedClusterServiceLocatorImpl( "", namedClusterService );
+    this.namedClusterServiceLocator = BigDataServicesHelper.getNamedClusterServiceLocator();
   }
 
   public JobEntryPigScriptExecutor( NamedClusterService namedClusterService,

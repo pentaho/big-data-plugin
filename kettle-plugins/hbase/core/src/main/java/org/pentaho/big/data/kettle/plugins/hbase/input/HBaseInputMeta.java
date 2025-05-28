@@ -14,7 +14,7 @@
 package org.pentaho.big.data.kettle.plugins.hbase.input;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
+import org.pentaho.big.data.api.services.BigDataServicesHelper;
 import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.kettle.plugins.hbase.FilterDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.HbaseUtil;
@@ -182,7 +182,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   private ServiceStatus serviceStatus = ServiceStatus.OK;
 
   public HBaseInputMeta() {
-    this( NamedClusterManager.getInstance(), new NamedClusterServiceLocatorImpl( "", NamedClusterManager.getInstance() ),
+    this( NamedClusterManager.getInstance(), BigDataServicesHelper.getNamedClusterServiceLocator(),
       RuntimeTestActionServiceImpl.getInstance(), RuntimeTesterImpl.getInstance() );
   }
 

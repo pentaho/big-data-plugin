@@ -126,7 +126,7 @@ public class ParquetOutputTest {
     try ( MockedStatic<PluginServiceLoader> pluginServiceLoaderMockedStatic = Mockito.mockStatic( PluginServiceLoader.class ) ) {
       pluginServiceLoaderMockedStatic.when( () -> PluginServiceLoader.loadServices( MetastoreLocator.class ) )
         .thenReturn( metastoreLocatorCollection );
-      namedClusterResolver = new NamedClusterResolver( mockNamedClusterServiceLocator, mockNamedClusterService );
+      namedClusterResolver = NamedClusterResolver.getInstance();
 
       parquetOutputMeta = new ParquetOutputMeta( namedClusterResolver );
       parquetOutputMeta.setFilename( OUTPUT_FILE_NAME );

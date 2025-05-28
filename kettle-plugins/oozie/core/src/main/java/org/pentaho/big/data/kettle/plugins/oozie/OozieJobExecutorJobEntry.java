@@ -15,6 +15,7 @@ package org.pentaho.big.data.kettle.plugins.oozie;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
+import org.pentaho.big.data.api.services.BigDataServicesHelper;
 import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.kettle.plugins.job.AbstractJobEntry;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
@@ -77,7 +78,7 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
     this.namedClusterService = NamedClusterManager.getInstance();
     this.runtimeTester = RuntimeTesterImpl.getInstance();
     this.runtimeTestActionService = RuntimeTestActionServiceImpl.getInstance();
-    this.namedClusterServiceLocator = new NamedClusterServiceLocatorImpl( "", namedClusterService );
+    this.namedClusterServiceLocator = BigDataServicesHelper.getNamedClusterServiceLocator();
   }
   public OozieJobExecutorJobEntry(
     NamedClusterService namedClusterService,

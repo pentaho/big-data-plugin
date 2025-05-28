@@ -117,7 +117,7 @@ public class ParquetInputTest {
     try ( MockedStatic<PluginServiceLoader> pluginServiceLoaderMockedStatic = Mockito.mockStatic( PluginServiceLoader.class ) ) {
       pluginServiceLoaderMockedStatic.when( () -> PluginServiceLoader.loadServices( MetastoreLocator.class ) )
         .thenReturn( metastoreLocatorCollection );
-      namedClusterResolver = new NamedClusterResolver( mockNamedClusterServiceLocator, mockNamedClusterService );
+      namedClusterResolver = NamedClusterResolver.getInstance();
 
       parquetInputMeta = new ParquetInputMeta( namedClusterResolver );
       parquetInputMeta.inputFiles.fileName = new String[ 1 ];

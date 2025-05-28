@@ -47,7 +47,7 @@ public class OrcInputMeta extends OrcInputMetaBase {
   private final NamedClusterResolver namedClusterResolver;
 
   public OrcInputMeta() {
-    this( new NamedClusterResolver( new NamedClusterServiceLocatorImpl( "", NamedClusterManager.getInstance() ), NamedClusterManager.getInstance() ) );
+    this( NamedClusterResolver.getInstance() );
   }
 
   public OrcInputMeta( NamedClusterResolver namedClusterResolver ) {
