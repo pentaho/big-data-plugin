@@ -13,7 +13,7 @@
 
 package org.pentaho.big.data.kettle.plugins.mapreduce.entry.pmr;
 
-import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
+import org.pentaho.big.data.api.services.BigDataServicesHelper;
 import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.kettle.plugins.mapreduce.DialogClassUtil;
 import org.pentaho.big.data.kettle.plugins.mapreduce.entry.NamedClusterLoadSaveUtil;
@@ -151,7 +151,7 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
     this.namedClusterService = NamedClusterManager.getInstance();
     this.runtimeTester = RuntimeTesterImpl.getInstance();
     this.runtimeTestActionService = RuntimeTestActionServiceImpl.getInstance();
-    this.namedClusterServiceLocator = new NamedClusterServiceLocatorImpl( "", namedClusterService );
+    this.namedClusterServiceLocator = BigDataServicesHelper.getNamedClusterServiceLocator();
   }
 
   protected static final TransMeta loadTransMeta( VariableSpace space, Repository rep, String filename,

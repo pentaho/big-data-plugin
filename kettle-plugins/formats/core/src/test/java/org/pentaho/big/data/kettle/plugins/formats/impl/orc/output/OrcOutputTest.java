@@ -118,7 +118,7 @@ public class OrcOutputTest {
     try ( MockedStatic<PluginServiceLoader> pluginServiceLoaderMockedStatic = Mockito.mockStatic( PluginServiceLoader.class ) ) {
       pluginServiceLoaderMockedStatic.when( () -> PluginServiceLoader.loadServices( MetastoreLocator.class ) )
         .thenReturn( metastoreLocatorCollection );
-      namedClusterResolver = new NamedClusterResolver( mockNamedClusterServiceLocator, mockNamedClusterService );
+      namedClusterResolver = NamedClusterResolver.getInstance();
 
       orcOutputMeta = new OrcOutputMeta( namedClusterResolver );
       orcOutputMeta.setFilename( OUTPUT_FILE_NAME );

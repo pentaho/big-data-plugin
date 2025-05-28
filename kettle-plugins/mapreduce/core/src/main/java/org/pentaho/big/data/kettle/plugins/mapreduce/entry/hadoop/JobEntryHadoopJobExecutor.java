@@ -14,7 +14,7 @@
 package org.pentaho.big.data.kettle.plugins.mapreduce.entry.hadoop;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
+import org.pentaho.big.data.api.services.BigDataServicesHelper;
 import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.kettle.plugins.mapreduce.DialogClassUtil;
 import org.pentaho.big.data.kettle.plugins.mapreduce.entry.NamedClusterLoadSaveUtil;
@@ -115,7 +115,7 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
     this.namedClusterService = NamedClusterManager.getInstance();
     this.runtimeTester = RuntimeTesterImpl.getInstance();
     this.runtimeTestActionService = RuntimeTestActionServiceImpl.getInstance();
-    this.namedClusterServiceLocator = new NamedClusterServiceLocatorImpl( "", namedClusterService );
+    this.namedClusterServiceLocator = BigDataServicesHelper.getNamedClusterServiceLocator();
   }
 
 
