@@ -34,6 +34,7 @@ import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
 import org.pentaho.metastore.locator.api.MetastoreLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -84,6 +85,11 @@ public class HDFSFileProvider extends AbstractOriginatingFileProvider {
     throws FileSystemException {
     this( hadoopFileSystemLocator, namedClusterService, fileSystemManager, HDFSFileNameParser.getInstance(),
       new String[] { SCHEME, MAPRFS }, metaStore );
+  }
+
+  public HDFSFileProvider( HadoopFileSystemLocator hadoopFileSystemLocator, String schema )
+    throws FileSystemException {
+    this( hadoopFileSystemLocator, NamedClusterManager.getInstance(), HDFSFileNameParser.getInstance(), schema );
   }
 
   public HDFSFileProvider( HadoopFileSystemLocator hadoopFileSystemLocator, NamedClusterService namedClusterService,

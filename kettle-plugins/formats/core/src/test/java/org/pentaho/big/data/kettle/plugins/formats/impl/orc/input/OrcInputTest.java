@@ -114,7 +114,7 @@ public class OrcInputTest {
     try ( MockedStatic<PluginServiceLoader> pluginServiceLoaderMockedStatic = Mockito.mockStatic( PluginServiceLoader.class ) ) {
       pluginServiceLoaderMockedStatic.when( () -> PluginServiceLoader.loadServices( MetastoreLocator.class ) )
         .thenReturn( metastoreLocatorCollection );
-      namedClusterResolver = new NamedClusterResolver( mockNamedClusterServiceLocator, mockNamedClusterService );
+      namedClusterResolver = NamedClusterResolver.getInstance();
 
       orcInputMeta = spy( new OrcInputMeta( namedClusterResolver ) );
       orcInputMeta.inputFiles.fileName = new String[ 1 ];
