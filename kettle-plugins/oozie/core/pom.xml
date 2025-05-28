@@ -118,6 +118,12 @@
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-big-data-legacy-core</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
 
   </dependencies>
 </project>

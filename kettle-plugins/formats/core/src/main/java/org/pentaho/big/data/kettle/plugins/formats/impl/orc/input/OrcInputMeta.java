@@ -44,6 +44,10 @@ public class OrcInputMeta extends OrcInputMetaBase {
 
   private final NamedClusterResolver namedClusterResolver;
 
+  public OrcInputMeta() {
+    this( NamedClusterResolver.getInstance() );
+  }
+
   public OrcInputMeta( NamedClusterResolver namedClusterResolver ) {
     this.namedClusterResolver = namedClusterResolver;
   }

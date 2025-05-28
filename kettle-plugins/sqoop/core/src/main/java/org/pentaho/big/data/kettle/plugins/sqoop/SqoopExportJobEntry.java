@@ -13,7 +13,7 @@
 
 package org.pentaho.big.data.kettle.plugins.sqoop;
 
-import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
+import org.pentaho.big.data.api.services.BigDataServicesHelper;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.di.cluster.SlaveServer;
@@ -50,7 +50,7 @@ public class SqoopExportJobEntry extends AbstractSqoopJobEntry<SqoopExportConfig
 
   public SqoopExportJobEntry() {
     super( NamedClusterManager.getInstance(),
-      new NamedClusterServiceLocatorImpl( "", NamedClusterManager.getInstance() ),
+            BigDataServicesHelper.getNamedClusterServiceLocator(),
       RuntimeTestActionServiceImpl.getInstance(), RuntimeTesterImpl.getInstance() );
   }
 
