@@ -56,7 +56,7 @@ public class NamedClusterResolverTest {
       .thenReturn( namedCluster );
     when( namedClusterService.getNamedClusterByHost( "somehost", null ) )
       .thenReturn( namedCluster );
-    namedClusterResolver = new NamedClusterResolver( namedClusterServiceLocator, namedClusterService );
+    namedClusterResolver = NamedClusterResolver.getInstance();
   }
 
   @Test

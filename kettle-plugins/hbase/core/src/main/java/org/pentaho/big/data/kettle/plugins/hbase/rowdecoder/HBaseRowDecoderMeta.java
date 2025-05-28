@@ -16,7 +16,7 @@ package org.pentaho.big.data.kettle.plugins.hbase.rowdecoder;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.swt.widgets.Shell;
-import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
+import org.pentaho.big.data.api.services.BigDataServicesHelper;
 import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.NamedClusterLoadSaveUtil;
@@ -114,7 +114,7 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
   private final NamedClusterLoadSaveUtil namedClusterLoadSaveUtil;
 
   public HBaseRowDecoderMeta() {
-    this( new NamedClusterServiceLocatorImpl( "", NamedClusterManager.getInstance() ), NamedClusterManager.getInstance(),
+    this( BigDataServicesHelper.getNamedClusterServiceLocator(), NamedClusterManager.getInstance(),
       RuntimeTestActionServiceImpl.getInstance(), RuntimeTesterImpl.getInstance() );
   }
 

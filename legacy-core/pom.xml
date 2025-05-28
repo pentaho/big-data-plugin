@@ -25,5 +25,10 @@
             <version>${pdi.version}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.pentaho</groupId>
+            <artifactId>shim-api</artifactId>
+            <version>${pentaho-hadoop-shims.version}</version>
+        </dependency>
     </dependencies>
 </project>

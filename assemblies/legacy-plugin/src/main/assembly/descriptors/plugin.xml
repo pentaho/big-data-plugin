@@ -30,6 +30,7 @@
               <include>pentaho:pentaho-big-data-legacy</include>
               <include>pentaho:pentaho-big-data-legacy-amazon</include>
               <include>pentaho:hadoop-cluster-ui</include>
+              <include>pentaho:services-bootstrap</include>
             </includes>
         </dependencySet>
         <dependencySet>
@@ -55,6 +56,7 @@
                 <include>pentaho:pentaho-big-data-impl-cluster</include>
                 <include>pentaho:pentaho-big-data-kettle-plugins-common-ui</include>
                 <include>pentaho:pentaho-big-data-kettle-plugins-common-job</include>
+                <include>pentaho:pentaho-big-data-impl-vfs-hdfs-core</include>
                 <include>org.pentaho:shim-api-core</include>
                 <include>org.pentaho.hadoop.shims:pentaho-hadoop-shims-common-fragment-V1</include>
                 <include>org.pentaho.hadoop.shims:pentaho-hadoop-shims-common-dependencies-V1</include>
@@ -79,7 +81,6 @@
                 <include>org.apache.oozie:oozie-core</include>
                 <include>pentaho:pentaho-big-data-impl-cluster</include>
                 <include>pentaho:pentaho-big-data-kettle-plugins-common-ui</include>
-                <include>org.pentaho:shim-api</include>
                 <include>xmlpull:xmlpull</include>
                 <include>xpp3:xpp3_min</include>
                 <include>com.thoughtworks.xstream:xstream</include>
