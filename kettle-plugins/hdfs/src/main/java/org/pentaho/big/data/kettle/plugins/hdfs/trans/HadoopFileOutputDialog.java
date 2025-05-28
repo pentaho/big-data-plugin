@@ -300,7 +300,7 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     fileLayout.marginHeight = 3;
     wFileComp.setLayout( fileLayout );
 
-    namedClusterWidget = new NamedClusterWidgetImpl( wFileComp, true, namedClusterService, runtimeTestActionService, runtimeTester );
+    namedClusterWidget = new NamedClusterWidgetImpl( wFileComp, true, namedClusterService, runtimeTestActionService, runtimeTester, true );
     namedClusterWidget.initiate();
     props.setLook( namedClusterWidget );
     FormData fd = new FormData();

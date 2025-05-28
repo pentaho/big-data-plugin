@@ -259,7 +259,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     fd.right = new FormAttachment( middle, -margin );
     namedClusterLab.setLayoutData( fd );
 
-    namedClusterWidget = new NamedClusterWidgetImpl( wConfigComp, false, namedClusterService, runtimeTestActionService, runtimeTester );
+    namedClusterWidget = new NamedClusterWidgetImpl( wConfigComp, false, namedClusterService, runtimeTestActionService, runtimeTester, false );
     namedClusterWidget.initiate();
     props.setLook( namedClusterWidget );
     fd = new FormData();

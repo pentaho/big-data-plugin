@@ -42,7 +42,7 @@ public class NamedClusterWidgetImpl extends Composite {
   private HadoopClusterDelegateImpl ncDelegate;
 
   public NamedClusterWidgetImpl( Composite parent, boolean showLabel, NamedClusterService namedClusterService,
-                                 RuntimeTestActionService runtimeTestActionService, RuntimeTester clusterTester ) {
+                                 RuntimeTestActionService runtimeTestActionService, RuntimeTester clusterTester, boolean enableNewEditNameClusterButtons ) {
     super( parent, SWT.NONE );
     this.namedClusterService = namedClusterService;
     ncDelegate = new HadoopClusterDelegateImpl( Spoon.getInstance(), this.namedClusterService,
@@ -64,25 +64,29 @@ public class NamedClusterWidgetImpl extends Composite {
     setNameClusterCombo( new Combo( this, SWT.DROP_DOWN | SWT.READ_ONLY ) );
     getNameClusterCombo().setLayoutData( new RowData( 150, SWT.DEFAULT ) );
 
-    Button editButton = new Button( this, SWT.NONE );
-    editButton.setText( BaseMessages.getString( PKG, "NamedClusterWidget.NamedCluster.Edit" ) );
-    editButton.addListener( SWT.Selection, new Listener() {
-      public void handleEvent( Event e ) {
-        editNamedCluster();
-      }
-    } );
-    props.setLook( editButton );
+    if ( enableNewEditNameClusterButtons ) {
+      Button editButton = new Button( this, SWT.NONE );
+      editButton.setText( BaseMessages.getString( PKG, "NamedClusterWidget.NamedCluster.Edit" ) );
+      editButton.addListener( SWT.Selection, new Listener() {
+        public void handleEvent( Event e ) {
+          editNamedCluster();
+        }
+      } );
+      props.setLook( editButton );
+    }
 
-    Button newButton = new Button( this, SWT.NONE );
-    newButton.setText( BaseMessages.getString( PKG, "NamedClusterWidget.NamedCluster.New" ) );
-    newButton.addListener( SWT.Selection, new Listener() {
-      public void handleEvent( Event e ) {
-        newNamedCluster();
-      }
-    } );
-    props.setLook( newButton );
+    if ( enableNewEditNameClusterButtons ) {
+      Button newButton = new Button( this, SWT.NONE );
+      newButton.setText( BaseMessages.getString( PKG, "NamedClusterWidget.NamedCluster.New" ) );
+      newButton.addListener( SWT.Selection, new Listener() {
+        public void handleEvent( Event e ) {
+          newNamedCluster();
+        }
+      } );
+      props.setLook( newButton );
 
-    initiate();
+      initiate();
+    }
   }
 
   private void newNamedCluster() {

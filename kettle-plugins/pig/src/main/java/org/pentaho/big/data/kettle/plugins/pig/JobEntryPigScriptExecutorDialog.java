@@ -158,7 +158,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     namedClusterLabel.setLayoutData( fd );
 
     namedClusterWidgetImpl = new NamedClusterWidgetImpl( shell, false, namedClusterService, runtimeTestActionService,
-      runtimeTester );
+      runtimeTester, true );
     namedClusterWidgetImpl.initiate();
     props.setLook( namedClusterWidgetImpl );
     fd = new FormData();
