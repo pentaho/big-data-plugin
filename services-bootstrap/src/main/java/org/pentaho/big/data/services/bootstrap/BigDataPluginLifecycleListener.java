@@ -227,8 +227,11 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
                           Executors.newCachedThreadPool(),
                           visitorServices
                   );
-                  namedClusterServiceLocator.factoryAdded( mapReduceServiceFactory, mapReducefactoryMap );
-              }
+                  Map mapReducefactoryMap = new HashMap<String, String>();
+          mapReducefactoryMap.put( "shim", hadoopConfiguration.getIdentifier() );
+          mapReducefactoryMap.put( "service", "mapreduce" );
+          // 3. Add the factory map to the NamedClusterServiceLocatorImpl
+          namedClusterServiceLocator.factoryAdded( mapReduceServiceFactory, mapReducefactoryMap );}
               if ( availableMapreduceOptions.contains( "mapreduce_impersonation" ) ) {
                   logger.debug( "Adding 'mapreduce_impersonation' factory." );
                   MapReduceImpersonationServiceFactory mapReduceImpersonationServiceFactory =
@@ -254,7 +257,6 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
           }
 
           //////////////////////////////////////////////////////////////////////////////////
-          /// Bootstrap the hadoop client (Sqoop) service factories
           //////////////////////////////////////////////////////////////////////////////////
           logger.debug( "Bootstrap the hadoop client (Sqoop) service factories." );
           if ( shimAvailableServices.contains( "sqoop" ) ) {
