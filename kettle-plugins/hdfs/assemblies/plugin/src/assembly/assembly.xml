@@ -39,13 +39,5 @@
         <include>pentaho:pdi-hdfs-core:jar</include>
       </includes>
     </dependencySet>
-    <dependencySet>
-      <scope>runtime</scope>
-      <useProjectArtifact>false</useProjectArtifact>
-      <outputDirectory>lib</outputDirectory>
-      <excludes>
-        <exclude>pentaho:pdi-hdfs-core:*</exclude>
-      </excludes>
-    </dependencySet>
   </dependencySets>
 </assembly>
