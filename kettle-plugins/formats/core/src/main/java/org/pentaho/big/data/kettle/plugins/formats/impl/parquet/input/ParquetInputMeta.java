@@ -43,6 +43,9 @@ public class ParquetInputMeta extends ParquetInputMetaBase {
 
   private final NamedClusterResolver namedClusterResolver;
 
+  public ParquetInputMeta() {
+    this( NamedClusterResolver.getInstance() );
+  }
   public ParquetInputMeta( NamedClusterResolver namedClusterResolver ) {
     this.namedClusterResolver = namedClusterResolver;
   }

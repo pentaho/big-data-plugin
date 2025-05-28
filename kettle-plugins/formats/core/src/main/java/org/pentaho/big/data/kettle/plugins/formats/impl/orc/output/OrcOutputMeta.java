@@ -32,6 +32,9 @@ public class OrcOutputMeta extends OrcOutputMetaBase {
 
   private final NamedClusterResolver namedClusterResolver;
 
+  public OrcOutputMeta() {
+    this( NamedClusterResolver.getInstance() );
+  }
   public OrcOutputMeta( NamedClusterResolver namedClusterResolver ) {
     this.namedClusterResolver = namedClusterResolver;
   }

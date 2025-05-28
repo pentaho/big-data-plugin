@@ -124,5 +124,11 @@
       <artifactId>pentaho-big-data-impl-cluster</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-big-data-legacy-core</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 </project>
