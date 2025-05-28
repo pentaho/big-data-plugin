@@ -14,7 +14,7 @@
 package org.pentaho.big.data.kettle.plugins.hbase.output;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
+import org.pentaho.big.data.api.services.BigDataServicesHelper;
 import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.kettle.plugins.hbase.HbaseUtil;
 import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
@@ -157,7 +157,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
   }
 
   public HBaseOutputMeta() {
-    this( NamedClusterManager.getInstance(), new NamedClusterServiceLocatorImpl( "", NamedClusterManager.getInstance() ),
+    this( NamedClusterManager.getInstance(), BigDataServicesHelper.getNamedClusterServiceLocator(),
       RuntimeTestActionServiceImpl.getInstance(), RuntimeTesterImpl.getInstance(), new NamedClusterLoadSaveUtil(), null );
   }
 
