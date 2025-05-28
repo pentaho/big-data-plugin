@@ -35,6 +35,10 @@ public class ParquetOutputMeta extends ParquetOutputMetaBase {
 
   private final NamedClusterResolver namedClusterResolver;
 
+  public ParquetOutputMeta() {
+    this( NamedClusterResolver.getInstance() );
+  }
+
   public ParquetOutputMeta( NamedClusterResolver namedClusterResolver ) {
     this.namedClusterResolver = namedClusterResolver;
   }
