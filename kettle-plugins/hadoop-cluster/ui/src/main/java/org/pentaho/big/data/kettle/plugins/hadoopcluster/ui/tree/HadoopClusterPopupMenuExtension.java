@@ -22,7 +22,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Tree;
-import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
+import org.pentaho.big.data.api.services.BigDataServicesProxy;
 import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.impl.cluster.tests.hdfs.GatewayListHomeDirectoryTest;
 import org.pentaho.big.data.impl.cluster.tests.hdfs.GatewayListRootDirectoryTest;
@@ -35,11 +35,13 @@ import org.pentaho.big.data.impl.cluster.tests.zookeeper.GatewayPingZookeeperEns
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDelegate;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClusterManager;
 import org.pentaho.bigdata.api.hdfs.impl.HadoopFileSystemLocatorImpl;
+import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.extension.ExtensionPoint;
 import org.pentaho.di.core.extension.ExtensionPointInterface;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
+import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.ui.core.ConstUI;
@@ -59,6 +61,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -134,16 +137,10 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
     //and this causes a cyclic reference with pentaho-big-data-impl-clusterTests
 
     //Runtime tests taken from here:
-    //https://github.com/e-cuellar/big-data-plugin/blob/master/impl/clusterTests/src/main/resources/OSGI-INF/blueprint/blueprint.xml
+    //https://github.com/e-cuellar/big-data-plugin/blob/master/impl/clusterTests/src/main/resources/OSGI-INF/blueprint/blueprint.xml=
     HadoopConfigurationBootstrap hadoopConfigurationBootstrap = HadoopConfigurationBootstrap.getInstance();
     HadoopConfigurationLocator hadoopConfigurationProvider = (HadoopConfigurationLocator) hadoopConfigurationBootstrap.getProvider();
     HadoopConfiguration hadoopConfiguration = hadoopConfigurationProvider.getActiveConfiguration();
-
-    String activeNamedClusterName = System.getProperty( "ACTIVE_NAMED_CLUSTER" );
-    org.pentaho.hadoop.shim.api.cluster.NamedCluster activeNamedCluster =
-      namedClusterService.getNamedClusterByName( activeNamedClusterName, spoonSupplier.get().getMetaStore() );
-    Configuration configuration = hadoopConfiguration.getHadoopShim().createConfiguration( activeNamedCluster );
-
     HadoopFileSystemFactory hadoopFileSystemFactory =
       new HadoopFileSystemFactoryImpl( hadoopConfiguration.getHadoopShim(), hadoopConfiguration.getHadoopShim().getShimIdentifier() );
 
@@ -160,7 +157,13 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
     runtimeTester.addRuntimeTest( new GatewayListHomeDirectoryTest( BaseMessagesMessageGetterFactoryImpl.getInstance(), new ConnectivityTestFactoryImpl(), hadoopFileSystemLocator ) );
     runtimeTester.addRuntimeTest( new GatewayWriteToAndDeleteFromUsersHomeFolderTest( BaseMessagesMessageGetterFactoryImpl.getInstance(), hadoopFileSystemLocator ) );
 
-    runtimeTester.addRuntimeTest( new KafkaConnectTest( BaseMessagesMessageGetterFactoryImpl.getInstance(), new NamedClusterServiceLocatorImpl( "", NamedClusterManager.getInstance() ) ) );
+        try {
+            Collection<BigDataServicesProxy> namedClusterServiceLocatorFactories = PluginServiceLoader.loadServices( BigDataServicesProxy.class );
+            NamedClusterServiceLocator namedClusterServiceLocator = namedClusterServiceLocatorFactories.stream().findFirst().get().getNamedClusterServiceLocator();
+            runtimeTester.addRuntimeTest( new KafkaConnectTest( BaseMessagesMessageGetterFactoryImpl.getInstance(), namedClusterServiceLocator ) );
+        } catch (KettlePluginException e) {
+            e.printStackTrace();
+        }
 
     } catch ( ConfigurationException e ) {
       throw new RuntimeException( e );
@@ -228,7 +231,6 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
       itemMenu = new Menu( selectionTree );
       try {
         String name = URLEncoder.encode( namedCluster.getName(), "UTF-8" );
-        System.setProperty( "ACTIVE_NAMED_CLUSTER", name );
 
         initializeRuntimeTests( runtimeTester );
 
