@@ -21,9 +21,12 @@ import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSelector;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.provider.AbstractFileName;
+import org.pentaho.di.connections.vfs.provider.ResolvedConnectionFileObject;
 import org.pentaho.s3common.S3CommonFileObject;
 import org.pentaho.s3common.S3CommonPipedOutputStream;
 import org.slf4j.Logger;
@@ -32,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
 
 import static java.util.AbstractMap.SimpleEntry;
@@ -176,4 +180,61 @@ public class S3FileObject extends S3CommonFileObject {
     return new SimpleEntry<>( newKey, newBucket );
   }
 
+  /**
+   * Attempts to extract an S3FileObject from a FileObject, including wrappers like ResolvedConnectionFileObject (via reflection for getResolvedFileObject()).
+   */
+  private S3FileObject extractDelegateS3FileObject(FileObject file) {
+    if (file instanceof S3FileObject) {
+      return (S3FileObject) file;
+    }
+    if ( file instanceof ResolvedConnectionFileObject) {
+      // If it's a ResolvedConnectionFileObject, we can try to get the underlying S3FileObject
+      ResolvedConnectionFileObject resolved = (ResolvedConnectionFileObject) file;
+      FileObject delegate = resolved.getResolvedFileObject();
+      if (delegate instanceof S3FileObject) {
+        return (S3FileObject) delegate;
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public void copyFrom(final FileObject file, final FileSelector selector ) throws FileSystemException {
+    S3FileObject src = extractDelegateS3FileObject( file );
+    if ( src == null ) {
+      // Fallback to default implementation for non-S3 sources or wrappers
+      super.copyFrom( file, selector );
+      return;
+    }
+    S3FileObject dst = this;
+
+    // Compare bucket names and region (if available) to determine if both are in the same S3 root
+    String srcBucket = src.bucketName;
+    String dstBucket = dst.bucketName;
+    boolean sameBucket = srcBucket != null && srcBucket.equals( dstBucket );
+    boolean sameRegion = true;
+    try {
+      String srcRegion = src.fileSystem.getS3Client().getBucketLocation( srcBucket );
+      String dstRegion = dst.fileSystem.getS3Client().getBucketLocation( dstBucket );
+      sameRegion = srcRegion != null && srcRegion.equals( dstRegion );
+    } catch ( Exception e ) {
+      logger.warn( "Could not determine S3 bucket region, proceeding with bucket name check only: {}", e.getMessage(), e );
+    }
+
+    if ( sameBucket && sameRegion ) {
+      // Check if both source and destination objects exist and are files (not folders)
+      try {
+        if ( src.getType().hasContent() && dst.getType().hasContent() ) {
+          logger.info( "Attempting S3→S3 server-side multipart copy from {} to {}", src.getQualifiedName(), dst.getQualifiedName() );
+          org.pentaho.s3common.S3CommonMultipartCopier.multipartCopy(src, dst, logger);
+          return;
+        }
+      } catch ( Exception e ) {
+        logger.warn( "S3→S3 multipart copy failed, falling back to default copy: {}", e.getMessage(), e );
+        // fallback to default
+      }
+    }
+    // Fallback to default implementation
+    super.copyFrom( file, selector );
+  }
 }
