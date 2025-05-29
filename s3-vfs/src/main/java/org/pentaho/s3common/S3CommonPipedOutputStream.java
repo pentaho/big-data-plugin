@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -162,7 +163,7 @@ public class S3CommonPipedOutputStream extends PipedOutputStream {
   }
 
   class S3AsyncTransferRunner implements Callable<Boolean> {
-    public Boolean call() throws Exception {
+    public Boolean call() {
       boolean returnVal = true;
       int queueCapacity = Math.max( threadPoolSize * 2, 4 );
       List<Future<List<PartETagWithNum>>> partFutures = new ArrayList<>();
@@ -200,7 +201,8 @@ public class S3CommonPipedOutputStream extends PipedOutputStream {
       return returnVal;
     }
 
-    private void runProducerAndWait( BlockingQueue<PartBuffer> queue, AtomicBoolean producerFailed ) throws Exception {
+    private void runProducerAndWait( BlockingQueue<PartBuffer> queue, AtomicBoolean producerFailed )
+        throws InterruptedException, ExecutionException {
       Future<?> producerFuture = producerExecutor.submit( () -> createProducer( queue, producerFailed ).run() );
       producerFuture.get();
     }
@@ -274,8 +276,10 @@ public class S3CommonPipedOutputStream extends PipedOutputStream {
         try ( BufferedInputStream bis = new BufferedInputStream( pipedInputStream, partSize ) ) {
           produceParts( bis, queue, producerFailed );
           insertPoisonPills( queue );
-          logger.info( BaseMessages.getString( PKG, "INFO.S3MultiPart.ProducerFinished",
+          if ( logger.isInfoEnabled() ) {
+            logger.info( BaseMessages.getString( PKG, "INFO.S3MultiPart.ProducerFinished",
               ( System.currentTimeMillis() - producerStart ) ) );
+          }
         } catch ( Exception e ) {
           producerFailed.set( true );
           handleProducerException( queue, e );
@@ -292,27 +296,56 @@ public class S3CommonPipedOutputStream extends PipedOutputStream {
       byte [] tmpBuffer = new byte [64 * 1024];
       int read;
       while ( ( read = bis.read( tmpBuffer ) ) >= 0 ) {
-        int srcPos = 0;
-        while ( srcPos < read ) {
-          int space = partSize - partBufferPos;
-          int copyLen = Math.min( space, read - srcPos );
-          System.arraycopy( tmpBuffer, srcPos, partBuffer, partBufferPos, copyLen );
-          partBufferPos += copyLen;
-          srcPos += copyLen;
-          if ( partBufferPos == partSize ) {
-            if ( handleTooManyParts( partNum, queue, producerFailed ) )
-              return;
-            if ( logger != null && logger.isDebugEnabled() ) {
-              logger.debug( BaseMessages.getString( PKG, "DEBUG.S3MultiPart.ProducerPuttingPart", partNum, offset, partSize ) );
-            }
-            queue.put( new PartBuffer( partBuffer, partNum, offset, partSize ) );
-            partNum++;
-            offset += partSize;
-            partBuffer = new byte[partSize]; // allocate new buffer for next part
-            partBufferPos = 0;
+        PartBufferState state = fillPartBufferAndQueue( tmpBuffer, read, partBuffer, partBufferPos, partNum, offset, queue, producerFailed );
+        if ( state == null ) return; // too many parts, abort
+        partBuffer = state.partBuffer;
+        partBufferPos = state.partBufferPos;
+        partNum = state.partNum;
+        offset = state.offset;
+      }
+      queueFinalPartialPart( partBuffer, partBufferPos, partNum, offset, queue, producerFailed );
+    }
+
+    private class PartBufferState {
+      byte[] partBuffer;
+      int partBufferPos;
+      int partNum;
+      long offset;
+      PartBufferState(byte[] partBuffer, int partBufferPos, int partNum, long offset) {
+        this.partBuffer = partBuffer;
+        this.partBufferPos = partBufferPos;
+        this.partNum = partNum;
+        this.offset = offset;
+      }
+    }
+
+    private PartBufferState fillPartBufferAndQueue( byte [] tmpBuffer, int read, byte [] partBuffer, int partBufferPos, int partNum, long offset,
+        BlockingQueue<PartBuffer> queue, AtomicBoolean producerFailed ) throws InterruptedException {
+      int srcPos = 0;
+      while ( srcPos < read ) {
+        int space = partSize - partBufferPos;
+        int copyLen = Math.min( space, read - srcPos );
+        System.arraycopy( tmpBuffer, srcPos, partBuffer, partBufferPos, copyLen );
+        partBufferPos += copyLen;
+        srcPos += copyLen;
+        if ( partBufferPos == partSize ) {
+          if ( handleTooManyParts( partNum, queue, producerFailed ) )
+            return null;
+          if ( logger != null && logger.isDebugEnabled() ) {
+            logger.debug( BaseMessages.getString( PKG, "DEBUG.S3MultiPart.ProducerPuttingPart", partNum, offset, partSize ) );
           }
+          queue.put( new PartBuffer( partBuffer, partNum, offset, partSize ) );
+          partNum++;
+          offset += partSize;
+          partBuffer = new byte[partSize]; // allocate new buffer for next part
+          partBufferPos = 0;
         }
       }
+      return new PartBufferState( partBuffer, partBufferPos, partNum, offset );
+    }
+
+    private void queueFinalPartialPart( byte [] partBuffer, int partBufferPos, int partNum, long offset,
+        BlockingQueue<PartBuffer> queue, AtomicBoolean producerFailed ) throws InterruptedException {
       if ( partBufferPos > 0 ) {
         if ( handleTooManyParts( partNum, queue, producerFailed ) )
           return;
