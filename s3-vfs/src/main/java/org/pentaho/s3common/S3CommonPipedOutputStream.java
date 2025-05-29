@@ -12,19 +12,6 @@
 
 package org.pentaho.s3common;
 
-import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
-import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
-import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
-import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
-import com.amazonaws.services.s3.model.PartETag;
-import com.amazonaws.services.s3.model.UploadPartRequest;
-import org.pentaho.di.core.logging.LogChannel;
-import org.pentaho.di.core.logging.LogChannelInterface;
-import org.pentaho.di.core.util.StorageUnitConverter;
-import org.pentaho.di.i18n.BaseMessages;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.PipedInputStream;
@@ -39,6 +26,21 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.pentaho.di.core.logging.LogChannel;
+import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.core.util.StorageUnitConverter;
+import org.pentaho.di.i18n.BaseMessages;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
+import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
+import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
+import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
+import com.amazonaws.services.s3.model.PartETag;
+import com.amazonaws.services.s3.model.UploadPartRequest;
+
+@SuppressWarnings("UseSpecificCatch") // We need to catch Exception to handle all exceptions
 public class S3CommonPipedOutputStream extends PipedOutputStream {
 
   private static final Class<?> PKG = S3CommonPipedOutputStream.class;
@@ -75,12 +77,7 @@ public class S3CommonPipedOutputStream extends PipedOutputStream {
     if ( threadPoolSize < 1 ) {
       throw new IllegalArgumentException( "threadPoolSize must be at least 1" );
     }
-    this.pipedInputStream = new PipedInputStream();
-    try {
-      this.pipedInputStream.connect( this );
-    } catch ( IOException e ) {
-      throw new IOException( "could not connect to pipedInputStream", e );
-    }
+    this.pipedInputStream = new PipedInputStream( this );
     this.s3AsyncTransferRunner = new S3AsyncTransferRunner();
     this.bucketId = bucketId;
     this.key = key;
@@ -295,16 +292,25 @@ public class S3CommonPipedOutputStream extends PipedOutputStream {
       byte [] tmpBuffer = new byte [64 * 1024];
       int read;
       while ( ( read = bis.read( tmpBuffer ) ) >= 0 ) {
-        partNum = fillAndQueueParts( tmpBuffer, read, partBuffer, partNum, queue, producerFailed, offset );
-        // update offset and partBuffer/partBufferPos from returned state
-        offset += ( ( read / partSize ) * partSize );
-        int remaining = read % partSize;
-        if ( remaining > 0 ) {
-          int start = read - remaining;
-          System.arraycopy( tmpBuffer, start, partBuffer, 0, remaining );
-          partBufferPos = remaining;
-        } else {
-          partBufferPos = 0;
+        int srcPos = 0;
+        while ( srcPos < read ) {
+          int space = partSize - partBufferPos;
+          int copyLen = Math.min( space, read - srcPos );
+          System.arraycopy( tmpBuffer, srcPos, partBuffer, partBufferPos, copyLen );
+          partBufferPos += copyLen;
+          srcPos += copyLen;
+          if ( partBufferPos == partSize ) {
+            if ( handleTooManyParts( partNum, queue, producerFailed ) )
+              return;
+            if ( logger != null && logger.isDebugEnabled() ) {
+              logger.debug( BaseMessages.getString( PKG, "DEBUG.S3MultiPart.ProducerPuttingPart", partNum, offset, partSize ) );
+            }
+            queue.put( new PartBuffer( partBuffer, partNum, offset, partSize ) );
+            partNum++;
+            offset += partSize;
+            partBuffer = new byte[partSize]; // allocate new buffer for next part
+            partBufferPos = 0;
+          }
         }
       }
       if ( partBufferPos > 0 ) {
@@ -317,32 +323,6 @@ public class S3CommonPipedOutputStream extends PipedOutputStream {
         }
         queue.put( new PartBuffer( lastPart, partNum, offset, partBufferPos ) );
       }
-    }
-
-    private int fillAndQueueParts( byte [] tmpBuffer, int read, byte [] partBuffer, int partNum,
-        BlockingQueue<PartBuffer> queue, AtomicBoolean producerFailed, long offset ) throws InterruptedException {
-      int partBufferPos = 0;
-      int srcPos = 0;
-      while ( srcPos < read ) {
-        int space = partSize - partBufferPos;
-        int copyLen = Math.min( space, read - srcPos );
-        System.arraycopy( tmpBuffer, srcPos, partBuffer, partBufferPos, copyLen );
-        partBufferPos += copyLen;
-        srcPos += copyLen;
-        if ( partBufferPos == partSize ) {
-          if ( handleTooManyParts( partNum, queue, producerFailed ) )
-            return partNum;
-          if ( logger != null && logger.isDebugEnabled() ) {
-            logger
-                .debug( BaseMessages.getString( PKG, "DEBUG.S3MultiPart.ProducerPuttingPart", partNum, offset, partSize ) );
-          }
-          queue.put( new PartBuffer( partBuffer, partNum, offset, partSize ) );
-          partNum++;
-          offset += partSize;
-          partBufferPos = 0;
-        }
-      }
-      return partNum;
     }
 
     private boolean handleTooManyParts( int partNum, BlockingQueue<PartBuffer> queue, AtomicBoolean producerFailed )
