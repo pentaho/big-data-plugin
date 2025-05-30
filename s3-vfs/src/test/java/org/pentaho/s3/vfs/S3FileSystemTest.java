@@ -36,7 +36,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
+import static org.pentaho.s3common.S3CommonPipedOutputStream.DEFAULT_THREAD_POOL_SIZE;
 
 /**
  * Unit tests for S3FileSystem
@@ -176,11 +176,61 @@ public class S3FileSystemTest {
       //Not under an EC2 instance - getCurrentRegion returns null
 
       fileSystem = new S3FileSystem( fileName, options );
-      fileSystem = ( S3FileSystem ) S3CommonFileSystemTestUtil.stubRegionUnSet( fileSystem );
+      fileSystem = (S3FileSystem) S3CommonFileSystemTestUtil.stubRegionUnSet( fileSystem );
 
       AmazonS3Client s3Client = (AmazonS3Client) fileSystem.getS3Client();
       assertEquals( "No Region was configured - client must have default region",
         Regions.DEFAULT_REGION.getName(), s3Client.getRegionName() );
     }
+  }
+
+  @Test
+  public void testGetThreadPoolSize_InvalidAndNegative() {
+    S3KettleProperty prop = mock( S3KettleProperty.class );
+    try ( S3FileSystem fs = new S3FileSystem( getTestInstance().getRootName(),
+          new FileSystemOptions(), new StorageUnitConverter(), prop ) ) {
+      // Invalid string
+      when( prop.getThreadPoolSize() ).thenReturn( "notanumber" );
+      assertEquals( DEFAULT_THREAD_POOL_SIZE, fs.getThreadPoolSize() );
+      // Zero
+      when( prop.getThreadPoolSize() ).thenReturn( "0" );
+      assertEquals( DEFAULT_THREAD_POOL_SIZE, fs.getThreadPoolSize() );
+      // Negative
+      when( prop.getThreadPoolSize() ).thenReturn( "-5" );
+      assertEquals( DEFAULT_THREAD_POOL_SIZE, fs.getThreadPoolSize() );
+      // Null
+      when( prop.getThreadPoolSize() ).thenReturn( null );
+      assertEquals( DEFAULT_THREAD_POOL_SIZE, fs.getThreadPoolSize() );
+      // Empty
+      when( prop.getThreadPoolSize() ).thenReturn( "" );
+      assertEquals( DEFAULT_THREAD_POOL_SIZE, fs.getThreadPoolSize() );
+    }
+  }
+
+  @Test
+  public void testConvertToLong_InvalidString() {
+    S3FileSystem s3FileSystem = getTestInstance();
+    long result = s3FileSystem.convertToLong( "nonsense" );
+    assertEquals( -1, result );
+  }
+
+  @Test
+  public void testParsePartSize_NonNumeric() {
+    S3FileSystem s3FileSystem = getTestInstance();
+    long minPartSize = 5L * 1024L * 1024L;
+    long result = s3FileSystem.parsePartSize( "nonsense" );
+    assertEquals( minPartSize, result );
+  }
+
+  @Test
+  public void testGetPartSize_NullOrEmpty() {
+    S3FileSystem s3FileSystem = getTestInstance();
+    S3KettleProperty prop = mock( S3KettleProperty.class );
+    s3FileSystem.s3KettleProperty = prop;
+    long minPartSize = 5L * 1024L * 1024L;
+    when( prop.getPartSize() ).thenReturn( null );
+    assertEquals( (int) minPartSize, s3FileSystem.getPartSize() );
+    when( prop.getPartSize() ).thenReturn( "" );
+    assertEquals( (int) minPartSize, s3FileSystem.getPartSize() );
   }
 }
