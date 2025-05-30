@@ -147,9 +147,9 @@ public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInt
       getAttributes().getProperty( ATTRIBUTE_PREFIX_EXTRA_OPTION + getPluginId() + ".principal" );
     urlBuffer.append( "jdbc:hive2://" ).append( hostname ).append( ":" ).append( port ).append( "/" )
       .append( databaseName );
-    if ( principal == null && extraPrincipal == null ) {
-      urlBuffer.append( AUTH_NO_SASL );
-    }
+    // if ( principal == null && extraPrincipal == null ) {
+    //   urlBuffer.append( AUTH_NO_SASL );
+    // }
     urlBuffer.append( ";impala_db=true" );
     return urlBuffer.toString();
   }
