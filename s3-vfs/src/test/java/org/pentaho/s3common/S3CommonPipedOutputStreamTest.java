@@ -166,6 +166,9 @@ public class S3CommonPipedOutputStreamTest {
       out.write( new byte[ 3 * 1024 * 1024 ] );
       out.close();
       out.close(); // Should not throw
+      // Assertion: verify uploadPart and completeMultipartUpload were called
+      verify( s3Client, atLeastOnce() ).uploadPart( any( UploadPartRequest.class ) );
+      verify( s3Client, atLeastOnce() ).completeMultipartUpload( any( CompleteMultipartUploadRequest.class ) );
     }
   }
 
