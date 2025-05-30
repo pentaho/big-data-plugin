@@ -12,6 +12,7 @@
 
 package org.pentaho.s3.vfs;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
@@ -193,7 +194,7 @@ public class S3FileObjectTest {
   }
 
   @Test
-  public void testDoGetOutputStream() throws Exception {
+  public void testDoGetOutputStream() throws IOException {
     InitiateMultipartUploadResult initResponse = mock( InitiateMultipartUploadResult.class );
     when( initResponse.getUploadId() ).thenReturn( "foo" );
     when( s3ServiceMock.initiateMultipartUpload( any() ) ).thenReturn( initResponse );
@@ -205,7 +206,7 @@ public class S3FileObjectTest {
     assertNotNull( s3FileObjectBucketSpy.doGetOutputStream( false ) );
     try ( OutputStream out = s3FileObjectBucketSpy.doGetOutputStream( true ) ) {
       assertNotNull( out );
-      out.write( new byte[ 1024 * 1024 * 26 ] ); // 6MB
+      out.write( new byte[ 1024 * 1024 * 26 ] ); // 26MB
     }
 
     // check kettle.properties 's3.vfs.partSize' is less than [5MB, 6MB)

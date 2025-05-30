@@ -48,7 +48,7 @@ public class S3KettleProperty {
       properties = EnvUtil.readProperties( filename );
       partSizeString = properties.getProperty( property );
     } catch ( KettleException ke ) {
-      logger.error( BaseMessages.getString( PKG, "WARN.S3Commmon.PropertyNotFound",
+      logger.error( BaseMessages.getString( PKG, "WARN.S3Common.PropertyNotFound",
         property, filename ) );
     }
     return partSizeString;
