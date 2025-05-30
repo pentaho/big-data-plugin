@@ -28,6 +28,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.di.core.KettleEnvironment;
+import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.util.StorageUnitConverter;
 import org.pentaho.s3common.S3CommonFileSystemTestUtil;
 import org.pentaho.s3common.S3KettleProperty;
@@ -48,7 +49,7 @@ public class S3FileSystemTest {
   S3FileName fileName;
 
   @BeforeClass
-  public static void setClassUp() throws Exception {
+  public static void setClassUp() throws KettleException {
     KettleEnvironment.init( false );
   }
 
@@ -67,7 +68,7 @@ public class S3FileSystemTest {
   }
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     fileName = new S3FileName(
       S3FileNameTest.SCHEME,
       "/",
@@ -77,12 +78,12 @@ public class S3FileSystemTest {
   }
 
   @Test
-  public void testCreateFile() throws Exception {
+  public void testCreateFile() {
     assertNotNull( fileSystem.createFile( new S3FileName( "s3", "bucketName", "/bucketName/key", FileType.FILE ) ) );
   }
 
   @Test
-  public void testGetS3Service() throws Exception {
+  public void testGetS3Service() {
     assertNotNull( fileSystem.getS3Client() );
 
     FileSystemOptions options = new FileSystemOptions();

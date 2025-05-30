@@ -98,7 +98,7 @@ public class S3FileObjectTest {
 
   @BeforeClass
   public static void setClassUp() throws KettleException {
-    System.setProperty("KETTLE_HOME", S3FileObjectTest.class.getClassLoader().getResource( "" ).getPath() );  
+    System.setProperty( "KETTLE_HOME", S3FileObjectTest.class.getClassLoader().getResource( "" ).getPath() );
     KettleEnvironment.init( false );
   }
 
@@ -294,7 +294,7 @@ public class S3FileObjectTest {
   @Test
   public void testDoGetLastModifiedTimeWhenNoLastModifiedDateIsAvailable() throws Exception {
     s3FileObjectFileSpy.doAttach();
-    when( s3ObjectMetadata.getLastModified() ).thenReturn( new Date(0L) );
+    when( s3ObjectMetadata.getLastModified() ).thenReturn( new Date( 0L ) );
     assertEquals( 0L, s3FileObjectFileSpy.doGetLastModifiedTime() );
   }
 

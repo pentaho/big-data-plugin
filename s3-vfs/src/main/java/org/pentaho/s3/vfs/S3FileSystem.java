@@ -83,7 +83,7 @@ public class S3FileSystem extends S3CommonFileSystem {
   }
 
   protected int convertToInt( long parsedPartSize ) {
-    return ( int ) Long.min( Integer.MAX_VALUE, parsedPartSize );
+    return (int) Long.min( Integer.MAX_VALUE, parsedPartSize );
   }
 
   protected long convertToLong( String partSize ) {
