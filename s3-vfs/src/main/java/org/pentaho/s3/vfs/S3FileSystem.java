@@ -59,7 +59,7 @@ public class S3FileSystem extends S3CommonFileSystem {
     this.s3KettleProperty = s3KettleProperty;
   }
 
-  protected FileObject createFile( AbstractFileName name ) throws Exception {
+  protected FileObject createFile( AbstractFileName name ) {
     return new S3FileObject( name, this );
   }
 
