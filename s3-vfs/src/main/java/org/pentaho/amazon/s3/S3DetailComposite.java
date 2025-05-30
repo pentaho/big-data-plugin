@@ -16,8 +16,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -25,6 +23,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.pentaho.di.connections.vfs.VFSDetailsComposite;
+import org.pentaho.di.core.bowl.Bowl;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -49,6 +48,7 @@ public class S3DetailComposite implements VFSDetailsComposite {
   private final S3Details details;
   private final VFSDetailsCompositeHelper helper;
   private final PropsUI props;
+  private final Bowl bowl;
 
   private static final String[] S3_CONNECTION_TYPE_CHOICES = new String[] { "Amazon", "Minio/HCP" };
   private static final String[] AUTH_TYPE_CHOICES = new String[] { "Access Key/Secret Key", "Credentials File" };
@@ -75,8 +75,9 @@ public class S3DetailComposite implements VFSDetailsComposite {
   private VariableSpace variableSpace = Variables.getADefaultVariableSpace();
   private HashSet<Control> skipControls = new HashSet<>();
 
-  public S3DetailComposite( Composite composite, S3Details details, PropsUI props ) {
+  public S3DetailComposite( Bowl bowl, Composite composite, S3Details details, PropsUI props ) {
     helper = new VFSDetailsCompositeHelper( PKG, props );
+    this.bowl = bowl;
     this.props = props;
     this.wComposite = composite;
     this.details = details;
@@ -126,7 +127,7 @@ public class S3DetailComposite implements VFSDetailsComposite {
     wSessionToken = createStandbyPasswordVisibleTextVar();
     wDefaultS3Config = createStandByCheckBoxVar();
     wProfileName = createStandByTextVar();
-    wCredentialsFilePath = new FileChooserVar( variableSpace, wWidgetHolder, TEXT_VAR_FLAGS, "Browse File" );
+    wCredentialsFilePath = new FileChooserVar( bowl, variableSpace, wWidgetHolder, TEXT_VAR_FLAGS, "Browse File" );
     wEndpoint = createStandByTextVar();
     wSignatureVersion = createStandByTextVar();
     wPathStyleAccess = createStandByCheckBoxVar();

@@ -176,7 +176,8 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
     String orcFileName = getProcessedFileName();
     List<? extends IOrcInputField> inputFields = null;
     try {
-      inputFields = OrcInput.retrieveSchema( meta.getNamedClusterResolver().getNamedClusterServiceLocator(),
+      inputFields = OrcInput.retrieveSchema( transMeta.getBowl(),
+        meta.getNamedClusterResolver().getNamedClusterServiceLocator(),
         meta.getNamedClusterResolver().resolveNamedCluster( orcFileName ), orcFileName );
     } catch ( Exception ex ) {
       if ( !failQuietly ) {

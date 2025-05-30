@@ -508,14 +508,15 @@ public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntr
 
           if ( fileName != null && !fileName.equals( "" ) ) {
             try {
-              initialFile = KettleVFS.getFileObject( fileName );
+              initialFile = KettleVFS.getInstance( jobMeta.getBowl() ).getFileObject( fileName );
             } catch ( KettleException ex ) {
-              initialFile = KettleVFS.getFileObject( "" );
+              initialFile = KettleVFS.getInstance( jobMeta.getBowl() ).getFileObject( "" );
             }
-            defaultInitialFile = KettleVFS.getFileObject( "file:///c:/" );
+            defaultInitialFile = KettleVFS.getInstance( jobMeta.getBowl() ).getFileObject( "file:///c:/" );
             rootFile = initialFile.getFileSystem().getRoot();
           } else {
-            defaultInitialFile = KettleVFS.getFileObject( Spoon.getInstance().getLastFileOpened() );
+            defaultInitialFile = KettleVFS.getInstance( jobMeta.getBowl() )
+              .getFileObject( Spoon.getInstance().getLastFileOpened() );
           }
         }
 

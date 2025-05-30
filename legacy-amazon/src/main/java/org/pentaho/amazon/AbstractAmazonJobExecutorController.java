@@ -32,6 +32,7 @@ import org.pentaho.amazon.client.api.AimClient;
 import org.pentaho.amazon.client.api.PricingClient;
 import org.pentaho.amazon.client.api.S3Client;
 import org.pentaho.amazon.s3.S3VfsFileChooserHelper;
+import org.pentaho.di.core.bowl.Bowl;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
@@ -681,8 +682,8 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     this.bindings = bindings;
   }
 
-  public void accept() {
-    syncModel();
+  public void accept( Bowl bowl ) {
+    syncModel( bowl );
 
     String validationErrors = buildValidationErrorMessages();
 
@@ -696,7 +697,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     cancel();
   }
 
-  protected void syncModel() {
+  protected void syncModel( Bowl bowl ) {
     XulMenuList<String> tempMenu =
       (XulMenuList<String>) getXulDomContainer().getDocumentRoot().getElementById( XUL_REGION );
     this.region = tempMenu.getValue();
@@ -724,7 +725,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_S3_STAGING_DIRECTORY );
     this.stagingDir = ( (Text) tempBox.getTextControl() ).getText();
     try {
-      this.stagingDirFile = resolveFile( this.stagingDir );
+      this.stagingDirFile = resolveFile( bowl, this.stagingDir );
     } catch ( Exception e ) {
       this.stagingDirFile = null;
     }
@@ -1128,7 +1129,8 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   protected VfsFileChooserDialog getFileChooserDialog() throws KettleFileException {
     if ( this.fileChooserDialog == null ) {
       FileObject initialFile = null;
-      FileObject defaultInitialFile = KettleVFS.getFileObject( "file:///c:/" );
+      Spoon spoon = Spoon.getInstance();
+      FileObject defaultInitialFile = KettleVFS.getInstance( spoon.getExecutionBowl() ).getFileObject( "file:///c:/" );
 
       VfsFileChooserDialog fileChooserDialog =
         Spoon.getInstance().getVfsFileChooserDialog( defaultInitialFile, initialFile );
@@ -1478,12 +1480,12 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     setAlive( !isAlive() );
   }
 
-  public FileObject resolveFile( String fileUri ) throws FileSystemException, KettleFileException {
+  public FileObject resolveFile( Bowl bowl, String fileUri ) throws FileSystemException, KettleFileException {
     VariableSpace vs = getVariableSpace();
     FileSystemOptions opts = new FileSystemOptions();
     DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts,
       new StaticUserAuthenticator( null, getAccessKey(), getSecretKey() ) );
-    FileObject file = KettleVFS.getFileObject( fileUri, vs, opts );
+    FileObject file = KettleVFS.getInstance( bowl ).getFileObject( fileUri, vs, opts );
     return file;
   }
 

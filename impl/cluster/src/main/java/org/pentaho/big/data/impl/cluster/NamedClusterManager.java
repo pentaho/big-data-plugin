@@ -25,6 +25,7 @@ import org.osgi.service.cm.ConfigurationAdmin;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.attributes.metastore.EmbeddedMetaStore;
+import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.osgi.api.NamedClusterSiteFile;
@@ -363,7 +364,8 @@ public class NamedClusterManager implements NamedClusterService {
       // see if metastore was copied to the big data plugin folder (yarn kettle cluster job)
       slaveMetaStorePath = pluginInterface.getPluginDirectory().getPath();
       slaveMetastoreDir =
-        KettleVFS.getFileObject( slaveMetaStorePath + File.separator + XmlUtil.META_FOLDER_NAME );
+        KettleVFS.getInstance( DefaultBowl.getInstance() )
+          .getFileObject( slaveMetaStorePath + File.separator + XmlUtil.META_FOLDER_NAME );
       if ( null != slaveMetastoreDir && slaveMetastoreDir.exists()
         && slaveMetastoreDir.getType().equals( FileType.FOLDER )
         // last condition exists to ensure that this path doesn't get used if two jobs are running on a slave instance
@@ -374,7 +376,7 @@ public class NamedClusterManager implements NamedClusterService {
 
       slaveMetaStorePath = System.getProperty( "user.home" ) + File.separator + ".pentaho";
       slaveMetastoreDir =
-        KettleVFS.getFileObject( slaveMetaStorePath );
+        KettleVFS.getInstance( DefaultBowl.getInstance() ).getFileObject( slaveMetaStorePath );
       if ( null != slaveMetastoreDir && slaveMetastoreDir.exists()
         && slaveMetastoreDir.getType().equals( FileType.FOLDER ) ) {
         return slaveMetaStorePath;
@@ -390,7 +392,8 @@ public class NamedClusterManager implements NamedClusterService {
   private boolean useSlaveMetastorePathFromProperties( String slaveMetaStorePath ) throws FileSystemException {
     FileObject slaveMetastoreDir;
     try {
-      slaveMetastoreDir = KettleVFS.getFileObject( slaveMetaStorePath + File.separator + XmlUtil.META_FOLDER_NAME );
+      slaveMetastoreDir = KettleVFS.getInstance( DefaultBowl.getInstance() )
+        .getFileObject( slaveMetaStorePath + File.separator + XmlUtil.META_FOLDER_NAME );
       return null != slaveMetaStorePath && !slaveMetaStorePath.equals( "" )
         && null != slaveMetastoreDir && slaveMetastoreDir.exists();
     } catch ( KettleFileException e ) {
@@ -429,7 +432,8 @@ public class NamedClusterManager implements NamedClusterService {
       throw new NullPointerException();
     }
     FileObject propFile =
-      KettleVFS.getFileObject( plugin.getPluginDirectory().getPath() + Const.FILE_SEPARATOR + relativeName );
+      KettleVFS.getInstance( DefaultBowl.getInstance() )
+        .getFileObject( plugin.getPluginDirectory().getPath() + Const.FILE_SEPARATOR + relativeName );
     if ( !propFile.exists() ) {
       throw new FileNotFoundException( propFile.toString() );
     }

@@ -93,10 +93,12 @@ public class VfsFileChooserHelper {
     FileObject rootFile = null;
     FileObject initialFile = null;
 
+    Spoon spoon = Spoon.getInstance();
+
     if ( fileUri != null ) {
-      initialFile = KettleVFS.getFileObject( fileUri, variableSpace, opts );
+      initialFile = KettleVFS.getInstance( spoon.getExecutionBowl() ).getFileObject( fileUri, variableSpace, opts );
     } else {
-      initialFile = KettleVFS.getFileObject( Spoon.getInstance().getLastFileOpened() );
+      initialFile = KettleVFS.getInstance( spoon.getExecutionBowl() ).getFileObject( spoon.getLastFileOpened() );
     }
     rootFile = initialFile.getFileSystem().getRoot();
     fileChooserDialog.setRootFile( rootFile );
