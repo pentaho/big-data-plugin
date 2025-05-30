@@ -163,6 +163,19 @@ public class S3CommonPipedOutputStream extends PipedOutputStream {
   }
 
   class S3AsyncTransferRunner implements Callable<Boolean> {
+    private class PartBufferState {
+      byte[] partBuffer;
+      int partBufferPos;
+      int partNum;
+      long offset;
+      PartBufferState( byte[] partBuffer, int partBufferPos, int partNum, long offset ) {
+        this.partBuffer = partBuffer;
+        this.partBufferPos = partBufferPos;
+        this.partNum = partNum;
+        this.offset = offset;
+      }
+    }
+
     public Boolean call() {
       boolean returnVal = true;
       int queueCapacity = Math.max( threadPoolSize * 2, 4 );
@@ -289,39 +302,23 @@ public class S3CommonPipedOutputStream extends PipedOutputStream {
 
     private void produceParts( BufferedInputStream bis, BlockingQueue<PartBuffer> queue, AtomicBoolean producerFailed )
         throws IOException, InterruptedException {
-      byte [] partBuffer = new byte [partSize];
-      int partBufferPos = 0;
-      int partNum = 1;
-      long offset = 0;
-      byte [] tmpBuffer = new byte [64 * 1024];
+      PartBufferState state = new PartBufferState( new byte[partSize], 0, 1, 0 );
+      byte[] tmpBuffer = new byte[64 * 1024];
       int read;
       while ( ( read = bis.read( tmpBuffer ) ) >= 0 ) {
-        PartBufferState state = fillPartBufferAndQueue( tmpBuffer, read, partBuffer, partBufferPos, partNum, offset, queue, producerFailed );
+        state = fillPartBufferAndQueue( tmpBuffer, read, state, queue, producerFailed );
         if ( state == null ) return; // too many parts, abort
-        partBuffer = state.partBuffer;
-        partBufferPos = state.partBufferPos;
-        partNum = state.partNum;
-        offset = state.offset;
       }
-      queueFinalPartialPart( partBuffer, partBufferPos, partNum, offset, queue, producerFailed );
+      queueFinalPartialPart( state.partBuffer, state.partBufferPos, state.partNum, state.offset, queue, producerFailed );
     }
 
-    private class PartBufferState {
-      byte[] partBuffer;
-      int partBufferPos;
-      int partNum;
-      long offset;
-      PartBufferState(byte[] partBuffer, int partBufferPos, int partNum, long offset) {
-        this.partBuffer = partBuffer;
-        this.partBufferPos = partBufferPos;
-        this.partNum = partNum;
-        this.offset = offset;
-      }
-    }
-
-    private PartBufferState fillPartBufferAndQueue( byte [] tmpBuffer, int read, byte [] partBuffer, int partBufferPos, int partNum, long offset,
+    private PartBufferState fillPartBufferAndQueue( byte[] tmpBuffer, int read, PartBufferState state,
         BlockingQueue<PartBuffer> queue, AtomicBoolean producerFailed ) throws InterruptedException {
       int srcPos = 0;
+      byte[] partBuffer = state.partBuffer;
+      int partBufferPos = state.partBufferPos;
+      int partNum = state.partNum;
+      long offset = state.offset;
       while ( srcPos < read ) {
         int space = partSize - partBufferPos;
         int copyLen = Math.min( space, read - srcPos );
@@ -337,7 +334,7 @@ public class S3CommonPipedOutputStream extends PipedOutputStream {
           queue.put( new PartBuffer( partBuffer, partNum, offset, partSize ) );
           partNum++;
           offset += partSize;
-          partBuffer = new byte[partSize]; // allocate new buffer for next part
+          partBuffer = new byte[partSize];
           partBufferPos = 0;
         }
       }
@@ -431,7 +428,7 @@ public class S3CommonPipedOutputStream extends PipedOutputStream {
     }
 
     private List<PartETagWithNum> consumerTask( BlockingQueue<PartBuffer> queue, InitiateMultipartUploadResult finalInitResponse, int consumerId,
-                                                   AtomicBoolean consumerFailed, Throwable [] consumerException ) {
+                                                AtomicBoolean consumerFailed, Throwable [] consumerException ) {
       List<PartETagWithNum> localEtags = new ArrayList<>();
       try {
         while ( true ) {
