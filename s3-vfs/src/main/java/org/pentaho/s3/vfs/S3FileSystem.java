@@ -45,11 +45,12 @@ public class S3FileSystem extends S3CommonFileSystem {
    */
   private static final String MAX_PART_SIZE = "5GB";
 
-  private static final long MIN_PART_SIZE_BYTES = new StorageUnitConverter().displaySizeToByteCount( MIN_PART_SIZE );
-  private static final long MAX_PART_SIZE_BYTES = new StorageUnitConverter().displaySizeToByteCount( MAX_PART_SIZE );
+  private static final StorageUnitConverter STATIC_STORAGE_UNIT_CONVERTER = new StorageUnitConverter();
+  private static final long MIN_PART_SIZE_BYTES = STATIC_STORAGE_UNIT_CONVERTER.displaySizeToByteCount( MIN_PART_SIZE );
+  private static final long MAX_PART_SIZE_BYTES = STATIC_STORAGE_UNIT_CONVERTER.displaySizeToByteCount( MAX_PART_SIZE );
 
   protected S3FileSystem( final FileName rootName, final FileSystemOptions fileSystemOptions ) {
-    this( rootName, fileSystemOptions, new StorageUnitConverter(), new S3KettleProperty() );
+    this( rootName, fileSystemOptions, STATIC_STORAGE_UNIT_CONVERTER, new S3KettleProperty() );
   }
 
   protected S3FileSystem( final FileName rootName, final FileSystemOptions fileSystemOptions,

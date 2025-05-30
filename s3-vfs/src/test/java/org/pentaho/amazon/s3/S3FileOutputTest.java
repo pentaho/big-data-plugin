@@ -20,16 +20,17 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.KettleEnvironment;
+import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LoggingObjectInterface;
 import org.pentaho.di.trans.steps.mock.StepMockHelper;
 import org.pentaho.di.trans.steps.textfileoutput.TextFileOutputData;
+import org.pentaho.s3common.TestCleanupUtil;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.anyObject;
 import static org.mockito.Mockito.never;
 
 public class S3FileOutputTest {
@@ -39,22 +40,14 @@ public class S3FileOutputTest {
   private S3FileOutputMeta smi;
 
   @BeforeClass
-  public static void setClassUp() throws Exception {
+  public static void setClassUp() throws KettleException {
     KettleEnvironment.init();
   }
 
   @AfterClass
   public static void tearDownClass() {
     KettleEnvironment.shutdown();
-
-    // Clean up logs directory created by KettleEnvironment
-    java.io.File logsDir = new java.io.File( "logs" );
-    if ( logsDir.exists() && logsDir.isDirectory() ) {
-      for ( java.io.File f : logsDir.listFiles() ) {
-        f.delete();
-      }
-      logsDir.delete();
-    }
+    TestCleanupUtil.cleanUpLogsDir();
   }
 
   @Before
@@ -66,7 +59,7 @@ public class S3FileOutputTest {
       stepMockHelper.logChannelInterface );
     verify( stepMockHelper.logChannelInterface, never() ).logError( anyString() );
     verify( stepMockHelper.logChannelInterface, never() ).logError( anyString(), any( Object[].class ) );
-    verify( stepMockHelper.logChannelInterface, never() ).logError( anyString(), (Throwable) anyObject() );
+    verify( stepMockHelper.logChannelInterface, never() ).logError( anyString(), any( Throwable.class ) );
     when( stepMockHelper.trans.isRunning() ).thenReturn( true );
     verify( stepMockHelper.trans, never() ).stopAll();
 

@@ -21,6 +21,7 @@ import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.xml.XMLHandler;
+import org.pentaho.s3common.TestCleanupUtil;
 
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Document;
@@ -38,15 +39,7 @@ public class S3FileOutputMetaTest {
   @AfterClass
   public static void tearDownClass() {
     KettleEnvironment.shutdown();
-
-    // Clean up logs directory created by KettleEnvironment
-    java.io.File logsDir = new java.io.File( "logs" );
-    if ( logsDir.exists() && logsDir.isDirectory() ) {
-      for ( java.io.File f : logsDir.listFiles() ) {
-        f.delete();
-      }
-      logsDir.delete();
-    }
+    TestCleanupUtil.cleanUpLogsDir();
   }
 
   @Before

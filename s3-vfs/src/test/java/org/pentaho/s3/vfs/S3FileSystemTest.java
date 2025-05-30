@@ -32,6 +32,7 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.util.StorageUnitConverter;
 import org.pentaho.s3common.S3CommonFileSystemTestUtil;
 import org.pentaho.s3common.S3KettleProperty;
+import org.pentaho.s3common.TestCleanupUtil;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -56,15 +57,7 @@ public class S3FileSystemTest {
   @AfterClass
   public static void tearDownClass() {
     KettleEnvironment.shutdown();
-
-    // Clean up logs directory created by KettleEnvironment
-    java.io.File logsDir = new java.io.File( "logs" );
-    if ( logsDir.exists() && logsDir.isDirectory() ) {
-      for ( java.io.File f : logsDir.listFiles() ) {
-        f.delete();
-      }
-      logsDir.delete();
-    }
+    TestCleanupUtil.cleanUpLogsDir();
   }
 
   @Before
