@@ -29,6 +29,7 @@ import org.pentaho.s3common.S3CommonPipedOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
@@ -104,10 +105,12 @@ public class S3FileObject extends S3CommonFileObject {
   }
 
   @Override
-  protected OutputStream doGetOutputStream( boolean bAppend ) throws Exception {
+  protected OutputStream doGetOutputStream( boolean bAppend ) throws IOException {
     SimpleEntry<String, String> newPath = fixFilePath( key, bucketName );
+    S3FileSystem s3FileSystem = (S3FileSystem) this.fileSystem;
     return new S3CommonPipedOutputStream( this.fileSystem, newPath.getValue(), newPath.getKey(),
-            ( (S3FileSystem) this.fileSystem ).getPartSize() );
+            s3FileSystem.getPartSize(),
+            s3FileSystem.getThreadPoolSize() );
   }
 
   @Override
