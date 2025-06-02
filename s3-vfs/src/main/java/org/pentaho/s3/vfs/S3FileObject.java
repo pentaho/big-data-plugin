@@ -28,6 +28,7 @@ import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.pentaho.di.connections.vfs.provider.ConnectionFileObject;
 import org.pentaho.s3common.S3CommonFileObject;
+import org.pentaho.s3common.S3CommonMultipartCopier;
 import org.pentaho.s3common.S3CommonPipedOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +36,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
 
 import static java.util.AbstractMap.SimpleEntry;
@@ -192,33 +192,38 @@ public class S3FileObject extends S3CommonFileObject {
     }
     S3FileObject dst = this;
 
-    // Compare bucket names and region (if available) to determine if both are in the same S3 root
-    String srcBucket = src.bucketName;
-    String dstBucket = dst.bucketName;
-    boolean sameBucket = srcBucket != null && srcBucket.equals( dstBucket );
-    boolean sameRegion = true;
-    try {
-      String srcRegion = src.fileSystem.getS3Client().getBucketLocation( srcBucket );
-      String dstRegion = dst.fileSystem.getS3Client().getBucketLocation( dstBucket );
-      sameRegion = srcRegion != null && srcRegion.equals( dstRegion );
-    } catch ( Exception e ) {
-      logger.warn( "Could not determine S3 bucket region, proceeding with bucket name check only: {}", e.getMessage(), e );
-    }
-
-    if ( sameBucket && sameRegion ) {
+    if ( isSameBucket( src, dst ) && isSameRegion( src, dst ) ) {
       // Check if both source and destination objects exist and are files (not folders)
       try {
         if ( src.getType().hasContent() && dst.getType().hasContent() ) {
           logger.info( "Attempting S3→S3 server-side multipart copy from {} to {}", src.getQualifiedName(), dst.getQualifiedName() );
-          org.pentaho.s3common.S3CommonMultipartCopier.multipartCopy( src, dst, logger );
+          S3CommonMultipartCopier.multipartCopy( src, dst, logger );
           return;
         }
-      } catch ( Exception e ) {
+      } catch ( FileSystemException | SdkClientException e ) {
         logger.warn( "S3→S3 multipart copy failed, falling back to default copy: {}", e.getMessage(), e );
         // fallback to default
       }
     }
+
     // Fallback to default implementation
     super.copyFrom( file, selector );
+  }
+
+  private boolean isSameBucket( S3FileObject src, S3FileObject dst ) {
+    String srcBucket = src.bucketName;
+    String dstBucket = dst.bucketName;
+    return srcBucket != null && srcBucket.equals( dstBucket );
+  }
+
+  private boolean isSameRegion( S3FileObject src, S3FileObject dst ) {
+    try {
+      String srcRegion = src.fileSystem.getS3Client().getBucketLocation( src.bucketName );
+      String dstRegion = dst.fileSystem.getS3Client().getBucketLocation( dst.bucketName );
+      return srcRegion != null && srcRegion.equals( dstRegion );
+    } catch ( SdkClientException e ) {
+      logger.warn( "Could not determine S3 bucket region, proceeding with bucket name check only: {}", e.getMessage(), e );
+      return true; // fallback to bucket name only
+    }
   }
 }
