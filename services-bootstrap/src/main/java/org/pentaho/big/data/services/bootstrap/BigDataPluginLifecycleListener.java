@@ -16,6 +16,10 @@ import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterService
 import org.pentaho.big.data.impl.shim.format.FormatServiceFactory;
 import org.pentaho.big.data.impl.shim.mapreduce.MapReduceServiceFactoryImpl;
 import org.pentaho.big.data.impl.shim.mapreduce.TransformationVisitorService;
+import org.pentaho.big.data.impl.vfs.hdfs.AzureHdInsightsFileNameParser;
+import org.pentaho.big.data.impl.vfs.hdfs.HDFSFileNameParser;
+import org.pentaho.big.data.impl.vfs.hdfs.MapRFileNameParser;
+import org.pentaho.big.data.impl.vfs.hdfs.nc.NamedClusterProvider;
 import org.pentaho.di.core.annotations.LifecyclePlugin;
 import org.pentaho.di.core.lifecycle.LifecycleListener;
 import org.pentaho.di.core.lifecycle.LifeEventHandler;
@@ -59,6 +63,7 @@ public class BigDataPluginLifecycleListener implements LifecycleListener{
                   new HadoopFileSystemFactoryImpl( hadoopConfiguration.getHadoopShim(), hadoopConfiguration.getHadoopShim().getShimIdentifier() );
           List<HadoopFileSystemFactory> hadoopFileSystemFactoryList = new ArrayList<>();
           hadoopFileSystemFactoryList.add( hadoopFileSystemFactory );
+          // TODO: Move the HadoopFileSystemLocatorImpl to a singleton
           HadoopFileSystemLocatorImpl hadoopFileSystemLocator = new HadoopFileSystemLocatorImpl( hadoopFileSystemFactoryList );
 
           // 2. Set up the namedClusterService (NamedClusterService)
@@ -67,8 +72,22 @@ public class BigDataPluginLifecycleListener implements LifecycleListener{
           // 3. Set up the hdfsFileNameParser (HDFSFileNameParser)
           // Not needed, moved to HDFSFileProvider constructor
 
-          // 4. Set up the HDFSFileProvider for schema=hdfs
-          HDFSFileProvider hdfsHDFSFileProvider = new HDFSFileProvider( hadoopFileSystemLocator, "hdfs");
+          // 4. Set up new HDFSFileProviders based on old big-data-plugin/impl/vfs/hdfs/src/main/resources/OSGI-INF/blueprint/blueprint.xml:
+          // schema=hdfs
+          HDFSFileProvider hdfsHDFSFileProvider = new HDFSFileProvider( hadoopFileSystemLocator, "hdfs", HDFSFileNameParser.getInstance() );
+          // schema=maprfs
+          HDFSFileProvider maprfsHDFSFileProvider = new HDFSFileProvider( hadoopFileSystemLocator, "maprfs", MapRFileNameParser.getInstance() );
+          // schema=escalefs
+          HDFSFileProvider escalefsHDFSFileProvider = new HDFSFileProvider( hadoopFileSystemLocator, "escalefs", MapRFileNameParser.getInstance() );
+          // schema=wasb
+          HDFSFileProvider wasbHDFSFileProvider = new HDFSFileProvider( hadoopFileSystemLocator, "wasb", AzureHdInsightsFileNameParser.getInstance() );
+          // schema=wasbs
+          HDFSFileProvider wasbsHDFSFileProvider = new HDFSFileProvider( hadoopFileSystemLocator, "wasbs", AzureHdInsightsFileNameParser.getInstance() );
+          // schema=abfs
+          HDFSFileProvider abfsHDFSFileProvider = new HDFSFileProvider( hadoopFileSystemLocator, "abfs", AzureHdInsightsFileNameParser.getInstance() );
+
+          // 5. Set up a NamedClusterProvider for the "hc" schema
+          NamedClusterProvider namedClusterProvider = new NamedClusterProvider( hadoopFileSystemLocator, "hc", HDFSFileNameParser.getInstance() );
 
           //////////////////////////////////////////////////////////////////////////////////
           /// Bootstrap the common format service factories
