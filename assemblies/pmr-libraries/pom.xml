@@ -435,10 +435,6 @@
       <artifactId>commons-compress</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.karaf</groupId>
-      <artifactId>org.apache.karaf.main</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-collections4</artifactId>
       <version>4.1</version>
@@ -805,23 +801,8 @@
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
-      <artifactId>pdi-osgi-bridge-core</artifactId>
-      <version>${pdi-osgi-bridge.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.osgi</groupId>
-      <artifactId>osgi.core</artifactId>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
       <artifactId>simple-jndi</artifactId>
       <version>${simple-jndi.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-osgi-utils-api</artifactId>
-      <version>${pentaho-osgi-bundles.version}</version>
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
@@ -1026,20 +1007,6 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.apache.karaf.jaas</groupId>
-      <artifactId>org.apache.karaf.jaas.boot</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.karaf.diagnostic</groupId>
-      <artifactId>org.apache.karaf.diagnostic.boot</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hitachivantara.karaf.assemblies</groupId>
-      <artifactId>pmr</artifactId>
-      <version>${pentaho-karaf.version}</version>
-      <type>zip</type>
-    </dependency>
-    <dependency>
       <groupId>org.apache.kafka</groupId>
       <artifactId>kafka-clients</artifactId>
     </dependency>
@@ -1085,28 +1052,6 @@
           </execution>
         </executions>
         <inherited>false</inherited>
-      </plugin>
-      <plugin>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>unpack</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>unpack</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.hitachivantara.karaf.assemblies</groupId>
-                  <artifactId>pmr</artifactId>
-                  <type>zip</type>
-                  <outputDirectory>target/dependencies/karaf</outputDirectory>
-                </artifactItem>
-              </artifactItems>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>

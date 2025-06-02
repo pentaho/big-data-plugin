@@ -6,10 +6,6 @@
   </formats>
   <fileSets>
     <fileSet>
-      <directory>target/dependencies/karaf</directory>
-      <outputDirectory>system/karaf</outputDirectory>
-    </fileSet>
-    <fileSet>
       <directory>target/classes</directory>
       <outputDirectory>.</outputDirectory>
     </fileSet>
@@ -116,9 +112,6 @@
         <include>ognl:ognl</include>
         <include>org.antlr:antlr-complete</include>
         <include>org.apache.commons:commons-compress</include>
-        <include>org.apache.karaf:org.apache.karaf.main</include>
-        <include>org.apache.karaf.jaas:org.apache.karaf.jaas.boot</include>
-        <include>org.apache.karaf.diagnostic:org.apache.karaf.diagnostic.boot</include>
         <include>org.apache.poi:poi</include>
         <include>org.apache.poi:poi-ooxml</include>
         <include>org.apache.poi:poi-ooxml-schemas</include>
@@ -202,8 +195,6 @@
         <include>org.pentaho.reporting.library:libserializer</include>
         <include>org.pentaho.reporting.library:libswing</include>
         <include>org.pentaho.reporting.library:libxml</include>
-        <include>pentaho:pdi-osgi-bridge-core</include>
-        <include>org.osgi:osgi.core</include>
         <include>pentaho:pentaho-platform-api</include>
         <include>pentaho:pentaho-platform-core</include>
         <include>pentaho:pentaho-platform-extensions</include>
@@ -213,7 +204,6 @@
         <include>pentaho:pentaho-capability-manager</include>
         <include>org.pentaho:commons-database-model</include>
         <include>org.pentaho:pentaho-metadata</include>
-        <include>pentaho:pentaho-osgi-utils-api</include>
         <include>org.pentaho:shim-api-core</include>
         <include>org.pentaho:pentaho-registry</include>
         <include>pentaho:simple-jndi</include>
