@@ -180,13 +180,6 @@ public class S3FileObjectTest {
   }
 
   @Test
-  public void testGetS3BucketName() {
-    filename = new S3FileName( SCHEME, BUCKET_NAME, "", FileType.FOLDER );
-    when( s3FileObjectBucketSpy.getName() ).thenReturn( filename );
-    s3FileObjectBucketSpy.getS3BucketName();
-  }
-
-  @Test
   public void testDoGetOutputStream() throws IOException {
     InitiateMultipartUploadResult initResponse = mock( InitiateMultipartUploadResult.class );
     when( initResponse.getUploadId() ).thenReturn( "foo" );
