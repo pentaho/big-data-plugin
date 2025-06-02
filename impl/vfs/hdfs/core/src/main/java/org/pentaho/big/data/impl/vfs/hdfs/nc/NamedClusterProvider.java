@@ -20,6 +20,7 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.FileNameParser;
 import org.apache.commons.vfs2.provider.GenericFileName;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.impl.vfs.hdfs.HDFSFileProvider;
 import org.pentaho.di.core.osgi.api.VfsEmbeddedFileSystemCloser;
 import org.pentaho.di.core.variables.Variables;
@@ -61,6 +62,15 @@ public class NamedClusterProvider extends HDFSFileProvider implements VfsEmbedde
         metaStore );
   }
 
+  public NamedClusterProvider( HadoopFileSystemLocator hadoopFileSystemLocator,
+                               String schema ,
+                               FileNameParser fileNameParser) throws FileSystemException {
+    this( hadoopFileSystemLocator,
+            NamedClusterManager.getInstance(),
+            fileNameParser,
+            schema
+    );
+  }
   public NamedClusterProvider( HadoopFileSystemLocator hadoopFileSystemLocator,
                                NamedClusterService namedClusterService,
                                FileNameParser fileNameParser,
