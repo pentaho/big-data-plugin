@@ -87,9 +87,9 @@ public class HDFSFileProvider extends AbstractOriginatingFileProvider {
       new String[] { SCHEME, MAPRFS }, metaStore );
   }
 
-  public HDFSFileProvider( HadoopFileSystemLocator hadoopFileSystemLocator, String schema )
+  public HDFSFileProvider( HadoopFileSystemLocator hadoopFileSystemLocator, String schema, FileNameParser fileNameParser )
     throws FileSystemException {
-    this( hadoopFileSystemLocator, NamedClusterManager.getInstance(), HDFSFileNameParser.getInstance(), schema );
+    this( hadoopFileSystemLocator, NamedClusterManager.getInstance(), fileNameParser, schema );
   }
 
   public HDFSFileProvider( HadoopFileSystemLocator hadoopFileSystemLocator, NamedClusterService namedClusterService,
