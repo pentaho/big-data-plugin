@@ -13,6 +13,21 @@
 
 package org.pentaho.s3common;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileType;
+import org.apache.commons.vfs2.provider.AbstractFileName;
+import org.apache.commons.vfs2.provider.AbstractFileObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
@@ -23,29 +38,16 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
-import org.apache.commons.vfs2.FileType;
-import org.apache.commons.vfs2.provider.AbstractFileName;
-import org.apache.commons.vfs2.provider.AbstractFileObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFileSystem> {
 
   private static final Logger logger = LoggerFactory.getLogger( S3CommonFileObject.class );
   public static final String DELIMITER = "/";
 
-  protected S3CommonFileSystem fileSystem;
-  protected String bucketName;
+  protected final S3CommonFileSystem fileSystem;
+  protected final String bucketName;
   protected String key;
+
   protected S3Object s3Object;
   protected ObjectMetadata s3ObjectMetadata;
 
@@ -81,10 +83,10 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
         }
 
         if ( !exists() ) {
-          OutputStream outputStream = getOutputStream();
-          //Force to write an empty array to force file creation on S3 bucket
-          outputStream.write( new byte[] {} );
-          outputStream.close();
+          try ( OutputStream outputStream = getOutputStream() ) {
+            //Force to write an empty array to force file creation on S3 bucket
+            outputStream.write( new byte[] {} );
+          }
           endOutput();
         }
       } catch ( final RuntimeException re ) {
@@ -113,7 +115,7 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
     return childrenList.toArray( childrenArr );
   }
 
-  protected String getS3BucketName() {
+  private final String getS3BucketName() {
     String bucket = getName().getPath();
     if ( bucket.indexOf( DELIMITER, 1 ) > 1 ) {
       // this file is a file, to get the bucket, remove the name from the path
@@ -179,7 +181,7 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
     }
   }
 
-  protected String getBucketRelativeS3Path() {
+  private final String getBucketRelativeS3Path() {
     if ( getName().getPath().indexOf( DELIMITER, 1 ) >= 0 ) {
       return getName().getPath().substring( getName().getPath().indexOf( DELIMITER, 1 ) + 1 );
     } else {

@@ -26,7 +26,7 @@ import org.apache.commons.vfs2.FileSelector;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.provider.AbstractFileName;
-import org.pentaho.di.connections.vfs.provider.ResolvedConnectionFileObject;
+import org.pentaho.di.connections.vfs.provider.ConnectionFileObject;
 import org.pentaho.s3common.S3CommonFileObject;
 import org.pentaho.s3common.S3CommonPipedOutputStream;
 import org.slf4j.Logger;
@@ -46,22 +46,6 @@ public class S3FileObject extends S3CommonFileObject {
 
   protected S3FileObject( final AbstractFileName name, final S3FileSystem fileSystem ) {
     super( name, fileSystem );
-    //bucket name needs to be adjusted
-    this.bucketName = getS3BucketName();
-  }
-
-  @Override
-  protected String getS3BucketName() {
-    String s3BucketName = getName().getPath();
-    if ( s3BucketName.indexOf( DELIMITER, 1 ) > 1 ) {
-      // this file is a file, to get the bucket, remove the name from the path
-      //aws-sdk-version 1.12.460 or later requires bucket name without special character "/" -> https://github.com/aws/aws-sdk-java/discussions/2976
-      s3BucketName = s3BucketName.substring( 1, s3BucketName.indexOf( DELIMITER, 1 ) );
-    } else {
-      // this file is a bucket
-      s3BucketName = s3BucketName.replaceAll( DELIMITER, "" );
-    }
-    return s3BucketName;
   }
 
   @Override
@@ -183,15 +167,15 @@ public class S3FileObject extends S3CommonFileObject {
   /**
    * Attempts to extract an S3FileObject from a FileObject, including wrappers like ResolvedConnectionFileObject (via reflection for getResolvedFileObject()).
    */
-  private S3FileObject extractDelegateS3FileObject(FileObject file) {
-    if (file instanceof S3FileObject) {
+  private S3FileObject extractDelegateS3FileObject( FileObject file ) {
+    if ( file instanceof S3FileObject ) {
       return (S3FileObject) file;
     }
-    if ( file instanceof ResolvedConnectionFileObject) {
+    if ( file instanceof ConnectionFileObject ) {
       // If it's a ResolvedConnectionFileObject, we can try to get the underlying S3FileObject
-      ResolvedConnectionFileObject resolved = (ResolvedConnectionFileObject) file;
+      ConnectionFileObject resolved = (ConnectionFileObject) file;
       FileObject delegate = resolved.getResolvedFileObject();
-      if (delegate instanceof S3FileObject) {
+      if ( delegate instanceof S3FileObject ) {
         return (S3FileObject) delegate;
       }
     }
@@ -199,9 +183,9 @@ public class S3FileObject extends S3CommonFileObject {
   }
 
   @Override
-  public void copyFrom(final FileObject file, final FileSelector selector ) throws FileSystemException {
+  public void copyFrom( final FileObject file, final FileSelector selector ) throws FileSystemException {
     S3FileObject src = extractDelegateS3FileObject( file );
-    if ( src == null ) {
+    if ( src == null || ( src.getType() != this.getType() ) ) {
       // Fallback to default implementation for non-S3 sources or wrappers
       super.copyFrom( file, selector );
       return;
@@ -226,7 +210,7 @@ public class S3FileObject extends S3CommonFileObject {
       try {
         if ( src.getType().hasContent() && dst.getType().hasContent() ) {
           logger.info( "Attempting S3→S3 server-side multipart copy from {} to {}", src.getQualifiedName(), dst.getQualifiedName() );
-          org.pentaho.s3common.S3CommonMultipartCopier.multipartCopy(src, dst, logger);
+          org.pentaho.s3common.S3CommonMultipartCopier.multipartCopy( src, dst, logger );
           return;
         }
       } catch ( Exception e ) {
