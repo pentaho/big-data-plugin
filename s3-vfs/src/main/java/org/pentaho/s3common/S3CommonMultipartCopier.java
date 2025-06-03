@@ -63,88 +63,79 @@ public class S3CommonMultipartCopier {
    * @throws FileSystemException if copy fails
    */
   public void multipartCopy( S3FileObject src, S3FileObject dst ) throws FileSystemException {
-    String srcBucket = src.bucketName;
-    String srcKey = src.key;
-    String dstBucket = dst.bucketName;
-    String dstKey = dst.key;
-
     try {
-      ObjectMetadata srcMeta = getObjectMetadata( src, srcBucket, srcKey );
+      ObjectMetadata srcMeta = getObjectMetadata( src );
 
       long contentLength = srcMeta.getContentLength();
       if ( contentLength < partSize ) {
-        performSimpleCopy( src, dst, srcBucket, srcKey, dstBucket, dstKey );
+      performSimpleCopy( src, dst );
       } else {
-        performMultipartCopy( src, dst, srcBucket, srcKey, dstBucket, dstKey, contentLength );
+      performMultipartCopy( src, dst, contentLength );
       }
     } catch ( AmazonS3Exception e ) {
-      logger.error( "S3→S3 server-side copy failed: {} → {}: {}", src.getQualifiedName(), dst.getQualifiedName(), e.getMessage(), e );
       throw new FileSystemException( "vfs.provider.s3/copy-server-side.error", src.getQualifiedName(), dst.getQualifiedName(), e );
     } catch ( Exception e ) {
-      logger.error( "Unexpected error during S3→S3 server-side copy: {} → {}: {}", src.getQualifiedName(), dst.getQualifiedName(), e.getMessage(), e );
       throw new FileSystemException( "vfs.provider.s3/copy-server-side.error", src.getQualifiedName(), dst.getQualifiedName(), e );
     }
   }
 
-  private static ObjectMetadata getObjectMetadata( S3FileObject src, String bucket, String key ) {
-    return src.fileSystem.getS3Client().getObjectMetadata( bucket, key );
+  private static ObjectMetadata getObjectMetadata( S3FileObject src ) {
+    return src.fileSystem.getS3Client().getObjectMetadata( src.bucketName, src.key );
   }
 
-  private static void performSimpleCopy( S3FileObject src, S3FileObject dst, String srcBucket, String srcKey, String dstBucket, String dstKey ) {
-    CopyObjectRequest copyRequest = new CopyObjectRequest( srcBucket, srcKey, dstBucket, dstKey );
+  private static void performSimpleCopy( S3FileObject src, S3FileObject dst ) {
+    CopyObjectRequest copyRequest = new CopyObjectRequest( src.bucketName, src.key, src.bucketName, src.key );
     dst.fileSystem.getS3Client().copyObject( copyRequest );
     logger.info( "S3→S3 server-side copy succeeded: {} → {}", src.getQualifiedName(), dst.getQualifiedName() );
   }
 
-  private void performMultipartCopy( S3FileObject src, S3FileObject dst, String srcBucket, String srcKey, String dstBucket, String dstKey,
-                                            long contentLength ) throws Exception {
+  private void performMultipartCopy( S3FileObject src, S3FileObject dst, long contentLength ) throws FileSystemException {
     logger.info( "S3→S3 multipart copy initiated for large file: {} ({} bytes)", src.getQualifiedName(), contentLength );
-    String uploadId = initiateMultipartUpload( dst, dstBucket, dstKey );
+    String uploadId = initiateMultipartUpload( dst );
     List<PartETag> partETags = new ArrayList<>();
     ExecutorService executor = Executors.newFixedThreadPool( threadPoolSize );
     List<Future<PartETag>> futures = new ArrayList<>();
     try {
-      submitCopyPartTasks( src, dst, srcBucket, srcKey, dstBucket, dstKey, uploadId, contentLength, executor, futures );
+      submitCopyPartTasks( src, dst, uploadId, contentLength, executor, futures );
       for ( Future<PartETag> future : futures ) {
-        partETags.add( future.get() );
+      partETags.add( future.get() );
       }
       executor.shutdown();
-      completeMultipartUpload( dst, dstBucket, dstKey, uploadId, partETags );
+      completeMultipartUpload( dst, uploadId, partETags );
     } catch ( Exception e ) {
-      logger.error( "S3→S3 multipart copy failed, aborting upload: {} → {}: {}", src.getQualifiedName(), dst.getQualifiedName(), e.getMessage(), e );
-      abortMultipartUpload( dst, dstBucket, dstKey, uploadId );
+      abortMultipartUpload( dst, uploadId );
       executor.shutdownNow();
-      throw e;
+      throw new FileSystemException( "vfs.provider.s3/copy-server-side.error", src.getQualifiedName(), dst.getQualifiedName(), e );
     }
   }
 
-  private static String initiateMultipartUpload( S3FileObject dst, String dstBucket, String dstKey ) {
-    InitiateMultipartUploadRequest initRequest = new InitiateMultipartUploadRequest( dstBucket, dstKey );
+  private static String initiateMultipartUpload( S3FileObject dst ) {
+    InitiateMultipartUploadRequest initRequest = new InitiateMultipartUploadRequest( dst.bucketName, dst.key );
     InitiateMultipartUploadResult initResponse = dst.fileSystem.getS3Client().initiateMultipartUpload( initRequest );
     return initResponse.getUploadId();
   }
 
-  private void submitCopyPartTasks( S3FileObject src, S3FileObject dst, String srcBucket, String srcKey, String dstBucket, String dstKey,
-                                           String uploadId, long contentLength, ExecutorService executor, List<Future<PartETag>> futures ) {
+  private void submitCopyPartTasks( S3FileObject src, S3FileObject dst, String uploadId, long contentLength,
+                                    ExecutorService executor, List<Future<PartETag>> futures ) {
     long bytePosition = 0;
     int partNumber = 1;
     while ( bytePosition < contentLength ) {
       final long firstByte = bytePosition;
       final long lastByte = Math.min( bytePosition + partSize - 1, contentLength - 1 );
       final int thisPartNumber = partNumber;
-      futures.add( executor.submit( () -> copyPart( dst, srcBucket, srcKey, dstBucket, dstKey, uploadId, firstByte, lastByte, thisPartNumber ) ) );
+      futures.add( executor.submit( () -> copyPart( src, dst, uploadId, firstByte, lastByte, thisPartNumber ) ) );
       bytePosition += partSize;
       partNumber++;
     }
   }
 
-  private static PartETag copyPart( S3FileObject dst, String srcBucket, String srcKey, String dstBucket, String dstKey, String uploadId,
+  private static PartETag copyPart( S3FileObject src, S3FileObject dst, String uploadId,
                                     long firstByte, long lastByte, int partNumber ) {
     CopyPartRequest copyPartRequest = new CopyPartRequest()
-      .withSourceBucketName( srcBucket )
-      .withSourceKey( srcKey )
-      .withDestinationBucketName( dstBucket )
-      .withDestinationKey( dstKey )
+      .withSourceBucketName( src.bucketName )
+      .withSourceKey( src.key )
+      .withDestinationBucketName( dst.bucketName )
+      .withDestinationKey( dst.key )
       .withFirstByte( firstByte )
       .withLastByte( lastByte )
       .withUploadId( uploadId )
@@ -154,14 +145,14 @@ public class S3CommonMultipartCopier {
     return copyPartResult.getPartETag();
   }
 
-  private static void completeMultipartUpload( S3FileObject dst, String dstBucket, String dstKey, String uploadId,
+  private static void completeMultipartUpload( S3FileObject dst, String uploadId,
                                                List<PartETag> partETags ) {
-    CompleteMultipartUploadRequest compRequest = new CompleteMultipartUploadRequest( dstBucket, dstKey, uploadId, partETags );
+    CompleteMultipartUploadRequest compRequest = new CompleteMultipartUploadRequest( dst.bucketName, dst.key, uploadId, partETags );
     dst.fileSystem.getS3Client().completeMultipartUpload( compRequest );
-    logger.info( "S3→S3 multipart copy succeeded: {} → {}", dstBucket + "/" + dstKey, dst.getQualifiedName() );
+    logger.info( "S3→S3 multipart copy succeeded: {}/{} → {}", dst.bucketName, dst.key, dst.getQualifiedName() );
   }
 
-  private static void abortMultipartUpload( S3FileObject dst, String dstBucket, String dstKey, String uploadId ) {
-    dst.fileSystem.getS3Client().abortMultipartUpload( new AbortMultipartUploadRequest( dstBucket, dstKey, uploadId ) );
+  private static void abortMultipartUpload( S3FileObject dst, String uploadId ) {
+    dst.fileSystem.getS3Client().abortMultipartUpload( new AbortMultipartUploadRequest( dst.bucketName, dst.key, uploadId ) );
   }
 }
