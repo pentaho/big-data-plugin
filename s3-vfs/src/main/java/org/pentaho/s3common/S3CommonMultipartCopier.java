@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.CopyPartRequest;
@@ -22,10 +21,6 @@ import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PartETag;
 
-/**
- * Utility for performing S3→S3 multipart copy operations, with support for multithreading.
- * Refactored for readability and testability.
- */
 public class S3CommonMultipartCopier {
 
   private static final Class<?> PKG = S3CommonMultipartCopier.class;
@@ -72,8 +67,6 @@ public class S3CommonMultipartCopier {
       } else {
       performMultipartCopy( src, dst, contentLength );
       }
-    } catch ( AmazonS3Exception e ) {
-      throw new FileSystemException( "vfs.provider.s3/copy-server-side.error", src.getQualifiedName(), dst.getQualifiedName(), e );
     } catch ( Exception e ) {
       throw new FileSystemException( "vfs.provider.s3/copy-server-side.error", src.getQualifiedName(), dst.getQualifiedName(), e );
     }
@@ -89,7 +82,7 @@ public class S3CommonMultipartCopier {
     logger.info( "S3→S3 server-side copy succeeded: {} → {}", src.getQualifiedName(), dst.getQualifiedName() );
   }
 
-  private void performMultipartCopy( S3FileObject src, S3FileObject dst, long contentLength ) throws FileSystemException {
+  private void performMultipartCopy( S3FileObject src, S3FileObject dst, long contentLength ) throws FileSystemException, InterruptedException {
     logger.info( "S3→S3 multipart copy initiated for large file: {} ({} bytes)", src.getQualifiedName(), contentLength );
     String uploadId = initiateMultipartUpload( dst );
     List<PartETag> partETags = new ArrayList<>();
@@ -98,10 +91,22 @@ public class S3CommonMultipartCopier {
     try {
       submitCopyPartTasks( src, dst, uploadId, contentLength, executor, futures );
       for ( Future<PartETag> future : futures ) {
-      partETags.add( future.get() );
+        try {
+          partETags.add( future.get() );
+        } catch ( InterruptedException ie ) {
+          abortMultipartUpload( dst, uploadId );
+          executor.shutdownNow();
+          Thread.currentThread().interrupt();
+          throw ie;
+        }
       }
       executor.shutdown();
       completeMultipartUpload( dst, uploadId, partETags );
+    } catch ( InterruptedException ie ) {
+      abortMultipartUpload( dst, uploadId );
+      executor.shutdownNow();
+      Thread.currentThread().interrupt();
+      throw ie;
     } catch ( Exception e ) {
       abortMultipartUpload( dst, uploadId );
       executor.shutdownNow();
