@@ -20,9 +20,9 @@ import org.pentaho.big.data.impl.vfs.hdfs.AzureHdInsightsFileNameParser;
 import org.pentaho.big.data.impl.vfs.hdfs.HDFSFileNameParser;
 import org.pentaho.big.data.impl.vfs.hdfs.MapRFileNameParser;
 import org.pentaho.big.data.impl.vfs.hdfs.nc.NamedClusterProvider;
-import org.pentaho.di.core.annotations.LifecyclePlugin;
-import org.pentaho.di.core.lifecycle.LifecycleListener;
-import org.pentaho.di.core.lifecycle.LifeEventHandler;
+import org.pentaho.di.core.annotations.KettleLifecyclePlugin;
+import org.pentaho.di.core.lifecycle.KettleLifecycleListener;
+import org.pentaho.di.core.lifecycle.LifecycleException;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.hadoop.shim.HadoopConfigurationLocator;
@@ -41,13 +41,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
-@LifecyclePlugin( id = "BigDataPlugin", name = "Big Data Plugin" )
-public class BigDataPluginLifecycleListener implements LifecycleListener{
+@KettleLifecyclePlugin( id = "BigDataPlugin", name = "Big Data Plugin" )
+public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
 
   private LogChannel log = new LogChannel( this );
 
   @Override
-  public void onStart( LifeEventHandler handler ) {
+  public void onEnvironmentInit() throws LifecycleException {
       log.logDebug( "Starting Pentaho Big Data Plugin kettle lifecycle listener." );
       try {
           //////////////////////////////////////////////////////////////////////////////////
@@ -137,7 +137,7 @@ public class BigDataPluginLifecycleListener implements LifecycleListener{
   }
 
   @Override
-  public void onExit( LifeEventHandler handler ) {
+  public void onEnvironmentShutdown() {
       // No action needed on exit
   }
 }
