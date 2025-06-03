@@ -45,10 +45,10 @@ import com.amazonaws.services.s3.model.UploadPartRequest;
 public class S3CommonPipedOutputStream extends PipedOutputStream {
 
   private static final Class<?> PKG = S3CommonPipedOutputStream.class;
-  private static final Logger logger = LoggerFactory.getLogger( S3CommonPipedOutputStream.class );
+  private static final Logger logger = LoggerFactory.getLogger( PKG );
   private static final LogChannelInterface consoleLog = new LogChannel( BaseMessages.getString( PKG, "TITLE.S3File" ) );
 
-  public static final int DEFAULT_PART_SIZE = 128 * 1024 * 1024; // Minimum part size is 5MB, but we use 128MB for better performance
+  public static final int DEFAULT_PART_SIZE = 100 * 1024 * 1024; // 100MB, as recomended by AWS
   public static final int DEFAULT_THREAD_POOL_SIZE = 4; // Default thread pool size for consumers
   public static final byte [] POISON_PILL = new byte [0];
 

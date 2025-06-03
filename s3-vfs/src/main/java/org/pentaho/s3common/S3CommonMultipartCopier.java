@@ -9,6 +9,7 @@ import java.util.concurrent.Future;
 import org.apache.commons.vfs2.FileSystemException;
 import org.pentaho.s3.vfs.S3FileObject;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
@@ -26,21 +27,29 @@ import com.amazonaws.services.s3.model.PartETag;
  * Refactored for readability and testability.
  */
 public class S3CommonMultipartCopier {
-  static final long MULTIPART_COPY_THRESHOLD = 5L * 1024 * 1024 * 1024; // 5GB
-  static final long MULTIPART_COPY_PART_SIZE = 100L * 1024 * 1024; // 100MB
-  static final int DEFAULT_THREAD_POOL_SIZE = 8;
 
-  /**
-   * Perform S3→S3 multipart copy using AWS SDK. Uses multipart copy for files >5GB.
-   * Supports multithreading for part copy operations.
-   *
-   * @param src    Source S3FileObject
-   * @param dst    Destination S3FileObject
-   * @param logger Logger for logging
-   * @throws FileSystemException if copy fails
-   */
-  public static void multipartCopy( S3FileObject src, S3FileObject dst, Logger logger ) throws FileSystemException {
-    multipartCopy( src, dst, logger, DEFAULT_THREAD_POOL_SIZE );
+  private static final Class<?> PKG = S3CommonMultipartCopier.class;
+  private static final Logger logger = LoggerFactory.getLogger( PKG );
+
+  static final int DEFAULT_PART_SIZE = 100 * 1024 * 1024; // 100MB, as recomended by AWS
+  static final int DEFAULT_THREAD_POOL_SIZE = 4;
+
+  private final int partSize;
+  private final int threadPoolSize;
+
+  public S3CommonMultipartCopier() {
+    this( DEFAULT_PART_SIZE, DEFAULT_THREAD_POOL_SIZE );
+  }
+
+  public S3CommonMultipartCopier( int partSize, int threadPoolSize ) {
+    if ( partSize < 5 * 1024 * 1024 ) { // S3 minimum part size is 5MB
+      throw new IllegalArgumentException( "partSize must be at least 5MB" );
+    }
+    if ( threadPoolSize < 1 ) {
+      throw new IllegalArgumentException( "threadPoolSize must be at least 1" );
+    }
+    this.partSize = partSize;
+    this.threadPoolSize = threadPoolSize;
   }
 
   /**
@@ -49,22 +58,25 @@ public class S3CommonMultipartCopier {
    * @param src           Source S3FileObject
    * @param dst           Destination S3FileObject
    * @param logger        Logger for logging
+   * @param partSize      Size of each part in bytes (default is 100MB)
    * @param threadPoolSize Number of threads for multipart copy
    * @throws FileSystemException if copy fails
    */
-  public static void multipartCopy( S3FileObject src, S3FileObject dst, Logger logger, int threadPoolSize ) throws FileSystemException {
+  public void multipartCopy( S3FileObject src, S3FileObject dst ) throws FileSystemException {
     String srcBucket = src.bucketName;
     String srcKey = src.key;
     String dstBucket = dst.bucketName;
     String dstKey = dst.key;
+
     try {
       ObjectMetadata srcMeta = getObjectMetadata( src, srcBucket, srcKey );
+
       long contentLength = srcMeta.getContentLength();
-      if ( contentLength < MULTIPART_COPY_THRESHOLD ) {
-        performSimpleCopy( src, dst, srcBucket, srcKey, dstBucket, dstKey, logger );
-        return;
+      if ( contentLength < partSize ) {
+        performSimpleCopy( src, dst, srcBucket, srcKey, dstBucket, dstKey );
+      } else {
+        performMultipartCopy( src, dst, srcBucket, srcKey, dstBucket, dstKey, contentLength );
       }
-      performMultipartCopy( src, dst, srcBucket, srcKey, dstBucket, dstKey, contentLength, logger, threadPoolSize );
     } catch ( AmazonS3Exception e ) {
       logger.error( "S3→S3 server-side copy failed: {} → {}: {}", src.getQualifiedName(), dst.getQualifiedName(), e.getMessage(), e );
       throw new FileSystemException( "vfs.provider.s3/copy-server-side.error", src.getQualifiedName(), dst.getQualifiedName(), e );
@@ -78,25 +90,26 @@ public class S3CommonMultipartCopier {
     return src.fileSystem.getS3Client().getObjectMetadata( bucket, key );
   }
 
-  private static void performSimpleCopy( S3FileObject src, S3FileObject dst, String srcBucket, String srcKey, String dstBucket, String dstKey, Logger logger ) {
+  private static void performSimpleCopy( S3FileObject src, S3FileObject dst, String srcBucket, String srcKey, String dstBucket, String dstKey ) {
     CopyObjectRequest copyRequest = new CopyObjectRequest( srcBucket, srcKey, dstBucket, dstKey );
     dst.fileSystem.getS3Client().copyObject( copyRequest );
     logger.info( "S3→S3 server-side copy succeeded: {} → {}", src.getQualifiedName(), dst.getQualifiedName() );
   }
 
-  private static void performMultipartCopy( S3FileObject src, S3FileObject dst, String srcBucket, String srcKey, String dstBucket, String dstKey, long contentLength, Logger logger, int threadPoolSize ) throws Exception {
+  private void performMultipartCopy( S3FileObject src, S3FileObject dst, String srcBucket, String srcKey, String dstBucket, String dstKey,
+                                            long contentLength ) throws Exception {
     logger.info( "S3→S3 multipart copy initiated for large file: {} ({} bytes)", src.getQualifiedName(), contentLength );
     String uploadId = initiateMultipartUpload( dst, dstBucket, dstKey );
     List<PartETag> partETags = new ArrayList<>();
     ExecutorService executor = Executors.newFixedThreadPool( threadPoolSize );
     List<Future<PartETag>> futures = new ArrayList<>();
     try {
-      submitCopyPartTasks( src, dst, srcBucket, srcKey, dstBucket, dstKey, uploadId, contentLength, executor, futures, logger );
+      submitCopyPartTasks( src, dst, srcBucket, srcKey, dstBucket, dstKey, uploadId, contentLength, executor, futures );
       for ( Future<PartETag> future : futures ) {
         partETags.add( future.get() );
       }
       executor.shutdown();
-      completeMultipartUpload( dst, dstBucket, dstKey, uploadId, partETags, logger );
+      completeMultipartUpload( dst, dstBucket, dstKey, uploadId, partETags );
     } catch ( Exception e ) {
       logger.error( "S3→S3 multipart copy failed, aborting upload: {} → {}: {}", src.getQualifiedName(), dst.getQualifiedName(), e.getMessage(), e );
       abortMultipartUpload( dst, dstBucket, dstKey, uploadId );
@@ -111,20 +124,22 @@ public class S3CommonMultipartCopier {
     return initResponse.getUploadId();
   }
 
-  private static void submitCopyPartTasks( S3FileObject src, S3FileObject dst, String srcBucket, String srcKey, String dstBucket, String dstKey, String uploadId, long contentLength, ExecutorService executor, List<Future<PartETag>> futures, Logger logger ) {
+  private void submitCopyPartTasks( S3FileObject src, S3FileObject dst, String srcBucket, String srcKey, String dstBucket, String dstKey,
+                                           String uploadId, long contentLength, ExecutorService executor, List<Future<PartETag>> futures ) {
     long bytePosition = 0;
     int partNumber = 1;
     while ( bytePosition < contentLength ) {
       final long firstByte = bytePosition;
-      final long lastByte = Math.min( bytePosition + MULTIPART_COPY_PART_SIZE - 1, contentLength - 1 );
+      final long lastByte = Math.min( bytePosition + partSize - 1, contentLength - 1 );
       final int thisPartNumber = partNumber;
-      futures.add( executor.submit( () -> copyPart( dst, srcBucket, srcKey, dstBucket, dstKey, uploadId, firstByte, lastByte, thisPartNumber, logger ) ) );
-      bytePosition += MULTIPART_COPY_PART_SIZE;
+      futures.add( executor.submit( () -> copyPart( dst, srcBucket, srcKey, dstBucket, dstKey, uploadId, firstByte, lastByte, thisPartNumber ) ) );
+      bytePosition += partSize;
       partNumber++;
     }
   }
 
-  private static PartETag copyPart( S3FileObject dst, String srcBucket, String srcKey, String dstBucket, String dstKey, String uploadId, long firstByte, long lastByte, int partNumber, Logger logger ) {
+  private static PartETag copyPart( S3FileObject dst, String srcBucket, String srcKey, String dstBucket, String dstKey, String uploadId,
+                                    long firstByte, long lastByte, int partNumber ) {
     CopyPartRequest copyPartRequest = new CopyPartRequest()
       .withSourceBucketName( srcBucket )
       .withSourceKey( srcKey )
@@ -139,7 +154,8 @@ public class S3CommonMultipartCopier {
     return copyPartResult.getPartETag();
   }
 
-  private static void completeMultipartUpload( S3FileObject dst, String dstBucket, String dstKey, String uploadId, List<PartETag> partETags, Logger logger ) {
+  private static void completeMultipartUpload( S3FileObject dst, String dstBucket, String dstKey, String uploadId,
+                                               List<PartETag> partETags ) {
     CompleteMultipartUploadRequest compRequest = new CompleteMultipartUploadRequest( dstBucket, dstKey, uploadId, partETags );
     dst.fileSystem.getS3Client().completeMultipartUpload( compRequest );
     logger.info( "S3→S3 multipart copy succeeded: {} → {}", dstBucket + "/" + dstKey, dst.getQualifiedName() );

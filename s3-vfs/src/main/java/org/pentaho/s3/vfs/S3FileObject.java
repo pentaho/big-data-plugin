@@ -182,6 +182,14 @@ public class S3FileObject extends S3CommonFileObject {
     return null;
   }
 
+  /**
+   * Copies the content of the specified file to this file, using server-side multipart copy if both files are S3FileObjects in the same region.
+   * If the source is not an S3FileObject or is in a different region, it falls back to the default copy implementation.
+   *
+   * @param file     The source file to copy from.
+   * @param selector A FileSelector to filter which files to copy.
+   * @throws FileSystemException If an error occurs during the copy operation.
+   */
   @Override
   public void copyFrom( final FileObject file, final FileSelector selector ) throws FileSystemException {
     S3FileObject src = extractDelegateS3FileObject( file );
@@ -192,12 +200,15 @@ public class S3FileObject extends S3CommonFileObject {
     }
     S3FileObject dst = this;
 
-    if ( isSameBucket( src, dst ) && isSameRegion( src, dst ) ) {
+    if ( dst.isSameRegion( src ) ) {
       // Check if both source and destination objects exist and are files (not folders)
       try {
         if ( src.getType().hasContent() && dst.getType().hasContent() ) {
           logger.info( "Attempting S3→S3 server-side multipart copy from {} to {}", src.getQualifiedName(), dst.getQualifiedName() );
-          S3CommonMultipartCopier.multipartCopy( src, dst, logger );
+          S3FileSystem s3FileSystem = (S3FileSystem) this.fileSystem;
+          S3CommonMultipartCopier multipartCopier = new S3CommonMultipartCopier(
+            s3FileSystem.getPartSize(), s3FileSystem.getThreadPoolSize() );
+          multipartCopier.multipartCopy( src, dst );
           return;
         }
       } catch ( FileSystemException | SdkClientException e ) {
@@ -210,20 +221,14 @@ public class S3FileObject extends S3CommonFileObject {
     super.copyFrom( file, selector );
   }
 
-  private boolean isSameBucket( S3FileObject src, S3FileObject dst ) {
-    String srcBucket = src.bucketName;
-    String dstBucket = dst.bucketName;
-    return srcBucket != null && srcBucket.equals( dstBucket );
-  }
-
-  private boolean isSameRegion( S3FileObject src, S3FileObject dst ) {
+  private boolean isSameRegion( S3FileObject other ) {
     try {
-      String srcRegion = src.fileSystem.getS3Client().getBucketLocation( src.bucketName );
-      String dstRegion = dst.fileSystem.getS3Client().getBucketLocation( dst.bucketName );
+      String srcRegion = other.fileSystem.getS3Client().getBucketLocation( other.bucketName );
+      String dstRegion = this.fileSystem.getS3Client().getBucketLocation( this.bucketName );
       return srcRegion != null && srcRegion.equals( dstRegion );
     } catch ( SdkClientException e ) {
       logger.warn( "Could not determine S3 bucket region, proceeding with bucket name check only: {}", e.getMessage(), e );
-      return true; // fallback to bucket name only
+      return false; // fallback to default behavior if region check fails
     }
   }
 }
