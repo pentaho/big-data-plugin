@@ -15,6 +15,7 @@ package org.pentaho.hadoop;
 
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.vfs.KettleVFS;
@@ -61,13 +62,14 @@ public class PluginPropertiesUtil {
    * @throws KettleFileException
    * @throws IOException
    */
-  protected Properties loadProperties( PluginInterface plugin, String relativeName ) throws KettleFileException,
+  protected Properties loadProperties( PluginInterface plugin, String relativeName )
+    throws KettleFileException,
     IOException {
     if ( plugin == null ) {
       throw new NullPointerException();
     }
-    FileObject propFile =
-      KettleVFS.getFileObject( plugin.getPluginDirectory().getPath() + Const.FILE_SEPARATOR + relativeName );
+    FileObject propFile = KettleVFS.getInstance( DefaultBowl.getInstance() )
+      .getFileObject( plugin.getPluginDirectory().getPath() + Const.FILE_SEPARATOR + relativeName );
     if ( !propFile.exists() ) {
       throw new FileNotFoundException( propFile.toString() );
     }

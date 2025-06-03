@@ -27,6 +27,7 @@ import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.JobMeta;
+import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.binding.Binding;
@@ -424,10 +425,11 @@ public class OozieJobExecutorJobEntryController extends
   @Bindable
   public void browseWorkflowConfig() {
     FileObject path = null;
+    Spoon spoon = Spoon.getInstance();
     try {
       path =
-        KettleVFS.getFileObject( jobEntry.getVariableSpace().environmentSubstitute(
-          getConfig().getOozieWorkflowConfig() ) );
+        KettleVFS.getInstance( spoon.getExecutionBowl() )
+          .getFileObject( jobEntry.getVariableSpace().environmentSubstitute( getConfig().getOozieWorkflowConfig() ) );
     } catch ( Exception e ) {
       // Ignore, use null (default VFS browse path)
     }

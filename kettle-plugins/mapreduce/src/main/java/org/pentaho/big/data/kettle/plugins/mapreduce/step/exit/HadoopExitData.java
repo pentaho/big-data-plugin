@@ -13,6 +13,7 @@
 
 package org.pentaho.big.data.kettle.plugins.mapreduce.step.exit;
 
+import org.pentaho.di.core.bowl.Bowl;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -32,10 +33,11 @@ public class HadoopExitData extends BaseStepData implements StepDataInterface {
     super();
   }
 
-  public void init( RowMetaInterface rowMeta, HadoopExitMeta stepMeta, VariableSpace space ) throws KettleException {
+  public void init( Bowl bowl, RowMetaInterface rowMeta, HadoopExitMeta stepMeta, VariableSpace space )
+      throws KettleException {
     if ( rowMeta != null ) {
       outputRowMeta = rowMeta.clone();
-      stepMeta.getFields( outputRowMeta, stepMeta.getName(), null, null, space );
+      stepMeta.getFields( bowl, outputRowMeta, stepMeta.getName(), null, null, space );
 
       setInKeyOrdinal( rowMeta.indexOfValue( stepMeta.getOutKeyFieldname() ) );
       setInValueOrdinal( rowMeta.indexOfValue( stepMeta.getOutValueFieldname() ) );

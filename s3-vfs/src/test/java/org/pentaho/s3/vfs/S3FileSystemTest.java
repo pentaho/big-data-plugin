@@ -73,8 +73,13 @@ public class S3FileSystemTest {
     FileSystemOptions options = new FileSystemOptions();
     UserAuthenticator authenticator = mock( UserAuthenticator.class );
     DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( options, authenticator );
-
-    fileSystem = new S3FileSystem( fileName, options );
+    // test is still slow for little gain, but the region check was the slowest part
+    fileSystem = new S3FileSystem( fileName, options ) {
+      @Override
+      protected boolean isRegionSet() {
+        return false;
+      }
+    };
     assertNotNull( fileSystem.getS3Client() );
   }
 

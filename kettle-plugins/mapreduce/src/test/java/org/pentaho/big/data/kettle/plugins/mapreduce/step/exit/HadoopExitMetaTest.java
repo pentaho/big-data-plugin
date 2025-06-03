@@ -16,6 +16,7 @@ package org.pentaho.big.data.kettle.plugins.mapreduce.step.exit;
 import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.big.data.kettle.plugins.mapreduce.ui.step.exit.HadoopExitDialog;
+import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
@@ -139,7 +140,7 @@ public class HadoopExitMetaTest {
     when( key.clone() ).thenReturn( keyClone );
     when( value.clone() ).thenReturn( valueClone );
 
-    hadoopExitMeta.getFields( rowMetaInterface, null, null, null, null );
+    hadoopExitMeta.getFields( DefaultBowl.getInstance(), rowMetaInterface, null, null, null, null );
 
     verify( keyClone ).setName( HadoopExitMeta.OUT_KEY );
     verify( valueClone ).setName( HadoopExitMeta.OUT_VALUE );
@@ -159,7 +160,7 @@ public class HadoopExitMetaTest {
     RowMetaInterface rowMetaInterface = mock( RowMetaInterface.class );
 
     try {
-      hadoopExitMeta.getFields( rowMetaInterface, null, null, null, null );
+      hadoopExitMeta.getFields( DefaultBowl.getInstance(), rowMetaInterface, null, null, null, null );
     } catch ( KettleStepException e ) {
       assertEquals( BaseMessages.getString( HadoopExitMeta.PKG, HadoopExitMeta.ERROR_INVALID_KEY_FIELD, outKeyField ),
         e.getMessage().trim() );
@@ -180,7 +181,7 @@ public class HadoopExitMetaTest {
     when( rowMetaInterface.searchValueMeta( outKeyField ) ).thenReturn( key );
 
     try {
-      hadoopExitMeta.getFields( rowMetaInterface, null, null, null, null );
+      hadoopExitMeta.getFields( DefaultBowl.getInstance(), rowMetaInterface, null, null, null, null );
     } catch ( KettleStepException e ) {
       assertEquals( BaseMessages.getString( HadoopExitMeta.PKG, HadoopExitMeta.ERROR_INVALID_VALUE_FIELD, outValField ),
         e.getMessage().trim() );

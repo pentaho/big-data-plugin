@@ -26,6 +26,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Collections;
+
 
 @ExtensionPoint( id = "ThinHadoopClusterEditExtension", description = "Edits named cluster",
   extensionPointId = "SpoonViewTreeExtension" )
@@ -41,14 +43,19 @@ public class ThinHadoopClusterEditExtension implements ExtensionPointInterface {
   public void callExtensionPoint( LogChannelInterface log, Object extension ) throws KettleException {
     try {
       SelectionTreeExtension selectionTreeExtension = (SelectionTreeExtension) extension;
+      Object selection = selectionTreeExtension.getSelection();
       if ( selectionTreeExtension.getAction().equals( Spoon.EDIT_SELECTION_EXTENSION ) ) {
-        Object selection = selectionTreeExtension.getSelection();
         if ( selection instanceof NamedCluster ) {
           NamedCluster namedCluster = (NamedCluster) selection;
           String name = URLEncoder.encode( namedCluster.getName(), "UTF-8" );
           hadoopClusterDelegate.openDialog( "new-edit", ImmutableMap.of( "name", name ) );
         }
+      } else if ( selectionTreeExtension.getAction().equals( Spoon.CREATE_NEW_SELECTION_EXTENSION ) ) {
+        if ( selection.equals( NamedCluster.class ) ) {
+          hadoopClusterDelegate.openDialog("new-edit", Collections.emptyMap());
+        }
       }
+
     } catch ( UnsupportedEncodingException e ) {
       logChannel.error( e.getMessage() );
     }
