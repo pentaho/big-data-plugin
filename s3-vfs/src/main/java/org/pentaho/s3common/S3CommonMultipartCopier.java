@@ -2,6 +2,7 @@ package org.pentaho.s3common;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -63,9 +64,9 @@ public class S3CommonMultipartCopier {
 
       long contentLength = srcMeta.getContentLength();
       if ( contentLength < partSize ) {
-      performSimpleCopy( src, dst );
+        performSimpleCopy( src, dst );
       } else {
-      performMultipartCopy( src, dst, contentLength );
+        performMultipartCopy( src, dst, contentLength );
       }
     } catch ( Exception e ) {
       throw new FileSystemException( "vfs.provider.s3/copy-server-side.error", src.getQualifiedName(), dst.getQualifiedName(), e );
@@ -82,7 +83,7 @@ public class S3CommonMultipartCopier {
     logger.info( "S3→S3 server-side copy succeeded: {} → {}", src.getQualifiedName(), dst.getQualifiedName() );
   }
 
-  private void performMultipartCopy( S3FileObject src, S3FileObject dst, long contentLength ) throws FileSystemException, InterruptedException {
+  private void performMultipartCopy( S3FileObject src, S3FileObject dst, long contentLength ) throws FileSystemException {
     logger.info( "S3→S3 multipart copy initiated for large file: {} ({} bytes)", src.getQualifiedName(), contentLength );
     String uploadId = initiateMultipartUpload( dst );
     List<PartETag> partETags = new ArrayList<>();
@@ -90,27 +91,24 @@ public class S3CommonMultipartCopier {
     List<Future<PartETag>> futures = new ArrayList<>();
     try {
       submitCopyPartTasks( src, dst, uploadId, contentLength, executor, futures );
-      for ( Future<PartETag> future : futures ) {
-        try {
-          partETags.add( future.get() );
-        } catch ( InterruptedException ie ) {
-          abortMultipartUpload( dst, uploadId );
-          executor.shutdownNow();
-          Thread.currentThread().interrupt();
-          throw ie;
-        }
-      }
+      collectPartETags( futures, partETags, dst, uploadId, executor );
       executor.shutdown();
       completeMultipartUpload( dst, uploadId, partETags );
     } catch ( InterruptedException ie ) {
       abortMultipartUpload( dst, uploadId );
       executor.shutdownNow();
       Thread.currentThread().interrupt();
-      throw ie;
-    } catch ( Exception e ) {
+      throw new FileSystemException( "vfs.provider.s3/copy-server-side.error", src.getQualifiedName(), dst.getQualifiedName(), ie );
+    } catch ( ExecutionException e ) {
       abortMultipartUpload( dst, uploadId );
       executor.shutdownNow();
       throw new FileSystemException( "vfs.provider.s3/copy-server-side.error", src.getQualifiedName(), dst.getQualifiedName(), e );
+    }
+  }
+
+  private void collectPartETags( List<Future<PartETag>> futures, List<PartETag> partETags, S3FileObject dst, String uploadId, ExecutorService executor ) throws InterruptedException, ExecutionException {
+    for ( Future<PartETag> future : futures ) {
+      partETags.add( future.get() );
     }
   }
 
