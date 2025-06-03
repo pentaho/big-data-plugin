@@ -150,8 +150,10 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
       }
 
       if ( Utils.isEmpty( getWillBeActiveConfigurationId() ) ) {
-        throw new NoShimSpecifiedException(
-          BaseMessages.getString( PKG, "HadoopConfigurationBootstrap.HadoopConfiguration.NoShimSet" ) );
+        log.logBasic( "WARNING: " + BaseMessages.getString( PKG, "HadoopConfigurationBootstrap.HadoopConfiguration.NoShimSet" ) );
+//        throw new NoShimSpecifiedException(
+//          BaseMessages.getString( PKG, "HadoopConfigurationBootstrap.HadoopConfiguration.NoShimSet" ) );
+        return;
       }
 
       // Initialize the HadoopConfigurationProvider
