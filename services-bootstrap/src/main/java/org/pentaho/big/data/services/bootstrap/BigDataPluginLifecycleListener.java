@@ -69,6 +69,9 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
           HadoopConfigurationBootstrap hadoopConfigurationBootstrap = HadoopConfigurationBootstrap.getInstance();
           HadoopConfigurationLocator hadoopConfigurationProvider = null;
           hadoopConfigurationProvider = (HadoopConfigurationLocator) hadoopConfigurationBootstrap.getProvider();
+          if ( hadoopConfigurationProvider == null ) {
+              return;
+          }
           HadoopConfiguration hadoopConfiguration = hadoopConfigurationProvider.getActiveConfiguration();
 
           HadoopFileSystemFactory hadoopFileSystemFactory =
