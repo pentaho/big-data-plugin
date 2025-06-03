@@ -24,6 +24,8 @@ import com.amazonaws.services.s3.model.PartETag;
 
 public class S3CommonMultipartCopier {
 
+  private static final String VFS_PROVIDER_S3_COPY_SERVER_SIDE_ERROR = "vfs.provider.s3/copy-server-side.error";
+
   private static final Class<?> PKG = S3CommonMultipartCopier.class;
   private static final Logger logger = LoggerFactory.getLogger( PKG );
 
@@ -69,7 +71,7 @@ public class S3CommonMultipartCopier {
         performMultipartCopy( src, dst, contentLength );
       }
     } catch ( Exception e ) {
-      throw new FileSystemException( "vfs.provider.s3/copy-server-side.error", src.getQualifiedName(), dst.getQualifiedName(), e );
+      throw new FileSystemException( VFS_PROVIDER_S3_COPY_SERVER_SIDE_ERROR, src.getQualifiedName(), dst.getQualifiedName(), e );
     }
   }
 
@@ -98,15 +100,15 @@ public class S3CommonMultipartCopier {
       abortMultipartUpload( dst, uploadId );
       executor.shutdownNow();
       Thread.currentThread().interrupt();
-      throw new FileSystemException( "vfs.provider.s3/copy-server-side.error", src.getQualifiedName(), dst.getQualifiedName(), ie );
+      throw new FileSystemException( VFS_PROVIDER_S3_COPY_SERVER_SIDE_ERROR, src.getQualifiedName(), dst.getQualifiedName(), ie );
     } catch ( ExecutionException e ) {
       abortMultipartUpload( dst, uploadId );
       executor.shutdownNow();
-      throw new FileSystemException( "vfs.provider.s3/copy-server-side.error", src.getQualifiedName(), dst.getQualifiedName(), e );
+      throw new FileSystemException( VFS_PROVIDER_S3_COPY_SERVER_SIDE_ERROR, src.getQualifiedName(), dst.getQualifiedName(), e );
     }
   }
 
-  private void collectPartETags( List<Future<PartETag>> futures, List<PartETag> partETags, S3FileObject dst, String uploadId, ExecutorService executor ) throws InterruptedException, ExecutionException {
+  private void collectPartETags( List<Future<PartETag>> futures, List<PartETag> partETags ) throws InterruptedException, ExecutionException {
     for ( Future<PartETag> future : futures ) {
       partETags.add( future.get() );
     }
