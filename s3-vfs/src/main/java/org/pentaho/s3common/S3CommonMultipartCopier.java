@@ -93,7 +93,7 @@ public class S3CommonMultipartCopier {
     List<Future<PartETag>> futures = new ArrayList<>();
     try {
       submitCopyPartTasks( src, dst, uploadId, contentLength, executor, futures );
-      collectPartETags( futures, partETags, dst, uploadId, executor );
+      collectPartETags( futures, partETags );
       executor.shutdown();
       completeMultipartUpload( dst, uploadId, partETags );
     } catch ( InterruptedException ie ) {
