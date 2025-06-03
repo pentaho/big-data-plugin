@@ -57,7 +57,9 @@ public class HadoopClusterDelegate {
         wizardDialog.open();
       } else {
         CustomWizardDialog wizardDialog = new CustomWizardDialog( spoonSupplier.get().getShell(),
-          new NamedClusterDialog( namedClusterService, metastore, (AbstractMeta) spoonSupplier.get().getActiveMeta(),
+          new NamedClusterDialog( namedClusterService, metastore,
+            spoonSupplier.get().getActiveMeta() == null  ? spoonSupplier.get().getManagementBowl().getADefaultVariableSpace() :
+            (AbstractMeta)spoonSupplier.get().getActiveMeta(),
             runtimeTester, urlParams, dialogState ) );
         wizardDialog.open();
       }
