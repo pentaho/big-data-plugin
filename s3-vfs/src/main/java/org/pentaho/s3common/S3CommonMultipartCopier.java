@@ -1,3 +1,16 @@
+/*! ******************************************************************************
+ *
+ * Pentaho
+ *
+ * Copyright (C) 2024 by Hitachi Vantara, LLC : http://www.pentaho.com
+ *
+ * Use of this software is governed by the Business Source License included
+ * in the LICENSE.TXT file.
+ *
+ * Change Date: 2029-07-20
+ ******************************************************************************/
+
+
 package org.pentaho.s3common;
 
 import java.util.ArrayList;
@@ -80,7 +93,7 @@ public class S3CommonMultipartCopier {
   }
 
   private static void performSimpleCopy( S3FileObject src, S3FileObject dst ) {
-    CopyObjectRequest copyRequest = new CopyObjectRequest( src.bucketName, src.key, src.bucketName, src.key );
+    CopyObjectRequest copyRequest = new CopyObjectRequest( src.bucketName, src.key, dst.bucketName, dst.key );
     dst.fileSystem.getS3Client().copyObject( copyRequest );
     logger.info( "S3→S3 server-side copy succeeded: {} → {}", src.getQualifiedName(), dst.getQualifiedName() );
   }
