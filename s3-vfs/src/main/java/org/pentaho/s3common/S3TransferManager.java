@@ -18,7 +18,6 @@ import java.io.InputStream;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.pentaho.s3.vfs.S3FileObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +49,7 @@ public class S3TransferManager {
    * @param logger        Logger for logging
    * @throws FileSystemException if copy fails
    */
-  public void copy( S3FileObject src, S3FileObject dst ) throws FileSystemException {
+  public void copy( S3CommonFileObject src, S3CommonFileObject dst ) throws FileSystemException {
     if ( src == null || dst == null
       || src.bucketName == null || src.key == null
       || dst.bucketName == null || dst.key == null ) {
@@ -81,7 +80,7 @@ public class S3TransferManager {
    * Checks if the S3 client has read access to the source object and write access to the destination bucket.
    * Throws FileSystemException if access is denied.
    */
-  private void testConnection( S3FileObject src, S3FileObject dst ) throws FileSystemException {
+  private void testConnection( S3CommonFileObject src, S3CommonFileObject dst ) throws FileSystemException {
     // Check read access to source object
     try {
       getTransferManager().getAmazonS3Client().getObjectMetadata( src.bucketName, src.key );
@@ -101,7 +100,7 @@ public class S3TransferManager {
     }
   }
 
-  public void upload( FileObject src, S3FileObject dst ) throws FileSystemException {
+  public void upload( FileObject src, S3CommonFileObject dst ) throws FileSystemException {
     if ( src == null || dst == null
       || dst.bucketName == null || dst.key == null ) {
       throw new FileSystemException( "vfs.provider.s3/transfer.null-argument",
