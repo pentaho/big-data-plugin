@@ -11,7 +11,7 @@
  ******************************************************************************/
 
 
-package org.pentaho.s3.vfs;
+package org.pentaho.s3common;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
@@ -21,7 +21,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.pentaho.di.core.util.StorageUnitConverter;
-import org.pentaho.s3common.S3KettleProperty;
+import org.pentaho.s3common.DummyS3CommonObjects.DummyS3FileName;
+import org.pentaho.s3common.DummyS3CommonObjects.DummyS3FileObject;
+import org.pentaho.s3common.DummyS3CommonObjects.DummyS3FileSystem;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -32,22 +34,22 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class S3FileObjectCopyFromTest {
+public class S3TestFileObjectCopyFromTest {
 
-  private S3FileObject dst;
-  private S3FileObject src;
+  private DummyS3FileObject dst;
+  private DummyS3FileObject src;
   private FileSelector selector;
-  private S3FileSystem fileSystem;
+  private DummyS3FileSystem fileSystem;
 
   @Before
   public void setUp() {
-    S3FileName fileName = new S3FileName( "s3", "bucket", "/bucket/key", org.apache.commons.vfs2.FileType.FILE );
+    DummyS3FileName fileName = new DummyS3FileName( "s3", "bucket", "/bucket/key", org.apache.commons.vfs2.FileType.FILE );
     S3KettleProperty kettleProperty = new S3KettleProperty();
     StorageUnitConverter storageUnitConverter = new StorageUnitConverter();
-    S3FileSystem realFileSystem = new S3FileSystem( fileName, new org.apache.commons.vfs2.FileSystemOptions(), storageUnitConverter, kettleProperty );
+    DummyS3FileSystem realFileSystem = new DummyS3FileSystem( fileName, new org.apache.commons.vfs2.FileSystemOptions(), storageUnitConverter, kettleProperty );
     fileSystem = Mockito.spy( realFileSystem );
-    dst = Mockito.spy( new S3FileObject( fileName, fileSystem ) );
-    src = Mockito.spy( new S3FileObject( fileName, fileSystem ) );
+    dst = Mockito.spy( new DummyS3FileObject( fileName, fileSystem ) );
+    src = Mockito.spy( new DummyS3FileObject( fileName, fileSystem ) );
     selector = mock( FileSelector.class );
   }
 
@@ -62,11 +64,11 @@ public class S3FileObjectCopyFromTest {
   @Test
   public void testCopyFrom_S3ToS3_Success() throws FileSystemException {
     // Arrange: dst.fileSystem.copy should succeed
-    doNothing().when( fileSystem ).copy( any( S3FileObject.class ), any( S3FileObject.class ) );
+    doNothing().when( fileSystem ).copy( any( DummyS3FileObject.class ), any( DummyS3FileObject.class ) );
     // Act
     dst.copyFrom( src, selector );
     // Assert: fileSystem.copy was called
-    verify( fileSystem, times( 1 ) ).copy( any( S3FileObject.class ), any( S3FileObject.class ) );
+    verify( fileSystem, times( 1 ) ).copy( any( DummyS3FileObject.class ), any( DummyS3FileObject.class ) );
   }
 
   @Test
@@ -76,14 +78,14 @@ public class S3FileObjectCopyFromTest {
     // Act
     dst.copyFrom( nonS3, selector );
     // Assert: fileSystem.copy was not called and fileSystem.upload was called
-    verify( fileSystem, times( 0 ) ).copy( any( S3FileObject.class ), any( S3FileObject.class ) );
-    verify( fileSystem, times( 1 ) ).upload( any( FileObject.class ), any( S3FileObject.class ) );
+    verify( fileSystem, times( 0 ) ).copy( any( DummyS3FileObject.class ), any( DummyS3FileObject.class ) );
+    verify( fileSystem, times( 1 ) ).upload( any( FileObject.class ), any( DummyS3FileObject.class ) );
   }
 
   @Test
   public void testCopyFrom_S3ToS3_Exception_FallbackToDefault() throws FileSystemException {
-    // Arrange: fileSystem.copy(S3FileObject, S3FileObject) throws, should fallback to default
-    doThrow( new FileSystemException( "fail" ) ).when( fileSystem ).copy( any( S3FileObject.class ), any( S3FileObject.class ) );
+    // Arrange: fileSystem.copy(S3TestFileObject, S3TestFileObject) throws, should fallback to default
+    doThrow( new FileSystemException( "fail" ) ).when( fileSystem ).copy( any( DummyS3FileObject.class ), any( DummyS3FileObject.class ) );
     FileSelector sel = mock( FileSelector.class );
     doReturn( org.apache.commons.vfs2.FileType.FILE ).when( dst ).getType();
     doReturn( org.apache.commons.vfs2.FileType.FILE ).when( src ).getType();
@@ -91,7 +93,8 @@ public class S3FileObjectCopyFromTest {
     doReturn( true ).when( src ).exists();
     dst.copyFrom( src, sel );
     // Assert: fileSystem.copy was called once and fallback to fileSystem.upload was called
-    verify( fileSystem, times( 1 ) ).copy( any( S3FileObject.class ), any( S3FileObject.class ) );
-    verify( fileSystem, times( 1 ) ).upload( any( FileObject.class ), any( S3FileObject.class ) );
+    verify( fileSystem, times( 1 ) ).copy( any( DummyS3FileObject.class ), any( DummyS3FileObject.class ) );
+    verify( fileSystem, times( 1 ) ).upload( any( FileObject.class ), any( DummyS3FileObject.class ) );
   }
+
 }

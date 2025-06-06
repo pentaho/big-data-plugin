@@ -22,12 +22,9 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSelector;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.provider.AbstractFileName;
-import org.pentaho.di.connections.vfs.provider.ConnectionFileObject;
 import org.pentaho.s3common.S3CommonFileObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -168,55 +165,4 @@ public class S3FileObject extends S3CommonFileObject {
     return new SimpleEntry<>( newKey, newBucket );
   }
 
-  /**
-   * Attempts to extract an S3FileObject from a FileObject, including wrappers like ResolvedConnectionFileObject (via reflection for getResolvedFileObject()).
-   */
-  private S3FileObject extractDelegateS3FileObject( FileObject file ) {
-    if ( file instanceof S3FileObject ) {
-      return (S3FileObject) file;
-    }
-    if ( file instanceof ConnectionFileObject ) {
-      // If it's a ResolvedConnectionFileObject, we can try to get the underlying S3FileObject
-      ConnectionFileObject resolved = (ConnectionFileObject) file;
-      FileObject delegate = resolved.getResolvedFileObject();
-      if ( delegate instanceof S3FileObject ) {
-        return (S3FileObject) delegate;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Copies the content of the specified file to this file, using server-side multipart copy if both files are S3FileObjects in the same region.
-   * If the source is not an S3FileObject or is in a different region, it uses TransferManager to upload the content.
-   *
-   * @param file     The source file to copy from.
-   * @param selector A FileSelector to filter which files to copy.
-   * @throws FileSystemException If an error occurs during the copy operation.
-   */
-  @Override
-  public void copyFrom( final FileObject file, final FileSelector selector ) throws FileSystemException {
-    S3FileSystem fs = (S3FileSystem) getFileSystem();
-
-    S3FileObject s3Src = extractDelegateS3FileObject( file );
-    if ( s3Src != null ) {
-      // S3 to S3 copy
-      try {
-        logger.info( "Attempting S3→S3 server-side multipart copy from {} to {}",
-                     s3Src.getQualifiedName(), this.getQualifiedName() );
-        fs.copy( s3Src, this );
-        return;
-      } catch ( FileSystemException e ) {
-        logger.warn( "S3→S3 multipart copy failed, falling back to TransferManager upload: {}", e.getMessage(), e );
-        // fallback to TransferManager upload below
-      }
-    }
-    // For non-S3FileObject or fallback, use TransferManager upload
-    try {
-      logger.info( "Uploading to S3 using TransferManager from {} to {}", file.getName(), this.getName() );
-      fs.upload( file, this );
-    } catch ( Exception e ) {
-      logger.error( "TransferManager upload failed, falling back to default copy: {}", e.getMessage(), e );
-    }
-  }
 }
