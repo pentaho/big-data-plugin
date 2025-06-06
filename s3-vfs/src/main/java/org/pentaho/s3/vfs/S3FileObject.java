@@ -26,10 +26,12 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.pentaho.s3common.S3CommonFileObject;
+import org.pentaho.s3common.S3CommonPipedOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 
 import static java.util.AbstractMap.SimpleEntry;
@@ -100,6 +102,13 @@ public class S3FileObject extends S3CommonFileObject {
     SimpleEntry<String, String> newPath = fixFilePath( key, bucketName );
 
     doDelete( newPath.getKey(), newPath.getValue() );
+  }
+
+  @Override
+  protected OutputStream doGetOutputStream( boolean bAppend ) throws Exception {
+    SimpleEntry<String, String> newPath = fixFilePath( key, bucketName );
+    int partSize = (int) Long.min( Integer.MAX_VALUE, this.fileSystem.getPartSize() );
+    return new S3CommonPipedOutputStream( this.fileSystem, newPath.getValue(), newPath.getKey(), partSize );
   }
 
   @Override

@@ -338,6 +338,12 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
     fileSystem.getS3Client().deleteObject( bucketName, key );
   }
 
+  @Override
+  protected OutputStream doGetOutputStream( boolean bAppend ) throws Exception {
+    int partSize = (int) Long.min( Integer.MAX_VALUE, this.fileSystem.getPartSize() );
+    return new S3CommonPipedOutputStream( this.fileSystem, bucketName, key, partSize );
+  }
+
   /**
    * Attempts to extract an S3FileObject from a FileObject, including wrappers like ResolvedConnectionFileObject (via reflection for getResolvedFileObject()).
    */
