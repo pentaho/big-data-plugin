@@ -107,7 +107,7 @@ public class NamedClusterVfsFileChooserDialog extends CustomVfsUiPanel {
 
     setNamedClusterWidget(
       new NamedClusterWidgetImpl( connectionGroup, true, namedClusterService, runtimeTestActionService,
-        runtimeTester, true ) );
+        runtimeTester, false ) );
     getNamedClusterWidget().addSelectionListener( new SelectionAdapter() {
       @Override
       public void widgetSelected( SelectionEvent evt ) {

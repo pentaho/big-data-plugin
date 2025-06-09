@@ -54,7 +54,7 @@ public class NamedClusterUIFactoryBridgeImpl implements NamedClusterUIFactory {
 
   @Override public NamedClusterWidget createNamedClusterWidget( Composite parent, boolean showLabel ) {
     return new NamedClusterWidgetBridgedImpl(
-      new NamedClusterWidgetImpl( parent, showLabel, namedClusterService, runtimeTestActionService, runtimeTester, true ) );
+      new NamedClusterWidgetImpl( parent, showLabel, namedClusterService, runtimeTestActionService, runtimeTester, false ) );
   }
 
   @Override public HadoopClusterDelegate createHadoopClusterDelegate( Spoon spoon ) {

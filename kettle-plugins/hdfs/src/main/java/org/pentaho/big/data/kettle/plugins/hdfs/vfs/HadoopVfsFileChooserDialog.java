@@ -102,7 +102,7 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     connectionGroup.setLayoutData( gData );
     connectionGroup.setLayout( connectionGroupLayout );
 
-    setNamedClusterWidget( new NamedClusterWidgetImpl( connectionGroup, true, namedClusterService, runtimeTestActionService, runtimeTester, true ) );
+    setNamedClusterWidget( new NamedClusterWidgetImpl( connectionGroup, true, namedClusterService, runtimeTestActionService, runtimeTester, false ) );
     getNamedClusterWidget().addSelectionListener( new SelectionAdapter() {
       public void widgetSelected( SelectionEvent evt ) {
         try {
