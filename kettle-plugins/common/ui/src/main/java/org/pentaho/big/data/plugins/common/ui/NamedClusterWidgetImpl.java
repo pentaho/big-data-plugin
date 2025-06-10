@@ -84,6 +84,7 @@ public class NamedClusterWidgetImpl extends Composite {
         }
       } );
       props.setLook( newButton );
+    newButton.setVisible( false );
 
       initiate();
     }
