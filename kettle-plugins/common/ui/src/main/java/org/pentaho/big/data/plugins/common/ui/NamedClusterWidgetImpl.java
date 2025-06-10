@@ -72,6 +72,7 @@ public class NamedClusterWidgetImpl extends Composite {
       }
     } );
     props.setLook( editButton );
+    editButton.setVisible( false );
 
     Button newButton = new Button( this, SWT.NONE );
     newButton.setText( BaseMessages.getString( PKG, "NamedClusterWidget.NamedCluster.New" ) );
@@ -81,6 +82,7 @@ public class NamedClusterWidgetImpl extends Composite {
       }
     } );
     props.setLook( newButton );
+    newButton.setVisible( false );
 
     initiate();
   }
