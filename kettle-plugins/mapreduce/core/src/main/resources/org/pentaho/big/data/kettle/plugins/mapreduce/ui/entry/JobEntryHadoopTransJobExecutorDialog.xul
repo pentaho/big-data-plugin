@@ -241,8 +241,8 @@
                                  <menulist id="named-clusters" pen:binding="name" width="200">
                                     <menupopup />
                                  </menulist>
-<!--                                 <button id="editNamedCluster" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.Edit}" onclick="jobEntryController.editNamedCluster()" />-->
-<!--                                 <button id="newNamedCluster" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.New}" onclick="jobEntryController.newNamedCluster()" />-->
+                                 <button id="editNamedCluster" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.Edit}" onclick="jobEntryController.editNamedCluster()" />
+                                 <button id="newNamedCluster" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.New}" onclick="jobEntryController.newNamedCluster()" />
                               </hbox>
                            </row>
                            <row>
