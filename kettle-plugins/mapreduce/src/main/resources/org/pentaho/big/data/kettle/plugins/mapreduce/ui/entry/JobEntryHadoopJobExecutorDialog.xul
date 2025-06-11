@@ -41,8 +41,8 @@
 									<menupopup>
 									</menupopup>
 								</menulist>
-								<button id="editNamedCluster" label="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.Edit}" onclick="jobEntryController.editNamedCluster()"/>
-								<button id="newNamedCluster" label="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.New}" onclick="jobEntryController.newNamedCluster()"/>
+<!--								<button id="editNamedCluster" label="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.Edit}" onclick="jobEntryController.editNamedCluster()"/>-->
+<!--								<button id="newNamedCluster" label="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.New}" onclick="jobEntryController.newNamedCluster()"/>-->
 							</row>
 						</rows>
 					</grid>

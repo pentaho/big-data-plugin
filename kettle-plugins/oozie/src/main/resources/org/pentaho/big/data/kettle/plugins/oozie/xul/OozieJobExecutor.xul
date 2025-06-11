@@ -51,8 +51,8 @@
 									    <menupopup>
 									    </menupopup>
 									</menulist>
-									<button id="editNamedCluster" label="${Oozie.JobExecutor.NamedCluster.Edit}" onclick="controller.editNamedCluster()"/>
-									<button id="newNamedCluster" label="${Oozie.JobExecutor.NamedCluster.New}" onclick="controller.newNamedCluster()"/>
+<!--									<button id="editNamedCluster" label="${Oozie.JobExecutor.NamedCluster.Edit}" onclick="controller.editNamedCluster()"/>-->
+<!--									<button id="newNamedCluster" label="${Oozie.JobExecutor.NamedCluster.New}" onclick="controller.newNamedCluster()"/>-->
 								</row>
 							</rows>
 						</grid>
