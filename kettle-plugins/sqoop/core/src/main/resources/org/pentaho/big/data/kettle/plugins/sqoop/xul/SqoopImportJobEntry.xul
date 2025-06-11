@@ -97,8 +97,8 @@
                                     <menupopup>
                                     </menupopup>
                                 </menulist>
-<!--                                <button id="editNamedCluster" label="${Sqoop.JobEntry.NamedCluster.Edit}" onclick="controller.editNamedCluster()"/>-->
-<!--                                <button id="newNamedCluster" label="${Sqoop.JobEntry.NamedCluster.New}" onclick="controller.newNamedCluster()"/>-->
+                                <button id="editNamedCluster" label="${Sqoop.JobEntry.NamedCluster.Edit}" onclick="controller.editNamedCluster()"/>
+                                <button id="newNamedCluster" label="${Sqoop.JobEntry.NamedCluster.New}" onclick="controller.newNamedCluster()"/>
                             </row>
                         </rows>
                     </grid>
