@@ -28,6 +28,7 @@ import java.util.Properties;
 public class S3KettleProperty {
   private static final Class<?> PKG = S3KettleProperty.class;
   private static final Logger logger = LoggerFactory.getLogger( S3KettleProperty.class );
+
   public static final String S3VFS_PART_SIZE = "s3.vfs.partSize";
 
   public String getPartSize() {
@@ -42,7 +43,7 @@ public class S3KettleProperty {
       properties = EnvUtil.readProperties( filename );
       partSizeString = properties.getProperty( property );
     } catch ( KettleException ke ) {
-      logger.error( BaseMessages.getString( PKG, "WARN.S3Commmon.PropertyNotFound",
+      logger.error( BaseMessages.getString( PKG, "WARN.S3Common.PropertyNotFound",
         property, filename ) );
     }
     return partSizeString;

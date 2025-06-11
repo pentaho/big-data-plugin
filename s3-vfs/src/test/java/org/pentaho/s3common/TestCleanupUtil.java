@@ -13,15 +13,21 @@
 
 package org.pentaho.s3common;
 
-import org.mockito.Mockito;
+import java.io.File;
 
-import static org.mockito.Mockito.doReturn;
+public class TestCleanupUtil {
+  private TestCleanupUtil() { }
 
-public class S3CommonFileSystemTestUtil {
-
-  public static S3CommonFileSystem stubRegionUnSet( S3CommonFileSystem fileSystem ) {
-    S3CommonFileSystem fileSystemSpy = Mockito.spy( fileSystem );
-    doReturn( false ).when( fileSystemSpy ).isRegionSet();
-    return fileSystemSpy;
+  public static void cleanUpLogsDir() {
+    File logsDir = new File( "logs" );
+    if ( logsDir.exists() && logsDir.isDirectory() ) {
+      File[] files = logsDir.listFiles();
+      if ( files != null ) {
+        for ( File f : files ) {
+          f.delete();
+        }
+      }
+      logsDir.delete();
+    }
   }
 }
