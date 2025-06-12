@@ -45,6 +45,7 @@
       <outputDirectory>lib</outputDirectory>
       <excludes>
         <exclude>pentaho:pdi-legacy-amazon-core:*</exclude>
+        <exclude>*:commons-lang:*</exclude>
       </excludes>
     </dependencySet>
   </dependencySets>
