@@ -99,6 +99,11 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
               logger.info( "No Hadoop active configuration found." );
               return;
           }
+
+          //////////////////////////////////////////////////////////////////////////////////
+          /// Bootstrapping the HDFS Services
+          //////////////////////////////////////////////////////////////////////////////////
+          // 1. Set up the hadoopFileSystemService (HadoopFileSystemLocator)
           HadoopConfiguration hadoopConfiguration = hadoopConfigurationProvider.getActiveConfiguration();
           HadoopShim hadoopShim = hadoopConfiguration.getHadoopShim();
           List<String> shimAvailableServices = hadoopShim.getAvailableServices();
@@ -228,8 +233,8 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
                           visitorServices
                   );
                   Map mapReducefactoryMap = new HashMap<String, String>();
-          mapReducefactoryMap.put( "shim", hadoopConfiguration.getIdentifier() );
-          mapReducefactoryMap.put( "service", "mapreduce" );
+          mapReducefactoryMap.put( "shim", hadoopShim.getShimIdentifier().getId() );
+          mapReducefactoryMap.put( "service", "shimservices" );
           // 3. Add the factory map to the NamedClusterServiceLocatorImpl
           namedClusterServiceLocator.factoryAdded( mapReduceServiceFactory, mapReducefactoryMap );}
               if ( availableMapreduceOptions.contains( "mapreduce_impersonation" ) ) {
