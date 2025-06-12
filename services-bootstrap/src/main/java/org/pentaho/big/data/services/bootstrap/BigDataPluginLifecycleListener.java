@@ -21,6 +21,7 @@ import org.pentaho.big.data.impl.cluster.tests.kafka.KafkaConnectTest;
 import org.pentaho.big.data.impl.cluster.tests.mr.GatewayPingJobTrackerTest;
 import org.pentaho.big.data.impl.cluster.tests.oozie.GatewayPingOozieHostTest;
 import org.pentaho.big.data.impl.cluster.tests.zookeeper.GatewayPingZookeeperEnsembleTest;
+import org.pentaho.big.data.impl.shim.HadoopClientServicesFactory;
 import org.pentaho.big.data.impl.shim.format.FormatServiceFactory;
 import org.pentaho.big.data.impl.shim.mapreduce.MapReduceServiceFactoryImpl;
 import org.pentaho.big.data.impl.shim.mapreduce.TransformationVisitorService;
@@ -42,6 +43,7 @@ import org.pentaho.hadoop.shim.api.ConfigurationException;
 import org.pentaho.big.data.impl.vfs.hdfs.HDFSFileProvider;
 import org.apache.commons.vfs2.FileSystemException;
 import org.pentaho.hadoop.shim.common.CommonFormatShim;
+import org.pentaho.hadoop.shim.spi.HadoopShim;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.i18n.impl.BaseMessagesMessageGetterFactoryImpl;
 import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
@@ -63,19 +65,23 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
       log.logDebug( "Starting Pentaho Big Data Plugin kettle lifecycle listener." );
       try {
           //////////////////////////////////////////////////////////////////////////////////
-          /// Bootstrapping the HDFS Services
+          /// Bootstrapping the Common Services
           //////////////////////////////////////////////////////////////////////////////////
-          // 1. Set up the hadoopFileSystemService (HadoopFileSystemLocator)
           HadoopConfigurationBootstrap hadoopConfigurationBootstrap = HadoopConfigurationBootstrap.getInstance();
-          HadoopConfigurationLocator hadoopConfigurationProvider = null;
-          hadoopConfigurationProvider = (HadoopConfigurationLocator) hadoopConfigurationBootstrap.getProvider();
+          HadoopConfigurationLocator hadoopConfigurationProvider =
+                  (HadoopConfigurationLocator) hadoopConfigurationBootstrap.getProvider();
           if ( hadoopConfigurationProvider == null ) {
               return;
           }
-          HadoopConfiguration hadoopConfiguration = hadoopConfigurationProvider.getActiveConfiguration();
 
+          //////////////////////////////////////////////////////////////////////////////////
+          /// Bootstrapping the HDFS Services
+          //////////////////////////////////////////////////////////////////////////////////
+          // 1. Set up the hadoopFileSystemService (HadoopFileSystemLocator)
+          HadoopConfiguration hadoopConfiguration = hadoopConfigurationProvider.getActiveConfiguration();
+          HadoopShim hadoopShim = hadoopConfiguration.getHadoopShim();
           HadoopFileSystemFactory hadoopFileSystemFactory =
-                  new HadoopFileSystemFactoryImpl( hadoopConfiguration.getHadoopShim(), hadoopConfiguration.getHadoopShim().getShimIdentifier() );
+                  new HadoopFileSystemFactoryImpl( hadoopShim, hadoopShim.getShimIdentifier() );
           List<HadoopFileSystemFactory> hadoopFileSystemFactoryList = new ArrayList<>();
           hadoopFileSystemFactoryList.add( hadoopFileSystemFactory );
           // TODO: Move the HadoopFileSystemLocatorImpl to a singleton. (NOTE: Might NOT be required anymore since
@@ -114,7 +120,7 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
           CommonFormatShim commonFormatShim = new CommonFormatShim();
           FormatServiceFactory formatServiceFactory = new FormatServiceFactory( commonFormatShim );
           Map formatFactoryMap = new HashMap<String, String>();
-          formatFactoryMap.put( "shim", hadoopConfiguration.getIdentifier() );
+          formatFactoryMap.put( "shim", hadoopShim.getShimIdentifier().getId() );
           formatFactoryMap.put( "service", "format" );
           // 3. Add the factory map to the NamedClusterServiceLocatorImpl
           namedClusterServiceLocator.factoryAdded( formatServiceFactory, formatFactoryMap );
@@ -129,13 +135,13 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
 //          );
           List<TransformationVisitorService> visitorServices = new ArrayList<>();
           MapReduceServiceFactoryImpl mapReduceServiceFactory = new MapReduceServiceFactoryImpl(
-                  hadoopConfiguration.getHadoopShim(),
+                  hadoopShim,
                   Executors.newCachedThreadPool(),
                   visitorServices
                   );
           Map mapReducefactoryMap = new HashMap<String, String>();
-          mapReducefactoryMap.put( "shim", hadoopConfiguration.getIdentifier() );
-          mapReducefactoryMap.put( "service", "mapreduce" );
+          mapReducefactoryMap.put( "shim", hadoopShim.getShimIdentifier().getId() );
+          mapReducefactoryMap.put( "service", "shimservices" );
           // 3. Add the factory map to the NamedClusterServiceLocatorImpl
           namedClusterServiceLocator.factoryAdded( mapReduceServiceFactory, mapReducefactoryMap );
 
@@ -143,6 +149,15 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
           /// Bootstrap the hadoop client service factories
           //////////////////////////////////////////////////////////////////////////////////
           //  2. Add the hadoop client NamedClusterServiceFactory to the factory map
+          HadoopClientServicesFactory hadoopClientServicesFactory = new HadoopClientServicesFactory( hadoopShim );
+          Map hadoopClientFactoryMap = new HashMap<String, String>();
+          hadoopClientFactoryMap.put( "shim", hadoopShim.getShimIdentifier().getId() );
+          hadoopClientFactoryMap.put( "service", "mapreduce" );
+          // 3. Add the factory map to the NamedClusterServiceLocatorImpl
+          namedClusterServiceLocator.factoryAdded( hadoopClientServicesFactory, hadoopClientFactoryMap );
+
+
+
 
           //////////////////////////////////////////////////////////////////////////////////
           /// Bootstrap the run time tests
