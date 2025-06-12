@@ -21,6 +21,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.plugins.PluginRegistry;
@@ -57,7 +58,8 @@ public class KafkaProducerOutputTest {
 
   @Test
   public void testSendsEachRowToProducer() throws Exception {
-    TransMeta transMeta = new TransMeta( getClass().getResource( "/produceFourRows.ktr" ).getPath() );
+    TransMeta transMeta = new TransMeta( DefaultBowl.getInstance(),
+      getClass().getResource( "/produceFourRows.ktr" ).getPath() );
     Trans trans = new Trans( transMeta );
     trans.setVariable( "keyField", "key" );
     trans.setVariable( "messageField", "message" );
@@ -81,7 +83,8 @@ public class KafkaProducerOutputTest {
 
   @Test
   public void testSendsEachRowToProducer_noKey() throws Exception {
-    TransMeta transMeta = new TransMeta( getClass().getResource( "/produceFourRows_noKey.ktr" ).getPath() );
+    TransMeta transMeta = new TransMeta( DefaultBowl.getInstance(),
+      getClass().getResource( "/produceFourRows_noKey.ktr" ).getPath() );
     Trans trans = new Trans( transMeta );
     trans.prepareExecution( new String[]{} );
 
@@ -102,7 +105,8 @@ public class KafkaProducerOutputTest {
 
   @Test
   public void testSendsEachRowToProducer_nullKey() throws Exception {
-    TransMeta transMeta = new TransMeta( getClass().getResource( "/produceFourRows_nullKey.ktr" ).getPath() );
+    TransMeta transMeta = new TransMeta( DefaultBowl.getInstance(),
+      getClass().getResource( "/produceFourRows_nullKey.ktr" ).getPath() );
     Trans trans = new Trans( transMeta );
     trans.prepareExecution( new String[]{} );
 
@@ -123,7 +127,8 @@ public class KafkaProducerOutputTest {
 
   @Test
   public void kafkaClientClosedOnStop() throws Exception {
-    TransMeta transMeta = new TransMeta( getClass().getResource( "/produceForever.ktr" ).getPath() );
+    TransMeta transMeta = new TransMeta( DefaultBowl.getInstance(),
+      getClass().getResource( "/produceForever.ktr" ).getPath() );
     Trans trans = new Trans( transMeta );
     trans.prepareExecution( new String[]{} );
 

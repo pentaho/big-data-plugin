@@ -1192,7 +1192,7 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
 
             if ( fileName != null && !fileName.equals( "" ) ) {
               try {
-                initialFile = KettleVFS.getFileObject( fileName );
+                initialFile = KettleVFS.getInstance( transMeta.getBowl() ).getFileObject( fileName );
                 resolvedInitialFile = true;
               } catch ( Exception ex ) {
                 showMessageAndLog( BaseMessages.getString( PKG, "HadoopFileOutputDialog.Connection.Error.title" ),
@@ -1200,10 +1200,12 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
                 return;
               }
               File startFile = new File( System.getProperty( "user.home" ) );
-              defaultInitialFile = KettleVFS.getFileObject( startFile.getAbsolutePath() );
+              defaultInitialFile = KettleVFS.getInstance( transMeta.getBowl() )
+                .getFileObject( startFile.getAbsolutePath() );
               rootFile = initialFile.getFileSystem().getRoot();
             } else {
-              defaultInitialFile = KettleVFS.getFileObject( Spoon.getInstance().getLastFileOpened() );
+              defaultInitialFile = KettleVFS.getInstance( transMeta.getBowl() )
+                .getFileObject( Spoon.getInstance().getLastFileOpened() );
             }
           }
 

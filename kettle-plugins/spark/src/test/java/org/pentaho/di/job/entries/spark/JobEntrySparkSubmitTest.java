@@ -28,6 +28,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.spy;
 import static org.pentaho.di.job.entries.spark.JobEntrySparkSubmit.JOB_TYPE_JAVA_SCALA;
 import static org.pentaho.di.job.entries.spark.JobEntrySparkSubmit.JOB_TYPE_PYTHON;
+import org.pentaho.di.job.JobMeta;
 
 public class JobEntrySparkSubmitTest {
   @Test
@@ -41,6 +42,7 @@ public class JobEntrySparkSubmitTest {
     ss.setClassName( "class_name" );
     ss.setDriverMemory( "driverMemory" );
     ss.setExecutorMemory( "executorMemory" );
+    ss.setParentJobMeta( new JobMeta() );
 
     List<String> configParams = new ArrayList<String>();
     configParams.add( "name1=value1" );
@@ -102,7 +104,7 @@ public class JobEntrySparkSubmitTest {
     je.setJobType( JOB_TYPE_JAVA_SCALA );
     List<CheckResultInterface> remarks = new ArrayList<>();
     je.setMaster( "" );
-    je.check( remarks, null, null, null, null );
+    je.check( remarks, new JobMeta(), null, null, null );
     Assert.assertEquals( "Number of remarks should be 4", 4, remarks.size() );
 
     int errors = 0;
@@ -115,7 +117,7 @@ public class JobEntrySparkSubmitTest {
 
     remarks.clear();
     je.setJobType( JobEntrySparkSubmit.JOB_TYPE_PYTHON );
-    je.check( remarks, null, null, null, null );
+    je.check( remarks, new JobMeta(), null, null, null );
     Assert.assertEquals( "Number of remarks should be 4", 4, remarks.size() );
 
     errors = 0;

@@ -54,6 +54,7 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaLineageConstants.KA
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaLineageConstants.KEY;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaLineageConstants.MESSAGE;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.ConnectionType.DIRECT;
+import org.pentaho.di.core.bowl.Bowl;
 import static org.pentaho.dictionary.DictionaryConst.CATEGORY_DATASOURCE;
 import static org.pentaho.dictionary.DictionaryConst.CATEGORY_MESSAGE_QUEUE;
 import static org.pentaho.dictionary.DictionaryConst.LINK_CONTAINS_CONCEPT;
@@ -214,9 +215,8 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     }
   }
 
-  @Override public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta
-          nextStep,
-                        VariableSpace space, Repository repository, IMetaStore metaStore ) {
+  @Override public void getFields( Bowl bowl, RowMetaInterface rowMeta, String origin, RowMetaInterface[] info,
+                        StepMeta nextStep, VariableSpace space, Repository repository, IMetaStore metaStore ) {
     // Default: nothing changes to rowMeta
   }
 

@@ -18,6 +18,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.hadoop.shim.api.format.IPvfsAliasGenerator;
@@ -59,7 +60,8 @@ public class PvfsFileAliaserTest {
     new File( temporaryPath )
       .createNewFile();  //create the alias file so it and it's parent can be successfully deleted
     when( aliasGenerator.generateAlias( anyString() ) ).thenReturn( temporaryPath );
-    pvfsFileAliaser = new PvfsFileAliaser( finalPath, variableSpace, aliasGenerator, true, log );
+    pvfsFileAliaser = new PvfsFileAliaser( DefaultBowl.getInstance(), finalPath, variableSpace, aliasGenerator, true,
+      log );
   }
 
   @Test

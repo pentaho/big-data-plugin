@@ -18,14 +18,15 @@ import org.eclipse.swt.widgets.Composite;
 import org.pentaho.di.connections.annotations.Encrypted;
 import org.pentaho.di.connections.vfs.BaseVFSConnectionDetails;
 import org.pentaho.di.connections.vfs.VFSDetailsComposite;
+import org.pentaho.di.core.bowl.Bowl;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.metastore.persist.MetaStoreAttribute;
 import org.pentaho.metastore.persist.MetaStoreElementType;
 import org.pentaho.s3.vfs.S3FileProvider;
+import org.pentaho.s3common.S3CommonFileSystemConfigBuilder;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 @MetaStoreElementType( name = "Amazon S3 Connection", description = "Defines the connection details for an Amazon S3 connection" )
@@ -230,16 +231,16 @@ public class S3Details extends BaseVFSConnectionDetails {
     props.put( "profileName", getProfileName() );
     props.put( "endpoint", getEndpoint() );
     props.put( "signatureVersion", getSignatureVersion() );
-    props.put( "pathStyleAccess", getPathStyleAccess() );
+    props.put( S3CommonFileSystemConfigBuilder.PATHSTYLE_ACCESS, getPathStyleAccess() );
     props.put( "defaultS3Config", getDefaultS3Config() );
     props.put( "connectionType", getConnectionType() );
     super.fillProperties( props );
   }
 
   @Override
-  public Object openDialog( Object wCompositeWrapper, Object props ) {
+  public Object openDialog( Bowl bowl, Object wCompositeWrapper, Object props ) {
     if ( wCompositeWrapper instanceof Composite && props instanceof PropsUI ) {
-      vfsDetailsComposite = new S3DetailComposite( (Composite) wCompositeWrapper, this, (PropsUI) props );
+      vfsDetailsComposite = new S3DetailComposite( bowl, (Composite) wCompositeWrapper, this, (PropsUI) props );
       vfsDetailsComposite.open();
       return vfsDetailsComposite;
     }

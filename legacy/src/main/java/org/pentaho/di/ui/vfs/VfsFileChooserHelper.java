@@ -17,6 +17,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.eclipse.swt.widgets.Shell;
+import org.pentaho.di.core.bowl.Bowl;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -58,46 +59,47 @@ public class VfsFileChooserHelper {
     this.schemeRestrictions = new String[0];
   }
 
-  public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri ) throws KettleException,
-    FileSystemException {
-    return browse( fileFilters, fileFilterNames, fileUri, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY );
-  }
-
-  public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri, int fileDialogMode )
+  public FileObject browse( Bowl bowl, String[] fileFilters, String[] fileFilterNames, String fileUri )
     throws KettleException, FileSystemException {
-    return browse( fileFilters, fileFilterNames, fileUri, fileSystemOptions, fileDialogMode );
+    return browse( bowl, fileFilters, fileFilterNames, fileUri, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY );
   }
 
-  public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri, int fileDialogMode,
-      boolean showLocation ) throws KettleException, FileSystemException {
-    return browse( fileFilters, fileFilterNames, fileUri, fileSystemOptions, fileDialogMode, showLocation, true );
+  public FileObject browse( Bowl bowl, String[] fileFilters, String[] fileFilterNames, String fileUri,
+    int fileDialogMode ) throws KettleException, FileSystemException {
+    return browse( bowl, fileFilters, fileFilterNames, fileUri, fileSystemOptions, fileDialogMode );
   }
 
-  public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri, int fileDialogMode,
-      boolean showLocation, boolean showCustomUI ) throws KettleException, FileSystemException {
-    return browse( fileFilters, fileFilterNames, fileUri, fileSystemOptions, fileDialogMode, showLocation, showCustomUI );
+  public FileObject browse( Bowl bowl, String[] fileFilters, String[] fileFilterNames, String fileUri,
+      int fileDialogMode, boolean showLocation ) throws KettleException, FileSystemException {
+    return browse( bowl, fileFilters, fileFilterNames, fileUri, fileSystemOptions, fileDialogMode, showLocation, true );
   }
 
-  public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri, FileSystemOptions opts )
-    throws KettleException, FileSystemException {
-    return browse( fileFilters, fileFilterNames, fileUri, opts, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY );
-  }
-
-  public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri, FileSystemOptions opts,
-      int fileDialogMode ) throws KettleException, FileSystemException {
-    return browse( fileFilters, fileFilterNames, fileUri, opts, fileDialogMode, true, true );
-  }
-
-  public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri, FileSystemOptions opts,
+  public FileObject browse( Bowl bowl, String[] fileFilters, String[] fileFilterNames, String fileUri,
       int fileDialogMode, boolean showLocation, boolean showCustomUI ) throws KettleException, FileSystemException {
+    return browse( bowl, fileFilters, fileFilterNames, fileUri, fileSystemOptions, fileDialogMode, showLocation, showCustomUI );
+  }
+
+  public FileObject browse( Bowl bowl, String[] fileFilters, String[] fileFilterNames, String fileUri,
+    FileSystemOptions opts ) throws KettleException, FileSystemException {
+    return browse( bowl, fileFilters, fileFilterNames, fileUri, opts, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY );
+  }
+
+  public FileObject browse( Bowl bowl, String[] fileFilters, String[] fileFilterNames, String fileUri,
+      FileSystemOptions opts, int fileDialogMode ) throws KettleException, FileSystemException {
+    return browse( bowl, fileFilters, fileFilterNames, fileUri, opts, fileDialogMode, true, true );
+  }
+
+  public FileObject browse( Bowl bowl, String[] fileFilters, String[] fileFilterNames, String fileUri,
+      FileSystemOptions opts, int fileDialogMode, boolean showLocation, boolean showCustomUI )
+    throws KettleException, FileSystemException {
     // Get current file
     FileObject rootFile = null;
     FileObject initialFile = null;
 
     if ( fileUri != null ) {
-      initialFile = KettleVFS.getFileObject( fileUri, variableSpace, opts );
+      initialFile = KettleVFS.getInstance( bowl ).getFileObject( fileUri, variableSpace, opts );
     } else {
-      initialFile = KettleVFS.getFileObject( Spoon.getInstance().getLastFileOpened() );
+      initialFile = KettleVFS.getInstance( bowl ).getFileObject( Spoon.getInstance().getLastFileOpened() );
     }
     rootFile = initialFile.getFileSystem().getRoot();
     fileChooserDialog.setRootFile( rootFile );

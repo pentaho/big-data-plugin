@@ -187,7 +187,8 @@ public class NamedClusterVfsFileChooserDialog extends CustomVfsUiPanel {
     FileSystemOptions fsoptions = new FileSystemOptions();
     FileObject root = rootFile;
     try {
-      root = KettleVFS.getFileObject( connectionString, fsoptions );
+      Spoon spoon = Spoon.getInstance();
+      root = KettleVFS.getInstance( spoon.getExecutionBowl() ).getFileObject( connectionString, fsoptions );
     } catch ( KettleFileException exc ) {
       showMessageAndLog( BaseMessages.getString( PKG, "HadoopVfsFileChooserDialog.error" ), BaseMessages.getString( PKG,
         "HadoopVfsFileChooserDialog.Connection.error" ), exc.getMessage() );
@@ -203,8 +204,10 @@ public class NamedClusterVfsFileChooserDialog extends CustomVfsUiPanel {
   @Override
   public FileObject resolveFile( String fileUri ) throws FileSystemException {
     try {
+      Spoon spoon = Spoon.getInstance();
       //should we use new instance of FileSystemOptions? should it be depdrecated?
-      return KettleVFS.getFileObject( fileUri, getVariableSpace(), getFileSystemOptions() );
+      return KettleVFS.getInstance( spoon.getExecutionBowl() )
+        .getFileObject( fileUri, getVariableSpace(), getFileSystemOptions() );
     } catch ( KettleFileException e ) {
       throw new FileSystemException( e );
     }
@@ -213,7 +216,8 @@ public class NamedClusterVfsFileChooserDialog extends CustomVfsUiPanel {
   @Override
   public FileObject resolveFile( String fileUri, FileSystemOptions opts ) throws FileSystemException {
     try {
-      return KettleVFS.getFileObject( fileUri, getVariableSpace(), opts );
+      Spoon spoon = Spoon.getInstance();
+      return KettleVFS.getInstance( spoon.getExecutionBowl() ).getFileObject( fileUri, getVariableSpace(), opts );
     } catch ( KettleFileException e ) {
       throw new FileSystemException( e );
     }

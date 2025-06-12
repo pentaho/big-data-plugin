@@ -1631,7 +1631,8 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
       if ( !StringUtils.isEmpty( filename ) && filename.startsWith( "s3://" ) ) {
         defaultFileObject = "s3://";
       }
-      FileObject defaultInitialFile = KettleVFS.getFileObject( defaultFileObject );
+      FileObject defaultInitialFile = KettleVFS.getInstance( transMeta.getBowl() )
+        .getFileObject( defaultFileObject );
 
       VfsFileChooserDialog fileChooserDialog =
         Spoon.getInstance().getVfsFileChooserDialog( defaultInitialFile, null );

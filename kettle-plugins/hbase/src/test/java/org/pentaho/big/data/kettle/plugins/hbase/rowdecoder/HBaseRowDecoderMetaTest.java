@@ -16,6 +16,7 @@ package org.pentaho.big.data.kettle.plugins.hbase.rowdecoder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
@@ -69,7 +70,7 @@ public class HBaseRowDecoderMetaTest {
     // Mapping from HBase: having both table name and mapping name
     hbRowDecoderMeta.setMapping( getMapping( TABLE_NAME, MAPPING_NAME ) );
 
-    hbRowDecoderMeta.getFields( rowMeta, ORIGIN, null, null, null );
+    hbRowDecoderMeta.getFields( DefaultBowl.getInstance(), rowMeta, ORIGIN, null, null, null );
 
     assertRowMetaIsFilledWithFields();
   }
@@ -79,7 +80,7 @@ public class HBaseRowDecoderMetaTest {
     // "local" Mapping: no mapping name
     hbRowDecoderMeta.setMapping( getMapping( null, null ) );
 
-    hbRowDecoderMeta.getFields( rowMeta, ORIGIN, null, null, null );
+    hbRowDecoderMeta.getFields( DefaultBowl.getInstance(), rowMeta, ORIGIN, null, null, null );
 
     assertRowMetaIsFilledWithFields();
   }

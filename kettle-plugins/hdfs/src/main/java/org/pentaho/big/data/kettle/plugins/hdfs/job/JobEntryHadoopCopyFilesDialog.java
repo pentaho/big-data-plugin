@@ -249,7 +249,7 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
 
         if ( fileName != null && !fileName.equals( "" ) ) {
           try {
-            initialFile = KettleVFS.getFileObject( fileName );
+            initialFile = KettleVFS.getInstance( jobMeta.getBowl() ).getFileObject( fileName );
             resolvedInitialFile = true;
           } catch ( Exception e ) {
             showMessageAndLog( BaseMessages.getString( PKG, "JobHadoopCopyFiles.Connection.Error.title" ), BaseMessages.getString(
@@ -257,10 +257,11 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
             return null;
           }
           File startFile = new File( System.getProperty( "user.home" ) );
-          defaultInitialFile = KettleVFS.getFileObject( startFile.getAbsolutePath() );
+          defaultInitialFile = KettleVFS.getInstance( jobMeta.getBowl() ).getFileObject( startFile.getAbsolutePath() );
           rootFile = initialFile.getFileSystem().getRoot();
         } else {
-          defaultInitialFile = KettleVFS.getFileObject( Spoon.getInstance().getLastFileOpened() );
+          defaultInitialFile = KettleVFS.getInstance( jobMeta.getBowl() )
+            .getFileObject( Spoon.getInstance().getLastFileOpened() );
         }
       }
 

@@ -35,6 +35,7 @@ import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
 import org.pentaho.big.data.kettle.plugins.job.PropertyEntry;
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.annotations.JobEntry;
+import org.pentaho.di.core.bowl.Bowl;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -243,14 +244,14 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
   }
 
   public Properties getPropertiesFromFile( OozieJobExecutorConfig config ) throws IOException, KettleFileException {
-    return getPropertiesFromFile( config, getVariableSpace() );
+    return getPropertiesFromFile( parentJobMeta.getBowl(), config, getVariableSpace() );
   }
 
-  public static Properties getPropertiesFromFile( OozieJobExecutorConfig config, VariableSpace variableSpace )
-    throws IOException, KettleFileException {
+  public static Properties getPropertiesFromFile( Bowl bowl, OozieJobExecutorConfig config,
+    VariableSpace variableSpace ) throws IOException, KettleFileException {
     InputStreamReader reader =
-      new InputStreamReader( KettleVFS.getInputStream( variableSpace.environmentSubstitute( config
-        .getOozieWorkflowConfig() ) ) );
+      new InputStreamReader( KettleVFS.getInstance( bowl )
+        .getInputStream( variableSpace.environmentSubstitute( config.getOozieWorkflowConfig() ) ) );
 
     Properties jobProps = new Properties();
     jobProps.load( reader );
@@ -258,10 +259,10 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
   }
 
   public Properties getProperties( OozieJobExecutorConfig config ) throws KettleFileException, IOException {
-    return getProperties( config, getVariableSpace() );
+    return getProperties( parentJobMeta.getBowl(), config, getVariableSpace() );
   }
 
-  public static Properties getProperties( OozieJobExecutorConfig config, VariableSpace variableSpace )
+  public static Properties getProperties( Bowl bowl, OozieJobExecutorConfig config, VariableSpace variableSpace )
     throws KettleFileException, IOException {
     Properties jobProps;
     if ( config.getModeAsEnum() == JobEntryMode.ADVANCED_LIST && config.getWorkflowProperties() != null ) {
@@ -273,7 +274,7 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
         }
       }
     } else {
-      jobProps = getPropertiesFromFile( config, variableSpace );
+      jobProps = getPropertiesFromFile( bowl, config, variableSpace );
     }
     return jobProps;
   }

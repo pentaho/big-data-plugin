@@ -2877,7 +2877,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
             String fileName = transMeta.environmentSubstitute( path );
             if ( fileName != null && !fileName.equals( "" ) ) {
               try {
-                initialFile = KettleVFS.getFileObject( fileName );
+                initialFile = KettleVFS.getInstance( transMeta.getBowl() ).getFileObject( fileName );
                 resolvedInitialFile = true;
               } catch ( Exception ex ) {
                 showMessageAndLog( BaseMessages.getString( PKG, "HadoopFileInputDialog.Connection.Error.title" ),
@@ -2885,10 +2885,12 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
                 return;
               }
               File startFile = new File( System.getProperty( "user.home" ) );
-              defaultInitialFile = KettleVFS.getFileObject( startFile.getAbsolutePath() );
+              defaultInitialFile = KettleVFS.getInstance( transMeta.getBowl() )
+                .getFileObject( startFile.getAbsolutePath() );
               rootFile = initialFile.getFileSystem().getRoot();
             } else {
-              defaultInitialFile = KettleVFS.getFileObject( Spoon.getInstance().getLastFileOpened() );
+              defaultInitialFile = KettleVFS.getInstance( transMeta.getBowl() )
+                .getFileObject( Spoon.getInstance().getLastFileOpened() );
             }
           }
 
@@ -3065,14 +3067,15 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
           String fileName = transMeta.environmentSubstitute( widget.getText() );
 
           if ( fileName != null && !fileName.equals( "" ) ) {
-            initialFile = KettleVFS.getFileObject( fileName );
+            initialFile = KettleVFS.getInstance( transMeta.getBowl() ).getFileObject( fileName );
             rootFile = initialFile.getFileSystem().getRoot();
           } else {
-            defaultInitialFile = KettleVFS.getFileObject( Spoon.getInstance().getLastFileOpened() );
+            defaultInitialFile = KettleVFS.getInstance( transMeta.getBowl() )
+              .getFileObject( Spoon.getInstance().getLastFileOpened() );
           }
         }
 
-        defaultInitialFile = KettleVFS.getFileObject( "file:///c:/" );
+        defaultInitialFile = KettleVFS.getInstance( transMeta.getBowl() ).getFileObject( "file:///c:/" );
         if ( rootFile == null ) {
           rootFile = defaultInitialFile.getFileSystem().getRoot();
           initialFile = defaultInitialFile;

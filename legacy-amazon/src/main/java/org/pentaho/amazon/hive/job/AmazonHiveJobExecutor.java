@@ -80,7 +80,7 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobExecutor {
   @Override
   public File createStagingFile() throws IOException, KettleException {
     // pull down .q file from VSF
-    FileObject qFile = KettleVFS.getFileObject( buildFilename( qUrl ) );
+    FileObject qFile = KettleVFS.getInstance( parentJobMeta.getBowl() ).getFileObject( buildFilename( qUrl ) );
     File tmpFile = File.createTempFile( "customEMR", "q" );
     tmpFile.deleteOnExit();
     FileOutputStream tmpFileOut = new FileOutputStream( tmpFile );

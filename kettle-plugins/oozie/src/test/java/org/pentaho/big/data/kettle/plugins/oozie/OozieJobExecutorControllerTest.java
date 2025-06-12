@@ -25,6 +25,7 @@ import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
 import org.pentaho.big.data.kettle.plugins.job.PropertyEntry;
 import org.pentaho.big.data.plugins.common.ui.HadoopClusterDelegateImpl;
+import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.core.KettleEnvironment;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.variables.Variables;
@@ -88,11 +89,11 @@ public class OozieJobExecutorControllerTest {
       mock( RuntimeTestActionService.class ),
       mock( RuntimeTester.class ),
       mock( NamedClusterServiceLocator.class ) );
+    jobEntry.setParentJobMeta( new JobMeta() );
 
     controller =
       new OozieJobExecutorJobEntryController( new JobMeta(), new XulFragmentContainer( null ),
-        jobEntry, new DefaultBindingFactory(),
-        delegate );
+        jobEntry, new DefaultBindingFactory(), delegate );
   }
 
   @Test
@@ -140,8 +141,7 @@ public class OozieJobExecutorControllerTest {
       mock( NamedClusterServiceLocator.class ) );
     OozieJobExecutorJobEntryController controller =
       new OozieJobExecutorJobEntryController( new JobMeta(), new XulFragmentContainer( null ),
-        jobEntry, new DefaultBindingFactory(),
-        delegate );
+        jobEntry, new DefaultBindingFactory(), delegate );
     when( jobEntry.getNamedClusterService().list( anyObject() ) ).thenThrow( new MetaStoreException() );
     List<NamedCluster> namedClusters = controller.getNamedClusters();
     assertEquals( namedClusters.size(), 0 );
@@ -200,7 +200,7 @@ public class OozieJobExecutorControllerTest {
     OozieJobExecutorConfig config = getGoodConfig();
     controller.setConfig( config );
     controller.setJobEntryMode( JobEntryMode.ADVANCED_LIST );
-    Properties props = OozieJobExecutorJobEntry.getProperties( config, new Variables() );
+    Properties props = OozieJobExecutorJobEntry.getProperties( DefaultBowl.getInstance(), config, new Variables() );
 
     assertFalse( props.size() == controller.getAdvancedArguments().size() );
     controller.syncModel();
@@ -211,7 +211,7 @@ public class OozieJobExecutorControllerTest {
   public void testSyncModel_advanced_addedProp() throws Exception {
     OozieJobExecutorConfig config = getGoodConfig();
     controller.setConfig( config );
-    Properties props = OozieJobExecutorJobEntry.getProperties( config, new Variables() );
+    Properties props = OozieJobExecutorJobEntry.getProperties( DefaultBowl.getInstance(), config, new Variables() );
     controller.setJobEntryMode( JobEntryMode.ADVANCED_LIST );
 
     controller.syncModel();
@@ -229,7 +229,7 @@ public class OozieJobExecutorControllerTest {
     OozieJobExecutorConfig config = getGoodConfig();
 
     controller.setConfig( config );
-    Properties props = OozieJobExecutorJobEntry.getProperties( config, new Variables() );
+    Properties props = OozieJobExecutorJobEntry.getProperties( DefaultBowl.getInstance(), config, new Variables() );
     controller.syncModel();
     controller.setJobEntryMode( JobEntryMode.ADVANCED_LIST );
 
@@ -244,7 +244,7 @@ public class OozieJobExecutorControllerTest {
   public void testSyncModel_advanced_editProp() throws Exception {
     OozieJobExecutorConfig config = getGoodConfig();
     controller.setConfig( config );
-    Properties props = OozieJobExecutorJobEntry.getProperties( config, new Variables() );
+    Properties props = OozieJobExecutorJobEntry.getProperties( DefaultBowl.getInstance(), config, new Variables() );
     controller.setJobEntryMode( JobEntryMode.ADVANCED_LIST );
 
     controller.syncModel();
@@ -255,7 +255,8 @@ public class OozieJobExecutorControllerTest {
     controller.setAdvancedArguments( advanced );
     controller.syncModel();
     assertEquals( props.size(), controller.getAdvancedArguments().size() );
-    Properties updatedProps = OozieJobExecutorJobEntry.getProperties( controller.getConfig(), new Variables() );
+    Properties updatedProps = OozieJobExecutorJobEntry.getProperties( DefaultBowl.getInstance(),
+      controller.getConfig(), new Variables() );
     assertEquals( "new value", updatedProps.get( key ) );
   }
 
@@ -263,10 +264,11 @@ public class OozieJobExecutorControllerTest {
   public void testToggleMode() throws Exception {
     // get into advanced mode
     TestOozieJobExecutorController ctr = new TestOozieJobExecutorController();
+    ctr.getJobEntry().setParentJobMeta( new JobMeta() );
 
     OozieJobExecutorConfig config = getGoodConfig();
     ctr.setConfig( config );
-    Properties props = OozieJobExecutorJobEntry.getProperties( config, new Variables() );
+    Properties props = OozieJobExecutorJobEntry.getProperties( DefaultBowl.getInstance(), config, new Variables() );
     ctr.syncModel();
 
     ctr.setJobEntryMode( JobEntryMode.ADVANCED_LIST );
@@ -279,7 +281,8 @@ public class OozieJobExecutorControllerTest {
     ctr.setAdvancedArguments( advanced );
     ctr.syncModel();
     assertEquals( props.size(), ctr.getAdvancedArguments().size() );
-    Properties updatedProps = OozieJobExecutorJobEntry.getProperties( ctr.getConfig(), new Variables() );
+    Properties updatedProps = OozieJobExecutorJobEntry.getProperties( DefaultBowl.getInstance(), ctr.getConfig(),
+      new Variables() );
     assertEquals( "new value", updatedProps.get( key ) );
     assertEquals( props.size(), ctr.getConfig().getWorkflowProperties().size() );
 

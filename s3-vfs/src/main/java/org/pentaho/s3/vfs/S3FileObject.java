@@ -161,7 +161,7 @@ public class S3FileObject extends S3CommonFileObject {
 
     //see if the folder exists; if not, it might be from an old path and the real bucket is in the key
     if ( !bucketExists( bucket ) ) {
-      logger.debug( "Bucket {} from original path not found, might be an old path from the old driver", bucket );
+      logger.warn( "Bucket {} from original path not found, might be an old path from the old driver", bucket );
       if ( key.split( DELIMITER ).length > 1 ) {
         newBucket = key.split( DELIMITER )[0];
         newKey = key.replaceFirst( newBucket + DELIMITER, "" );

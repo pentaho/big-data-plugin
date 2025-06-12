@@ -22,6 +22,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
 import org.pentaho.big.data.kettle.plugins.formats.orc.output.OrcOutputField;
+import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.KettleLogStore;
@@ -128,6 +129,7 @@ public class OrcOutputTest {
       when( mockStepMeta.getName() ).thenReturn( OUTPUT_STEP_NAME );
       when( mockTransMeta.findStep( OUTPUT_STEP_NAME ) ).thenReturn( mockStepMeta );
       when( mockTransMeta.findStep( OUTPUT_STEP_NAME ) ).thenReturn( mockStepMeta );
+      when( mockTransMeta.getBowl() ).thenReturn( DefaultBowl.getInstance() );
 
       try {
         when( mockRowHandler.getRow() ).thenAnswer( answer -> returnNextParquetRow() );
@@ -147,6 +149,7 @@ public class OrcOutputTest {
       orcOutput.setInputRowMeta( dataInputRowMeta );
       orcOutput.setRowHandler( mockRowHandler );
       orcOutput.setLogLevel( LogLevel.ERROR );
+      orcOutput.setTransMeta( mockTransMeta );
     }
   }
 

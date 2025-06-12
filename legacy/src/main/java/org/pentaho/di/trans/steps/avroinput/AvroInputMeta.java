@@ -31,6 +31,7 @@ import org.apache.avro.util.Utf8;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
+import org.pentaho.di.core.bowl.Bowl;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleStepException;
@@ -958,7 +959,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
    * org.pentaho.di.core.variables.VariableSpace)
    */
   @Override
-  public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
+  public void getFields( Bowl bowl, RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
       VariableSpace space ) throws KettleStepException {
 
     List<AvroField> fieldsToOutput = null;
@@ -974,7 +975,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
         String fn = space.environmentSubstitute( m_schemaFilename );
 
         try {
-          Schema s = AvroInputData.loadSchema( fn );
+          Schema s = AvroInputData.loadSchema( bowl, fn );
           fieldsToOutput = AvroInputData.getLeafFields( s );
         } catch ( KettleException e ) {
           throw new KettleStepException( BaseMessages.getString( PKG, "AvroInput.Error.UnableToLoadSchema", fn ), e );
@@ -988,7 +989,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
         String avroFilename = m_filename;
         avroFilename = space.environmentSubstitute( avroFilename );
         try {
-          Schema s = AvroInputData.loadSchemaFromContainer( avroFilename );
+          Schema s = AvroInputData.loadSchemaFromContainer( bowl, avroFilename );
           fieldsToOutput = AvroInputData.getLeafFields( s );
         } catch ( KettleException e ) {
           throw new KettleStepException( BaseMessages.getString( PKG,

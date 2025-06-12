@@ -31,7 +31,6 @@ import org.pentaho.s3common.S3CommonFileSystemTestUtil;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 
 /**
@@ -67,7 +66,12 @@ public class S3NFileSystemTest {
     UserAuthenticator authenticator = mock( UserAuthenticator.class );
     DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( options, authenticator );
 
-    fileSystem = new S3NFileSystem( fileName, options );
+    fileSystem = new S3NFileSystem( fileName, options ) {
+      @Override
+      protected boolean isRegionSet() {
+        return false;
+      }
+    };
     assertNotNull( fileSystem.getS3Client() );
   }
 
@@ -77,7 +81,6 @@ public class S3NFileSystemTest {
     try ( MockedStatic<Regions> regionsMockedStatic = Mockito.mockStatic( Regions.class ) ) {
       regionsMockedStatic.when( Regions::getCurrentRegion ).thenReturn( null );
       //Not under an EC2 instance - getCurrentRegion returns null
-      when( Regions.getCurrentRegion() ).thenReturn( null );
       fileSystem = new S3NFileSystem( fileName, options );
       fileSystem = (S3NFileSystem) S3CommonFileSystemTestUtil.stubRegionUnSet( fileSystem );
       AmazonS3Client s3Client = (AmazonS3Client) fileSystem.getS3Client();

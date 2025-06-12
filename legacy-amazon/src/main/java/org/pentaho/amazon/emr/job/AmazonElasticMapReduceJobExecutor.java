@@ -117,7 +117,7 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobExecutor
   @Override
   public File createStagingFile() throws IOException, KettleException {
     // pull down .jar file from VSF
-    FileObject jarFile = KettleVFS.getFileObject( buildFilename( jarUrl ) );
+    FileObject jarFile = KettleVFS.getInstance( parentJobMeta.getBowl() ).getFileObject( buildFilename( jarUrl ) );
     File tmpFile = File.createTempFile( "customEMR", "jar" );
     tmpFile.deleteOnExit();
     FileOutputStream tmpFileOut = new FileOutputStream( tmpFile );
