@@ -12,6 +12,9 @@
 
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.jetty.util.StringUtil;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
