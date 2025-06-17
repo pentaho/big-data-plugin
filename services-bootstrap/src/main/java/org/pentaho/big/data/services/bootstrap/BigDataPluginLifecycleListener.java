@@ -341,7 +341,6 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
                   );
                   driverLocator.registerDriver( impersonatingSparkSqlSimbaDriver );
               }
-              // TODO: Add the Hive plugins found in big-data-plugin/kettle-plugins/hive/src/main/resources/OSGI-INF/blueprint/blueprint.xml
           }
 
           //////////////////////////////////////////////////////////////////////////////////
@@ -373,7 +372,6 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
                           );
                   namedClusterServiceLocator.factoryAdded( hBaseKnoxServiceFactory, hBaseServiceFactoryMap );
               }
-              // TODO: Add the HBase plugins found in big-data-plugin/kettle-plugins/hbase/src/main/resources/OSGI-INF/blueprint/blueprint.xml
           }
 
           //////////////////////////////////////////////////////////////////////////////////
