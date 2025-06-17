@@ -12,9 +12,6 @@
 
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.jetty.util.StringUtil;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
@@ -498,11 +495,6 @@ public class ClusterSettingsPage extends WizardPage {
     thinNameClusterModel.setHdfsUsername( userNameTextFieldHdfsGroup.getText() );
     thinNameClusterModel.setHdfsPassword( passwordTextFieldHdfsGroup.getText() );
     thinNameClusterModel.setSiteFiles( getTableItems( siteFilesTable.getItems() ) );
-
-    if ( !( (NamedClusterDialog) getWizard() ).isEditMode() ) {
-      thinNameClusterModel.setShimVendor( getLoadedDriverVender() );
-      thinNameClusterModel.setShimVersion( getLoadedDriverVersion() );
-    }
 
     if ( ( (NamedClusterDialog) getWizard() ).getDialogState().equals( "new-edit" ) ) {
       thinNameClusterModel.setHdfsHost( hostNameTextFieldHdfsGroup.getText() );
