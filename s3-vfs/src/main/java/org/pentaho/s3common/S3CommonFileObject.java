@@ -376,12 +376,12 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
     if ( s3Src != null ) {
       // S3 to S3 copy
       try {
-        logger.info( "Attempting S3→S3 server-side multipart copy from {} to {}",
+        logger.info( "Attempting S3->S3 server-side multipart copy from {} to {}",
                      s3Src.getQualifiedName(), this.getQualifiedName() );
         fileSystem.copy( s3Src, this );
         return;
       } catch ( FileSystemException e ) {
-        logger.warn( "S3→S3 multipart copy failed, falling back to TransferManager upload: {}", e.getMessage(), e );
+        logger.warn( "S3->S3 multipart copy failed, falling back to TransferManager upload: {}", e.getMessage(), e );
         // fallback to TransferManager upload below
       }
     }

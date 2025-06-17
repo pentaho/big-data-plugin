@@ -42,7 +42,7 @@ public class S3TransferManager {
   }
 
   /**
-   * Perform S3→S3 multipart copy with a custom thread pool size.
+   * Perform S3->S3 multipart copy with a custom thread pool size.
    *
    * @param src           Source S3FileObject
    * @param dst           Destination S3FileObject
@@ -64,7 +64,7 @@ public class S3TransferManager {
         dst.bucketName, dst.key
       );
       copy.waitForCompletion();
-      logger.info( "S3→S3 server-side copy succeeded: {} → {}",
+      logger.info( "S3->S3 server-side copy succeeded: {} -> {}",
                    src.getQualifiedName(), dst.getQualifiedName() );
     } catch ( InterruptedException ie ) {
       Thread.currentThread().interrupt();
