@@ -133,6 +133,16 @@
       <modules>
         <module>legacy-amazon</module>
         <module>kettle-plugins</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>bootstrap</id>
+      <activation>
+        <property>
+          <name>!skipDefault</name>
+        </property>
+      </activation>
+      <modules>
         <module>services-bootstrap</module>
       </modules>
     </profile>
