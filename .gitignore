@@ -15,6 +15,7 @@ override.properties
 /pdi-bin
 *.iml
 .idea/
+.vscode/
 target/
 rebel.xml
 .DS_Store

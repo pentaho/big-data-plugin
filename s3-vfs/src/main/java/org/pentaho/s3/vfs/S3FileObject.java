@@ -21,6 +21,7 @@ import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
+
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.provider.AbstractFileName;
@@ -106,8 +107,8 @@ public class S3FileObject extends S3CommonFileObject {
   @Override
   protected OutputStream doGetOutputStream( boolean bAppend ) throws Exception {
     SimpleEntry<String, String> newPath = fixFilePath( key, bucketName );
-    return new S3CommonPipedOutputStream( this.fileSystem, newPath.getValue(), newPath.getKey(),
-            ( (S3FileSystem) this.fileSystem ).getPartSize() );
+    int partSize = (int) Long.min( Integer.MAX_VALUE, this.fileSystem.getPartSize() );
+    return new S3CommonPipedOutputStream( this.fileSystem, newPath.getValue(), newPath.getKey(), partSize );
   }
 
   @Override
