@@ -13,6 +13,7 @@
 
 package org.pentaho.big.data.kettle.plugins.hive;
 
+import org.pentaho.big.data.api.jdbc.impl.DriverLocatorImpl;
 import org.pentaho.hadoop.shim.api.jdbc.DriverLocator;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.DatabaseMeta;
@@ -31,6 +32,9 @@ public class HiveDatabaseMeta extends DatabaseMetaWithVersion {
   protected static final String DRIVER_CLASS_NAME = "org.apache.hadoop.hive.jdbc.HiveDriver";
   protected static final int DEFAULT_PORT = 10000;
 
+  public HiveDatabaseMeta() {
+    this( DriverLocatorImpl.getInstance() );
+  }
   public HiveDatabaseMeta( DriverLocator driverLocator ) {
     super( driverLocator );
   }
