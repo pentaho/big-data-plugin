@@ -54,6 +54,7 @@ import org.pentaho.di.core.lifecycle.KettleLifecycleListener;
 import org.pentaho.di.core.lifecycle.LifecycleException;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import com.pentaho.big.data.ee.secure.impersonation.service.impersonation.SimpleMapping;
+import com.pentaho.big.data.ee.secure.impersonation.service.impersonation.SimpleMapping;
 import org.pentaho.hadoop.shim.HadoopConfigurationLocator;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemFactory;
@@ -61,6 +62,7 @@ import com.pentaho.big.data.bundles.impl.shim.hdfs.HadoopFileSystemFactoryImpl;
 import org.pentaho.bigdata.api.hdfs.impl.HadoopFileSystemLocatorImpl;
 import org.pentaho.hadoop.shim.api.ConfigurationException;
 import org.pentaho.big.data.impl.vfs.hdfs.HDFSFileProvider;
+import org.pentaho.hadoop.shim.api.jdbc.JdbcUrlParser;
 import org.pentaho.hadoop.shim.api.jdbc.JdbcUrlParser;
 import org.pentaho.hadoop.shim.common.CommonFormatShim;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
@@ -99,7 +101,25 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
               logger.info( "No Hadoop active configuration found." );
               return;
           }
+          HadoopConfiguration hadoopConfiguration = hadoopConfigurationProvider.getActiveConfiguration();
+          HadoopShim hadoopShim = hadoopConfiguration.getHadoopShim();
+          List<String> shimAvailableServices = hadoopShim.getAvailableServices();
 
+          //////////////////////////////////////////////////////////////////////////////////
+          /// Bootstrapping the authentication manager service
+          //////////////////////////////////////////////////////////////////////////////////
+          AuthenticationMappingManager authenticationMappingManager = null;
+          if ( shimAvailableServices.contains( "auth_manager" ) ) {
+              SimpleMapping simpleMapping = new SimpleMapping();
+              AuthRequestToUGIMappingService authRequestToUGIMappingService =
+                      new AuthRequestToUGIMappingService(
+                              hadoopShim,
+                              simpleMapping
+                      );
+              authenticationMappingManager = new AuthenticationMappingManagerImpl(
+                                authRequestToUGIMappingService
+                      );
+          }
           //////////////////////////////////////////////////////////////////////////////////
           /// Bootstrapping the HDFS Services
           //////////////////////////////////////////////////////////////////////////////////
@@ -465,6 +485,14 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
           runtimeTester.addRuntimeTest( new KafkaConnectTest( BaseMessagesMessageGetterFactoryImpl.getInstance(), namedClusterServiceLocator ) );
       } catch (ConfigurationException | ClassNotFoundException | IllegalAccessException | InstantiationException | IOException e) {
           logger.error( "There was an error during the Pentaho Big Data Plugin bootstrap process. Some Big Data features may not be available after startup.", e );
+      } catch (ClassNotFoundException e) {
+          throw new RuntimeException(e);
+      } catch (IllegalAccessException e) {
+          throw new RuntimeException(e);
+      } catch (InstantiationException e) {
+          throw new RuntimeException(e);
+      } catch (IOException e) {
+          throw new RuntimeException(e);
       }
 
       logger.debug( "Finished Pentaho Big Data Plugin bootstrap process." );
