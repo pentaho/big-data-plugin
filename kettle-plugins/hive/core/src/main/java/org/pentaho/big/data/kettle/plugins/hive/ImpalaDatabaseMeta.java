@@ -14,6 +14,8 @@
 package org.pentaho.big.data.kettle.plugins.hive;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.pentaho.big.data.api.jdbc.impl.DriverLocatorImpl;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.jdbc.DriverLocator;
 import org.pentaho.di.core.Const;
@@ -44,6 +46,10 @@ public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInt
   ImpalaDatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService,
                              MetastoreLocator metastoreLocator ) {
     super( driverLocator, namedClusterService,  metastoreLocator );
+  }
+
+  public ImpalaDatabaseMeta() {
+    this( DriverLocatorImpl.getInstance(), NamedClusterManager.getInstance() );
   }
 
   // OSGi constructor
