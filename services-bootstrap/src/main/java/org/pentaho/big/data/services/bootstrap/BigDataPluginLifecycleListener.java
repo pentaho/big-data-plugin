@@ -12,7 +12,27 @@
 
 package org.pentaho.big.data.services.bootstrap;
 
+import com.pentaho.big.data.bundles.impl.shim.hbase.HBaseServiceFactory;
+import com.pentaho.big.data.bundles.impl.shim.hive.HiveDriver;
+import com.pentaho.big.data.bundles.impl.shim.hive.ImpalaDriver;
+import com.pentaho.big.data.bundles.impl.shim.hive.ImpalaSimbaDriver;
+import com.pentaho.big.data.bundles.impl.shim.hive.SparkSimbaDriver;
+import com.pentaho.big.data.ee.secure.impersonation.service.AuthRequestToUGIMappingService;
+import com.pentaho.hadoop.shim.ImpersonatingHadoopClientServicesFactory;
+import com.pentaho.hadoop.shim.hbase.security.impersonation.HBaseImpersonationServiceFactory;
+import com.pentaho.hadoop.shim.hbase.security.knox.HBaseKnoxServiceFactory;
+import com.pentaho.hadoop.shim.hdfs.security.impersonation.ImpersonatingHadoopFileSystemFactoryImpl;
+import com.pentaho.hadoop.shim.hdfs.security.knox.KnoxHadoopFileSystemFactoryImpl;
+import com.pentaho.hadoop.shim.hive.security.impersonation.*;
+import com.pentaho.hadoop.shim.mapreduce.security.impersonation.MapReduceImpersonationServiceFactory;
+import com.pentaho.hadoop.shim.mapreduce.security.impersonation.knox.KnoxMapReduceServiceFactory;
+import com.pentaho.yarn.impl.shim.YarnServiceFactoryImpl;
+import org.pentaho.authentication.mapper.api.AuthenticationMappingManager;
+import org.pentaho.authentication.mapper.impl.AuthenticationMappingManagerImpl;
 import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
+import org.pentaho.big.data.api.jdbc.impl.ClusterInitializingDriver;
+import org.pentaho.big.data.api.jdbc.impl.DriverLocatorImpl;
+import org.pentaho.big.data.api.jdbc.impl.JdbcUrlParserImpl;
 import org.pentaho.big.data.impl.cluster.tests.hdfs.GatewayListHomeDirectoryTest;
 import org.pentaho.big.data.impl.cluster.tests.hdfs.GatewayListRootDirectoryTest;
 import org.pentaho.big.data.impl.cluster.tests.hdfs.GatewayPingFileSystemEntryPoint;
@@ -34,6 +54,7 @@ import org.pentaho.di.core.lifecycle.KettleLifecycleListener;
 import org.pentaho.di.core.lifecycle.LifecycleException;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.logging.LogChannel;
+import com.pentaho.big.data.ee.secure.impersonation.service.impersonation.SimpleMapping;
 import org.pentaho.hadoop.shim.HadoopConfigurationLocator;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemFactory;
@@ -42,13 +63,16 @@ import org.pentaho.bigdata.api.hdfs.impl.HadoopFileSystemLocatorImpl;
 import org.pentaho.hadoop.shim.api.ConfigurationException;
 import org.pentaho.big.data.impl.vfs.hdfs.HDFSFileProvider;
 import org.apache.commons.vfs2.FileSystemException;
+import org.pentaho.hadoop.shim.api.jdbc.JdbcUrlParser;
 import org.pentaho.hadoop.shim.common.CommonFormatShim;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
+import org.pentaho.hbase.shim.common.HBaseShimImpl;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.i18n.impl.BaseMessagesMessageGetterFactoryImpl;
 import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
 import org.pentaho.runtime.test.network.impl.ConnectivityTestFactoryImpl;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -73,91 +97,298 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
           if ( hadoopConfigurationProvider == null ) {
               return;
           }
+          HadoopConfiguration hadoopConfiguration = hadoopConfigurationProvider.getActiveConfiguration();
+          HadoopShim hadoopShim = hadoopConfiguration.getHadoopShim();
+          List<String> shimAvailableServices = hadoopShim.getAvailableServices();
 
+          //////////////////////////////////////////////////////////////////////////////////
+          /// Bootstrapping the authentication manager service
+          //////////////////////////////////////////////////////////////////////////////////
+          AuthenticationMappingManager authenticationMappingManager = null;
+          if ( shimAvailableServices.contains( "auth_manager" ) ) {
+              SimpleMapping simpleMapping = new SimpleMapping();
+              AuthRequestToUGIMappingService authRequestToUGIMappingService =
+                      new AuthRequestToUGIMappingService(
+                              hadoopShim,
+                              simpleMapping
+                      );
+              authenticationMappingManager = new AuthenticationMappingManagerImpl(
+                                authRequestToUGIMappingService
+                      );
+          }
           //////////////////////////////////////////////////////////////////////////////////
           /// Bootstrapping the HDFS Services
           //////////////////////////////////////////////////////////////////////////////////
-          // 1. Set up the hadoopFileSystemService (HadoopFileSystemLocator)
-          HadoopConfiguration hadoopConfiguration = hadoopConfigurationProvider.getActiveConfiguration();
-          HadoopShim hadoopShim = hadoopConfiguration.getHadoopShim();
-          HadoopFileSystemFactory hadoopFileSystemFactory =
-                  new HadoopFileSystemFactoryImpl( hadoopShim, hadoopShim.getShimIdentifier() );
-          List<HadoopFileSystemFactory> hadoopFileSystemFactoryList = new ArrayList<>();
-          hadoopFileSystemFactoryList.add( hadoopFileSystemFactory );
-          // TODO: Move the HadoopFileSystemLocatorImpl to a singleton. (NOTE: Might NOT be required anymore since
-          //  the Bootstrap the run time tests were added to this listener.
-          HadoopFileSystemLocatorImpl hadoopFileSystemLocator = new HadoopFileSystemLocatorImpl( hadoopFileSystemFactoryList );
+          HadoopFileSystemLocatorImpl hadoopFileSystemLocator = null;
+          if ( shimAvailableServices.contains( "hdfs" ) ) {
+              List<String> availableHdfsOptions = hadoopShim.getServiceOptions( "hdfs" );
+              List<String> availableHdfsSchemas = hadoopShim.getAvailableHdfsSchemas();
+              List<HadoopFileSystemFactory> hadoopFileSystemFactoryList = new ArrayList<>();
+              if ( availableHdfsOptions.contains( "dfs" ) ) {
+                  HadoopFileSystemFactory hadoopFileSystemFactory = new HadoopFileSystemFactoryImpl(hadoopShim, hadoopShim.getShimIdentifier());
+                  hadoopFileSystemFactoryList.add(hadoopFileSystemFactory);
+              }
+              if ( availableHdfsOptions.contains( "hdfs_impersonation" ) ) {
+                  ImpersonatingHadoopFileSystemFactoryImpl impersonatingHadoopFileSystemFactory =
+                          new ImpersonatingHadoopFileSystemFactoryImpl(
+                                  hadoopShim,
+                                  hadoopShim.getShimIdentifier(),
+                                  authenticationMappingManager
+                          );
+                  hadoopFileSystemFactoryList.add( impersonatingHadoopFileSystemFactory );
+              }
+              if ( availableHdfsOptions.contains( "hdfs_knox" ) ) {
+                  KnoxHadoopFileSystemFactoryImpl knoxHadoopFileSystemFactory =
+                          new KnoxHadoopFileSystemFactoryImpl(
+                                  hadoopShim,
+                                  hadoopShim.getShimIdentifier()
+                          );
+                  hadoopFileSystemFactoryList.add( knoxHadoopFileSystemFactory );
+              }
+              hadoopFileSystemLocator = new HadoopFileSystemLocatorImpl(hadoopFileSystemFactoryList);
 
-          // 2. Set up the namedClusterService (NamedClusterService)
-          // Not needed, moved to HDFSFileProvider constructor
-
-          // 3. Set up the hdfsFileNameParser (HDFSFileNameParser)
-          // Not needed, moved to HDFSFileProvider constructor
-
-          // 4. Set up new HDFSFileProviders based on old big-data-plugin/impl/vfs/hdfs/src/main/resources/OSGI-INF/blueprint/blueprint.xml:
-          // schema=hdfs
-          HDFSFileProvider hdfsHDFSFileProvider = new HDFSFileProvider( hadoopFileSystemLocator, "hdfs", HDFSFileNameParser.getInstance() );
-          // schema=maprfs
-          HDFSFileProvider maprfsHDFSFileProvider = new HDFSFileProvider( hadoopFileSystemLocator, "maprfs", MapRFileNameParser.getInstance() );
-          // schema=escalefs
-          HDFSFileProvider escalefsHDFSFileProvider = new HDFSFileProvider( hadoopFileSystemLocator, "escalefs", MapRFileNameParser.getInstance() );
-          // schema=wasb
-          HDFSFileProvider wasbHDFSFileProvider = new HDFSFileProvider( hadoopFileSystemLocator, "wasb", AzureHdInsightsFileNameParser.getInstance() );
-          // schema=wasbs
-          HDFSFileProvider wasbsHDFSFileProvider = new HDFSFileProvider( hadoopFileSystemLocator, "wasbs", AzureHdInsightsFileNameParser.getInstance() );
-          // schema=abfs
-          HDFSFileProvider abfsHDFSFileProvider = new HDFSFileProvider( hadoopFileSystemLocator, "abfs", AzureHdInsightsFileNameParser.getInstance() );
-
-          // 5. Set up a NamedClusterProvider for the "hc" schema
-          NamedClusterProvider namedClusterProvider = new NamedClusterProvider( hadoopFileSystemLocator, "hc", HDFSFileNameParser.getInstance() );
+              if ( availableHdfsSchemas.contains( "hdfs" ) ) {
+                  HDFSFileProvider hdfsHDFSFileProvider = new HDFSFileProvider(hadoopFileSystemLocator, "hdfs", HDFSFileNameParser.getInstance());
+              }
+              // schema=maprfs
+              if ( availableHdfsSchemas.contains( "maprfs" ) ) {
+                  HDFSFileProvider maprfsHDFSFileProvider = new HDFSFileProvider(hadoopFileSystemLocator, "maprfs", MapRFileNameParser.getInstance());
+              }
+              // schema=escalefs
+              if ( availableHdfsSchemas.contains( "escalefs" ) ) {
+                  HDFSFileProvider escalefsHDFSFileProvider = new HDFSFileProvider(hadoopFileSystemLocator, "escalefs", MapRFileNameParser.getInstance());
+              }
+              // schema=wasb
+              if ( availableHdfsSchemas.contains( "wasb" ) ) {
+                  HDFSFileProvider wasbHDFSFileProvider = new HDFSFileProvider(hadoopFileSystemLocator, "wasb", AzureHdInsightsFileNameParser.getInstance());
+              }
+              // schema=wasbs
+              if ( availableHdfsSchemas.contains( "wasbs" ) ) {
+                  HDFSFileProvider wasbsHDFSFileProvider = new HDFSFileProvider(hadoopFileSystemLocator, "wasbs", AzureHdInsightsFileNameParser.getInstance());
+              }
+              // schema=abfs
+              if ( availableHdfsSchemas.contains( "abfs" ) ) {
+                  HDFSFileProvider abfsHDFSFileProvider = new HDFSFileProvider(hadoopFileSystemLocator, "abfs", AzureHdInsightsFileNameParser.getInstance());
+              }
+              // schema=hc
+              if ( availableHdfsSchemas.contains( "hc" ) ) {
+                  NamedClusterProvider namedClusterProvider = new NamedClusterProvider(hadoopFileSystemLocator, "hc", HDFSFileNameParser.getInstance());
+              }
+          }
 
           //////////////////////////////////////////////////////////////////////////////////
           /// Bootstrap the common format service factories
           //////////////////////////////////////////////////////////////////////////////////
-          // 1. Initialize the NamedClusterServiceLocatorImpl
           NamedClusterServiceLocatorImpl namedClusterServiceLocator = NamedClusterServiceLocatorImpl.getInstance();
-          // 2. Add the Format NamedClusterServiceFactory to the factory map
-          CommonFormatShim commonFormatShim = new CommonFormatShim();
-          FormatServiceFactory formatServiceFactory = new FormatServiceFactory( commonFormatShim );
-          Map formatFactoryMap = new HashMap<String, String>();
-          formatFactoryMap.put( "shim", hadoopShim.getShimIdentifier().getId() );
-          formatFactoryMap.put( "service", "format" );
-          // 3. Add the factory map to the NamedClusterServiceLocatorImpl
-          namedClusterServiceLocator.factoryAdded( formatServiceFactory, formatFactoryMap );
-
+          if ( shimAvailableServices.contains( "common_formats" ) ) {
+              CommonFormatShim commonFormatShim = new CommonFormatShim();
+              FormatServiceFactory formatServiceFactory = new FormatServiceFactory(commonFormatShim);
+              Map formatFactoryMap = new HashMap<String, String>();
+              formatFactoryMap.put("shim", hadoopShim.getShimIdentifier().getId());
+              formatFactoryMap.put("service", "format");
+              namedClusterServiceLocator.factoryAdded(formatServiceFactory, formatFactoryMap);
+          }
           //////////////////////////////////////////////////////////////////////////////////
           /// Bootstrap the mapreduce service factories
           //////////////////////////////////////////////////////////////////////////////////
-          //  2. Add the MapReduce NamedClusterServiceFactory to the factory map
-//          ProcessGovernorImpl processGovernor = new ProcessGovernorImpl(
-//                  Executors.newCachedThreadPool(),
-//                  2000
-//          );
-          List<TransformationVisitorService> visitorServices = new ArrayList<>();
-          MapReduceServiceFactoryImpl mapReduceServiceFactory = new MapReduceServiceFactoryImpl(
-                  hadoopShim,
-                  Executors.newCachedThreadPool(),
-                  visitorServices
+          if ( shimAvailableServices.contains( "mapreduce" ) ) {
+              List<String> availableMapreduceOptions = hadoopShim.getServiceOptions( "mapreduce" );
+              List<TransformationVisitorService> visitorServices = new ArrayList<>();
+              Map mapReducefactoryMap = new HashMap<String, String>();
+              mapReducefactoryMap.put("shim", hadoopShim.getShimIdentifier().getId());
+              mapReducefactoryMap.put("service", "mapreduce");
+              if ( availableMapreduceOptions.contains( "mapreduce" ) ) {
+                  MapReduceServiceFactoryImpl mapReduceServiceFactory = new MapReduceServiceFactoryImpl(
+                          hadoopShim,
+                          Executors.newCachedThreadPool(),
+                          visitorServices
                   );
-          Map mapReducefactoryMap = new HashMap<String, String>();
-          mapReducefactoryMap.put( "shim", hadoopShim.getShimIdentifier().getId() );
-          mapReducefactoryMap.put( "service", "shimservices" );
-          // 3. Add the factory map to the NamedClusterServiceLocatorImpl
-          namedClusterServiceLocator.factoryAdded( mapReduceServiceFactory, mapReducefactoryMap );
+                  namedClusterServiceLocator.factoryAdded( mapReduceServiceFactory, mapReducefactoryMap );
+              }
+              if ( availableMapreduceOptions.contains( "mapreduce_impersonation" ) ) {
+                  MapReduceImpersonationServiceFactory mapReduceImpersonationServiceFactory =
+                          new MapReduceImpersonationServiceFactory(
+                                  hadoopShim,
+                                  Executors.newCachedThreadPool(),
+                                  authenticationMappingManager,
+                                  visitorServices
+                          );
+                  namedClusterServiceLocator.factoryAdded( mapReduceImpersonationServiceFactory, mapReducefactoryMap );
+              }
+              if ( availableMapreduceOptions.contains( "mapreduce_knox" ) ) {
+                  KnoxMapReduceServiceFactory knoxMapReduceServiceFactory =
+                          new KnoxMapReduceServiceFactory(
+                                  hadoopShim,
+                                  visitorServices
+                          );
+                  namedClusterServiceLocator.factoryAdded( knoxMapReduceServiceFactory, mapReducefactoryMap );
+              }
+          }
 
           //////////////////////////////////////////////////////////////////////////////////
-          /// Bootstrap the hadoop client service factories
+          /// Bootstrap the hadoop client (Sqoop) service factories
           //////////////////////////////////////////////////////////////////////////////////
-          //  2. Add the hadoop client NamedClusterServiceFactory to the factory map
-          HadoopClientServicesFactory hadoopClientServicesFactory = new HadoopClientServicesFactory( hadoopShim );
-          Map hadoopClientFactoryMap = new HashMap<String, String>();
-          hadoopClientFactoryMap.put( "shim", hadoopShim.getShimIdentifier().getId() );
-          hadoopClientFactoryMap.put( "service", "mapreduce" );
-          // 3. Add the factory map to the NamedClusterServiceLocatorImpl
-          namedClusterServiceLocator.factoryAdded( hadoopClientServicesFactory, hadoopClientFactoryMap );
+          if ( shimAvailableServices.contains( "sqoop" ) ) {
+              List<String> availableSqoopOptions = hadoopShim.getServiceOptions( "sqoop" );
+              Map hadoopClientFactoryMap = new HashMap<String, String>();
+              hadoopClientFactoryMap.put("shim", hadoopShim.getShimIdentifier().getId());
+              hadoopClientFactoryMap.put("service", "shimservices");
+              if ( availableSqoopOptions.contains( "sqoop" ) ) {
+                  HadoopClientServicesFactory hadoopClientServicesFactory = new HadoopClientServicesFactory(hadoopShim);
+                  namedClusterServiceLocator.factoryAdded( hadoopClientServicesFactory, hadoopClientFactoryMap );
+              }
+              if ( availableSqoopOptions.contains( "sqoop_impersonation" ) ) {
+                  ImpersonatingHadoopClientServicesFactory impersonatingHadoopClientServicesFactory = new ImpersonatingHadoopClientServicesFactory(
+                          hadoopShim,
+                          authenticationMappingManager
+                  );
+                  namedClusterServiceLocator.factoryAdded( impersonatingHadoopClientServicesFactory, hadoopClientFactoryMap );
+              }
+          }
 
+          //////////////////////////////////////////////////////////////////////////////////
+          /// Bootstrap the Hive services
+          //////////////////////////////////////////////////////////////////////////////////
+          if ( shimAvailableServices.contains( "hive" ) ) {
+              JdbcUrlParser jdbcUrlParser = JdbcUrlParserImpl.getInstance();
+              DriverLocatorImpl driverLocator = DriverLocatorImpl.getInstance();
+              int pentaho_jdbc_lazydrivers_num = 5;
+              ClusterInitializingDriver clusterInitializingDriver = new ClusterInitializingDriver(
+                      jdbcUrlParser,
+                      driverLocator,
+                      pentaho_jdbc_lazydrivers_num);
+              List<String> availableHiveDrivers = hadoopShim.getAvailableHiveDrivers();
+              // Hive
+              if ( availableHiveDrivers.contains( "hive" ) ) {
+                  HiveDriver hiveDriver = new HiveDriver(
+                          jdbcUrlParser,
+                          "org.apache.hive.jdbc.HiveDriver",
+                          hadoopShim.getShimIdentifier().getId());
+                  driverLocator.registerDriver( hiveDriver );
+              }
+              // Impala
+              if ( availableHiveDrivers.contains( "impala" ) ) {
+                  ImpalaDriver impalaDriver = new ImpalaDriver(
+                          jdbcUrlParser,
+                          "com.cloudera.impala.jdbc41.Driver",
+                          hadoopShim.getShimIdentifier().getId());
+                  driverLocator.registerDriver( impalaDriver );
+              }
+              // ImpalaSimba
+              if ( availableHiveDrivers.contains( "impala_simba" ) ) {
+                  ImpalaSimbaDriver impalaSimbaDriver = new ImpalaSimbaDriver(
+                          jdbcUrlParser,
+                          "com.cloudera.impala.jdbc41.Driver",
+                          hadoopShim.getShimIdentifier().getId());
+                  driverLocator.registerDriver( impalaSimbaDriver );
+              }
+              // SparkSimba
+              if ( availableHiveDrivers.contains( "spark_simba" ) ) {
+                  SparkSimbaDriver sparkSimbaDriver = new SparkSimbaDriver(
+                          jdbcUrlParser,
+                          "org.apache.hive.jdbc.HiveDriver",
+                          hadoopShim.getShimIdentifier().getId());
+                  driverLocator.registerDriver( sparkSimbaDriver );
+              }
+              // Impersonated services
+              // Hive
+              if ( availableHiveDrivers.contains( "hive_impersonation" ) ) {
+                  ImpersonatingHiveDriver impersonatingHiveDriver = new ImpersonatingHiveDriver(
+                          "org.apache.hive.jdbc.HiveDriver",
+                          hadoopShim.getShimIdentifier().getId(),
+                          jdbcUrlParser,
+                          authenticationMappingManager
+                  );
+                  driverLocator.registerDriver( impersonatingHiveDriver );
+              }
+              // Impala
+              if ( availableHiveDrivers.contains( "impala_impersonation" ) ) {
+                  ImpersonatingImpalaDriver impersonatingImpalaDriver = new ImpersonatingImpalaDriver(
+                          "com.cloudera.impala.jdbc41.Driver",
+                          hadoopShim.getShimIdentifier().getId(),
+                          jdbcUrlParser,
+                          authenticationMappingManager
+                  );
+                  driverLocator.registerDriver( impersonatingImpalaDriver );
+              }
+              // Simba
+              if ( availableHiveDrivers.contains( "simba_impersonation" ) ) {
+                  ImpersonatingHiveSimbaDriver impersonatingHiveSimbaDriver = new ImpersonatingHiveSimbaDriver(
+                          "com.cloudera.impala.jdbc41.Driver",
+                          hadoopShim.getShimIdentifier().getId(),
+                          jdbcUrlParser,
+                          authenticationMappingManager
+                  );
+                  driverLocator.registerDriver( impersonatingHiveSimbaDriver );
+              }
+              // ImpalaSimba
+              if ( availableHiveDrivers.contains( "impala_simba_impersonation" ) ) {
+                  ImpersonatingImpalaSimbaDriver impersonatingImpalaSimbaDriver = new ImpersonatingImpalaSimbaDriver(
+                          "com.cloudera.impala.jdbc41.Driver",
+                          hadoopShim.getShimIdentifier().getId(),
+                          jdbcUrlParser,
+                          authenticationMappingManager
+                  );
+                  driverLocator.registerDriver( impersonatingImpalaSimbaDriver );
+              }
+              // SparkSimba
+              if ( availableHiveDrivers.contains( "spark_simba_impersonation" ) ) {
+                  ImpersonatingSparkSqlSimbaDriver impersonatingSparkSqlSimbaDriver = new ImpersonatingSparkSqlSimbaDriver(
+                          "org.apache.hive.jdbc.HiveDriver",
+                          hadoopShim.getShimIdentifier().getId(),
+                          jdbcUrlParser,
+                          authenticationMappingManager
+                  );
+                  driverLocator.registerDriver( impersonatingSparkSqlSimbaDriver );
+              }
+              // TODO: Add the Hive plugins found in big-data-plugin/kettle-plugins/hive/src/main/resources/OSGI-INF/blueprint/blueprint.xml
+          }
 
+          //////////////////////////////////////////////////////////////////////////////////
+          /// Bootstrap the HBase services
+          //////////////////////////////////////////////////////////////////////////////////
+          if ( shimAvailableServices.contains( "hbase" ) ) {
+              List<String> availableHbaseOptions = hadoopShim.getServiceOptions( "hbase" );
+              HBaseShimImpl hBaseShim = new HBaseShimImpl();
+              Map hBaseServiceFactoryMap = new HashMap<String, String>();
+              hBaseServiceFactoryMap.put("shim", hadoopShim.getShimIdentifier().getId());
+              hBaseServiceFactoryMap.put("service", "hbase");
 
+              if ( availableHbaseOptions.contains( "hbase" ) ) {
+                  HBaseServiceFactory hBaseServiceFactory = new HBaseServiceFactory(hBaseShim);
+                  namedClusterServiceLocator.factoryAdded(hBaseServiceFactory, hBaseServiceFactoryMap);
+              }
+              if ( availableHbaseOptions.contains( "hbase_impersonation" ) ) {
+                  HBaseImpersonationServiceFactory hBaseImpersonationServiceFactory =
+                          new HBaseImpersonationServiceFactory(
+                                  hBaseShim,
+                                  authenticationMappingManager
+                          );
+                  namedClusterServiceLocator.factoryAdded( hBaseImpersonationServiceFactory, hBaseServiceFactoryMap );
+              }
+              if ( availableHbaseOptions.contains( "hbase_knox" ) ) {
+                  HBaseKnoxServiceFactory hBaseKnoxServiceFactory =
+                          new HBaseKnoxServiceFactory(
+                                  hBaseShim
+                          );
+                  namedClusterServiceLocator.factoryAdded( hBaseKnoxServiceFactory, hBaseServiceFactoryMap );
+              }
+              // TODO: Add the HBase plugins found in big-data-plugin/kettle-plugins/hbase/src/main/resources/OSGI-INF/blueprint/blueprint.xml
+          }
+
+          //////////////////////////////////////////////////////////////////////////////////
+          /// Bootstrap the Yarn services
+          //////////////////////////////////////////////////////////////////////////////////
+          if ( shimAvailableServices.contains( "yarn" ) ) {
+              Map yarnServiceFactoryMap = new HashMap<String, String>();
+              yarnServiceFactoryMap.put("shim", hadoopShim.getShimIdentifier().getId());
+              yarnServiceFactoryMap.put("service", "yarn");
+              YarnServiceFactoryImpl yarnServiceFactory = new YarnServiceFactoryImpl(
+                      hadoopFileSystemLocator,
+                      authenticationMappingManager
+              );
+              namedClusterServiceLocator.factoryAdded( yarnServiceFactory, yarnServiceFactoryMap );
+          }
 
           //////////////////////////////////////////////////////////////////////////////////
           /// Bootstrap the run time tests
@@ -172,6 +403,14 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
           runtimeTester.addRuntimeTest( new GatewayWriteToAndDeleteFromUsersHomeFolderTest( BaseMessagesMessageGetterFactoryImpl.getInstance(), hadoopFileSystemLocator ) );
           runtimeTester.addRuntimeTest( new KafkaConnectTest( BaseMessagesMessageGetterFactoryImpl.getInstance(), namedClusterServiceLocator ) );
       } catch (ConfigurationException | FileSystemException e) {
+          throw new RuntimeException(e);
+      } catch (ClassNotFoundException e) {
+          throw new RuntimeException(e);
+      } catch (IllegalAccessException e) {
+          throw new RuntimeException(e);
+      } catch (InstantiationException e) {
+          throw new RuntimeException(e);
+      } catch (IOException e) {
           throw new RuntimeException(e);
       }
 
