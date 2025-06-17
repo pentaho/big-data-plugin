@@ -13,6 +13,8 @@
 
 package org.pentaho.big.data.kettle.plugins.hive;
 
+import org.pentaho.big.data.api.jdbc.impl.DriverLocatorImpl;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
@@ -30,6 +32,9 @@ public class ImpalaSimbaDatabaseMeta extends BaseSimbaDatabaseMeta {
   protected static final int DEFAULT_PORT = 21050;
   protected static final String SOCKET_TIMEOUT_OPTION = "SocketTimeout";
 
+  public ImpalaSimbaDatabaseMeta() {
+    this( DriverLocatorImpl.getInstance(), NamedClusterManager.getInstance() );
+  }
   public ImpalaSimbaDatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService ) {
     super( driverLocator, namedClusterService );
   }

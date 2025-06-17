@@ -14,6 +14,8 @@
 package org.pentaho.big.data.kettle.plugins.hive;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.pentaho.big.data.api.jdbc.impl.DriverLocatorImpl;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
 import org.pentaho.di.core.row.ValueMetaInterface;
@@ -33,6 +35,9 @@ public class SparkSimbaDatabaseMeta extends BaseSimbaDatabaseMeta {
   @VisibleForTesting static final String SOCKET_TIMEOUT_OPTION = "SocketTimeout";
   private final String LIMIT_1 = " LIMIT 1";
 
+  public SparkSimbaDatabaseMeta() {
+    this( DriverLocatorImpl.getInstance(), NamedClusterManager.getInstance() );
+  }
   public SparkSimbaDatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService ) {
     super( driverLocator, namedClusterService );
   }
