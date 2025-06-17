@@ -136,9 +136,19 @@
       <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
     <dependency>
+      <groupId>com.pentaho.hadoop.shims</groupId>
+      <artifactId>pentaho-big-data-ee-fragment</artifactId>
+      <version>${pentaho-hadoop-shims.version}</version>
+    </dependency>
+    <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-impl-clusterTests</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-authentication-mapper-api</artifactId>
+      <version>${pentaho-osgi-bundles.version}</version>
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
@@ -149,6 +159,16 @@
       <groupId>org.pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-common-mapreduce</artifactId>
       <version>${pentaho-hadoop-shims.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.pentaho</groupId>
+      <artifactId>pentaho-ee-secure-impersonation-api</artifactId>
+      <version>${pentaho-hadoop-shims.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.pentaho</groupId>
+      <artifactId>pentaho-yarn-api</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
