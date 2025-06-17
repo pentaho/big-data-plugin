@@ -13,6 +13,7 @@
 package org.pentaho.big.data.kettle.plugins.hive;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
 import org.pentaho.di.core.row.ValueMetaInterface;
@@ -43,6 +44,9 @@ public class Hive2DatabaseMeta extends DatabaseMetaWithVersion {
   protected MetastoreLocator metastoreLocator;
   private Logger logger = LoggerFactory.getLogger( Hive2DatabaseMeta.class );
 
+  public Hive2DatabaseMeta( DriverLocator driverLocator ) {
+    this( driverLocator, NamedClusterManager.getInstance() );
+  }
   //OSGi constructor
   public Hive2DatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService ) {
     super( driverLocator );
