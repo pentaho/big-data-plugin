@@ -62,6 +62,10 @@
                 <include>org.pentaho.hadoop.shims:pentaho-hadoop-shims-common-dependencies-V1</include>
                 <include>org.pentaho:pentaho-hadoop-shims-common-services-api</include>
                 <include>org.pentaho:pentaho-hadoop-shims-common-mapreduce</include>
+                <include>com.pentaho:pentaho-ee-secure-impersonation-api</include>
+                <include>com.pentaho:pentaho-yarn-api</include>
+                <include>pentaho:pentaho-authentication-mapper-api</include>
+                <include>com.pentaho.hadoop.shims:pentaho-big-data-ee-fragment</include>
                 <include>org.apache.avro:avro</include>
                 <include>joda-time:joda-time</include>
                 <include>com.amazonaws:aws-java-sdk-core</include>
