@@ -30,5 +30,10 @@
             <artifactId>shim-api</artifactId>
             <version>${pentaho-hadoop-shims.version}</version>
         </dependency>
+        <dependency>
+            <groupId>pentaho</groupId>
+            <artifactId>pentaho-big-data-api-runtimeTest</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>
