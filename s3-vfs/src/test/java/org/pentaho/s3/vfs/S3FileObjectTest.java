@@ -12,20 +12,13 @@
 
 package org.pentaho.s3.vfs;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.amazonaws.services.s3.model.Bucket;
-import com.amazonaws.services.s3.model.CopyObjectRequest;
-import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
-import com.amazonaws.services.s3.model.ListObjectsRequest;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PartETag;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
-import com.amazonaws.services.s3.model.UploadPartResult;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.apache.commons.vfs2.CacheStrategy;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
@@ -35,34 +28,40 @@ import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.FilesCache;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.VfsComponentContext;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.pentaho.di.core.KettleEnvironment;
+import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.util.StorageUnitConverter;
 import org.pentaho.s3common.S3KettleProperty;
+import org.pentaho.s3common.TestCleanupUtil;
 
-import static java.util.AbstractMap.SimpleEntry;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
+import com.amazonaws.services.s3.model.Bucket;
+import com.amazonaws.services.s3.model.CopyObjectRequest;
+import com.amazonaws.services.s3.model.ListObjectsRequest;
+import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
+
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.atMost;
+import static org.mockito.Mockito.when;
 
 /**
  * created by: dzmitry_bahdanovich date: 10/18/13
@@ -87,20 +86,26 @@ public class S3FileObjectTest {
   private S3Object s3ObjectMock;
   private S3ObjectInputStream s3ObjectInputStream;
   private ObjectMetadata s3ObjectMetadata;
-  private List<String> childObjectNameComp = new ArrayList<>();
-  private List<String> childBucketNameListComp = new ArrayList<>();
-  private long contentLength = 42;
+
+  private final List<String> childObjectNameComp = new ArrayList<>();
+  private final List<String> childBucketNameListComp = new ArrayList<>();
+  private final long contentLength = 42;
   private final String origKey = "some/key";
-  private Date testDate = new Date();
+  private final Date testDate = new Date();
 
   @BeforeClass
-  public static void initKettle() throws Exception {
+  public static void setClassUp() throws KettleException {
     KettleEnvironment.init( false );
   }
 
-  @Before
-  public void setUp() throws Exception {
+  @AfterClass
+  public static void tearDownClass() {
+    KettleEnvironment.shutdown();
+    TestCleanupUtil.cleanUpLogsDir();
+  }
 
+  @Before
+  public void setUp() throws FileSystemException {
     s3ServiceMock = mock( AmazonS3.class );
     S3Object s3Object = new S3Object();
     s3Object.setKey( OBJECT_NAME );
@@ -160,11 +165,12 @@ public class S3FileObjectTest {
   }
 
   @Test
-  public void testGetS3Object() throws Exception {
+  public void testGetS3Object() throws FileSystemException {
     when( s3ServiceMock.getObject( anyString(), anyString() ) ).thenReturn( new S3Object() );
-    S3FileObject s3FileObject = new S3FileObject( filename, fileSystemSpy );
-    S3Object s3Object = s3FileObject.getS3Object();
-    assertNotNull( s3Object );
+    try ( S3FileObject s3FileObject = new S3FileObject( filename, fileSystemSpy ) ) {
+      S3Object s3Object = s3FileObject.getS3Object();
+      assertNotNull( s3Object );
+    }
   }
 
   @Test
@@ -175,38 +181,17 @@ public class S3FileObjectTest {
   }
 
   @Test
-  public void testDoGetOutputStream() throws Exception {
-    InitiateMultipartUploadResult initResponse = mock( InitiateMultipartUploadResult.class );
-    when( initResponse.getUploadId() ).thenReturn( "foo" );
-    when( s3ServiceMock.initiateMultipartUpload( any() ) ).thenReturn( initResponse );
-    UploadPartResult uploadPartResult = mock( UploadPartResult.class );
-    PartETag tag = mock( PartETag.class );
-    when( s3ServiceMock.uploadPart( any() ) ).thenReturn( uploadPartResult );
-    when( uploadPartResult.getPartETag() ).thenReturn( tag );
-
-    assertNotNull( s3FileObjectBucketSpy.doGetOutputStream( false ) );
-    OutputStream out = s3FileObjectBucketSpy.doGetOutputStream( true );
-    assertNotNull( out );
-    out.write( new byte[ 1024 * 1024 * 6 ] ); // 6MB
-    out.close();
-
-    // check kettle.properties 's3.vfs.partSize' is less than [5MB, 6MB)
-    verify( s3ServiceMock, times( 2 ) ).uploadPart( any() );
-    verify( s3ServiceMock, atMost( 1 ) ).completeMultipartUpload( any() );
-  }
-
-  @Test
-  public void testDoGetInputStream() throws Exception {
+  public void testDoGetInputStream() throws FileSystemException {
     assertNotNull( s3FileObjectBucketSpy.getInputStream() );
   }
 
   @Test
-  public void testDoGetTypeImaginary() throws Exception {
+  public void testDoGetTypeImaginary() throws FileSystemException {
     assertEquals( FileType.IMAGINARY, s3FileObjectFileSpy.getType() );
   }
 
   @Test
-  public void testDoGetTypeFolder() throws Exception {
+  public void testDoGetTypeFolder() throws FileSystemException {
     FileName mockFile = mock( FileName.class );
     when( s3FileObjectBucketSpy.getName() ).thenReturn( mockFile );
     when( mockFile.getPath() ).thenReturn( S3FileObject.DELIMITER );
@@ -214,10 +199,10 @@ public class S3FileObjectTest {
   }
 
   @Test
-  public void testDoCreateFolder() throws Exception {
-    S3FileObject notRootBucket = spy(
-      new S3FileObject( new S3FileName( SCHEME, BUCKET_NAME, "/" + BUCKET_NAME + "/" + origKey, FileType.IMAGINARY ),
-        fileSystemSpy ) );
+  public void testDoCreateFolder() throws FileSystemException {
+    S3FileObject notRootBucket =
+        spy( new S3FileObject( new S3FileName( SCHEME, BUCKET_NAME, BUCKET_NAME + "/" + origKey, FileType.IMAGINARY ),
+            fileSystemSpy ) );
     notRootBucket.createFolder();
     ArgumentCaptor<PutObjectRequest> putObjectRequestArgumentCaptor = ArgumentCaptor.forClass( PutObjectRequest.class );
     verify( s3ServiceMock ).putObject( putObjectRequestArgumentCaptor.capture() );
@@ -226,7 +211,7 @@ public class S3FileObjectTest {
   }
 
   @Test
-  public void testCanRenameTo() throws Exception {
+  public void testCanRenameTo() throws FileSystemException {
     FileObject newFile = mock( FileObject.class );
     assertFalse( s3FileObjectBucketSpy.canRenameTo( newFile ) );
     when( s3FileObjectBucketSpy.getType() ).thenReturn( FileType.FOLDER );
@@ -234,13 +219,13 @@ public class S3FileObjectTest {
   }
 
   @Test( expected = NullPointerException.class )
-  public void testCanRenameToNullFile() throws Exception {
+  public void testCanRenameToNullFile() {
     // This is a bug / weakness in VFS itself
     s3FileObjectBucketSpy.canRenameTo( null );
   }
 
   @Test
-  public void testDoDelete() throws Exception {
+  public void testDoDelete() throws FileSystemException {
     fileSystemSpy.init();
     s3FileObjectBucketSpy.doDelete();
     verify( s3ServiceMock ).deleteObject( "bucket3", "key0" );
@@ -276,7 +261,7 @@ public class S3FileObjectTest {
   @Test
   public void testDoGetLastModifiedTimeWhenNoLastModifiedDateIsAvailable() throws Exception {
     s3FileObjectFileSpy.doAttach();
-    when( s3ObjectMetadata.getLastModified() ).thenReturn( new Date(0L) );
+    when( s3ObjectMetadata.getLastModified() ).thenReturn( new Date( 0L ) );
     assertEquals( 0L, s3FileObjectFileSpy.doGetLastModifiedTime() );
   }
 
@@ -389,5 +374,4 @@ public class S3FileObjectTest {
     }
     return prefixes;
   }
-
 }

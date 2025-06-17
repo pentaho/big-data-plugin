@@ -13,6 +13,29 @@
 
 package org.pentaho.s3common;
 
+import java.io.File;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
+
+import org.apache.commons.vfs2.Capability;
+import org.apache.commons.vfs2.FileName;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileSystemOptions;
+import org.apache.commons.vfs2.provider.AbstractFileName;
+import org.apache.commons.vfs2.provider.AbstractFileSystem;
+import org.pentaho.amazon.s3.S3Util;
+import org.pentaho.di.connections.ConnectionDetails;
+import org.pentaho.di.connections.ConnectionManager;
+import org.pentaho.di.core.encryption.Encr;
+import org.pentaho.di.core.util.StorageUnitConverter;
+import org.pentaho.di.i18n.BaseMessages;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
@@ -25,39 +48,53 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import org.apache.commons.vfs2.FileName;
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemOptions;
-import org.apache.commons.vfs2.provider.AbstractFileName;
-import org.apache.commons.vfs2.provider.AbstractFileSystem;
-import org.pentaho.amazon.s3.S3Util;
-import org.pentaho.di.connections.ConnectionDetails;
-import org.pentaho.di.connections.ConnectionManager;
-import org.pentaho.di.core.encryption.Encr;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Supplier;
+import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 
 public abstract class S3CommonFileSystem extends AbstractFileSystem {
 
-  private static final Logger logger = LoggerFactory.getLogger( S3CommonFileSystem.class );
+  private static final Class<?> PKG = S3CommonFileSystem.class;
+  private static final Logger logger = LoggerFactory.getLogger( PKG );
   private static final String DEFAULT_S3_CONFIG_PROPERTY = "defaultS3Config";
+
+  // S3 part size constants
+  /**
+   * Minimum part size specified in documentation
+   * see https://docs.aws.amazon.com/AmazonS3/latest/dev/qfacts.html
+   */
+  private static final String MIN_PART_SIZE = "5MB";
+  /**
+   * Maximum part size specified in documentation
+   * see https://docs.aws.amazon.com/AmazonS3/latest/dev/qfacts.html
+   */
+  private static final String MAX_PART_SIZE = "5GB";
+  private static final StorageUnitConverter STATIC_STORAGE_UNIT_CONVERTER = new StorageUnitConverter();
+  private static final long MIN_PART_SIZE_BYTES = STATIC_STORAGE_UNIT_CONVERTER.displaySizeToByteCount( MIN_PART_SIZE );
+  private static final long MAX_PART_SIZE_BYTES = STATIC_STORAGE_UNIT_CONVERTER.displaySizeToByteCount( MAX_PART_SIZE );
+
+  // S3 client and connection state
+  private AmazonS3 client;
   private String awsAccessKeyCache;
   private String awsSecretKeyCache;
-  private AmazonS3 client;
-  private final Supplier<ConnectionManager> connectionManager = ConnectionManager::getInstance;
-  private Map<String, String> currentConnectionProperties;
   private FileSystemOptions currentFileSystemOptions;
+  private Map<String, String> currentConnectionProperties;
+  private final Supplier<ConnectionManager> connectionManager = ConnectionManager::getInstance;
+
+  // Helpers and utilities
+  protected StorageUnitConverter storageUnitConverter;
+  protected S3KettleProperty s3KettleProperty;
+  protected S3TransferManager s3TransferManager;
 
   protected S3CommonFileSystem( final FileName rootName, final FileSystemOptions fileSystemOptions ) {
+    this( rootName, fileSystemOptions, STATIC_STORAGE_UNIT_CONVERTER, new S3KettleProperty() );
+  }
+
+  protected S3CommonFileSystem( final FileName rootName, final FileSystemOptions fileSystemOptions,
+                                final StorageUnitConverter storageUnitConverter, final S3KettleProperty s3KettleProperty ) {
     super( rootName, null, fileSystemOptions );
-    currentConnectionProperties = new HashMap<>();
+    this.storageUnitConverter = storageUnitConverter;
+    this.s3KettleProperty = s3KettleProperty;
+    this.currentConnectionProperties = new HashMap<>();
   }
 
   @SuppressWarnings( "unchecked" )
@@ -228,4 +265,69 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
     //When running on an Amazon EC2 instance getCurrentRegion will get its region. Null if not running in an EC2 instance
     return Regions.getCurrentRegion() != null;
   }
+
+  public long getPartSize() {
+    return parsePartSize( s3KettleProperty.getPartSize() );
+  }
+
+  protected long parsePartSize( String partSizeString ) {
+    long parsePartSize = convertToLong( partSizeString );
+    if ( parsePartSize < MIN_PART_SIZE_BYTES ) {
+      if ( logger.isWarnEnabled() ) {
+        logger.warn( BaseMessages.getString( PKG, "WARN.S3MultiPart.DefaultPartSize", partSizeString, MIN_PART_SIZE ) );
+      }
+      parsePartSize = MIN_PART_SIZE_BYTES;
+    }
+
+    // still allow > 5GB, api might be updated in the future
+    if ( logger.isWarnEnabled() && parsePartSize > MAX_PART_SIZE_BYTES ) {
+      logger.warn( BaseMessages.getString( PKG, "WARN.S3MultiPart.MaximumPartSize", partSizeString, MAX_PART_SIZE ) );
+    }
+    return parsePartSize;
+  }
+
+  protected long convertToLong( String partSize ) {
+    return storageUnitConverter.displaySizeToByteCount( partSize );
+  }
+
+  protected TransferManager buildTransferManager() {
+    TransferManagerBuilder transferManagerBuilder = TransferManagerBuilder.standard()
+      .withS3Client( getS3Client() );
+    if ( getPartSize() > 0 ) {
+      transferManagerBuilder.withMinimumUploadPartSize( getPartSize() );
+      transferManagerBuilder.withMultipartCopyPartSize( getPartSize() ); // Only used above 5GB by default, can be changed with multipartCopyThreshold
+    }
+    return transferManagerBuilder.build();
+  }
+
+  protected S3TransferManager getS3TransferManager() {
+    if ( s3TransferManager == null ) {
+      s3TransferManager = new S3TransferManager( buildTransferManager() );
+    }
+    return s3TransferManager;
+  }
+
+  /**
+   * Uploads the content of the specified FileObject to the specified S3FileObject using multipart upload.
+   *
+   * @param src The source FileObject to upload from.
+   * @param dst The destination S3FileObject to upload to.
+   * @throws FileSystemException If an error occurs during the upload operation.
+   */
+  public void upload( FileObject src, S3CommonFileObject dst ) throws FileSystemException {
+    getS3TransferManager().upload( src, dst );
+  }
+
+  /**
+   * Copies the content of the specified S3FileObject to another S3FileObject using server-side multipart copy.
+   * If the source or destination is not an S3FileObject, it will throw a FileSystemException.
+   *
+   * @param src  The source S3FileObject to copy from.
+   * @param dest The destination S3FileObject to copy to.
+   * @throws FileSystemException If an error occurs during the copy operation.
+   */
+  public void copy( S3CommonFileObject src, S3CommonFileObject dest ) throws FileSystemException {
+    getS3TransferManager().copy( src, dest );
+  }
+
 }
