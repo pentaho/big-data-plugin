@@ -37,9 +37,9 @@ public class CachedFileItemStream {
   private long lastModified; //optional file last modified date
 
   /**
-   * Create a {@link CachedFileItemStream} from a {@link FileItem}
+   * Create a {@link CachedFileItemStream} from a {@link FileItemStream}
    * <p>
-   * The {@link FileItem}'s {@link InputStream} is cached
+   * The {@link FileItemStream}'s {@link InputStream} is cached
    *
    * @param fileItemStream
    * @throws IOException
