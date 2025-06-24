@@ -19,6 +19,17 @@
             <artifactId>hbase-client</artifactId>
             <version>${hbase.version}</version>
             <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.protobuf</groupId>
+                    <artifactId>protobuf-java</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop.thirdparty</groupId>
+            <artifactId>hadoop-shaded-protobuf_3_25</artifactId>
+            <version>${hadoop-shaded-protobuf_3_25.version}</version>
         </dependency>
         <dependency>
             <groupId>org.pentaho</groupId>
