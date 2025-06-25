@@ -14,9 +14,11 @@ package org.pentaho.big.data.api.services.impl;
 
 import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
 import org.pentaho.big.data.api.services.BigDataServicesProxy;
+import org.pentaho.bigdata.api.hdfs.impl.HadoopFileSystemLocatorImpl;
 import org.pentaho.di.core.service.ServiceProvider;
 import org.pentaho.di.core.service.ServiceProviderInterface;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
 
 @ServiceProvider(
         id = "BigDataServicesProxy",
@@ -26,6 +28,7 @@ import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 public class BigDataServicesProxyImpl implements BigDataServicesProxy, ServiceProviderInterface<BigDataServicesProxy> {
 
     private static NamedClusterServiceLocator namedClusterServiceLocator = null;
+    private static HadoopFileSystemLocator hadoopFileSystemLocator = null;
 
     @Override
     public boolean isSingleton() {
@@ -39,5 +42,13 @@ public class BigDataServicesProxyImpl implements BigDataServicesProxy, ServicePr
             namedClusterServiceLocator = NamedClusterServiceLocatorImpl.getInstance();
         }
         return namedClusterServiceLocator;
+    }
+
+    @Override
+    public HadoopFileSystemLocator getHadoopFileSystemLocator() {
+        if ( hadoopFileSystemLocator == null ) {
+            hadoopFileSystemLocator = HadoopFileSystemLocatorImpl.getInstance();
+        }
+        return hadoopFileSystemLocator;
     }
 }
