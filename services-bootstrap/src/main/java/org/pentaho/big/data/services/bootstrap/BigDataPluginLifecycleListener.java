@@ -149,7 +149,8 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
                           );
                   hadoopFileSystemFactoryList.add( knoxHadoopFileSystemFactory );
               }
-              hadoopFileSystemLocator = new HadoopFileSystemLocatorImpl(hadoopFileSystemFactoryList);
+              hadoopFileSystemLocator = HadoopFileSystemLocatorImpl.getInstance();
+              hadoopFileSystemLocator.setHadoopFileSystemFactories( hadoopFileSystemFactoryList );
 
               if ( availableHdfsSchemas.contains( "hdfs" ) ) {
                   HDFSFileProvider hdfsHDFSFileProvider = new HDFSFileProvider(hadoopFileSystemLocator, "hdfs", HDFSFileNameParser.getInstance());
