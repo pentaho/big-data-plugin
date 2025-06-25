@@ -13,7 +13,10 @@
 package org.pentaho.big.data.api.services;
 
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
 
 public interface BigDataServicesProxy {
     NamedClusterServiceLocator getNamedClusterServiceLocator();
+
+    HadoopFileSystemLocator getHadoopFileSystemLocator();
 }

@@ -1019,7 +1019,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   /**
    * @return shim identifiers, excluding the internal shim, which should not be exposed to the cluster ui.
    */
-  List<ShimIdentifierInterface> getShimIdentifiers() {
+  public List<ShimIdentifierInterface> getShimIdentifiers() {
     List<ShimIdentifierInterface> shims = shimIdentifiersSupplier.get();
     shims.sort( Comparator.comparing( ShimIdentifierInterface::getVendor ) );
     return shims;
