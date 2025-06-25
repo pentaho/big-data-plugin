@@ -15,6 +15,7 @@ package org.pentaho.big.data.api.services;
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
 
 import java.util.Collection;
 
@@ -27,6 +28,17 @@ public class BigDataServicesHelper {
             Collection<BigDataServicesProxy> namedClusterServiceLocatorFactories = PluginServiceLoader.loadServices( BigDataServicesProxy.class );
             NamedClusterServiceLocator namedClusterServiceLocator = namedClusterServiceLocatorFactories.stream().findFirst().get().getNamedClusterServiceLocator();
             return namedClusterServiceLocator;
+        } catch (KettlePluginException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static HadoopFileSystemLocator getHadoopFileSystemLocator() {
+        try {
+            Collection<BigDataServicesProxy> namedClusterServiceLocatorFactories = PluginServiceLoader.loadServices( BigDataServicesProxy.class );
+            HadoopFileSystemLocator hadoopFileSystemLocator = namedClusterServiceLocatorFactories.stream().findFirst().get().getHadoopFileSystemLocator();
+            return hadoopFileSystemLocator;
         } catch (KettlePluginException e) {
             e.printStackTrace();
             return null;
