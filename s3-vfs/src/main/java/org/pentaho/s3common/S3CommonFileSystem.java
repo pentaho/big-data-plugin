@@ -97,8 +97,8 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
     this.currentConnectionProperties = new HashMap<>();
   }
 
-  @SuppressWarnings( "unchecked" )
-  protected void addCapabilities( Collection caps ) {
+  @Override
+  protected void addCapabilities( Collection<Capability> caps ) {
     caps.addAll( S3CommonFileProvider.capabilities );
   }
 
