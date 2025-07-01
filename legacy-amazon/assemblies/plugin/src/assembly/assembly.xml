@@ -46,6 +46,8 @@
       <excludes>
         <exclude>pentaho:pdi-legacy-amazon-core:*</exclude>
         <exclude>*:commons-lang:*</exclude>
+        <exclude>*:log4j:*</exclude>
+        <exclude>*:slf4j-api:*</exclude>
       </excludes>
     </dependencySet>
   </dependencySets>
