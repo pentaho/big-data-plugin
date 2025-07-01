@@ -54,7 +54,6 @@ import org.pentaho.di.core.lifecycle.KettleLifecycleListener;
 import org.pentaho.di.core.lifecycle.LifecycleException;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import com.pentaho.big.data.ee.secure.impersonation.service.impersonation.SimpleMapping;
-import com.pentaho.big.data.ee.secure.impersonation.service.impersonation.SimpleMapping;
 import org.pentaho.hadoop.shim.HadoopConfigurationLocator;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemFactory;
@@ -62,7 +61,6 @@ import com.pentaho.big.data.bundles.impl.shim.hdfs.HadoopFileSystemFactoryImpl;
 import org.pentaho.bigdata.api.hdfs.impl.HadoopFileSystemLocatorImpl;
 import org.pentaho.hadoop.shim.api.ConfigurationException;
 import org.pentaho.big.data.impl.vfs.hdfs.HDFSFileProvider;
-import org.pentaho.hadoop.shim.api.jdbc.JdbcUrlParser;
 import org.pentaho.hadoop.shim.api.jdbc.JdbcUrlParser;
 import org.pentaho.hadoop.shim.common.CommonFormatShim;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
@@ -108,6 +106,7 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
           //////////////////////////////////////////////////////////////////////////////////
           /// Bootstrapping the authentication manager service
           //////////////////////////////////////////////////////////////////////////////////
+          logger.debug( "Bootstrapping the authentication manager service." );
           AuthenticationMappingManager authenticationMappingManager = null;
           if ( shimAvailableServices.contains( "auth_manager" ) ) {
               SimpleMapping simpleMapping = new SimpleMapping();
@@ -119,6 +118,8 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
               authenticationMappingManager = new AuthenticationMappingManagerImpl(
                                 authRequestToUGIMappingService
                       );
+          } else {
+              logger.debug( "No authentication manager service defined." );
           }
           //////////////////////////////////////////////////////////////////////////////////
           /// Bootstrapping the HDFS Services
@@ -494,6 +495,8 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
       } catch (IOException e) {
           throw new RuntimeException(e);
       }
+
+      logger.debug( "Finished Pentaho Big Data Plugin bootstrap process." );
 
       logger.debug( "Finished Pentaho Big Data Plugin bootstrap process." );
 
