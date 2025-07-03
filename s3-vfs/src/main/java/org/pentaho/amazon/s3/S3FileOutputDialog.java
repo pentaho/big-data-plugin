@@ -13,6 +13,7 @@
 
 package org.pentaho.amazon.s3;
 
+import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.AWSCredentials;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.vfs2.FileObject;
@@ -222,10 +223,13 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
   private VfsFileChooserHelper helper = null;
   private VfsFileChooserDialog fileChooserDialog = null;
 
+  private static final String S3N = "s3n://";
+  private static final String S3 = "s3://";
+
   public S3FileOutputDialog( Shell parent, Object in, TransMeta transMeta, String sname ) {
     super( parent, (BaseStepMeta) in, transMeta, sname );
     input = (S3FileOutputMeta) in;
-    inputFields = new HashMap<String, Integer>();
+    inputFields = new HashMap<>();
   }
 
   @Override
@@ -311,7 +315,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     wbFilename.setLayoutData( fdbFilename );
 
     wFilename = new TextVar( transMeta, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    wFilename.setText( "s3n://" );
+    wFilename.setText( S3N );
     props.setLook( wFilename );
     wFilename.addModifyListener( lsMod );
     fdFilename = new FormData();
@@ -492,7 +496,6 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
       @Override
       public void widgetSelected( SelectionEvent e ) {
         input.setChanged();
-        // System.out.println("wAddDate.getSelection()="+wAddDate.getSelection());
       }
     } );
     // Create multi-part file?
@@ -561,9 +564,9 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     fdDateTimeFormat.top = new FormAttachment( wSpecifyFormat, margin );
     fdDateTimeFormat.right = new FormAttachment( 100, 0 );
     wDateTimeFormat.setLayoutData( fdDateTimeFormat );
-    String[] dats = Const.getDateFormats();
-    for ( int x = 0; x < dats.length; x++ ) {
-      wDateTimeFormat.add( dats[ x ] );
+    String[] dates = Const.getDateFormats();
+    for ( String date : dates ) {
+      wDateTimeFormat.add( date );
     }
 
     wbShowFiles = new Button( wFileComp, SWT.PUSH | SWT.CENTER );
@@ -690,7 +693,6 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     wbSeparator.addSelectionListener( new SelectionAdapter() {
       @Override
       public void widgetSelected( SelectionEvent se ) {
-        // wSeparator.insert("\t");
         wSeparator.getTextWidget().insert( "\t" );
       }
     } );
@@ -985,14 +987,10 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
 
     // Prepare a list of possible formats...
     String[] nums = Const.getNumberFormats();
-    int totsize = dats.length + nums.length;
+    int totsize = dates.length + nums.length;
     String[] formats = new String[ totsize ];
-    for ( int x = 0; x < dats.length; x++ ) {
-      formats[ x ] = dats[ x ];
-    }
-    for ( int x = 0; x < nums.length; x++ ) {
-      formats[ dats.length + x ] = nums[ x ];
-    }
+    System.arraycopy( dates, 0, formats, 0, dates.length );
+    System.arraycopy( nums, 0, formats, dates.length, nums.length );
 
     colinf = new ColumnInfo[ FieldsCols ];
     colinf[ 0 ] =
@@ -1153,7 +1151,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
           }
           /* For legacy transformations containing AWS S3 access credentials, {@link Const#KETTLE_USE_AWS_DEFAULT_CREDENTIALS} can force Spoon to use
            * the Amazon Default Credentials Provider Chain instead of using the credentials embedded in the transformation metadata. */
-          if ( !ValueMetaBase.convertStringToBoolean( Const.NVL( EnvUtil.getSystemProperty( Const.KETTLE_USE_AWS_DEFAULT_CREDENTIALS ), "N" ) ) ) {
+          if ( Boolean.FALSE.equals(ValueMetaBase.convertStringToBoolean( Const.NVL( EnvUtil.getSystemProperty( Const.KETTLE_USE_AWS_DEFAULT_CREDENTIALS ), "N" ) )) ) {
             System.setProperty( S3Util.ACCESS_KEY_SYSTEM_PROPERTY, transMeta.environmentSubstitute( Const.NVL( input.getAccessKey(), "" ) ) );
             System.setProperty( S3Util.SECRET_KEY_SYSTEM_PROPERTY, transMeta.environmentSubstitute( Const.NVL( input.getSecretKey(), "" ) ) );
           }
@@ -1183,12 +1181,11 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
               wFilename.setText( filename );
             }
           }
-        } catch ( KettleFileException ex ) {
-          log.logError( BaseMessages.getString( PKG, "S3FileOutputDialog.FileBrowser.KettleFileException" ), ex );
-        } catch ( KettleException ex ) {
-          log.logError( BaseMessages.getString( PKG, "S3FileOutputDialog.FileBrowser.KettleFileException" ), ex );
-        } catch ( FileSystemException ex ) {
-          log.logError( BaseMessages.getString( PKG, "S3FileOutputDialog.FileBrowser.FileSystemException" ), ex );
+        } catch ( KettleFileException | FileSystemException ex ) {
+          logError( BaseMessages.getString( PKG, "S3FileOutputDialog.FileBrowser.KettleFileException" ), ex );
+          new ErrorDialog( shell,
+            BaseMessages.getString( PKG, "S3VfsFileChooserDialog.FileError.DialogTitle" ), BaseMessages
+            .getString( PKG, "S3VfsFileChooserDialog.FileError.DialogMessage" ), ex );
         }
       }
     } );
@@ -1275,16 +1272,13 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
 
   protected void setComboBoxes() {
     // Something was changed in the row.
-    //
-    final Map<String, Integer> fields = new HashMap<String, Integer>();
-
     // Add the currentMeta fields...
-    fields.putAll( inputFields );
+    final Map<String, Integer> fields = new HashMap<>( inputFields );
 
     Set<String> keySet = fields.keySet();
-    List<String> entries = new ArrayList<String>( keySet );
+    List<String> entries = new ArrayList<>( keySet );
 
-    String[] fieldNames = entries.toArray( new String[ entries.size() ] );
+    String[] fieldNames = entries.toArray( new String[ 0 ] );
 
     Const.sortStrings( fieldNames );
     colinf[ 0 ].setComboValues( fieldNames );
@@ -1310,9 +1304,8 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
       gotEncodings = true;
 
       wEncoding.removeAll();
-      List<Charset> values = new ArrayList<Charset>( Charset.availableCharsets().values() );
-      for ( int i = 0; i < values.size(); i++ ) {
-        Charset charSet = values.get( i );
+      List<Charset> values = new ArrayList<>( Charset.availableCharsets().values() );
+      for ( Charset charSet : values ) {
         wEncoding.add( charSet.displayName() );
       }
 
@@ -1466,7 +1459,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     tfoi.setSecretKey( input.getSecretKey() );
 
     if ( StringUtils.isEmpty( wFilename.getText().trim() ) ) {
-      wFilename.setText( "s3n://" );
+      wFilename.setText( S3N );
     }
 
     tfoi.setFileName( wFilename.getText() );
@@ -1498,7 +1491,6 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     tfoi.setFastDump( wFastDump.getSelection() );
 
     int i;
-    // Table table = wFields.table;
 
     int nrfields = wFields.nrNonEmpty();
 
@@ -1617,7 +1609,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     return this.getClass().getName();
   }
 
-  protected VfsFileChooserHelper getFileChooserHelper() throws KettleFileException, FileSystemException {
+  protected VfsFileChooserHelper getFileChooserHelper() throws KettleFileException {
     if ( helper == null ) {
       helper = new S3AVfsFileChooserHelper( shell, getFileChooserDialog(), getVariableSpace(), getFileSystemOptions() );
     }
@@ -1627,16 +1619,14 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
   protected VfsFileChooserDialog getFileChooserDialog() throws KettleFileException {
     if ( this.fileChooserDialog == null ) {
       String filename = wFilename.getText();
-      String defaultFileObject = "s3n://";
-      if ( !StringUtils.isEmpty( filename ) && filename.startsWith( "s3://" ) ) {
-        defaultFileObject = "s3://";
+      String defaultFileObject = S3N;
+      if ( !StringUtils.isEmpty( filename ) && filename.startsWith( S3 ) ) {
+        defaultFileObject = S3;
       }
       FileObject defaultInitialFile = KettleVFS.getInstance( transMeta.getBowl() )
         .getFileObject( defaultFileObject );
 
-      VfsFileChooserDialog fileChooserDialog =
-        Spoon.getInstance().getVfsFileChooserDialog( defaultInitialFile, null );
-      this.fileChooserDialog = fileChooserDialog;
+      this.fileChooserDialog = Spoon.getInstance().getVfsFileChooserDialog( defaultInitialFile, null );
     }
     return this.fileChooserDialog;
   }
@@ -1645,16 +1635,21 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     return transMeta;
   }
 
-  protected FileSystemOptions getFileSystemOptions() throws FileSystemException {
+  protected FileSystemOptions getFileSystemOptions() throws KettleFileException {
     FileSystemOptions opts = new FileSystemOptions();
     S3Util.S3Keys keys = S3Util.getKeysFromURI( wFilename.getText() );
     if ( keys == null ) {
-      AWSCredentials credentials = S3CredentialsProvider.getAWSCredentials();
-      if ( credentials != null ) {
-        StaticUserAuthenticator userAuthenticator =
-                new StaticUserAuthenticator( null, credentials.getAWSAccessKeyId(), credentials.getAWSSecretKey() );
-        DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts, userAuthenticator );
+      try {
+        AWSCredentials credentials = S3CredentialsProvider.getAWSCredentials();
+        if ( credentials != null ) {
+          StaticUserAuthenticator userAuthenticator =
+            new StaticUserAuthenticator( null, credentials.getAWSAccessKeyId(), credentials.getAWSSecretKey() );
+          DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts, userAuthenticator );
+        }
+      } catch ( SdkClientException e ) {
+        throw new KettleFileException( "Unable to get AWS credentials: " + e );
       }
+
     } else {
       StaticUserAuthenticator userAuthenticator =
               new StaticUserAuthenticator( null, keys.getAccessKey(), keys.getSecretKey() );
