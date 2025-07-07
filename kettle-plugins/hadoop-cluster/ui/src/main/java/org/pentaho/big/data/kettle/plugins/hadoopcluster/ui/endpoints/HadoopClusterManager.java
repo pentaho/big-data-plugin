@@ -215,6 +215,11 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     this.internalShim = internalShim;
   }
 
+  public HadoopClusterManager( NamedClusterService namedClusterService, IMetaStore metaStore,
+                               String internalShim ) {
+    this( null, namedClusterService, metaStore, internalShim);
+  }
+
   public JSONObject importNamedCluster( ThinNameClusterModel model,
                                         Map<String, CachedFileItemStream> siteFilesSource ) {
     JSONObject response = new JSONObject();
