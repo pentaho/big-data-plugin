@@ -76,6 +76,10 @@
       <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-vfs2</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.pentaho.hadoop.shims</groupId>
       <artifactId>pentaho-hadoop-shims-common-dependencies-V1</artifactId>
       <version>${pentaho-hadoop-shims.version}</version>
