@@ -350,21 +350,8 @@
     </dependency>
     <dependency>
       <groupId>org.pentaho.hadoop.shims</groupId>
-      <artifactId>pentaho-hadoop-shims-apache</artifactId>
-      <version>${project.version}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho.hadoop.shims</groupId>
-      <artifactId>pentaho-hadoop-shims-emr770-pmr-libs</artifactId>
-      <version>${pentaho-hadoop-shims-emr770.version}</version>
+      <artifactId>pentaho-hadoop-shims-emr700-pmr-libs</artifactId>
+      <version>${pentaho-hadoop-shims-emr700.version}</version>
       <type>zip</type>
       <scope>provided</scope>
       <exclusions>
@@ -506,84 +493,6 @@
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
-      <artifactId>pdi-hbase-plugin</artifactId>
-      <version>${project.version}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pdi-mapreduce-plugin</artifactId>
-      <version>${project.version}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pdi-hive-plugin</artifactId>
-      <version>${project.version}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pdi-formats-plugin</artifactId>
-      <version>${project.version}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pdi-hdfs-plugin</artifactId>
-      <version>${project.version}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pdi-sqoop-plugin</artifactId>
-      <version>${project.version}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
       <artifactId>pdi-oozie-plugin</artifactId>
       <version>${project.version}</version>
       <type>zip</type>
@@ -598,19 +507,6 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pdi-spark-plugin</artifactId>
-      <version>${project.version}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pdi-legacy-amazon-plugin</artifactId>
       <version>${project.version}</version>
       <type>zip</type>
       <scope>provided</scope>
@@ -680,14 +576,7 @@
                 </artifactItem>
                 <artifactItem>
                   <groupId>org.pentaho.hadoop.shims</groupId>
-                  <artifactId>pentaho-hadoop-shims-apache</artifactId>
-                  <type>zip</type>
-                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
-                  <destFileName>apache</destFileName>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.pentaho.hadoop.shims</groupId>
-                  <artifactId>pentaho-hadoop-shims-emr770-pmr-libs</artifactId>
+                  <artifactId>pentaho-hadoop-shims-emr700-pmr-libs</artifactId>
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
                 </artifactItem>
@@ -760,12 +649,6 @@
                 <artifactItem>
                   <groupId>pentaho</groupId>
                   <artifactId>pdi-formats-plugin</artifactId>
-                  <type>zip</type>
-                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/plugins</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>pentaho</groupId>
-                  <artifactId>pdi-legacy-amazon-plugin</artifactId>
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/plugins</outputDirectory>
                 </artifactItem>
