@@ -77,7 +77,13 @@
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
-      <artifactId>commons-vfs2</artifactId>
+      <artifactId>commons-vfs2-hdfs</artifactId>
+      <version>${commons-vfs2.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-authentication-mapper-impl</artifactId>
+      <version>${pentaho-osgi-bundles.version}</version>
     </dependency>
     <dependency>
       <groupId>org.pentaho.hadoop.shims</groupId>
