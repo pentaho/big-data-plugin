@@ -27,6 +27,7 @@ import org.pentaho.di.core.injection.InjectionDeep;
 import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
+import org.pentaho.di.core.plugins.ParentFirst;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
@@ -88,6 +89,7 @@ import static org.pentaho.metaverse.api.analyzer.kettle.step.ExternalResourceSte
 @Metaverse.EntityLink ( entity = KAFKA_SERVER_METAVERSE, link = LINK_PARENT_CONCEPT, parentEntity = NODE_TYPE_EXTERNAL_CONNECTION )
 @Metaverse.EntityLink ( entity = KAFKA_TOPIC_METAVERSE, link = LINK_CONTAINS_CONCEPT, parentEntity = KAFKA_SERVER_METAVERSE )
 @Metaverse.EntityLink ( entity = KAFKA_TOPIC_METAVERSE, link = LINK_PARENT_CONCEPT )
+@ParentFirst( patterns = { ".*" } )
 public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMetaInterface {
   public enum ConnectionType {
     DIRECT,
