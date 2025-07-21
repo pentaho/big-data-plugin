@@ -197,19 +197,6 @@
     </dependency>
     <dependency>
       <groupId>org.pentaho.hadoop.shims</groupId>
-      <artifactId>pentaho-hadoop-shims-emr700-pmr-libs</artifactId>
-      <version>${pentaho-hadoop-shims-emr700.version}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho.hadoop.shims</groupId>
       <artifactId>pentaho-hadoop-shims-emr770-pmr-libs</artifactId>
       <version>${pentaho-hadoop-shims-emr770.version}</version>
       <type>zip</type>
@@ -297,12 +284,6 @@
             </goals>
             <configuration>
               <artifactItems>
-                <artifactItem>
-                  <groupId>org.pentaho.hadoop.shims</groupId>
-                  <artifactId>pentaho-hadoop-shims-emr700-pmr-libs</artifactId>
-                  <type>zip</type>
-                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
-                </artifactItem>
                 <artifactItem>
                   <groupId>org.pentaho.hadoop.shims</groupId>
                   <artifactId>pentaho-hadoop-shims-emr770-pmr-libs</artifactId>
