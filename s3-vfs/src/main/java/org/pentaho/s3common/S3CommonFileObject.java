@@ -219,6 +219,7 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
   }
 
   @Override
+  @SuppressWarnings("java:S2139") // Logging for traceability while allowing the exception to propagate normally
   public void doAttach() throws Exception {
     logger.trace( "Attach called on {}", getQualifiedName() );
     injectType( FileType.IMAGINARY );
@@ -226,9 +227,9 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
     if ( isRootBucket() ) {
       // cannot attach to root bucket but still need to figure out the type for exists()
       try {
-        fileSystem.getS3Client().getObjectMetadata( bucketName, key );
+        fileSystem.getS3Client().getBucketLocation( bucketName );
       } catch ( AmazonS3Exception e ) {
-        if ( e.getErrorCode().contains( "404 Not Found" ) ) {
+        if ( "NoSuchBucket".equals( e.getErrorCode() ) ) {
           injectType( FileType.IMAGINARY );
           return;
         }
@@ -239,7 +240,7 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
         // Any other errors should also bubble up.
 
         // Make sure this gets printed for the user.
-        logger.error( "Could not get information on " + getQualifiedName(), e );
+        logger.error( "Could not get information on {}", getQualifiedName(), e );
         throw new FileSystemException( "vfs.provider/get-type.error", e, getQualifiedName() );
       }
 
@@ -268,7 +269,8 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
     } catch ( AmazonS3Exception e1 ) {
       String errorCode = e1.getErrorCode();
       try {
-        //S3 Object does not exist (could be the process of creating a new file. Lets fallback to old the old behavior. (getting the s3 object)
+        //S3 Object does not exist (could be the process of creating a new file. Lets fallback to the old
+        // behavior. (getting the s3 object)
         if ( errorCode.equals( "404 Not Found" ) ) {
           s3Object = getS3Object( keyWithDelimiter, bucket );
           s3ObjectMetadata = s3Object.getObjectMetadata();
@@ -345,7 +347,8 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
   }
 
   /**
-   * Attempts to extract an S3FileObject from a FileObject, including wrappers like ResolvedConnectionFileObject (via reflection for getResolvedFileObject()).
+   * Attempts to extract an S3FileObject from a FileObject, including wrappers like ResolvedConnectionFileObject (via
+   * reflection for getResolvedFileObject()).
    */
   private S3CommonFileObject extractDelegateS3FileObject( FileObject file ) {
     if ( file instanceof S3CommonFileObject ) {
@@ -363,7 +366,8 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
   }
 
   /**
-   * Copies the content of the specified file to this file, using server-side multipart copy if both files are S3FileObjects in the same region.
+   * Copies the content of the specified file to this file, using server-side multipart copy if both files are
+   * S3FileObjects in the same region.
    * If the source is not an S3FileObject or is in a different region, it uses TransferManager to upload the content.
    *
    * @param file     The source file to copy from.
@@ -377,7 +381,7 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
       // S3 to S3 copy
       try {
         logger.info( "Attempting S3->S3 server-side multipart copy from {} to {}",
-                     s3Src.getQualifiedName(), this.getQualifiedName() );
+          s3Src.getQualifiedName(), this.getQualifiedName() );
         fileSystem.copy( s3Src, this );
         return;
       } catch ( FileSystemException e ) {
@@ -431,7 +435,8 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
   }
 
 
-  protected PutObjectRequest createPutObjectRequest( String bucketName, String key, InputStream inputStream, ObjectMetadata objectMetadata ) {
+  protected PutObjectRequest createPutObjectRequest( String bucketName, String key, InputStream inputStream,
+                                                     ObjectMetadata objectMetadata ) {
     return new PutObjectRequest( bucketName, key, inputStream, objectMetadata );
   }
 
@@ -478,7 +483,8 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
     sourceFolder.delete();
   }
 
-  protected CopyObjectRequest createCopyObjectRequest( String sourceBucket, String sourceKey, String destBucket, String destKey ) {
+  protected CopyObjectRequest createCopyObjectRequest( String sourceBucket, String sourceKey, String destBucket,
+                                                       String destKey ) {
     return new CopyObjectRequest( sourceBucket, sourceKey, destBucket, destKey );
   }
 
