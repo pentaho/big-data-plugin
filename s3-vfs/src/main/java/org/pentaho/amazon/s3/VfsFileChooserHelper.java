@@ -19,6 +19,7 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.eclipse.swt.widgets.Shell;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.ui.spoon.Spoon;
@@ -83,12 +84,12 @@ public class VfsFileChooserHelper {
   }
 
   public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri, FileSystemOptions opts,
-      int fileDialogMode ) throws KettleException, FileSystemException {
+      int fileDialogMode ) throws KettleFileException, FileSystemException {
     return browse( fileFilters, fileFilterNames, fileUri, opts, fileDialogMode, true, true );
   }
 
   public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri, FileSystemOptions opts,
-      int fileDialogMode, boolean showLocation, boolean showCustomUI ) throws KettleException, FileSystemException {
+      int fileDialogMode, boolean showLocation, boolean showCustomUI ) throws KettleFileException, FileSystemException {
     // Get current file
     FileObject rootFile = null;
     FileObject initialFile = null;
