@@ -119,6 +119,7 @@
       <!--this is required by OSGi bean declared in src/main/resources-filtered/OSGI-INF/blueprint/blueprint.xml-->
       <groupId>com.fasterxml.jackson.jaxrs</groupId>
       <artifactId>jackson-jaxrs-json-provider</artifactId>
+      <version>${fasterxml-jackson.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -192,6 +193,7 @@
     <dependency>
       <groupId>commons-fileupload</groupId>
       <artifactId>commons-fileupload</artifactId>
+      <version>${commons-fileupload-osgi.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
