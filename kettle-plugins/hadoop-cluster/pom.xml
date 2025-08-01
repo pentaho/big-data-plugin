@@ -30,7 +30,6 @@
     <cxf.karaf.version>3.0.13</cxf.karaf.version>
     <swt.version>4.6</swt.version>
     <jface.version>3.34.0</jface.version>
-    <jface.version>3.34.0</jface.version>
   </properties>
   <dependencyManagement>
     <dependencies>
