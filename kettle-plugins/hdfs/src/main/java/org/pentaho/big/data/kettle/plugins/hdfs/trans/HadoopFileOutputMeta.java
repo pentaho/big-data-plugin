@@ -36,7 +36,7 @@ import java.util.Map;
 
 @Step( id = "HadoopFileOutputPlugin", image = "HDO.svg", name = "HadoopFileOutputPlugin.Name",
     description = "HadoopFileOutputPlugin.Description",
-    documentationUrl = "mk-95pdia003/pdi-transformation-steps/hadoop-file-output",
+    documentationUrl = "pdia-data-integration/pdi-transformation-steps-reference-overview/hadoop-file-output-cp-main-page",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     i18nPackageName = "org.pentaho.di.trans.steps.hadoopfileoutput" )
 @InjectionSupported( localizationPrefix = "HadoopFileOutput.Injection.", groups = { "OUTPUT_FIELDS" } )
