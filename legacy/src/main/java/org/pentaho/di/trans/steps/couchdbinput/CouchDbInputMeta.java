@@ -44,7 +44,7 @@ import java.util.List;
 
 @Step( id = "CouchDbInput", image = "couchdb-input.svg", name = "CouchDbInput.Name",
   description = "CouchDbInput.Description",
-  documentationUrl = "mk-95pdia003/pdi-transformation-steps/couchdb-input",
+  documentationUrl = "pdi-transformation-steps-reference-overview/couchdb-input",
   categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
   i18nPackageName = "org.pentaho.di.trans.steps.couchdbinput" )
 
