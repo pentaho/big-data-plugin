@@ -204,6 +204,6 @@ public class TestResultsPage extends WizardPage {
 
   public void performHelp() {
     HelpUtils.openHelpDialog( parent.getShell(), "",
-      BaseMessages.getString( PKG, "NamedClusterDialog.testResults.help" ), "" );
+      "https://docs.pentaho.com/pdia-11.0-install/use-hadoop-with-pentaho/big-data-issues", "" );
   }
 }

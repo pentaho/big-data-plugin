@@ -32,7 +32,7 @@ import java.lang.reflect.InvocationTargetException;
  * Created by Aliaksandr_Zhuk on 1/24/2018.
  */
 @PluginDialog( id = "HiveJobExecutorPlugin", image = "AWS-HIVE.svg", pluginType = PluginDialog.PluginType.JOBENTRY,
-  documentationUrl = "Products/Amazon_Hive_Job_Executor" )
+        documentationUrl = "pdi-job-entries-reference-overview/amazon-hive-job-executor" )
 public class AmazonHiveJobExecutorDialog extends AbstractAmazonJobEntryDialog {
 
 

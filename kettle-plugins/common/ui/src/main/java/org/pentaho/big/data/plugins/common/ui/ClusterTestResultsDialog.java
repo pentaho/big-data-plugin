@@ -85,10 +85,9 @@ public class ClusterTestResultsDialog extends Dialog {
 
     int margin = Const.FORM_MARGIN;
 
-    String docUrl = Const.getDocUrl( BaseMessages.getString( PKG, "ClusterTestResultsDialog.Shell.Doc" ) );
     HelpUtils.createHelpButton( shell,
         BaseMessages.getString( PKG, "ClusterTestResultsDialog.Shell.Doc.Title" ),
-        docUrl,
+            "https://docs.pentaho.com/pdia-11.0-install/use-hadoop-with-pentaho/big-data-issues",
         BaseMessages.getString( PKG, "ClusterTestResultsDialog.Shell.Doc.Header" ) );
 
     FormLayout formLayout = new FormLayout();

@@ -53,7 +53,6 @@ import static org.pentaho.big.data.kettle.plugins.hdfs.vfs.Schemes.NAMED_CLUSTER
 
 @Step( id = "HadoopFileInputPlugin", image = "HDI.svg", name = "HadoopFileInputPlugin.Name",
   description = "HadoopFileInputPlugin.Description",
-  documentationUrl = "mk-95pdia003/pdi-transformation-steps/hadoop-file-input",
   categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
   i18nPackageName = "org.pentaho.di.trans.steps.hadoopfileinput" )
 @InjectionSupported( localizationPrefix = "HadoopFileInput.Injection.", groups = { "FILENAME_LINES", "FIELDS",

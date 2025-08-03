@@ -75,7 +75,7 @@ import org.w3c.dom.Node;
 @Step( id = "AvroInput", image = "ui/images/deprecated.svg", name = "AvroInput.Name",
     description = "AvroInput.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Deprecated",
-    documentationUrl = "mk-95pdia003/pdi-transformation-steps/avro-input",
+    documentationUrl = "pdi-transformation-steps-reference-overview/avro-input",
     i18nPackageName = "org.pentaho.di.trans.steps.avroinput",
     suggestion = "AvroInput.SuggestedStep" )
 @InjectionSupported( localizationPrefix = "AvroInput.Injection.", groups = { "AVRO_FIELDS", "LOOKUP_FIELDS" } )

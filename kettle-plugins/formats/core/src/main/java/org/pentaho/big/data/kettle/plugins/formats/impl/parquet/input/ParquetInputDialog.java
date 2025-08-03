@@ -49,7 +49,7 @@ import org.pentaho.hadoop.shim.api.format.ParquetSpec;
 import java.util.List;
 
 @PluginDialog( id = "ParquetInput", image = "PI.svg", pluginType = PluginDialog.PluginType.STEP,
-  documentationUrl = "Products/Parquet_Input" )
+        documentationUrl = "pdi-transformation-steps-reference-overview/parquet-input" )
 public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> {
 
   private static final int SHELL_WIDTH = 526;
