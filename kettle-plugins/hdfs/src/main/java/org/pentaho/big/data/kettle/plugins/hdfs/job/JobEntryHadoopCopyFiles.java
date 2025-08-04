@@ -31,7 +31,7 @@ import java.util.Objects;
   description = "HadoopCopyFilesPlugin.Description",
   categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
   i18nPackageName = "org.pentaho.di.job.entries.hadoopcopyfiles",
-  documentationUrl = "mk-95pdia003/pdi-job-entries/hadoop-copy-files" )
+  documentationUrl = "pdia-data-integration/pdi-job-entries-reference-overview/hadoop-copy-files" )
 public class JobEntryHadoopCopyFiles extends JobEntryCopyFiles {
 
   public static final String S3_SOURCE_FILE = "S3-SOURCE-FILE-";

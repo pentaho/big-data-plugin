@@ -21,7 +21,7 @@ import org.pentaho.di.trans.steps.injector.InjectorMeta;
 
 @Step( id = "HadoopEnterPlugin", image = "MRI.svg", name = "HadoopEnterPlugin.Name",
     description = "HadoopEnterPlugin.Description",
-    documentationUrl = "mk-95pdia003/pdi-transformation-steps/mapreduce-input",
+    documentationUrl = "pdia-data-integration/pdi-transformation-steps-reference-overview/mapreduce-input",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     i18nPackageName = "org.pentaho.di.trans.steps.hadoopenter" )
 @InjectionSupported( localizationPrefix = "HadoopEnterPlugin.Injection." )

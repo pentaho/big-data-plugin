@@ -85,7 +85,7 @@ import java.util.Set;
  */
 @Step( id = "HBaseInput", image = "HB.svg", name = "HBaseInput.Name", description = "HBaseInput.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
-    documentationUrl = "mk-95pdia003/pdi-transformation-steps/hbase-input",
+    documentationUrl = "pdia-data-integration/pdi-transformation-steps-reference-overview/hbase-input-cp-main-page",
     i18nPackageName = "org.pentaho.di.trans.steps.hbaseinput" )
 @InjectionSupported( localizationPrefix = "HBaseInput.Injection.", groups = {"OUTPUT_FIELDS", "MAPPING", "FILTER"} )
 public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
