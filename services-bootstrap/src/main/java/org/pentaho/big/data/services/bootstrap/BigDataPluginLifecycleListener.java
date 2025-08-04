@@ -461,6 +461,8 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
 
       logger.debug( "Finished Pentaho Big Data Plugin bootstrap process." );
 
+      logger.debug( "Finished Pentaho Big Data Plugin bootstrap process." );
+
   }
 
   @Override

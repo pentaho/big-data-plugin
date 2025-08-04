@@ -46,6 +46,11 @@
             <version>${pentaho-hadoop-shims.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.pentaho.hadoop.shims</groupId>
+            <artifactId>pentaho-big-data-ee-fragment</artifactId>
+            <version>${pentaho-hadoop-shims.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.pentaho</groupId>
             <artifactId>shim-api-core</artifactId>
             <version>${pentaho-hadoop-shims.version}</version>
@@ -69,6 +74,31 @@
             <groupId>org.hitachivantara</groupId>
             <artifactId>pentaho-proc-governor-impl</artifactId>
             <version>${pentaho-osgi-bundles.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>pentaho</groupId>
+            <artifactId>pentaho-big-data-api-runtimeTest</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>pentaho</groupId>
+            <artifactId>pentaho-big-data-impl-clusterTests</artifactId>
+            <version>${pdi.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>pentaho</groupId>
+            <artifactId>pdi-hive-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>pentaho</groupId>
+            <artifactId>pentaho-authentication-mapper-impl</artifactId>
+            <version>${pentaho-osgi-bundles.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.pentaho</groupId>
+            <artifactId>pentaho-ee-secure-impersonation-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>pentaho</groupId>
