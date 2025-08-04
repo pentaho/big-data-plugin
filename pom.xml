@@ -158,17 +158,6 @@
       </modules>
     </profile>
     <profile>
-      <id>bootstrap</id>
-      <activation>
-        <property>
-          <name>!skipDefault</name>
-        </property>
-      </activation>
-      <modules>
-        <module>services-bootstrap</module>
-      </modules>
-    </profile>
-    <profile>
       <id>assembly</id>
       <activation>
         <property>
