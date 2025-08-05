@@ -6,7 +6,7 @@
     <format>zip</format>
   </formats>
 
-  <baseDirectory>pdi-sqoop-plugin</baseDirectory>
+  <baseDirectory></baseDirectory>
 
   <fileSets>
     <fileSet>
