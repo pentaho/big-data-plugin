@@ -6,7 +6,7 @@
     <format>zip</format>
   </formats>
 
-  <baseDirectory>pdi-spark-plugin</baseDirectory>
+  <baseDirectory></baseDirectory>
 
   <fileSets>
     <fileSet>
