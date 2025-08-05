@@ -6,7 +6,7 @@
     <format>zip</format>
   </formats>
 
-  <baseDirectory>pdi-mapreduce-plugin</baseDirectory>
+  <baseDirectory></baseDirectory>
 
   <fileSets>
     <fileSet>

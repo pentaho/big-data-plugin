@@ -6,7 +6,7 @@
     <format>zip</format>
   </formats>
 
-  <baseDirectory>pdi-hbase-plugin</baseDirectory>
+  <baseDirectory></baseDirectory>
 
   <fileSets>
     <fileSet>
