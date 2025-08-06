@@ -603,6 +603,7 @@
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
                 </artifactItem>
+                <!-- Plugins unpack -->
                 <artifactItem>
                   <groupId>pentaho</groupId>
                   <artifactId>pdi-pig-plugin</artifactId>

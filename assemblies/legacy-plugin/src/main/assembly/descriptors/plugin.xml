@@ -15,7 +15,7 @@
         </fileSet>
         <fileSet>
             <directory>target/plugins/pentaho-big-data-plugin/plugins</directory>
-            <outputDirectory>/plugins</outputDirectory>
+            <outputDirectory>/</outputDirectory>
         </fileSet>
     </fileSets>
     <dependencySets>
