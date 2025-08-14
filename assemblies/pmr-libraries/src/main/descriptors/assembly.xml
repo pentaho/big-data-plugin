@@ -161,7 +161,6 @@
         <include>org.hibernate:hibernate-commons-annotations</include>
         <include>org.hibernate:hibernate-core</include>
         <include>org.hibernate:hibernate-ehcache</include>
-        <include>org.ini4j:ini4j</include>
         <include>org.pentaho:json</include>
         <include>org.apache.logging.log4j:log4j-core</include>
         <include>org.mnode.mstor:mstor</include>
