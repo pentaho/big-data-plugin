@@ -110,6 +110,7 @@
         <include>monetdb:monetdb-jdbc</include>
         <include>net.java.dev.javacc:javacc</include>
         <include>net.sf.ehcache:ehcache-core</include>
+        <include>net.sf.saxon:Saxon-HE</include>
         <include>net.sf.scannotation:scannotation</include>
         <include>org.eclipse.jetty:jetty-continuation</include>
         <include>ognl:ognl</include>
