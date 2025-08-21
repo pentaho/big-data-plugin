@@ -20,11 +20,15 @@ import org.eclipse.swt.widgets.Listener;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.CachedFileItemStream;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClusterManager;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
+import org.pentaho.di.core.encryption.Encr;
+import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.spoon.Spoon;
+import org.pentaho.metastore.api.security.Base64TwoWayPasswordEncoder;
+import org.pentaho.metastore.api.security.ITwoWayPasswordEncoder;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -48,6 +52,7 @@ public abstract class NamedClusterHelper {
   public static final String USERNAME = "USERNAME";
   public static final String PASSWORD = "PASSWORD";
   private static final Supplier<Spoon> spoonSupplier = Spoon::getInstance;
+  private static final ITwoWayPasswordEncoder passwordEncoder = new Base64TwoWayPasswordEncoder();
 
   public enum FileType {
     CONFIGURATION( "configuration" ),
@@ -204,6 +209,22 @@ public abstract class NamedClusterHelper {
     credentials.put( USERNAME, userName );
     credentials.put( PASSWORD, password );
     return credentials;
+  }
+
+  public static String encodePassword( String password ) {
+    return Encr.encryptPasswordIfNotUsingVariables( password );
+  }
+
+  public static String decodePassword( String password ) {
+    if ( password == null || password.startsWith( Encr.PASSWORD_ENCRYPTED_PREFIX ) ) {
+      return Encr.decryptPasswordOptionallyEncrypted( password );
+    } else {
+      //Password is likely stored encrypted with legacy Base64TwoWayPasswordEncoder
+      if ( !StringUtil.isVariable( password ) ) {
+        return passwordEncoder.decode( password );
+      }
+    }
+    return password;
   }
 }
 
