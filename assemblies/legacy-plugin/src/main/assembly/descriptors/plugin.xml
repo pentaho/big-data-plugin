@@ -58,6 +58,7 @@
                 <include>pentaho:pentaho-big-data-kettle-plugins-common-job</include>
                 <include>pentaho:pentaho-big-data-impl-vfs-hdfs-core</include>
                 <include>pentaho:pentaho-authentication-mapper-impl</include>
+                <include>pentaho:pentaho-big-data-kettle-plugins-browse</include>
                 <include>org.pentaho:shim-api-core</include>
                 <include>org.pentaho.hadoop.shims:pentaho-hadoop-shims-common-fragment-V1</include>
                 <include>org.pentaho.hadoop.shims:pentaho-hadoop-shims-common-dependencies-V1</include>
