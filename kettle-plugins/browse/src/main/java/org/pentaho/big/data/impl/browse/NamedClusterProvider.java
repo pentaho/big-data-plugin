@@ -38,6 +38,7 @@ import org.pentaho.di.plugins.fileopensave.api.providers.exception.ProviderServi
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.locator.api.MetastoreLocator;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +59,12 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
   private MetastoreLocator metastoreLocator;
   private Logger logger = LoggerFactory.getLogger( NamedClusterProvider.class );
   private boolean initialized = false;
+
+  public NamedClusterProvider() {
+    this(
+      NamedClusterManager.getInstance()
+    );
+  }
 
   public NamedClusterProvider( NamedClusterService namedClusterManager ) {
     this.namedClusterManager = namedClusterManager;

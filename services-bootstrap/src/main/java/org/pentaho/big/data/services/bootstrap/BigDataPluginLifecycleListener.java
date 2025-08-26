@@ -216,6 +216,7 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
               if ( availableHdfsSchemas.contains( "hc" ) ) {
                   logger.debug( "Adding 'hc' schema.'" );
                   NamedClusterProvider namedClusterProvider = new NamedClusterProvider(hadoopFileSystemLocator, "hc", HDFSFileNameParser.getInstance());
+                  org.pentaho.big.data.impl.browse.NamedClusterProvider namedClusterProvider2 = new org.pentaho.big.data.impl.browse.NamedClusterProvider();
               }
           } else {
               logger.debug( "No HDFS Services defined." );
