@@ -117,6 +117,11 @@
         </dependency>
         <dependency>
             <groupId>pentaho</groupId>
+            <artifactId>pentaho-big-data-kettle-plugins-browse</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>pentaho</groupId>
             <artifactId>pentaho-authentication-mapper-impl</artifactId>
             <version>${pentaho-osgi-bundles.version}</version>
         </dependency>
