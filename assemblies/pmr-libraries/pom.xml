@@ -11,6 +11,15 @@
   <version>11.0.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <properties>
+    <javax.activation-api.version>1.1</javax.activation-api.version>
+    <javax.mail.version>1.4.7</javax.mail.version>
+    <jsp-api.version>2.0</jsp-api.version>
+    <javax.servlet-api.version>3.0.1</javax.servlet-api.version>
+    <validation-api.version>1.0.0.GA</validation-api.version>
+    <ehcache.version>2.5.1</ehcache.version>
+    <jersey.version>1.19.1</jersey.version>
+    <hibernate-commons-annotations.version>5.1.2.Final</hibernate-commons-annotations.version>
+    <hibernate-core.version>5.4.24.Final</hibernate-core.version>
     <publish-sonar-phase>site</publish-sonar-phase>
     <blueprints-core.version>2.6.0</blueprints-core.version>
     <rxjava.version>2.2.3</rxjava.version>
@@ -205,14 +214,9 @@
       <version>0.4</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-fileupload2-jakarta-servlet6</artifactId>
-      <version>${commons-fileupload.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-fileupload2-core</artifactId>
-      <version>${commons-fileupload.version}</version>
+      <groupId>commons-fileupload</groupId>
+      <artifactId>commons-fileupload</artifactId>
+      <version>${commons-fileupload-osgi.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
@@ -249,18 +253,23 @@
       <artifactId>commons-vfs2</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.glassfish.jersey.connectors</groupId>
-      <artifactId>jersey-apache-connector</artifactId>
+      <groupId>com.sun.jersey.contribs</groupId>
+      <artifactId>jersey-apache-client</artifactId>
       <version>${jersey.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.glassfish.jersey.core</groupId>
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-bundle</artifactId>
+      <version>${jersey.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.jersey</groupId>
       <artifactId>jersey-client</artifactId>
       <version>${jersey.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.glassfish.jersey.core</groupId>
-      <artifactId>jersey-common</artifactId>
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-core</artifactId>
       <version>${jersey.version}</version>
     </dependency>
     <dependency>
@@ -322,29 +331,29 @@
       <version>3.20.0-GA</version>
     </dependency>
     <dependency>
-      <groupId>jakarta.activation</groupId>
-      <artifactId>jakarta.activation-api</artifactId>
-      <version>${jakarta.activation.version}</version>
+      <groupId>javax.activation</groupId>
+      <artifactId>activation</artifactId>
+      <version>${javax.activation-api.version}</version>
     </dependency>
     <dependency>
-      <groupId>jakarta.mail</groupId>
-      <artifactId>jakarta.mail-api</artifactId>
-      <version>${jakarta.mail.version}</version>
+      <groupId>javax.mail</groupId>
+      <artifactId>mail</artifactId>
+      <version>${javax.mail.version}</version>
     </dependency>
     <dependency>
-      <groupId>jakarta.servlet.jsp</groupId>
-      <artifactId>jakarta.servlet.jsp-api</artifactId>
-      <version>${jakarta.servlet.jsp.version}</version>
+      <groupId>javax.servlet</groupId>
+      <artifactId>jsp-api</artifactId>
+      <version>${jsp-api.version}</version>
     </dependency>
     <dependency>
-      <groupId>jakarta.servlet</groupId>
-      <artifactId>jakarta.servlet-api</artifactId>
-      <version>${jakarta.servlet.version}</version>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>${javax.servlet-api.version}</version>
     </dependency>
     <dependency>
-      <groupId>jakarta.validation</groupId>
-      <artifactId>jakarta.validation-api</artifactId>
-      <version>${jakarta.validation.version}</version>
+      <groupId>javax.validation</groupId>
+      <artifactId>validation-api</artifactId>
+      <version>${validation-api.version}</version>
     </dependency>
     <dependency>
       <groupId>javax.xml</groupId>
@@ -401,10 +410,9 @@
       <version>5.0</version>
     </dependency>
     <dependency>
-      <groupId>org.ehcache</groupId>
-      <artifactId>ehcache</artifactId>
-      <version>${ehcache-core.version}</version>
-      <classifier>jakarta</classifier>
+      <groupId>net.sf.ehcache</groupId>
+      <artifactId>ehcache-core</artifactId>
+      <version>${ehcache.version}</version>
     </dependency>
     <dependency>
       <groupId>net.sf.saxon</groupId>
@@ -587,8 +595,8 @@
     </dependency>
     <dependency>
       <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-jcache</artifactId>
-      <version>${hibernate-jcache.version}</version>
+      <artifactId>hibernate-ehcache</artifactId>
+      <version>${hibernate-core.version}</version>
     </dependency>
     <dependency>
       <groupId>org.ini4j</groupId>
@@ -927,42 +935,47 @@
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-http</artifactId>
-      <version>${jetty.version}</version>
+      <version>${jetty-hadoop.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-continuation</artifactId>
+      <version>${jetty-hadoop.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-io</artifactId>
-      <version>${jetty.version}</version>
+      <version>${jetty-hadoop.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-plus</artifactId>
-      <version>${jetty.version}</version>
+      <version>${jetty-hadoop.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-security</artifactId>
-      <version>${jetty.version}</version>
+      <version>${jetty-hadoop.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
-      <version>${jetty.version}</version>
+      <version>${jetty-hadoop.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.eclipse.jetty.ee10</groupId>
-      <artifactId>jetty-ee10-servlet</artifactId>
-      <version>${jetty.version}</version>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-servlet</artifactId>
+      <version>${jetty-hadoop.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-util</artifactId>
-      <version>${jetty.version}</version>
+      <version>${jetty-hadoop.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-xml</artifactId>
-      <version>${jetty.version}</version>
+      <version>${jetty-hadoop.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
