@@ -46,7 +46,6 @@ import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameCluste
 import org.pentaho.big.data.plugins.common.ui.HadoopClusterDelegateImpl;
 import org.pentaho.di.base.AbstractMeta;
 import org.pentaho.di.core.Const;
-import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.logging.LogChannelInterface;
@@ -94,6 +93,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -115,6 +115,7 @@ import static org.pentaho.big.data.impl.cluster.tests.Constants.MAP_REDUCE;
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.isConnectedToRepo;
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.processSiteFiles;
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel.NAME_KEY;
+import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.encodePassword;
 
 //HadoopClusterDelegateImpl
 public class HadoopClusterManager implements RuntimeTestProgressCallback {
@@ -235,7 +236,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       nc.setOozieUrl( "" );
       nc.setName( model.getName() );
       nc.setHdfsUsername( model.getHdfsUsername() );
-      nc.setHdfsPassword( nc.encodePassword( model.getHdfsPassword() ) );
+      nc.setHdfsPassword( encodePassword( model.getHdfsPassword() ) );
       if (MAPR_SHIM.equals(model.getShimVendor()))
         nc.setStorageScheme(MAPRFS_SCHEME);
       if ( variableSpace != null ) {
@@ -280,7 +281,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     nc.setHdfsHost( model.getHdfsHost() );
     nc.setHdfsPort( model.getHdfsPort() );
     nc.setHdfsUsername( model.getHdfsUsername() );
-    nc.setHdfsPassword( nc.encodePassword( model.getHdfsPassword() ) );
+    nc.setHdfsPassword( encodePassword( model.getHdfsPassword() ) );
     nc.setJobTrackerHost( model.getJobTrackerHost() );
     nc.setJobTrackerPort( model.getJobTrackerPort() );
     nc.setZooKeeperHost( model.getZooKeeperHost() );
@@ -346,8 +347,12 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       final NamedCluster newNc = namedClusterService.getNamedClusterByName( model.getName(), metaStore );
       final NamedCluster oldNc = namedClusterService.getNamedClusterByName( model.getOldName(), metaStore );
       // Must get the current shim identifier before the creation of the Named Cluster xml schema for later comparison.
-      String shimId = oldNc.getShimIdentifier();
-      final List<NamedClusterSiteFile> existingSiteFiles = oldNc.getSiteFiles();
+      String shimId = null;
+      List<NamedClusterSiteFile> existingSiteFiles = new ArrayList<>();
+      if ( oldNc != null ) {
+        shimId = oldNc.getShimIdentifier();
+        existingSiteFiles = oldNc.getSiteFiles();
+      }
 
       NamedCluster nc = convertToNamedCluster( model );
       nc.setSiteFiles( getIntersectionSiteFiles( model, existingSiteFiles ) );
@@ -419,7 +424,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           model.setShimVersion( nc.getShimVersion() );
           model.setHdfsHost( nc.getHdfsHost() );
           model.setHdfsUsername( nc.getHdfsUsername() );
-          model.setHdfsPassword( nc.decodePassword( nc.getHdfsPassword() ) );
+          model.setHdfsPassword( nc.getHdfsPassword() );
           model.setHdfsPort( nc.getHdfsPort() );
           model.setJobTrackerHost( nc.getJobTrackerHost() );
           model.setJobTrackerPort( nc.getJobTrackerPort() );
@@ -428,7 +433,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           model.setZooKeeperPort( nc.getZooKeeperPort() );
           model.setZooKeeperHost( nc.getZooKeeperHost() );
           resolveShimVendorAndVersion( model, nc.getShimIdentifier() );
-          model.setGatewayPassword( nc.decodePassword( nc.getGatewayPassword() ) );
+          model.setGatewayPassword(  nc.getGatewayPassword() );
           model.setGatewayUrl( nc.getGatewayUrl() );
           model.setGatewayUsername( nc.getGatewayUsername() );
           model.setSecurityType( SECURITY_TYPE.NONE.getValue() );
@@ -792,16 +797,9 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() + fileSeparator + CONFIG_PROPERTIES;
         PropertiesConfiguration config = new PropertiesConfiguration( new File( configFile ) );
         model.setKerberosAuthenticationUsername( (String) config.getProperty( KERBEROS_AUTHENTICATION_USERNAME ) );
-        model.setKerberosAuthenticationPassword(
-          Encr.decryptPasswordOptionallyEncrypted( (String) config.getProperty( KERBEROS_AUTHENTICATION_PASS ) ) );
+        model.setKerberosAuthenticationPassword( (String) config.getProperty( KERBEROS_AUTHENTICATION_PASS ) );
         model.setKerberosImpersonationUsername( (String) config.getProperty( KERBEROS_IMPERSONATION_USERNAME ) );
-        String impersonationPasswordValue =
-          Encr.decryptPasswordOptionallyEncrypted( (String) config.getProperty( KERBEROS_IMPERSONATION_PASS ) );
-        if ( "Encrypted".equals( impersonationPasswordValue ) ) {
-          impersonationPasswordValue = "";
-        }
-        model.setKerberosImpersonationPassword( impersonationPasswordValue );
-
+        model.setKerberosImpersonationPassword( (String) config.getProperty( KERBEROS_IMPERSONATION_PASS )  );
         String keytabAuthenticationLocation = (String) config.getProperty( KEYTAB_AUTHENTICATION_LOCATION );
         String keytabImpersonationLocation = (String) config.getProperty( KEYTAB_IMPERSONATION_LOCATION );
 
@@ -844,14 +842,14 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       config.setProperty( KERBEROS_AUTHENTICATION_USERNAME, model.getKerberosAuthenticationUsername() );
       if ( !StringUtil.isEmpty( model.getKerberosAuthenticationPassword() ) ) {
         config.setProperty( KERBEROS_AUTHENTICATION_PASS,
-          Encr.encryptPasswordIfNotUsingVariables( model.getKerberosAuthenticationPassword() ) );
+          encodePassword( model.getKerberosAuthenticationPassword() ) );
       } else {
         config.setProperty( KERBEROS_AUTHENTICATION_PASS, "" );
       }
       config.setProperty( KERBEROS_IMPERSONATION_USERNAME, model.getKerberosImpersonationUsername() );
       if ( !StringUtil.isEmpty( model.getKerberosImpersonationPassword() ) ) {
         config.setProperty( KERBEROS_IMPERSONATION_PASS,
-          Encr.encryptPasswordIfNotUsingVariables( model.getKerberosImpersonationPassword() ) );
+          encodePassword( model.getKerberosImpersonationPassword() ) );
       } else {
         config.setProperty( KERBEROS_IMPERSONATION_PASS, "" );
       }
@@ -976,8 +974,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       String userName = model.getGatewayUsername();
       String url = model.getGatewayUrl();
       String password = model.getGatewayPassword();
-      nc.setGatewayPassword( nc.encodePassword( password ) );
-      nc.setGatewayUrl( url );
+      nc.setGatewayPassword( encodePassword( password ) );
+      nc.setGatewayUrl( encodePassword( url ) );
       nc.setGatewayUsername( userName );
       nc.setUseGateway(
         !StringUtil.isEmpty( userName ) && !StringUtil.isEmpty( url ) && !StringUtil.isEmpty( password ) );

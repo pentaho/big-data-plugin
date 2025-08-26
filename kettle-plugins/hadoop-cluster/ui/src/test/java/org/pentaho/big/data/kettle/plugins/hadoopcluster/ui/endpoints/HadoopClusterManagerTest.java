@@ -524,9 +524,9 @@ public class HadoopClusterManagerTest {
     assertEquals( "Kerberos", retrievingModel.getSecurityType() );
     assertEquals( "Password", retrievingModel.getKerberosSubType() );
     assertEquals( "username", retrievingModel.getKerberosAuthenticationUsername() );
-    assertEquals( "password", retrievingModel.getKerberosAuthenticationPassword() );
+    assertEquals( "Encrypted 2be98afc86aa7f2e4bb18bd63c99dbdde", retrievingModel.getKerberosAuthenticationPassword() );
     assertEquals( "impersonationusername", retrievingModel.getKerberosImpersonationUsername() );
-    assertEquals( "impersonationpassword", retrievingModel.getKerberosImpersonationPassword() );
+    assertEquals( "Encrypted 696d706570cdf7c1a91ece9d8abb18bd63c99dbdde", retrievingModel.getKerberosImpersonationPassword() );
   }
 
   @Test public void testNamedClusterKerberosKeytabSecurity() throws ConfigurationException {
@@ -641,7 +641,7 @@ public class HadoopClusterManagerTest {
     assertEquals( "Kerberos", retrievingModel.getSecurityType() );
     assertEquals( "Password", retrievingModel.getKerberosSubType() );
     assertEquals( "username", retrievingModel.getKerberosAuthenticationUsername() );
-    assertEquals( "password", retrievingModel.getKerberosAuthenticationPassword() );
+    assertEquals( "Encrypted 2be98afc86aa7f2e4bb18bd63c99dbdde", retrievingModel.getKerberosAuthenticationPassword() );
     assertEquals( "", retrievingModel.getKerberosImpersonationUsername() );
     assertEquals( "", retrievingModel.getKerberosImpersonationPassword() );
   }
