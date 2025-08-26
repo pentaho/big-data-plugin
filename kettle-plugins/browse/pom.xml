@@ -15,6 +15,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-big-data-impl-cluster</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
       <version>${commons-io.version}</version>
