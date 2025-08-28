@@ -434,7 +434,11 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           model.setZooKeeperHost( nc.getZooKeeperHost() );
           resolveShimVendorAndVersion( model, nc.getShimIdentifier() );
           model.setGatewayPassword(  nc.getGatewayPassword() );
-          model.setGatewayUrl( nc.getGatewayUrl() );
+          String gatewayURL = nc.getGatewayUrl();
+          if( gatewayURL != null && !gatewayURL.startsWith( "Encrypted" )) {
+            gatewayURL = encodePassword( gatewayURL );
+          }
+          model.setGatewayUrl( gatewayURL );
           model.setGatewayUsername( nc.getGatewayUsername() );
           model.setSecurityType( SECURITY_TYPE.NONE.getValue() );
           if ( nc.isUseGateway() ) {
