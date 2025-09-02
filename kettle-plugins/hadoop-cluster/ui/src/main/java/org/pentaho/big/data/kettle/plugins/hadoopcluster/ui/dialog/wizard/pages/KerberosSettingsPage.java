@@ -41,6 +41,7 @@ import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.TWO_COLUMNS;
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.createLabel;
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.createText;
+import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.decodePassword;
 
 public class KerberosSettingsPage extends WizardPage {
 
@@ -395,10 +396,10 @@ public class KerberosSettingsPage extends WizardPage {
 
   private void updatePasswordFields( ThinNameClusterModel model ) {
     authenticationUserNameTextField.setText( model.getKerberosAuthenticationUsername() );
-    authenticationPasswordTextField.setText( model.getKerberosAuthenticationPassword() );
+    authenticationPasswordTextField.setText( decodePassword( model.getKerberosAuthenticationPassword() ) );
     if ( isConnectedToRepo() ) {
       impersonationUserNameTextField.setText( model.getKerberosImpersonationUsername() );
-      impersonationPasswordTextField.setText( model.getKerberosImpersonationPassword() );
+      impersonationPasswordTextField.setText( decodePassword( model.getKerberosImpersonationPassword() ) );
     }
   }
 
