@@ -112,7 +112,6 @@
         <include>net.sf.ehcache:ehcache-core</include>
         <include>net.sf.saxon:Saxon-HE</include>
         <include>net.sf.scannotation:scannotation</include>
-        <include>org.eclipse.jetty:jetty-continuation</include>
         <include>ognl:ognl</include>
         <include>org.antlr:antlr-complete</include>
         <include>org.apache.commons:commons-compress</include>
@@ -148,6 +147,7 @@
         <include>org.drools:drools-ruleunits-engine</include>
         <include>org.drools:drools-compiler</include>
         <include>org.drools:drools-core</include>
+        <include>org.eclipse.jetty:jetty-continuation</include>
         <include>org.eclipse.jetty:jetty-http</include>
         <include>org.eclipse.jetty:jetty-io</include>
         <include>org.eclipse.jetty:jetty-plus</include>
@@ -157,10 +157,9 @@
         <include>org.eclipse.jetty:jetty-util</include>
         <include>org.eobjects.sassyreader:SassyReader</include>
         <include>org.fife.ui:rsyntaxtextarea</include>
-        <include>org.hibernate:hibernate-commons-annotations</include>
+        <include>org.hibernate.common:hibernate-commons-annotations</include>
         <include>org.hibernate:hibernate-core</include>
         <include>org.hibernate:hibernate-ehcache</include>
-        <include>org.ini4j:ini4j</include>
         <include>org.pentaho:json</include>
         <include>org.apache.logging.log4j:log4j-core</include>
         <include>org.mnode.mstor:mstor</include>
