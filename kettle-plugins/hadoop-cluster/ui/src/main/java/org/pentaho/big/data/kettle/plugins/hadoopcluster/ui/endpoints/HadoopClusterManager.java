@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.fileupload.FileItemStream;
+import org.apache.commons.fileupload2.core.FileItemInput;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -347,13 +347,13 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       final NamedCluster newNc = namedClusterService.getNamedClusterByName( model.getName(), metaStore );
       final NamedCluster oldNc = namedClusterService.getNamedClusterByName( model.getOldName(), metaStore );
       // Must get the current shim identifier before the creation of the Named Cluster xml schema for later comparison.
+
       String shimId = null;
       List<NamedClusterSiteFile> existingSiteFiles = new ArrayList<>();
       if ( oldNc != null ) {
         shimId = oldNc.getShimIdentifier();
         existingSiteFiles = oldNc.getSiteFiles();
       }
-
       NamedCluster nc = convertToNamedCluster( model );
       nc.setSiteFiles( getIntersectionSiteFiles( model, existingSiteFiles ) );
       installSiteFiles( siteFilesSource, nc );
@@ -433,7 +433,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           model.setZooKeeperPort( nc.getZooKeeperPort() );
           model.setZooKeeperHost( nc.getZooKeeperHost() );
           resolveShimVendorAndVersion( model, nc.getShimIdentifier() );
-          model.setGatewayPassword(  nc.getGatewayPassword() );
+          model.setGatewayPassword( nc.getGatewayPassword() );
           String gatewayURL = nc.getGatewayUrl();
           if( gatewayURL != null && !gatewayURL.startsWith( "Encrypted" )) {
             gatewayURL = encodePassword( gatewayURL );
@@ -598,12 +598,12 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  public JSONObject installDriver( FileItemStream driver ) {
+  public JSONObject installDriver( FileItemInput driver ) {
     boolean success = false;
     if ( driver != null ) {
       String destination = Const.getShimDriverDeploymentLocation();
 
-      try ( final InputStream driverStream = driver.openStream() ) {
+      try ( final InputStream driverStream = driver.getInputStream() ) {
         FileUtils.copyInputStreamToFile( driverStream,
           new File( destination + fileSeparator + driver.getFieldName() ) );
         success = true;
@@ -803,7 +803,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         model.setKerberosAuthenticationUsername( (String) config.getProperty( KERBEROS_AUTHENTICATION_USERNAME ) );
         model.setKerberosAuthenticationPassword( (String) config.getProperty( KERBEROS_AUTHENTICATION_PASS ) );
         model.setKerberosImpersonationUsername( (String) config.getProperty( KERBEROS_IMPERSONATION_USERNAME ) );
-        model.setKerberosImpersonationPassword( (String) config.getProperty( KERBEROS_IMPERSONATION_PASS )  );
+        model.setKerberosImpersonationPassword( (String) config.getProperty( KERBEROS_IMPERSONATION_PASS ) );
         String keytabAuthenticationLocation = (String) config.getProperty( KEYTAB_AUTHENTICATION_LOCATION );
         String keytabImpersonationLocation = (String) config.getProperty( KEYTAB_IMPERSONATION_LOCATION );
 
