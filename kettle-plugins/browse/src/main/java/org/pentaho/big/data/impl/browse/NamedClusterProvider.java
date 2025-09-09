@@ -57,9 +57,13 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
   private NamedClusterService namedClusterManager;
   private MetastoreLocator metastoreLocator;
   private Logger logger = LoggerFactory.getLogger( NamedClusterProvider.class );
+  private boolean initialized = false;
 
   public NamedClusterProvider( NamedClusterService namedClusterManager ) {
     this.namedClusterManager = namedClusterManager;
+  }
+
+  private void lazilyInitialize() {
     try {
       Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
       this.metastoreLocator = metastoreLocators.stream().findFirst().get();
@@ -69,8 +73,15 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
     try {
       Collection<ProviderServiceInterface> providerServiceInterfaces = PluginServiceLoader.loadServices( ProviderServiceInterface.class );
       providerServiceInterfaces.stream().findFirst().get().addProviderService( this );
+      initialized = true;
     } catch ( Exception e ) {
       logger.error( "Error registering Hadoop Clusters file provider", e );
+    }
+  }
+
+  private void ensureInitialized() {
+    if ( !initialized ) {
+      lazilyInitialize();
     }
   }
 
@@ -96,6 +107,7 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
 
   @Override
   public Tree getTree( Bowl bowl ) {
+    ensureInitialized();
     NamedClusterTree namedClusterTree = new NamedClusterTree( NAME );
 
     try {
@@ -119,6 +131,7 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
   @Override
   public List<NamedClusterFile> getFiles( Bowl bowl, NamedClusterFile file, String filters,
                                           VariableSpace space ) throws FileException {
+    ensureInitialized();
     FileObject fileObject;
     try {
       fileObject = KettleVFS.getInstance( bowl ).getFileObject( file.getPath() );
@@ -187,6 +200,7 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
   @Override
   public List<NamedClusterFile> delete( Bowl bowl, List<NamedClusterFile> files, VariableSpace space )
     throws FileException {
+    ensureInitialized();
     List<NamedClusterFile> deletedFiles = new ArrayList<>();
     for ( NamedClusterFile file : files ) {
       try {
@@ -203,6 +217,7 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
 
   @Override
   public NamedClusterFile add( Bowl bowl, NamedClusterFile folder, VariableSpace space ) throws FileException {
+    ensureInitialized();
     try {
       FileObject fileObject = KettleVFS.getInstance( bowl ).getFileObject( folder.getPath() );
       fileObject.createFolder();
@@ -216,6 +231,7 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
 
   @Override
   public NamedClusterFile getFile( Bowl bowl, NamedClusterFile file, VariableSpace space ) {
+    ensureInitialized();
     try {
       FileObject fileObject = KettleVFS.getInstance( bowl ).getFileObject( file.getPath() );
       if ( fileObject.getType().equals( FileType.FOLDER ) ) {
@@ -231,6 +247,7 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
 
   @Override
   public boolean fileExists( Bowl bowl, NamedClusterFile dir, String path, VariableSpace space ) throws FileException {
+    ensureInitialized();
     path = sanitizeName( bowl, dir, path );
     try {
       FileObject fileObject = KettleVFS.getInstance( bowl ).getFileObject( path );
@@ -243,6 +260,7 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
   @Override
   public String getNewName( Bowl bowl, NamedClusterFile destDir, String newPath, VariableSpace space )
     throws FileException {
+    ensureInitialized();
     String extension = Utils.getExtension( newPath );
     String parent = Utils.getParent( newPath, "/" );
     String name = Utils.getName( newPath, "/" ).replace( "." + extension, "" );
@@ -277,6 +295,7 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
   @Override
   public NamedClusterFile copy( Bowl bowl, NamedClusterFile file, String toPath, OverwriteStatus overwriteStatus,
     VariableSpace space ) throws FileException {
+    ensureInitialized();
     try {
       FileObject fileObject = KettleVFS.getInstance( bowl ).getFileObject( file.getPath() );
       FileObject copyObject = KettleVFS.getInstance( bowl ).getFileObject( toPath );
@@ -298,6 +317,7 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
   }
 
   private NamedClusterFile doMove( Bowl bowl, NamedClusterFile file, String newPath, OverwriteStatus overwriteStatus ) {
+    ensureInitialized();
     try {
       FileObject fileObject = KettleVFS.getInstance( bowl ).getFileObject( file.getPath() );
       FileObject renameObject = KettleVFS.getInstance( bowl ).getFileObject( newPath );
@@ -328,6 +348,7 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
 
   @Override
   public InputStream readFile( Bowl bowl, NamedClusterFile file, VariableSpace space ) throws FileException {
+    ensureInitialized();
     try {
       FileObject fileObject = KettleVFS.getInstance( bowl ).getFileObject( file.getPath() );
       return fileObject.getContent().getInputStream();
@@ -339,6 +360,7 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
   @Override
   public NamedClusterFile writeFile( Bowl bowl, InputStream inputStream, NamedClusterFile destDir, String path,
                                      OverwriteStatus overwriteStatus, VariableSpace space ) throws FileException {
+    ensureInitialized();
     FileObject fileObject = null;
     try {
       fileObject = KettleVFS.getInstance( bowl ).getFileObject( path );
@@ -371,6 +393,7 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
 
   @Override
   public File getFile( Bowl bowl, String path, boolean isDirectory ) {
+    ensureInitialized();
     FileObject fileObject = null;
     try {
       fileObject = KettleVFS.getInstance( bowl ).getFileObject( path );
@@ -398,6 +421,7 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
   @Override
   public NamedClusterFile createDirectory( Bowl bowl, String parentPath, NamedClusterFile file,
     String newDirectoryName ) {
+    ensureInitialized();
     NamedClusterDirectory namedClusterDir = null;
     try {
       FileObject fileObject = KettleVFS.getInstance( bowl ).getFileObject( parentPath + "/" + newDirectoryName );
