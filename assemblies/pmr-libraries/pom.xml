@@ -187,7 +187,6 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-configuration2</artifactId>
-      <version>2.10.1</version>
     </dependency>
     <dependency>
       <groupId>commons-configuration</groupId>
@@ -586,11 +585,6 @@
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-ehcache</artifactId>
       <version>5.4.24.Final</version>
-    </dependency>
-    <dependency>
-      <groupId>org.ini4j</groupId>
-      <artifactId>ini4j</artifactId>
-      <version>${ini4j.version}</version>
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
