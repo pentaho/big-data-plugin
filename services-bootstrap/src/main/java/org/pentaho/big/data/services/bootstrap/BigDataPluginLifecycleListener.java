@@ -124,32 +124,6 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
           //////////////////////////////////////////////////////////////////////////////////
           /// Bootstrapping the HDFS Services
           //////////////////////////////////////////////////////////////////////////////////
-          // 1. Set up the hadoopFileSystemService (HadoopFileSystemLocator)
-          HadoopConfiguration hadoopConfiguration = hadoopConfigurationProvider.getActiveConfiguration();
-          HadoopShim hadoopShim = hadoopConfiguration.getHadoopShim();
-          List<String> shimAvailableServices = hadoopShim.getAvailableServices();
-
-          //////////////////////////////////////////////////////////////////////////////////
-          /// Bootstrapping the authentication manager service
-          //////////////////////////////////////////////////////////////////////////////////
-          logger.debug( "Bootstrapping the authentication manager service." );
-          AuthenticationMappingManager authenticationMappingManager = null;
-          if ( shimAvailableServices.contains( "auth_manager" ) ) {
-              SimpleMapping simpleMapping = new SimpleMapping();
-              AuthRequestToUGIMappingService authRequestToUGIMappingService =
-                      new AuthRequestToUGIMappingService(
-                              hadoopShim,
-                              simpleMapping
-                      );
-              authenticationMappingManager = new AuthenticationMappingManagerImpl(
-                                authRequestToUGIMappingService
-                      );
-          } else {
-              logger.debug( "No authentication manager service defined." );
-          }
-          //////////////////////////////////////////////////////////////////////////////////
-          /// Bootstrapping the HDFS Services
-          //////////////////////////////////////////////////////////////////////////////////
           logger.debug( "Bootstrapping the HDFS Services." );
           HadoopFileSystemLocatorImpl hadoopFileSystemLocator = null;
           if ( shimAvailableServices.contains( "hdfs" ) ) {
@@ -254,10 +228,6 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
                           Executors.newCachedThreadPool(),
                           visitorServices
                   );
-                  Map mapReducefactoryMap = new HashMap<String, String>();
-          mapReducefactoryMap.put( "shim", hadoopShim.getShimIdentifier().getId() );
-          mapReducefactoryMap.put( "service", "shimservices" );
-          // 3. Add the factory map to the NamedClusterServiceLocatorImpl
           namedClusterServiceLocator.factoryAdded( mapReduceServiceFactory, mapReducefactoryMap );}
               if ( availableMapreduceOptions.contains( "mapreduce_impersonation" ) ) {
                   logger.debug( "Adding 'mapreduce_impersonation' factory." );
@@ -487,19 +457,7 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
           runtimeTester.addRuntimeTest( new KafkaConnectTest( BaseMessagesMessageGetterFactoryImpl.getInstance(), namedClusterServiceLocator ) );
       } catch (ConfigurationException | ClassNotFoundException | IllegalAccessException | InstantiationException | IOException e) {
           logger.error( "There was an error during the Pentaho Big Data Plugin bootstrap process. Some Big Data features may not be available after startup.", e );
-      } catch (ClassNotFoundException e) {
-          throw new RuntimeException(e);
-      } catch (IllegalAccessException e) {
-          throw new RuntimeException(e);
-      } catch (InstantiationException e) {
-          throw new RuntimeException(e);
-      } catch (IOException e) {
-          throw new RuntimeException(e);
       }
-
-      logger.debug( "Finished Pentaho Big Data Plugin bootstrap process." );
-
-      logger.debug( "Finished Pentaho Big Data Plugin bootstrap process." );
 
       logger.debug( "Finished Pentaho Big Data Plugin bootstrap process." );
 
