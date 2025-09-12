@@ -257,7 +257,6 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>${dependency.junit.revision}</version>
-      <version>${dependency.junit.revision}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
