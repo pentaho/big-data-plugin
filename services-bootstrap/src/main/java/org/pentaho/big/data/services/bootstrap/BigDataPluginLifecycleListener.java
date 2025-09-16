@@ -190,7 +190,13 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
               if ( availableHdfsSchemas.contains( "hc" ) ) {
                   logger.debug( "Adding 'hc' schema.'" );
                   NamedClusterProvider namedClusterProvider = new NamedClusterProvider(hadoopFileSystemLocator, "hc", HDFSFileNameParser.getInstance());
-                  org.pentaho.big.data.impl.browse.NamedClusterProvider namedClusterProvider2 = new org.pentaho.big.data.impl.browse.NamedClusterProvider();
+                  String uiNamedClusterProvider = "org.pentaho.big.data.impl.browse.NamedClusterProvider";
+                  try {
+                      Class<?> clazz = Class.forName( uiNamedClusterProvider );
+                      Object instance = clazz.getDeclaredConstructor().newInstance();
+                  } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | java.lang.reflect.InvocationTargetException e) {
+                      logger.debug( "The NamedClusterProvider could not be instantiated. This is OK for Pentaho Server but it should be examined for Spoon." );
+                  }
               }
           } else {
               logger.debug( "No HDFS Services defined." );
