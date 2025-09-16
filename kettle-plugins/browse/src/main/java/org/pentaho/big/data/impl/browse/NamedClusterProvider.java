@@ -64,6 +64,7 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
     this(
       NamedClusterManager.getInstance()
     );
+    lazilyInitialize();
   }
 
   public NamedClusterProvider( NamedClusterService namedClusterManager ) {
