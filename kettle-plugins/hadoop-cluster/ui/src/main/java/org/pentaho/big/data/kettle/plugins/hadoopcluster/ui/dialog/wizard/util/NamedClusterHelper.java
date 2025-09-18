@@ -198,7 +198,7 @@ public abstract class NamedClusterHelper {
     double cacheBust = Math.round( new Date().getTime() / 1000 ) + Math.random();
     return spoonSupplier.get().getRepository().getUri()
       .orElseThrow( () -> new IllegalStateException( "Repo URI not defined" ) )
-      .toString() + "/osgi/cxf/hadoop-cluster/" + endpoint + "?v=" + cacheBust;
+      .toString() + "/plugin/pentaho-hadoop-cluster-plugin/api/" + endpoint + "?v=" + cacheBust;
   }
 
   public static Map<String, String> getSecurityCredentials() {
