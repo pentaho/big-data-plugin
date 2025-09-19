@@ -694,30 +694,7 @@
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
                   <destFileName>apache</destFileName>
                 </artifactItem>
-                <artifactItem>
-                  <groupId>org.pentaho.hadoop.shims</groupId>
-                  <artifactId>pentaho-hadoop-shims-emr770-pmr-libs</artifactId>
-                  <type>zip</type>
-                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.pentaho.hadoop.shims</groupId>
-                  <artifactId>pentaho-hadoop-shims-dataproc1421-pmr-libs</artifactId>
-                  <type>zip</type>
-                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.pentaho.hadoop.shims</groupId>
-                  <artifactId>pentaho-hadoop-shims-cdpdc71-pmr-libs</artifactId>
-                  <type>zip</type>
-                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.pentaho.hadoop.shims</groupId>
-                  <artifactId>pentaho-hadoop-shims-hdi40-pmr-libs</artifactId>
-                  <type>zip</type>
-                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
-                </artifactItem>
+
                 <!-- Plugins unpack -->
                 <artifactItem>
                   <groupId>pentaho</groupId>
