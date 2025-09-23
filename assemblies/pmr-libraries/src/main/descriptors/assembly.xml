@@ -107,6 +107,7 @@
         <include>net.java.dev.javacc:javacc</include>
         <include>net.sf.ehcache:ehcache-core</include>
         <include>net.sf.saxon:Saxon-HE</include>
+        <include>org.xmlresolver:xmlresolver</include>
         <include>net.sf.scannotation:scannotation</include>
         <include>ognl:ognl</include>
         <include>org.antlr:antlr-complete</include>
