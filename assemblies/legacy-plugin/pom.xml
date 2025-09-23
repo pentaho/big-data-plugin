@@ -101,11 +101,6 @@
       <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.pentaho.hadoop.shims</groupId>
-      <artifactId>pentaho-big-data-ee-fragment</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-impl-clusterTests</artifactId>
       <version>${project.version}</version>
@@ -123,11 +118,6 @@
     <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-common-mapreduce</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.pentaho</groupId>
-      <artifactId>pentaho-ee-secure-impersonation-api</artifactId>
       <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
     <dependency>
@@ -146,11 +136,6 @@
       <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.pentaho.hadoop.shims</groupId>
-      <artifactId>pentaho-big-data-ee-fragment</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-impl-clusterTests</artifactId>
       <version>${project.version}</version>
@@ -168,11 +153,6 @@
     <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-common-mapreduce</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.pentaho</groupId>
-      <artifactId>pentaho-ee-secure-impersonation-api</artifactId>
       <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
     <dependency>
@@ -191,11 +171,6 @@
       <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.pentaho.hadoop.shims</groupId>
-      <artifactId>pentaho-big-data-ee-fragment</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-impl-clusterTests</artifactId>
       <version>${project.version}</version>
@@ -213,11 +188,6 @@
     <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-common-mapreduce</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.pentaho</groupId>
-      <artifactId>pentaho-ee-secure-impersonation-api</artifactId>
       <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
     <dependency>
