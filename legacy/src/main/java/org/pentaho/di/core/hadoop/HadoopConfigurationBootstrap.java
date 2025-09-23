@@ -70,7 +70,6 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
   private static final Class<?> PKG = HadoopConfigurationBootstrap.class;
   public static final String PMR_PROPERTIES = "pmr.properties";
   private static final String NOTIFICATIONS_BEFORE_LOADING_SHIM = "notificationsBeforeLoadingShim";
-  static final String MAX_TIMEOUT_BEFORE_LOADING_SHIM = "maxTimeoutBeforeLoadingShim";
   private static LogChannelInterface log = new LogChannel( BaseMessages.getString( PKG, "HadoopConfigurationBootstrap.LoggingPrefix" ) );
   private static HadoopConfigurationBootstrap instance = new HadoopConfigurationBootstrap();
   private final Set<HadoopConfigurationListener> hadoopConfigurationListeners =
@@ -106,30 +105,6 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
   }
 
   public HadoopConfigurationProvider getProvider() throws ConfigurationException {
-    try {
-      //TODO PUT THIS BACK TO 300?????
-      //int timeout =
-        //  NumberUtils.toInt( getMergedPmrAndPluginProperties().getProperty( MAX_TIMEOUT_BEFORE_LOADING_SHIM ), 300 );
-
-      int timeout =
-        NumberUtils.toInt( "2", 2 );
-
-
-      CountDownLatch remainingDependencies = getRemainingDependencies();
-      long nrNotifications = remainingDependencies.getCount();
-      if ( nrNotifications > 0 ) {
-        log.logDebug( BaseMessages.getString( PKG, "HadoopConfigurationBootstrap.WaitForShimLoad", nrNotifications, timeout ) );
-      }
-      remainingDependencies.await( timeout, TimeUnit.SECONDS );
-    } catch ( InterruptedException e ) {
-      // Make sure wait happens on first load only
-      while ( remainingDependencies.getCount() > 0 ) {
-        remainingDependencies.countDown();
-      }
-
-      Thread.currentThread().interrupt();
-    }
-
     initProvider();
     return provider;
   }
