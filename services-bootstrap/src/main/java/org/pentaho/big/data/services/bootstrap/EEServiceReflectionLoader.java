@@ -102,13 +102,13 @@ public class EEServiceReflectionLoader {
       // Create AuthRequestToUGIMappingService instance
       Constructor<?> authRequestConstructor = authRequestToUGIClass.getDeclaredConstructor(
         HadoopShim.class,
-        simpleMappingClass
+        Class.forName( "com.pentaho.big.data.ee.secure.impersonation.api.ImpersonationMappingService")
       );
       Object authRequestService = authRequestConstructor.newInstance( hadoopShim, simpleMapping );
 
       // Create AuthenticationMappingManagerImpl instance
       Constructor<?> authManagerConstructor = authManagerImplClass.getDeclaredConstructor(
-        authRequestToUGIClass
+        Class.forName( "org.pentaho.authentication.mapper.api.AuthenticationMappingService" )
       );
       Object authManager = authManagerConstructor.newInstance( authRequestService );
 
@@ -155,7 +155,7 @@ public class EEServiceReflectionLoader {
           logger.debug( "Adding 'hdfs_impersonation' factory via reflection" );
           Constructor<?> impersonatingConstructor = impersonatingFactoryClass.getDeclaredConstructor(
             HadoopShim.class,
-            Class.forName( "org.pentaho.hadoop.shim.api.cluster.ClusterInitializer" ), // ShimIdentifier interface
+            Class.forName( "org.pentaho.hadoop.shim.api.core.ShimIdentifierInterface" ), // ShimIdentifier interface
             AuthenticationMappingManager.class
           );
 
@@ -177,7 +177,7 @@ public class EEServiceReflectionLoader {
         logger.debug( "Adding 'hdfs_knox' factory via reflection" );
         Constructor<?> knoxConstructor = knoxFactoryClass.getDeclaredConstructor(
           HadoopShim.class,
-          Class.forName( "org.pentaho.hadoop.shim.api.cluster.ClusterInitializer" ) // ShimIdentifier interface
+          Class.forName( "org.pentaho.hadoop.shim.api.core.ShimIdentifierInterface" ) // ShimIdentifier interface
         );
 
         Object knoxFactory = knoxConstructor.newInstance(
@@ -358,7 +358,7 @@ public class EEServiceReflectionLoader {
         
         Constructor<?> impersonationConstructor = hBaseImpersonationServiceFactoryClass.getDeclaredConstructor(
           hBaseShim.getClass(), // HBaseShimImpl
-          AuthenticationMappingManager.class
+          Class.forName( "org.pentaho.authentication.mapper.api.AuthenticationMappingManager" )
         );
         
         Object hBaseImpersonationServiceFactory = impersonationConstructor.newInstance(
@@ -427,7 +427,7 @@ public class EEServiceReflectionLoader {
           String.class, // JDBC driver class name
           String.class, // Shim identifier
           jdbcUrlParser.getClass(), // JdbcUrlParser
-          AuthenticationMappingManager.class
+          Class.forName( "org.pentaho.authentication.mapper.api.AuthenticationMappingManager" )
         );
         
         Object impersonatingHiveDriver = hiveConstructor.newInstance(
@@ -450,7 +450,7 @@ public class EEServiceReflectionLoader {
           String.class,
           String.class,
           jdbcUrlParser.getClass(),
-          AuthenticationMappingManager.class
+          Class.forName( "org.pentaho.authentication.mapper.api.AuthenticationMappingManager" )
         );
         
         Object impersonatingImpalaDriver = impalaConstructor.newInstance(
@@ -473,7 +473,7 @@ public class EEServiceReflectionLoader {
           String.class,
           String.class,
           jdbcUrlParser.getClass(),
-          AuthenticationMappingManager.class
+          Class.forName( "org.pentaho.authentication.mapper.api.AuthenticationMappingManager" )
         );
         
         Object impersonatingHiveSimbaDriver = simbaConstructor.newInstance(
@@ -496,7 +496,7 @@ public class EEServiceReflectionLoader {
           String.class,
           String.class,
           jdbcUrlParser.getClass(),
-          AuthenticationMappingManager.class
+          Class.forName( "org.pentaho.authentication.mapper.api.AuthenticationMappingManager" )
         );
         
         Object impersonatingImpalaSimbaDriver = impalaSimbaConstructor.newInstance(
@@ -519,7 +519,7 @@ public class EEServiceReflectionLoader {
           String.class,
           String.class,
           jdbcUrlParser.getClass(),
-          AuthenticationMappingManager.class
+          Class.forName( "org.pentaho.authentication.mapper.api.AuthenticationMappingManager" )
         );
         
         Object impersonatingSparkSqlSimbaDriver = sparkSimbaConstructor.newInstance(
@@ -561,7 +561,9 @@ public class EEServiceReflectionLoader {
       Class<?> yarnServiceFactoryClass = Class.forName( "com.pentaho.yarn.impl.shim.YarnServiceFactoryImpl" );
       
       // Create instance using constructor: YarnServiceFactoryImpl(HadoopFileSystemLocator hadoopFileSystemLocator)
-      Constructor<?> constructor = yarnServiceFactoryClass.getConstructor( Object.class );
+      Constructor<?> constructor = yarnServiceFactoryClass.getConstructor( 
+        Class.forName( "org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator" ) 
+      );
       Object yarnServiceFactory = constructor.newInstance( hadoopFileSystemLocator );
       
       logger.debug( "Successfully loaded EE Yarn service factory: " + yarnServiceFactory.getClass().getSimpleName() );
