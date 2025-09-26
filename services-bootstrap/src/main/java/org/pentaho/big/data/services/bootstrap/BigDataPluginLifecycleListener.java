@@ -101,7 +101,7 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
       AuthenticationMappingManager authenticationMappingManager = null;
       if ( shimAvailableServices.contains( "auth_manager" ) ) {
         // Use reflection to load EE authentication services if available
-        authenticationMappingManager = EEServiceReflectionLoader.loadAuthenticationManager(hadoopShim);
+        authenticationMappingManager = EEServiceReflectionLoader.loadAuthenticationManager( hadoopShim );
         if ( authenticationMappingManager != null ) {
           logger.debug( "EE authentication manager loaded successfully via reflection" );
         } else {
@@ -138,50 +138,60 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
         hadoopFileSystemLocator = HadoopFileSystemLocatorImpl.getInstance();
         hadoopFileSystemLocator.setHadoopFileSystemFactories( hadoopFileSystemFactoryList );
 
-              if ( availableHdfsSchemas.contains( "hdfs" ) ) {
-                  logger.debug( "Adding 'hdfs' schema.'" );
-                  HDFSFileProvider hdfsHDFSFileProvider = new HDFSFileProvider(hadoopFileSystemLocator, "hdfs", HDFSFileNameParser.getInstance());
-              }
-              // schema=maprfs
-              if ( availableHdfsSchemas.contains( "maprfs" ) ) {
-                  logger.debug( "Adding 'maprfs' schema.'" );
-                  HDFSFileProvider maprfsHDFSFileProvider = new HDFSFileProvider(hadoopFileSystemLocator, "maprfs", MapRFileNameParser.getInstance());
-              }
-              // schema=escalefs
-              if ( availableHdfsSchemas.contains( "escalefs" ) ) {
-                  logger.debug( "Adding 'escalefs' schema.'" );
-                  HDFSFileProvider escalefsHDFSFileProvider = new HDFSFileProvider(hadoopFileSystemLocator, "escalefs", MapRFileNameParser.getInstance());
-              }
-              // schema=wasb
-              if ( availableHdfsSchemas.contains( "wasb" ) ) {
-                  logger.debug( "Adding 'wasb' schema.'" );
-                  HDFSFileProvider wasbHDFSFileProvider = new HDFSFileProvider(hadoopFileSystemLocator, "wasb", AzureHdInsightsFileNameParser.getInstance());
-              }
-              // schema=wasbs
-              if ( availableHdfsSchemas.contains( "wasbs" ) ) {
-                  logger.debug( "Adding 'wasbs' schema.'" );
-                  HDFSFileProvider wasbsHDFSFileProvider = new HDFSFileProvider(hadoopFileSystemLocator, "wasbs", AzureHdInsightsFileNameParser.getInstance());
-              }
-              // schema=abfs
-              if ( availableHdfsSchemas.contains( "abfs" ) ) {
-                  logger.debug( "Adding 'abfs' schema.'" );
-                  HDFSFileProvider abfsHDFSFileProvider = new HDFSFileProvider(hadoopFileSystemLocator, "abfs", AzureHdInsightsFileNameParser.getInstance());
-              }
-              // schema=hc
-              if ( availableHdfsSchemas.contains( "hc" ) ) {
-                  logger.debug( "Adding 'hc' schema.'" );
-                  NamedClusterProvider namedClusterProvider = new NamedClusterProvider(hadoopFileSystemLocator, "hc", HDFSFileNameParser.getInstance());
-                  String uiNamedClusterProvider = "org.pentaho.big.data.impl.browse.NamedClusterProvider";
-                  try {
-                      Class<?> clazz = Class.forName( uiNamedClusterProvider );
-                      Object instance = clazz.getDeclaredConstructor().newInstance();
-                  } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | java.lang.reflect.InvocationTargetException e) {
-                      logger.debug( "The NamedClusterProvider could not be instantiated. This is OK for Pentaho Server but it should be examined for Spoon." );
-                  }
-              }
-          } else {
-              logger.debug( "No HDFS Services defined." );
+        if ( availableHdfsSchemas.contains( "hdfs" ) ) {
+          logger.debug( "Adding 'hdfs' schema.'" );
+          HDFSFileProvider hdfsHDFSFileProvider =
+            new HDFSFileProvider( hadoopFileSystemLocator, "hdfs", HDFSFileNameParser.getInstance() );
+        }
+        // schema=maprfs
+        if ( availableHdfsSchemas.contains( "maprfs" ) ) {
+          logger.debug( "Adding 'maprfs' schema.'" );
+          HDFSFileProvider maprfsHDFSFileProvider =
+            new HDFSFileProvider( hadoopFileSystemLocator, "maprfs", MapRFileNameParser.getInstance() );
+        }
+        // schema=escalefs
+        if ( availableHdfsSchemas.contains( "escalefs" ) ) {
+          logger.debug( "Adding 'escalefs' schema.'" );
+          HDFSFileProvider escalefsHDFSFileProvider =
+            new HDFSFileProvider( hadoopFileSystemLocator, "escalefs", MapRFileNameParser.getInstance() );
+        }
+        // schema=wasb
+        if ( availableHdfsSchemas.contains( "wasb" ) ) {
+          logger.debug( "Adding 'wasb' schema.'" );
+          HDFSFileProvider wasbHDFSFileProvider =
+            new HDFSFileProvider( hadoopFileSystemLocator, "wasb", AzureHdInsightsFileNameParser.getInstance() );
+        }
+        // schema=wasbs
+        if ( availableHdfsSchemas.contains( "wasbs" ) ) {
+          logger.debug( "Adding 'wasbs' schema.'" );
+          HDFSFileProvider wasbsHDFSFileProvider =
+            new HDFSFileProvider( hadoopFileSystemLocator, "wasbs", AzureHdInsightsFileNameParser.getInstance() );
+        }
+        // schema=abfs
+        if ( availableHdfsSchemas.contains( "abfs" ) ) {
+          logger.debug( "Adding 'abfs' schema.'" );
+          HDFSFileProvider abfsHDFSFileProvider =
+            new HDFSFileProvider( hadoopFileSystemLocator, "abfs", AzureHdInsightsFileNameParser.getInstance() );
+        }
+        // schema=hc
+        if ( availableHdfsSchemas.contains( "hc" ) ) {
+          logger.debug( "Adding 'hc' schema.'" );
+          NamedClusterProvider namedClusterProvider =
+            new NamedClusterProvider( hadoopFileSystemLocator, "hc", HDFSFileNameParser.getInstance() );
+          String uiNamedClusterProvider = "org.pentaho.big.data.impl.browse.NamedClusterProvider";
+          try {
+            Class<?> clazz = Class.forName( uiNamedClusterProvider );
+            Object instance = clazz.getDeclaredConstructor().newInstance();
+          } catch ( ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException |
+                    java.lang.reflect.InvocationTargetException e ) {
+            logger.debug(
+              "The NamedClusterProvider could not be instantiated. This is OK for Pentaho Server but it should be "
+                + "examined for Spoon." );
           }
+        }
+      } else {
+        logger.debug( "No HDFS Services defined." );
+      }
 
       //////////////////////////////////////////////////////////////////////////////////
       /// Bootstrap the common format service factories
@@ -219,14 +229,15 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
         }
 
         // Load EE MapReduce factories using reflection if available
-        List<NamedClusterServiceFactory<MapReduceService>> eeMapReduceFactories = EEServiceReflectionLoader.loadEEMapReduceFactories(
-          hadoopShim,
-          availableMapreduceOptions,
-          authenticationMappingManager,
-          Executors.newCachedThreadPool(),
-          visitorServices
-        );
-        for (NamedClusterServiceFactory<MapReduceService> eeFactory : eeMapReduceFactories) {
+        List<NamedClusterServiceFactory<MapReduceService>> eeMapReduceFactories =
+          EEServiceReflectionLoader.loadEEMapReduceFactories(
+            hadoopShim,
+            availableMapreduceOptions,
+            authenticationMappingManager,
+            Executors.newCachedThreadPool(),
+            visitorServices
+          );
+        for ( NamedClusterServiceFactory<MapReduceService> eeFactory : eeMapReduceFactories ) {
           namedClusterServiceLocator.factoryAdded( eeFactory, mapReducefactoryMap );
         }
       } else {
@@ -385,12 +396,14 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
 
         // Load EE Yarn service factory via reflection
         logger.debug( "Loading EE Yarn service factory via reflection" );
-        NamedClusterServiceFactory<?> yarnServiceFactory = EEServiceReflectionLoader.loadEEYarnServiceFactory( hadoopFileSystemLocator );
+        NamedClusterServiceFactory<?> yarnServiceFactory =
+          EEServiceReflectionLoader.loadEEYarnServiceFactory( hadoopFileSystemLocator );
 
         if ( yarnServiceFactory != null ) {
           try {
             namedClusterServiceLocator.factoryAdded( yarnServiceFactory, yarnServiceFactoryMap );
-            logger.debug( "Successfully registered EE Yarn service factory: " + yarnServiceFactory.getClass().getSimpleName() );
+            logger.debug(
+              "Successfully registered EE Yarn service factory: " + yarnServiceFactory.getClass().getSimpleName() );
           } catch ( Exception e ) {
             logger.warn( "Failed to register EE Yarn service factory: " + yarnServiceFactory.getClass().getName(), e );
           }
