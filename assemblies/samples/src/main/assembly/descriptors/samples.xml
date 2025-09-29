@@ -1,13 +1,13 @@
 <assembly>
     <id>package</id>
-    <baseDirectory/>
+    <baseDirectory>samples</baseDirectory>
     <formats>
         <format>zip</format>
     </formats>
     <fileSets>
         <fileSet>
-            <directory>../../legacy/samples</directory>
-            <outputDirectory>/</outputDirectory>
+            <directory>${project.basedir}/src/main/resources</directory>
+            <outputDirectory>.</outputDirectory>
         </fileSet>
     </fileSets>
 </assembly>
