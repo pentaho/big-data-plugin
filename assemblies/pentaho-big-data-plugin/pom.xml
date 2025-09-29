@@ -627,6 +627,18 @@
       <type>zip</type>
       <classifier>plugin</classifier>
     </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-big-data-plugin-samples</artifactId>
+      <version>${project.version}</version>
+      <type>zip</type>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
   </dependencies>
   <build>
     <resources>
@@ -664,7 +676,6 @@
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
                   <destFileName>apache</destFileName>
                 </artifactItem>
-
                 <!-- Plugins unpack -->
                 <artifactItem>
                   <groupId>pentaho</groupId>

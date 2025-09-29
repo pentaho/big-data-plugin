@@ -4,36 +4,17 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>pentaho</groupId>
-    <artifactId>pentaho-big-data-bundles</artifactId>
+    <artifactId>pentaho-big-data-parent</artifactId>
     <version>11.0.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>pentaho-big-data-assemblies</artifactId>
   <version>11.0.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <profiles>
-    <profile>
-      <id>featuresOnly</id>
-      <activation>
-        <property>
-          <name>!assemblyOnly</name>
-        </property>
-      </activation>
-    </profile>
-    <profile>
-      <id>assemblyOnly</id>
-      <activation>
-        <property>
-          <name>!featuresOnly</name>
-        </property>
-      </activation>
-      <modules>
-        <module>samples</module>
-        <module>pmr-libraries</module>
-        <module>legacy-plugin</module>
-        <module>s3-vfs</module>
-        <module>kafka-plugin</module>
-      </modules>
-    </profile>
-
-  </profiles>
+  <modules>
+    <module>samples</module>
+    <module>pmr-libraries</module>
+    <module>pentaho-big-data-plugin</module>
+    <module>s3-vfs</module>
+    <module>kafka-plugin</module>
+  </modules>
 </project>
