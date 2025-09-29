@@ -20,6 +20,15 @@
     </fileSets>
     <dependencySets>
         <dependencySet>
+            <includes>
+                <include>pentaho:pentaho-big-data-plugin-samples:zip</include>
+            </includes>
+            <unpack>true</unpack>
+            <outputDirectory>.</outputDirectory>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
+            <useProjectArtifact>false</useProjectArtifact>
+        </dependencySet>
+        <dependencySet>
             <outputDirectory>/</outputDirectory>
             <unpack>false</unpack>
             <scope>runtime</scope>
