@@ -12,7 +12,7 @@
 
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages;
 
-import org.eclipse.jetty.util.StringUtil;
+import org.pentaho.di.core.util.StringUtil;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -176,10 +176,10 @@ public class ClusterSettingsPage extends WizardPage {
   private void createDriverGroup() {
     String loadedDriverText = loadedShimVendor + " " + loadedShimVersion;
     String originalDriverText;
-    if ( StringUtil.isNotBlank( thinNameClusterModel.getShimVendor() ) ) {
-      originalDriverText = thinNameClusterModel.getShimVendor() + " " + thinNameClusterModel.getShimVersion();
-    } else {
+    if ( StringUtil.isEmpty( thinNameClusterModel.getShimVendor() ) ) {
       originalDriverText = BaseMessages.getString( PKG, "NamedClusterDialog.noDriver" );
+    } else {
+      originalDriverText = thinNameClusterModel.getShimVendor() + " " + thinNameClusterModel.getShimVersion();
     }
 
     Composite driverGroupPanel = new Composite( mainPanel, SWT.NONE );
