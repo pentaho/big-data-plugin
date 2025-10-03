@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -600,6 +601,9 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
       StringWriter writer = new StringWriter();
       StreamResult result = new StreamResult( writer );
       TransformerFactory tf = TransformerFactory.newInstance();
+      tf.setFeature( XMLConstants.FEATURE_SECURE_PROCESSING, true );
+      tf.setAttribute( XMLConstants.ACCESS_EXTERNAL_DTD, "" );
+      tf.setAttribute( XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "" );
       Transformer transformer = tf.newTransformer();
       transformer.transform( domSource, result );
       String s = writer.toString();
