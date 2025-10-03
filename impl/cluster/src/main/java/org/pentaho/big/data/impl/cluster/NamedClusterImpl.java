@@ -601,9 +601,9 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
       StringWriter writer = new StringWriter();
       StreamResult result = new StreamResult( writer );
       TransformerFactory tf = TransformerFactory.newInstance();
-      transformerFactory.setFeature( XMLConstants.FEATURE_SECURE_PROCESSING, true );
-      transformerFactory.setAttribute( XMLConstants.ACCESS_EXTERNAL_DTD, "" );
-      transformerFactory.setAttribute( XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "" );
+      tf.setFeature( XMLConstants.FEATURE_SECURE_PROCESSING, true );
+      tf.setAttribute( XMLConstants.ACCESS_EXTERNAL_DTD, "" );
+      tf.setAttribute( XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "" );
       Transformer transformer = tf.newTransformer();
       transformer.transform( domSource, result );
       String s = writer.toString();
