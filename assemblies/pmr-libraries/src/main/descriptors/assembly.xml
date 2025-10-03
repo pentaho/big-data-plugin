@@ -229,8 +229,8 @@
         <include>org.pentaho.di.plugins:pentaho-kettle-repository-locator-api</include>
         <include>pentaho:pentaho-authentication-mapper-api</include>
         <include>pentaho:pentaho-authentication-mapper-impl</include>
-        <include>org.pentaho.hadoop.shims:pentaho-hadoop-shims-common-dependencies-V1</include>
-        <include>org.pentaho.hadoop.shims:pentaho-hadoop-shims-common-fragment-V1</include>
+        <include>org.pentaho.hadoop.shims:pentaho-hadoop-shims-common-dependencies</include>
+        <include>org.pentaho.hadoop.shims:pentaho-hadoop-shims-common-base</include>
       </includes>
     </dependencySet>
   </dependencySets>
