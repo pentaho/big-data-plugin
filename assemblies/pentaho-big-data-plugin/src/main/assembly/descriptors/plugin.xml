@@ -69,8 +69,8 @@
                 <include>pentaho:pentaho-authentication-mapper-impl</include>
                 <include>pentaho:pentaho-big-data-kettle-plugins-browse</include>
                 <include>org.pentaho:shim-api-core</include>
-                <include>org.pentaho.hadoop.shims:pentaho-hadoop-shims-common-fragment-V1</include>
-                <include>org.pentaho.hadoop.shims:pentaho-hadoop-shims-common-dependencies-V1</include>
+                <include>org.pentaho.hadoop.shims:pentaho-hadoop-shims-common-base</include>
+                <include>org.pentaho.hadoop.shims:pentaho-hadoop-shims-common-dependencies</include>
                 <include>org.pentaho:pentaho-hadoop-shims-common-services-api</include>
                 <include>org.pentaho:pentaho-hadoop-shims-common-mapreduce</include>
                 <include>com.pentaho:pentaho-yarn-api</include>

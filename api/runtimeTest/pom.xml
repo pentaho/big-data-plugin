@@ -60,7 +60,7 @@
     </dependency>
     <dependency>
       <groupId>org.pentaho.hadoop.shims</groupId>
-      <artifactId>pentaho-hadoop-shims-common-fragment-V1</artifactId>
+      <artifactId>pentaho-hadoop-shims-common-base</artifactId>
       <version>${pdi.version}</version>
     </dependency>
     <dependency>
