@@ -229,6 +229,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       NamedCluster nc = namedClusterService.getClusterTemplate();
       nc.setHdfsHost( "" );
       nc.setHdfsPort( "" );
+      nc.setShimVendor( model.getShimVendor() );
+      nc.setShimVersion( model.getShimVersion() );
       nc.setJobTrackerHost( "" );
       nc.setJobTrackerPort( "" );
       nc.setZooKeeperHost( "" );
