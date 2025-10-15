@@ -883,9 +883,12 @@
       <version>1.0</version>
     </dependency>
     <dependency>
-      <groupId>trilead-ssh2</groupId>
-      <artifactId>trilead-ssh2</artifactId>
-      <version>build213</version>
+      <groupId>org.apache.sshd</groupId>
+      <artifactId>sshd-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.sshd</groupId>
+      <artifactId>sshd-sftp</artifactId>
     </dependency>
     <dependency>
       <groupId>woodstox</groupId>

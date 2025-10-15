@@ -225,7 +225,8 @@
         <include>stax:stax</include>
         <include>stax:stax-api</include>
         <include>sun:jlfgr</include>
-        <include>trilead-ssh2:trilead-ssh2</include>
+        <include>org.apache.sshd:sshd-core</include>
+        <include>org.apache.sshd:sshd-sftp</include>
         <include>woodstox:wstx-asl</include>
         <include>wsdl4j:wsdl4j</include>
         <include>wsdl4j:wsdl4j-qname</include>
