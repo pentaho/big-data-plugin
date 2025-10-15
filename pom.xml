@@ -122,7 +122,6 @@
         <module>api</module>
         <module>impl</module>
         <module>authentication-mapper</module>
-        <module>s3-vfs</module>
       </modules>
     </profile>
     <profile>
