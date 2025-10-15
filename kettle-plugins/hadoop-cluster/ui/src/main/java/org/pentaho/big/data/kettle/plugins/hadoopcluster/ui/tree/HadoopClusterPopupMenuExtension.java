@@ -57,7 +57,6 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
   public static final String IMPORT_STATE = "import";
   public static final String NEW_EDIT_STATE = "new-edit";
   public static final String TESTING_STATE = "testing";
-  public static final String ADD_DRIVER_STATE = "add-driver";
   public static final String DELETE_STATE = "delete";
   private static final int RESULT_YES = 0;
 
@@ -127,8 +126,6 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
         NEW_EDIT_STATE );
       createPopupMenuItem( rootMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Import" ),
         IMPORT_STATE );
-      createPopupMenuItem( rootMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Add.Driver" ),
-        ADD_DRIVER_STATE );
     }
     return rootMenu;
   }

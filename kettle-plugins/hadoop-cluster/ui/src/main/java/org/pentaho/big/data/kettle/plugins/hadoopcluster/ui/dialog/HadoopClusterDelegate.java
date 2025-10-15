@@ -13,7 +13,6 @@
 
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog;
 
-import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.AddDriverDialog;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.NamedClusterDialog;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.CustomWizardDialog;
 import org.pentaho.di.base.AbstractMeta;
@@ -50,19 +49,12 @@ public class HadoopClusterDelegate {
     try {
       Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
       IMetaStore metastore = metastoreLocators.stream().findFirst().get().getMetastore();
-      if ( dialogState.equals( "add-driver" ) ) {
-        CustomWizardDialog wizardDialog =
-          new CustomWizardDialog( spoonSupplier.get().getShell(),
-            new AddDriverDialog( (AbstractMeta) spoonSupplier.get().getActiveMeta(), namedClusterService, metastore ) );
-        wizardDialog.open();
-      } else {
         CustomWizardDialog wizardDialog = new CustomWizardDialog( spoonSupplier.get().getShell(),
           new NamedClusterDialog( namedClusterService, metastore,
             spoonSupplier.get().getActiveMeta() == null  ? spoonSupplier.get().getManagementBowl().getADefaultVariableSpace() :
             (AbstractMeta)spoonSupplier.get().getActiveMeta(),
             runtimeTester, urlParams, dialogState ) );
         wizardDialog.open();
-      }
     } catch ( Exception e ) {
       log.logError( e.getMessage() );
     }
