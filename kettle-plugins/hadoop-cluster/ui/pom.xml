@@ -22,8 +22,7 @@
       <commons-configuration.version>1.6</commons-configuration.version>
     <!--FOR UI EXECUTION AS A STANDALONE (uncomment "exec.mainClass" property)-->
     <exec.mainClass>org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.NamedClusterDialog</exec.mainClass>
-    <!--exec.mainClass>org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.AddDriverDialog</exec.mainClass-->
-  </properties>
+    </properties>
 
   <dependencies>
     <!--FOR UI EXECUTION AS A STANDALONE (uncomment "batik-bridge" dependency)-->
