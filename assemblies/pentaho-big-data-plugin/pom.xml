@@ -23,9 +23,280 @@
     <developerConnection>scm:git:git@github.com:${github.user}/${project.artifactId}.git</developerConnection>
     <url>scm:git:git@github.com:${github.user}/${project.artifactId}.git</url>
   </scm>
+
+  <!-- Default properties (used when no specific variant profile is active) -->
   <properties>
-    <publish-sonar-phase>site</publish-sonar-phase>
+    <hadoop.shim.artifactId>pentaho-hadoop-shims-apache</hadoop.shim.artifactId>
+    <hadoop.shim.destFileName>apache</hadoop.shim.destFileName>
+    <plugin.classifier>-apache</plugin.classifier>
+    <active.hadoop.configuration>apache</active.hadoop.configuration>
   </properties>
+
+  <profiles>
+
+    <!-- Profile for Apache variant -->
+    <profile>
+      <id>apache</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <hadoop.shim.artifactId>pentaho-hadoop-shims-apache</hadoop.shim.artifactId>
+        <hadoop.shim.destFileName>apache</hadoop.shim.destFileName>
+        <plugin.classifier>-apache</plugin.classifier>
+        <active.hadoop.configuration>apache</active.hadoop.configuration>
+        <assembly.id>apache</assembly.id>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>org.pentaho.hadoop.shims</groupId>
+          <artifactId>pentaho-hadoop-shims-apache</artifactId>
+          <version>${project.version}</version>
+          <type>zip</type>
+          <scope>provided</scope>
+          <exclusions>
+            <exclusion>
+              <groupId>*</groupId>
+              <artifactId>*</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>pkg-apache</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- Profile for HDI variant -->
+    <profile>
+      <id>hdi</id>
+      <properties>
+        <hadoop.shim.artifactId>pentaho-hadoop-shims-hdi40</hadoop.shim.artifactId>
+        <hadoop.shim.destFileName>hdi40</hadoop.shim.destFileName>
+        <plugin.classifier>-hdi</plugin.classifier>
+        <active.hadoop.configuration>hdi40</active.hadoop.configuration>
+        <assembly.id>hdi</assembly.id>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>org.pentaho.hadoop.shims</groupId>
+          <artifactId>pentaho-hadoop-shims-hdi40</artifactId>
+          <version>${project.version}</version>
+          <type>zip</type>
+          <scope>provided</scope>
+          <exclusions>
+            <exclusion>
+              <groupId>*</groupId>
+              <artifactId>*</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>pkg-hdi</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- Profile for EMR variant -->
+    <profile>
+      <id>emr</id>
+      <properties>
+        <hadoop.shim.artifactId>pentaho-hadoop-shims-emr770</hadoop.shim.artifactId>
+        <hadoop.shim.destFileName>emr770</hadoop.shim.destFileName>
+        <plugin.classifier>-emr</plugin.classifier>
+        <active.hadoop.configuration>emr770</active.hadoop.configuration>
+        <assembly.id>emr</assembly.id>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>org.pentaho.hadoop.shims</groupId>
+          <artifactId>pentaho-hadoop-shims-emr770</artifactId>
+          <version>${project.version}</version>
+          <type>zip</type>
+          <scope>provided</scope>
+          <exclusions>
+            <exclusion>
+              <groupId>*</groupId>
+              <artifactId>*</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>pkg-emr</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- Profile for Dataproc variant -->
+    <profile>
+      <id>dataproc</id>
+      <properties>
+        <hadoop.shim.artifactId>pentaho-hadoop-shims-dataproc1421</hadoop.shim.artifactId>
+        <hadoop.shim.destFileName>dataproc1421</hadoop.shim.destFileName>
+        <plugin.classifier>-dataproc</plugin.classifier>
+        <active.hadoop.configuration>dataproc1421</active.hadoop.configuration>
+        <assembly.id>dataproc</assembly.id>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>org.pentaho.hadoop.shims</groupId>
+          <artifactId>pentaho-hadoop-shims-dataproc1421</artifactId>
+          <version>${project.version}</version>
+          <type>zip</type>
+          <scope>provided</scope>
+          <exclusions>
+            <exclusion>
+              <groupId>*</groupId>
+              <artifactId>*</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>pkg-dataproc</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- Profile for CDP variant -->
+    <profile>
+      <id>cdp</id>
+      <properties>
+        <hadoop.shim.artifactId>pentaho-hadoop-shims-cdpdc71</hadoop.shim.artifactId>
+        <hadoop.shim.destFileName>cdpdc71</hadoop.shim.destFileName>
+        <plugin.classifier>-cdp</plugin.classifier>
+        <active.hadoop.configuration>cdpdc71</active.hadoop.configuration>
+        <assembly.id>cdp</assembly.id>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>org.pentaho.hadoop.shims</groupId>
+          <artifactId>pentaho-hadoop-shims-cdpdc71</artifactId>
+          <version>${project.version}</version>
+          <type>zip</type>
+          <scope>provided</scope>
+          <exclusions>
+            <exclusion>
+              <groupId>*</groupId>
+              <artifactId>*</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>pkg-cdp</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- Profile for ApacheVanilla variant -->
+    <profile>
+      <id>apachevanilla</id>
+      <properties>
+        <hadoop.shim.artifactId>pentaho-hadoop-shims-apachevanilla</hadoop.shim.artifactId>
+        <hadoop.shim.destFileName>apachevanilla</hadoop.shim.destFileName>
+        <plugin.classifier>-apachevanilla</plugin.classifier>
+        <active.hadoop.configuration>apachevanilla</active.hadoop.configuration>
+        <assembly.id>apachevanilla</assembly.id>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>org.pentaho.hadoop.shims</groupId>
+          <artifactId>pentaho-hadoop-shims-apachevanilla</artifactId>
+          <version>${project.version}</version>
+          <type>zip</type>
+          <scope>provided</scope>
+          <exclusions>
+            <exclusion>
+              <groupId>*</groupId>
+              <artifactId>*</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>pkg-apachevanilla</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+
+  </profiles>
 
   <dependencyManagement>
     <dependencies>
@@ -98,7 +369,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-authentication-mapper-impl</artifactId>
-      <version>${pentaho-osgi-bundles.version}</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.pentaho.hadoop.shims</groupId>
@@ -113,7 +384,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-authentication-mapper-api</artifactId>
-      <version>${pentaho-osgi-bundles.version}</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
@@ -124,81 +395,6 @@
       <groupId>org.pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-common-mapreduce</artifactId>
       <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.pentaho</groupId>
-      <artifactId>pentaho-yarn-api</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho.hadoop.shims</groupId>
-      <artifactId>pentaho-hadoop-shims-common-base</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho.hadoop.shims</groupId>
-      <artifactId>pentaho-hadoop-shims-common-dependencies</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-impl-clusterTests</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-authentication-mapper-api</artifactId>
-      <version>${pentaho-osgi-bundles.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-common-services-api</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-common-mapreduce</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.pentaho</groupId>
-      <artifactId>pentaho-yarn-api</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho.hadoop.shims</groupId>
-      <artifactId>pentaho-hadoop-shims-common-base</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho.hadoop.shims</groupId>
-      <artifactId>pentaho-hadoop-shims-common-dependencies</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-impl-clusterTests</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-authentication-mapper-api</artifactId>
-      <version>${pentaho-osgi-bundles.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-common-services-api</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-common-mapreduce</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.pentaho</groupId>
-      <artifactId>pentaho-yarn-api</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
@@ -371,19 +567,6 @@
       <artifactId>xstream</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.pentaho.hadoop.shims</groupId>
-      <artifactId>pentaho-hadoop-shims-apache</artifactId>
-      <version>${project.version}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pdi-pig-plugin</artifactId>
       <version>${project.version}</version>
@@ -425,32 +608,6 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pdi-mapreduce-plugin</artifactId>
-      <version>${project.version}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pdi-hive-plugin</artifactId>
-      <version>${project.version}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pdi-formats-plugin</artifactId>
       <version>${project.version}</version>
       <type>zip</type>
       <scope>provided</scope>
@@ -554,32 +711,6 @@
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
-      <artifactId>pdi-pig-plugin</artifactId>
-      <version>${project.version}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pdi-legacy-amazon-plugin</artifactId>
-      <version>${project.version}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-assemblies-pmr-libraries</artifactId>
       <version>${project.version}</version>
       <type>zip</type>
@@ -615,6 +746,25 @@
         </excludes>
       </resource>
     </resources>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <configuration>
+            <descriptors>
+              <descriptor>${basedir}/src/main/assembly/descriptors/plugin.xml</descriptor>
+            </descriptors>
+          </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>org.codehaus.plexus</groupId>
+              <artifactId>plexus-interpolation</artifactId>
+              <version>1.26</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+      </plugins>
+    </pluginManagement>
     <plugins>
       <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -629,21 +779,15 @@
               <artifactItems>
                 <artifactItem>
                   <groupId>org.pentaho.hadoop.shims</groupId>
-                  <artifactId>pentaho-hadoop-shims-apache</artifactId>
+                  <artifactId>${hadoop.shim.artifactId}</artifactId>
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
-                  <destFileName>apache</destFileName>
+                  <destFileName>${hadoop.shim.destFileName}</destFileName>
                 </artifactItem>
                 <!-- Plugins unpack -->
                 <artifactItem>
                   <groupId>pentaho</groupId>
                   <artifactId>pdi-pig-plugin</artifactId>
-                  <type>zip</type>
-                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/plugins</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>pentaho</groupId>
-                  <artifactId>pdi-hdfs-plugin</artifactId>
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/plugins</outputDirectory>
                 </artifactItem>
@@ -701,34 +845,45 @@
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/plugins</outputDirectory>
                 </artifactItem>
-                <artifactItem>
-                  <groupId>pentaho</groupId>
-                  <artifactId>pdi-legacy-amazon-plugin</artifactId>
-                  <type>zip</type>
-                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/plugins</outputDirectory>
-                </artifactItem>
               </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Copy and filter assembly resources -->
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>filter-assembly-resources</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/target/filtered-assembly-resources</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/assembly/resources</directory>
+                  <filtering>true</filtering>
+                  <includes>
+                    <include>**/*.properties</include>
+                  </includes>
+                </resource>
+                <resource>
+                  <directory>src/main/assembly/resources</directory>
+                  <filtering>false</filtering>
+                  <excludes>
+                    <exclude>**/*.properties</exclude>
+                  </excludes>
+                </resource>
+              </resources>
             </configuration>
           </execution>
         </executions>
       </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>pkg</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <descriptors>
-            <descriptor>${basedir}/src/main/assembly/descriptors/plugin.xml</descriptor>
-          </descriptors>
-          <appendAssemblyId>false</appendAssemblyId>
-        </configuration>
       </plugin>
     </plugins>
   </build>
