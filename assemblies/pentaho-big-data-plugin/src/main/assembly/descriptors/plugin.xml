@@ -60,6 +60,7 @@
             <outputFileNameMapping>${artifact.artifactId}-${artifact.baseVersion}.${artifact.extension}
             </outputFileNameMapping>
             <includes>
+                <include>pentaho:pentaho-big-data-legacy-core</include>
                 <include>pentaho:pentaho-big-data-api-runtimeTest</include>
                 <include>pentaho:pentaho-big-data-impl-clusterTests</include>
                 <include>pentaho:pentaho-big-data-impl-cluster</include>
