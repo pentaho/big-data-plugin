@@ -14,7 +14,6 @@
     <module>samples</module>
     <module>pmr-libraries</module>
     <module>pentaho-big-data-plugin</module>
-    <module>s3-vfs</module>
     <module>kafka-plugin</module>
   </modules>
 </project>
