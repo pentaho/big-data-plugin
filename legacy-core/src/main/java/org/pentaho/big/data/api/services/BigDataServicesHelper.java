@@ -16,6 +16,7 @@ import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
+import org.pentaho.hadoop.shim.api.services.BigDataServicesProxy;
 
 import java.util.Collection;
 
