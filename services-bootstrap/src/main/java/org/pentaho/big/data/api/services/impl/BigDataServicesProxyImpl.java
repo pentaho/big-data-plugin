@@ -13,12 +13,12 @@
 package org.pentaho.big.data.api.services.impl;
 
 import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
-import org.pentaho.big.data.api.services.BigDataServicesProxy;
 import org.pentaho.bigdata.api.hdfs.impl.HadoopFileSystemLocatorImpl;
 import org.pentaho.di.core.service.ServiceProvider;
 import org.pentaho.di.core.service.ServiceProviderInterface;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
+import org.pentaho.hadoop.shim.api.services.BigDataServicesProxy;
 
 @ServiceProvider(
         id = "BigDataServicesProxy",
