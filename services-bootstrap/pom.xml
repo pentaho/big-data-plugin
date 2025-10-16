@@ -61,11 +61,6 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.hitachivantara</groupId>
-            <artifactId>pentaho-proc-governor-impl</artifactId>
-            <version>${pentaho-osgi-bundles.version}</version>
-        </dependency>
-        <dependency>
             <groupId>pentaho</groupId>
             <artifactId>pentaho-big-data-api-runtimeTest</artifactId>
             <version>${project.version}</version>
@@ -83,7 +78,7 @@
         <dependency>
             <groupId>pentaho</groupId>
             <artifactId>pentaho-authentication-mapper-impl</artifactId>
-            <version>${pentaho-osgi-bundles.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>pentaho</groupId>
@@ -108,7 +103,7 @@
         <dependency>
             <groupId>pentaho</groupId>
             <artifactId>pentaho-authentication-mapper-impl</artifactId>
-            <version>${pentaho-osgi-bundles.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>pentaho</groupId>
@@ -128,7 +123,7 @@
         <dependency>
             <groupId>pentaho</groupId>
             <artifactId>pentaho-authentication-mapper-impl</artifactId>
-            <version>${pentaho-osgi-bundles.version}</version>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>

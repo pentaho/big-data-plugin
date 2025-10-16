@@ -1,12 +1,13 @@
 <assembly>
-    <id>plugin</id>
+    <id>${assembly.id}</id>
     <baseDirectory>pentaho-big-data-plugin</baseDirectory>
     <formats>
         <format>zip</format>
     </formats>
     <fileSets>
+        <!-- Use filtered assembly resources (plugin.properties with variant-specific values) -->
         <fileSet>
-            <directory>src/main/assembly/resources</directory>
+            <directory>target/filtered-assembly-resources</directory>
             <outputDirectory>/</outputDirectory>
         </fileSet>
         <fileSet>
