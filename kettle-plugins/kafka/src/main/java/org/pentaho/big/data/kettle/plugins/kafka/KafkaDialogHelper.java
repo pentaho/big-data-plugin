@@ -181,12 +181,4 @@ public class KafkaDialogHelper {
     }
     return advancedConfig;
   }
-
-  public static boolean isKarafEnabled() {
-    String karafHome = System.getProperty( "karaf.home" );
-    if ( null != karafHome && !karafHome.isEmpty() ) {
-      return (new File( karafHome )).exists();
-    }
-    return false;
-  }
 }

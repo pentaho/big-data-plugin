@@ -40,6 +40,7 @@
               <include>pentaho:pentaho-big-data-legacy-amazon</include>
               <include>pentaho:hadoop-cluster-ui</include>
               <include>pentaho:services-bootstrap</include>
+                <include>pentaho:pentaho-big-data-kettle-plugins-kafka</include>
             </includes>
         </dependencySet>
         <dependencySet>
