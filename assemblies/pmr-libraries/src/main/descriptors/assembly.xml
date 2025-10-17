@@ -201,7 +201,6 @@
         <include>pentaho:pentaho-xul-core</include>
         <include>pentaho:metastore</include>
         <include>pentaho:mondrian</include>
-        <include>pentaho:pentaho-capability-manager</include>
         <include>org.pentaho:commons-database-model</include>
         <include>org.pentaho:pentaho-metadata</include>
         <include>org.pentaho:shim-api-core</include>
@@ -209,7 +208,6 @@
         <include>pentaho:simple-jndi</include>
         <include>org.pentaho:pentaho-encryption-support</include>
         <include>org.pentaho.reporting.engine:classic-core</include>
-        <include>pentaho:pentaho-service-coordinator</include>
         <include>org.mozilla:rhino</include>
         <include>com.wcohen:com.wcohen.secondstring</include>
         <include>stax:stax</include>

@@ -813,11 +813,6 @@
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
-      <artifactId>pentaho-capability-manager</artifactId>
-      <version>${pentaho-osgi-bundles.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
       <artifactId>metastore</artifactId>
       <version>${metastore.version}</version>
     </dependency>
@@ -970,11 +965,6 @@
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-xml</artifactId>
       <version>${jetty-hadoop.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-service-coordinator</artifactId>
-      <version>${pentaho-osgi-bundles.version}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
