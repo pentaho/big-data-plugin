@@ -293,7 +293,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
       }
     } );
     props.setLook( wbCluster );
-    wbCluster.setEnabled( KafkaDialogHelper.isKarafEnabled() );
+    wbCluster.setEnabled( true );
 
     Label environmentSeparator = new Label( wConnectionGroup, SWT.SEPARATOR | SWT.VERTICAL );
     FormData fdenvironmentSeparator = new FormData();
@@ -429,7 +429,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     wSetupComp.layout();
     wSetupTab.setControl( wSetupComp );
 
-    toggleConnectionType( !KafkaDialogHelper.isKarafEnabled() );
+    toggleConnectionType( true );
   }
 
   private void toggleConnectionType( final boolean isDirect ) {

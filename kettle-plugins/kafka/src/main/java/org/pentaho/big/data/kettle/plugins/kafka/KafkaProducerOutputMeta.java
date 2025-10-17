@@ -238,7 +238,6 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
   @Metaverse.Node ( name = KAFKA_SERVER_METAVERSE, type = KAFKA_SERVER_METAVERSE )
   @Metaverse.Property ( name = KAFKA_SERVER_METAVERSE, parentNodeName = KAFKA_SERVER_METAVERSE )
   public String getBootstrapServers() {
-    Preconditions.checkState( DIRECT.equals( getConnectionType() ) || KafkaDialogHelper.isKarafEnabled(), "OSGi not available; must use Direct connection type" );
     if ( DIRECT.equals( getConnectionType() ) ) {
       return getDirectBootstrapServers();
     }

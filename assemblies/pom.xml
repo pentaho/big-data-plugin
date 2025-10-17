@@ -10,10 +10,64 @@
   <artifactId>pentaho-big-data-assemblies</artifactId>
   <version>11.0.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
+
   <modules>
     <module>samples</module>
     <module>pmr-libraries</module>
+    <!-- pentaho-big-data-plugin must be last since it depends on samples and pmr-libraries -->
     <module>pentaho-big-data-plugin</module>
-    <module>kafka-plugin</module>
   </modules>
+
+  <build>
+    <plugins>
+      <!-- Ensure proper build order and validate Maven/Java versions -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+          <execution>
+            <id>enforce-versions</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>[3.6.0,)</version>
+                </requireMavenVersion>
+                <requireJavaVersion>
+                  <version>[11,)</version>
+                </requireJavaVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <!-- Profile to skip tests during assembly builds -->
+    <profile>
+      <id>assembly-skip-tests</id>
+      <activation>
+        <property>
+          <name>skipTests</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <properties>
+        <maven.test.skip>true</maven.test.skip>
+      </properties>
+    </profile>
+
+    <!-- Profile to build only pentaho-big-data-plugin assembly -->
+    <profile>
+      <id>plugin-only</id>
+      <modules>
+        <module>pentaho-big-data-plugin</module>
+      </modules>
+    </profile>
+  </profiles>
 </project>
