@@ -197,7 +197,7 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
       }
     } );
     props.setLook( wbCluster );
-    wbCluster.setEnabled( KafkaDialogHelper.isKarafEnabled() );
+    wbCluster.setEnabled( true );
 
     Label environmentSeparator = new Label( wConnectionGroup, SWT.SEPARATOR | SWT.VERTICAL );
     FormData fdenvironmentSeparator = new FormData();
@@ -279,7 +279,7 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
     wSetupComp.layout();
     wSetupTab.setControl( wSetupComp );
 
-    toggleVisibility( !KafkaDialogHelper.isKarafEnabled() );
+    toggleVisibility( true );
   }
 
   private void toggleVisibility( final boolean isDirect ) {
