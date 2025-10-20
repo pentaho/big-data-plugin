@@ -105,7 +105,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
+import org.pentaho.hadoop.shim.api.internal.ShimIdentifier;
 
 import static org.pentaho.big.data.impl.cluster.tests.Constants.HADOOP_FILE_SYSTEM;
 import static org.pentaho.big.data.impl.cluster.tests.Constants.OOZIE;
@@ -116,6 +116,7 @@ import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.processSiteFiles;
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel.NAME_KEY;
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.encodePassword;
+import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.getShimIdentifier;
 
 //HadoopClusterDelegateImpl
 public class HadoopClusterManager implements RuntimeTestProgressCallback {
@@ -290,7 +291,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     nc.setZooKeeperPort( model.getZooKeeperPort() );
     nc.setOozieUrl( model.getOozieUrl() );
     nc.setKafkaBootstrapServers( model.getKafkaBootstrapServers() );
-    resolveShimIdentifier( nc, model.getShimVendor(), model.getShimVersion() );
+    resolveShimIdentifier( nc );
     if (MAPR_SHIM.equals(model.getShimVendor()))
       nc.setStorageScheme(MAPRFS_SCHEME);
     setupKnoxSecurity( nc, model );
@@ -462,7 +463,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
   private boolean configureNamedCluster( Map<String, CachedFileItemStream> siteFilesSource, NamedCluster nc,
                                          String shimVendor, String shimVersion ) {
-    resolveShimIdentifier( nc, shimVendor, shimVersion );
+    resolveShimIdentifier( nc );
 
     String oozieBaseUrl = "oozie.base.url";
     Map<String, String> properties = new HashMap();
@@ -555,12 +556,10 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     return isConfigurationSet;
   }
 
-  private void resolveShimIdentifier( NamedCluster nc, String shimVendor, String shimVersion ) {
-    List<ShimIdentifierInterface> shims = getShimIdentifiers();
-    for ( ShimIdentifierInterface shim : shims ) {
-      if ( shim.getVendor().equals( shimVendor ) && shim.getVersion().equals( shimVersion ) ) {
-        nc.setShimIdentifier( shim.getId() );
-      }
+  private void resolveShimIdentifier( NamedCluster nc ) {
+    ShimIdentifier shimIdentifier = getShimIdentifier();
+    if( shimIdentifier != null ) {
+      nc.setShimIdentifier( shimIdentifier.getId() );
     }
   }
 
