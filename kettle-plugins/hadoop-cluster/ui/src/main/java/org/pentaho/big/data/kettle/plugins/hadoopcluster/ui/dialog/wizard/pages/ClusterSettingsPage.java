@@ -33,15 +33,11 @@ import org.eclipse.swt.widgets.Text;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.NamedClusterDialog;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
 import org.pentaho.di.core.Const;
-import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.util.HelpUtils;
-import org.pentaho.hadoop.shim.HadoopConfiguration;
-import org.pentaho.hadoop.shim.HadoopConfigurationLocator;
-import org.pentaho.hadoop.shim.api.ConfigurationException;
 import org.pentaho.hadoop.shim.api.internal.ShimIdentifier;
 
 import java.io.File;
@@ -56,6 +52,7 @@ import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.createLabel;
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.createText;
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.decodePassword;
+import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.getShimIdentifier;
 import static org.pentaho.di.ui.core.PropsUI.getDisplay;
 
 public class ClusterSettingsPage extends WizardPage {
@@ -208,24 +205,22 @@ public class ClusterSettingsPage extends WizardPage {
     }
   }
 
-  private ShimIdentifier getShimIdentifier() {
-    HadoopConfigurationBootstrap hadoopConfigurationBootstrap = HadoopConfigurationBootstrap.getInstance();
-    HadoopConfiguration hadoopConfiguration;
-    try {
-      HadoopConfigurationLocator hadoopConfigurationProvider = (HadoopConfigurationLocator) hadoopConfigurationBootstrap.getProvider();
-      hadoopConfiguration = hadoopConfigurationProvider.getActiveConfiguration();
-    } catch ( ConfigurationException e ) {
-      throw new RuntimeException( e );
-    }
-    return hadoopConfiguration.getHadoopShim().getShimIdentifier();
-  }
-
   private String getLoadedDriverVersion() {
-    return getShimIdentifier().getVersion();
+    ShimIdentifier shimIdentifier = getShimIdentifier();
+    String version = "";
+    if( shimIdentifier != null ) {
+      version = shimIdentifier.getVersion();
+    }
+    return version;
   }
 
   private String getLoadedDriverVendor() {
-    return getShimIdentifier().getVendor();
+    ShimIdentifier shimIdentifier = getShimIdentifier();
+    String vendor = "";
+    if( shimIdentifier != null ) {
+      vendor = shimIdentifier.getVendor();
+    }
+    return vendor;
   }
 
   private void createSiteXMLFilesGroup() {
