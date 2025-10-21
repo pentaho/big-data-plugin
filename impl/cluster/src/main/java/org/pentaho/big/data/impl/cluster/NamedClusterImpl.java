@@ -41,6 +41,7 @@ import org.apache.commons.vfs2.provider.url.UrlFileName;
 import org.apache.commons.vfs2.provider.url.UrlFileNameParser;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleValueException;
+import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.osgi.api.NamedClusterOsgi;
 import org.pentaho.di.core.osgi.api.NamedClusterSiteFile;
 import org.pentaho.di.core.osgi.impl.NamedClusterSiteFileImpl;
@@ -51,6 +52,7 @@ import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
+import org.pentaho.hadoop.shim.api.ConfigurationException;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.security.Base64TwoWayPasswordEncoder;
@@ -146,6 +148,8 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
 
   private ITwoWayPasswordEncoder passwordEncoder = new Base64TwoWayPasswordEncoder();
 
+  private static String hadoopActiveConfiguration = null;
+
   public NamedClusterImpl() {
     siteFiles = new ArrayList<>();
     initializeVariablesFrom( null );
@@ -165,7 +169,20 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
   }
 
   public String getShimIdentifier() {
-    return shimIdentifier;
+    // Fetch the current configured shim if we don't have it already
+    // No matter what shim was used to configure this named cluster, we want
+    // to use the current active shim
+    if ( hadoopActiveConfiguration == null ) {
+      try {
+        if (HadoopConfigurationBootstrap.getInstance().getProvider() != null) {
+          hadoopActiveConfiguration = HadoopConfigurationBootstrap.getInstance().getProvider()
+                  .getActiveConfiguration().getIdentifier();
+        }
+      } catch ( ConfigurationException e ) {
+        LOGGER.error( "Error getting active hadoop configuration", e );
+      }
+    }
+    return hadoopActiveConfiguration;
   }
 
   @Override public String getShimVendor() {
