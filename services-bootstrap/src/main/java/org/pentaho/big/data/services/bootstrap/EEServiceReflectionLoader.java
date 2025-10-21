@@ -357,7 +357,7 @@ public class EEServiceReflectionLoader {
         Class<?> hBaseImpersonationServiceFactoryClass = Class.forName( "com.pentaho.hadoop.shim.hbase.security.impersonation.HBaseImpersonationServiceFactory" );
         
         Constructor<?> impersonationConstructor = hBaseImpersonationServiceFactoryClass.getDeclaredConstructor(
-          hBaseShim.getClass(), // HBaseShimImpl
+          Class.forName( "org.pentaho.hadoop.shim.spi.HBaseShim" ),
           Class.forName( "org.pentaho.authentication.mapper.api.AuthenticationMappingManager" )
         );
         
@@ -378,7 +378,7 @@ public class EEServiceReflectionLoader {
         Class<?> hBaseKnoxServiceFactoryClass = Class.forName( "com.pentaho.hadoop.shim.hbase.security.knox.HBaseKnoxServiceFactory" );
         
         Constructor<?> knoxConstructor = hBaseKnoxServiceFactoryClass.getDeclaredConstructor(
-          hBaseShim.getClass() // HBaseShimImpl
+          Class.forName( "org.pentaho.hadoop.shim.spi.HBaseShim" )
         );
         
         Object hBaseKnoxServiceFactory = knoxConstructor.newInstance(

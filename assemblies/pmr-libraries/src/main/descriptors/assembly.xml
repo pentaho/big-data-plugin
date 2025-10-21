@@ -203,6 +203,7 @@
         <include>pentaho:mondrian</include>
         <include>org.pentaho:commons-database-model</include>
         <include>org.pentaho:pentaho-metadata</include>
+        <include>org.pentaho:shim-api</include>
         <include>org.pentaho:shim-api-core</include>
         <include>org.pentaho:pentaho-registry</include>
         <include>pentaho:simple-jndi</include>
