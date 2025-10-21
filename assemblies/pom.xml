@@ -69,5 +69,13 @@
         <module>pentaho-big-data-plugin</module>
       </modules>
     </profile>
+    <!-- Profile to build only pentaho-big-data-plugin assembly -->
+    <profile>
+      <id>non-big-data-plugin</id>
+      <modules>
+        <module>samples</module>
+        <module>pmr-libraries</module>
+      </modules>
+    </profile>
   </profiles>
 </project>
