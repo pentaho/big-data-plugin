@@ -87,9 +87,6 @@ public class HadoopClusterManagerTest {
   @Mock private DelegatingMetaStore metaStore;
   @Mock private NamedCluster namedCluster;
   @Mock private NamedCluster knoxNamedCluster;
-  @Mock private ShimIdentifierInterface cdhShim;
-  @Mock private ShimIdentifierInterface internalShim;
-  @Mock private ShimIdentifierInterface maprShim;
   @Captor ArgumentCaptor<NamedClusterSiteFile> siteFileCaptor;
   private String ncTestName = "ncTest";
   private String knoxNC = "knoxNC";
@@ -106,13 +103,6 @@ public class HadoopClusterManagerTest {
     if ( getShimTestDir().exists() ) {
       FileUtils.deleteDirectory( getShimTestDir() );
     }
-    when( cdhShim.getId() ).thenReturn( "cdh514" );
-    when( cdhShim.getVendor() ).thenReturn( "Cloudera" );
-    when( cdhShim.getVersion() ).thenReturn( "5.14" );
-    when( internalShim.getId() ).thenReturn( "apache" );
-    when( internalShim.getVendor() ).thenReturn( "apache" );
-    when( maprShim.getVendor() ).thenReturn( "MapR" );
-    when( maprShim.getId() ).thenReturn( "mapr46" );
     when( namedClusterService.getClusterTemplate() ).thenReturn( namedCluster );
     when( namedCluster.getName() ).thenReturn( ncTestName );
     when( namedClusterService.getNamedClusterByName( ncTestName, metaStore ) ).thenReturn( namedCluster );
@@ -123,7 +113,6 @@ public class HadoopClusterManagerTest {
     when( knoxNamedCluster.getGatewayUrl() ).thenReturn( "http://localhost:8008" );
     when( knoxNamedCluster.getGatewayUsername() ).thenReturn( "username" );
     hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService, metaStore, "apache" );
-    hadoopClusterManager.shimIdentifiersSupplier = () -> Arrays.asList( cdhShim, internalShim, maprShim );
     when( namedClusterService.list( metaStore ) ).thenReturn( ImmutableList.of( namedCluster ) );
   }
 
@@ -425,13 +414,6 @@ public class HadoopClusterManagerTest {
     model.setShimVersion( "5.14" );
     JSONObject result = hadoopClusterManager.importNamedCluster( model, getFiles( "src/test/resources/bad" ) );
     assertEquals( "", result.get( "namedCluster" ) );
-  }
-
-  @Test public void testGetShimIdentifiers() {
-    List<ShimIdentifierInterface> shimIdentifiers = hadoopClusterManager.getShimIdentifiers();
-    assertNotNull( shimIdentifiers );
-    assertEquals( 3, shimIdentifiers.size() );
-    assert( shimIdentifiers.contains( internalShim ) );
   }
 
   @Test public void testInstallDriver() throws IOException {

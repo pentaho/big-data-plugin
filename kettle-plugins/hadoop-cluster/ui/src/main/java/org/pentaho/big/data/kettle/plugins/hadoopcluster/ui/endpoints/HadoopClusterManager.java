@@ -39,6 +39,7 @@ import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.pentaho.big.data.api.services.BigDataServicesHelper;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDialog;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.BadSiteFilesException;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper;
@@ -47,6 +48,7 @@ import org.pentaho.big.data.plugins.common.ui.HadoopClusterDelegateImpl;
 import org.pentaho.di.base.AbstractMeta;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleXMLException;
+import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.osgi.api.NamedClusterSiteFile;
@@ -57,12 +59,12 @@ import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.spoon.Spoon;
-import org.pentaho.hadoop.shim.api.core.ShimIdentifierInterface;
+import org.pentaho.hadoop.shim.HadoopConfiguration;
+import org.pentaho.hadoop.shim.HadoopConfigurationLocator;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
-import org.pentaho.platform.engine.core.system.PentahoSystem;
 import org.pentaho.runtime.test.RuntimeTest;
 import org.pentaho.runtime.test.RuntimeTestProgressCallback;
 import org.pentaho.runtime.test.RuntimeTestStatus;
@@ -96,13 +98,11 @@ import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.pentaho.hadoop.shim.api.internal.ShimIdentifier;
@@ -116,9 +116,7 @@ import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.processSiteFiles;
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel.NAME_KEY;
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.encodePassword;
-import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.getShimIdentifier;
 
-//HadoopClusterDelegateImpl
 public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
   private static final Class<?> PKG = HadoopClusterDialog.class;
@@ -197,9 +195,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   private static final String KEYTAB_AUTHENTICATION_LOCATION = "pentaho.authentication.default.kerberos.keytabLocation";
   private static final String KEYTAB_IMPERSONATION_LOCATION =
     "pentaho.authentication.default.mapping.server.credentials.kerberos.keytabLocation";
-
-  @VisibleForTesting Supplier<List<ShimIdentifierInterface>> shimIdentifiersSupplier =
-    () -> PentahoSystem.getAll( ShimIdentifierInterface.class );
 
   private final Spoon spoon;
   private final NamedClusterService namedClusterService;
@@ -557,18 +552,19 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   }
 
   private void resolveShimIdentifier( NamedCluster nc ) {
-    ShimIdentifier shimIdentifier = getShimIdentifier();
+    Map<String, String> shimIdentifier = getShimIdentifier();
     if( shimIdentifier != null ) {
-      nc.setShimIdentifier( shimIdentifier.getId() );
+      nc.setShimIdentifier( shimIdentifier.get( ShimIdentifier.SHIM_ID ) );
     }
   }
 
-  private void resolveShimVendorAndVersion( ThinNameClusterModel model, String shimIdentifier ) {
-    List<ShimIdentifierInterface> shims = getShimIdentifiers();
-    for ( ShimIdentifierInterface shim : shims ) {
-      if ( shim.getId().equals( shimIdentifier ) ) {
-        model.setShimVersion( shim.getVersion() );
-        model.setShimVendor( shim.getVendor() );
+  private void resolveShimVendorAndVersion( ThinNameClusterModel model, String shimIdentifierId ) {
+    Map<String, String> shimIdentifier = getShimIdentifier();
+    if ( shimIdentifier != null ) {
+      String shimId = shimIdentifier.get( ShimIdentifier.SHIM_ID );
+      if ( shimId != null && shimId.equals( shimIdentifierId ) ) {
+        model.setShimVersion( shimIdentifier.get( ShimIdentifier.SHIM_VERSION ) );
+        model.setShimVendor( shimIdentifier.get( ShimIdentifier.SHIM_VENDOR ) );
       }
     }
   }
@@ -1022,13 +1018,21 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  /**
-   * @return shim identifiers, excluding the internal shim, which should not be exposed to the cluster ui.
-   */
-  public List<ShimIdentifierInterface> getShimIdentifiers() {
-    List<ShimIdentifierInterface> shims = shimIdentifiersSupplier.get();
-    shims.sort( Comparator.comparing( ShimIdentifierInterface::getVendor ) );
-    return shims;
+  public Map<String, String> getShimIdentifier() {
+    Map<String, String> shimIdentifier = null;
+    if ( isConnectedToRepo() ) {
+      String endpointURL = NamedClusterHelper.getEndpointURL( "getShimIdentifier" );
+      String result = doGet( endpointURL );
+      ObjectMapper mapper = new ObjectMapper();
+      try {
+        return mapper.readValue( result, Map.class );
+      } catch ( Exception e ) {
+        log.logError( e.getMessage() );
+      }
+    } else {
+      shimIdentifier = BigDataServicesHelper.getShimIdentifier();
+    }
+    return shimIdentifier;
   }
 
   public NamedCluster getNamedClusterByName( String namedCluster) {

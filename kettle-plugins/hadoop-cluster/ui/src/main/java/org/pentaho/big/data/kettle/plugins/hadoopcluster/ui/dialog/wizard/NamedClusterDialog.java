@@ -24,7 +24,6 @@ import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages.
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages.TestResultsPage;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.BadSiteFilesException;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.CustomWizardDialog;
-import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.CachedFileItemStream;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClusterManager;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
 import org.pentaho.big.data.plugins.common.ui.ClusterTestDialog;
@@ -56,7 +55,6 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages.SecuritySettingsPage.NamedClusterSecurityType.NONE;
-import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.processSiteFiles;
 
 /*
  * To run this dialog as stand alone for development purposes under UBUNTU do the following:
@@ -119,6 +117,10 @@ public class NamedClusterDialog extends Wizard {
       isConnectedToRepo = repo != null && repo.getUri().isPresent();
     }
     return isConnectedToRepo;
+  }
+
+  public Map<String, String> getShimIdentifier() {
+    return hadoopClusterManager.getShimIdentifier();
   }
 
   private ThinNameClusterModel createModel( ThinNameClusterModel model ) {
