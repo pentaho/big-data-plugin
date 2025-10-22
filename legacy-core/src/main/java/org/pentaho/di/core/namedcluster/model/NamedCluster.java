@@ -54,6 +54,13 @@ public class NamedCluster implements Cloneable, VariableSpace {
 
   @MetaStoreAttribute
   private String storageScheme;
+
+  @MetaStoreAttribute
+  private String shimVendor;
+
+  @MetaStoreAttribute
+  private String shimVersion;
+
   @MetaStoreAttribute
   private String hdfsHost;
   @MetaStoreAttribute
@@ -449,5 +456,21 @@ public class NamedCluster implements Cloneable, VariableSpace {
     NamedClusterSiteFile n = siteFiles.stream().filter( sf -> sf.getSiteFileName().equals( siteFileName ) )
       .findFirst().orElse( null );
     return n == null ? null : new ByteArrayInputStream( n.getSiteFileContents().getBytes() );
+  }
+
+  public String getShimVendor() {
+    return shimVendor;
+  }
+
+  public void setShimVendor( String shimVendor ) {
+    this.shimVendor = shimVendor;
+  }
+
+  public String getShimVersion() {
+    return shimVersion;
+  }
+
+  public void setShimVersion( String shimVersion ) {
+    this.shimVersion = shimVersion;
   }
 }
