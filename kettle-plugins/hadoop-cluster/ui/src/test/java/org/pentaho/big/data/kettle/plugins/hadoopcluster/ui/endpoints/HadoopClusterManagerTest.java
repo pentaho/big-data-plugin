@@ -63,7 +63,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -88,9 +87,9 @@ public class HadoopClusterManagerTest {
   @Mock private DelegatingMetaStore metaStore;
   @Mock private NamedCluster namedCluster;
   @Mock private NamedCluster knoxNamedCluster;
-  @Mock( lenient = true ) private ShimIdentifierInterface cdhShim;
-  @Mock( lenient = true ) private ShimIdentifierInterface internalShim;
-  @Mock( lenient = true ) private ShimIdentifierInterface maprShim;
+  @Mock private ShimIdentifierInterface cdhShim;
+  @Mock private ShimIdentifierInterface internalShim;
+  @Mock private ShimIdentifierInterface maprShim;
   @Captor ArgumentCaptor<NamedClusterSiteFile> siteFileCaptor;
   private String ncTestName = "ncTest";
   private String knoxNC = "knoxNC";
@@ -109,10 +108,11 @@ public class HadoopClusterManagerTest {
     }
     when( cdhShim.getId() ).thenReturn( "cdh514" );
     when( cdhShim.getVendor() ).thenReturn( "Cloudera" );
+    when( cdhShim.getVersion() ).thenReturn( "5.14" );
     when( internalShim.getId() ).thenReturn( "apache" );
-    when( internalShim.getVendor() ).thenReturn( "Apache" );
-    when( maprShim.getId() ).thenReturn( "mapr" );
-    when( maprShim.getVendor() ).thenReturn( MAPR_SHIM_VENDOR );
+    when( internalShim.getVendor() ).thenReturn( "apache" );
+    when( maprShim.getVendor() ).thenReturn( "MapR" );
+    when( maprShim.getId() ).thenReturn( "mapr46" );
     when( namedClusterService.getClusterTemplate() ).thenReturn( namedCluster );
     when( namedCluster.getName() ).thenReturn( ncTestName );
     when( namedClusterService.getNamedClusterByName( ncTestName, metaStore ) ).thenReturn( namedCluster );
@@ -130,6 +130,8 @@ public class HadoopClusterManagerTest {
   @Test public void testSecuredImportNamedCluster() throws Exception {
     ThinNameClusterModel model = new ThinNameClusterModel();
     model.setName( ncTestName );
+    model.setShimVendor( "Cloudera" );
+    model.setShimVersion( "5.14" );
 
     Map<String, CachedFileItemStream> cachedFileItemStreamMap = getFiles( "src/test/resources/secured" );
     File keytabFileDirectory = new File( "src/test/resources/keytab" );
@@ -146,6 +148,8 @@ public class HadoopClusterManagerTest {
   @Test public void testUnsecuredImportNamedCluster() {
     ThinNameClusterModel model = new ThinNameClusterModel();
     model.setName( ncTestName );
+    model.setShimVendor( "Cloudera" );
+    model.setShimVersion( "5.14" );
     Map<String, CachedFileItemStream> cachedFileItemStreamMap = getFiles( "src/test/resources/unsecured" );
     JSONObject result = hadoopClusterManager.importNamedCluster( model, cachedFileItemStreamMap );
     assertEquals( ncTestName, result.get( "namedCluster" ) );
@@ -170,6 +174,8 @@ public class HadoopClusterManagerTest {
   @Test public void testMissingInfoImportNamedCluster() {
     ThinNameClusterModel model = new ThinNameClusterModel();
     model.setName( ncTestName );
+    model.setShimVendor( "Cloudera" );
+    model.setShimVersion( "5.14" );
     Map<String, CachedFileItemStream> cachedFileItemStreamMap = getFiles( "src/test/resources/missing-info" );
     JSONObject result =
       hadoopClusterManager.importNamedCluster( model, cachedFileItemStreamMap );
@@ -185,6 +191,8 @@ public class HadoopClusterManagerTest {
   @Test public void testSiteXMLParsingImportNamedCluster() {
     ThinNameClusterModel model = new ThinNameClusterModel();
     model.setName( ncTestName );
+    model.setShimVendor( "Cloudera" );
+    model.setShimVersion( "5.14" );
     JSONObject result =
             hadoopClusterManager.importNamedCluster( model, getFiles( "src/test/resources/unsecured" ) );
     assertEquals( ncTestName, result.get( "namedCluster" ) );
@@ -197,6 +205,8 @@ public class HadoopClusterManagerTest {
   @Test public void testSiteXMLParsingImportDataprocNamedCluster() {
     ThinNameClusterModel model = new ThinNameClusterModel();
     model.setName( ncTestName );
+    model.setShimVendor( "Dataproc" );
+    model.setShimVersion( "1.4" );
     JSONObject result =
             hadoopClusterManager.importNamedCluster( model, getFiles( "src/test/resources/dataproc" ) );
     assertEquals( ncTestName, result.get( "namedCluster" ) );
@@ -211,6 +221,13 @@ public class HadoopClusterManagerTest {
     JSONObject result = hadoopClusterManager.createNamedCluster( model, getFiles( "/" ) );
     assertEquals( ncTestName, result.get( "namedCluster" ) );
     verify( namedCluster, never() ).setStorageScheme( any( String.class ) );
+  }
+
+  @Test public void testMaprCreateNamedCluster() {
+    ThinNameClusterModel model = new ThinNameClusterModel();
+    model.setShimVendor(MAPR_SHIM_VENDOR);
+    JSONObject result = hadoopClusterManager.createNamedCluster( model, getFiles( "/" ) );
+    verify( namedCluster ).setStorageScheme( eq( MAPRFS_SCHEME ));
   }
 
   @Test public void testOverwriteNamedClusterCaseInsensitive() {
@@ -404,6 +421,8 @@ public class HadoopClusterManagerTest {
   @Test public void testFailNamedCluster() {
     ThinNameClusterModel model = new ThinNameClusterModel();
     model.setName( ncTestName );
+    model.setShimVendor( "Claudera" );
+    model.setShimVersion( "5.14" );
     JSONObject result = hadoopClusterManager.importNamedCluster( model, getFiles( "src/test/resources/bad" ) );
     assertEquals( "", result.get( "namedCluster" ) );
   }

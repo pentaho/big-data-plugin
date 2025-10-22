@@ -12,7 +12,6 @@
 
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages;
 
-import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper;
 import org.pentaho.di.core.util.StringUtil;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
@@ -174,17 +173,10 @@ public class ClusterSettingsPage extends WizardPage {
   private void createDriverGroup() {
     String loadedDriverText = loadedShimVendor + " " + loadedShimVersion;
     String originalDriverText;
-    String shimIdentifier = thinNameClusterModel.getShimIdentifier();
-    if ( StringUtil.isEmpty( shimIdentifier ) ) {
+    if ( StringUtil.isEmpty( thinNameClusterModel.getShimVendor() ) ) {
       originalDriverText = BaseMessages.getString( PKG, "NamedClusterDialog.noDriver" );
     } else {
-      String vendor  = NamedClusterHelper.getVendorForDriver( shimIdentifier );
-      String version = NamedClusterHelper.getVersionForDriver( shimIdentifier );
-      if ( StringUtil.isEmpty( vendor ) || StringUtil.isEmpty( version ) ) {
-        originalDriverText = BaseMessages.getString( PKG, "NamedClusterDialog.noDriver" );
-      } else {
-        originalDriverText = vendor + " " + version;
-      }
+      originalDriverText = thinNameClusterModel.getShimVendor() + " " + thinNameClusterModel.getShimVersion();
     }
 
     Composite driverGroupPanel = new Composite( mainPanel, SWT.NONE );
@@ -493,6 +485,8 @@ public class ClusterSettingsPage extends WizardPage {
 
   private void validate() {
     thinNameClusterModel.setName( nameOfNamedCluster.getText() );
+    thinNameClusterModel.setShimVendor( loadedShimVendor );
+    thinNameClusterModel.setShimVersion( loadedShimVersion );
     thinNameClusterModel.setHdfsUsername( userNameTextFieldHdfsGroup.getText() );
     thinNameClusterModel.setHdfsPassword( passwordTextFieldHdfsGroup.getText() );
     thinNameClusterModel.setSiteFiles( getTableItems( siteFilesTable.getItems() ) );
@@ -507,7 +501,8 @@ public class ClusterSettingsPage extends WizardPage {
       thinNameClusterModel.setOozieUrl( hostNameTextFieldOozieGroup.getText() );
       thinNameClusterModel.setKafkaBootstrapServers( hostNameTextFieldKafkaGroup.getText() );
       setPageComplete( !thinNameClusterModel.getName().isBlank() && !thinNameClusterModel.getHdfsHost().isBlank()
-              && thinNameClusterModel.getName().matches( "^[a-zA-Z0-9-]+$" ) );
+        && !thinNameClusterModel.getShimVendor().isBlank() && thinNameClusterModel.getShimVersion() != null
+        && thinNameClusterModel.getName().matches( "^[a-zA-Z0-9-]+$" ) );
     }
     if ( ( (NamedClusterDialog) getWizard() ).getDialogState().equals( "import" ) ) {
       setPageComplete( !thinNameClusterModel.getName().isBlank()
