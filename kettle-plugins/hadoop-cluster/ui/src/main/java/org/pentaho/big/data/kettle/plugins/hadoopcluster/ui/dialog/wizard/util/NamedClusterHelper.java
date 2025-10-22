@@ -59,6 +59,44 @@ public abstract class NamedClusterHelper {
   private static final Supplier<Spoon> spoonSupplier = Spoon::getInstance;
   private static final ITwoWayPasswordEncoder passwordEncoder = new Base64TwoWayPasswordEncoder();
 
+  /**
+   * Data structure to hold driver configuration information
+   */
+  public static class DriverInfo {
+    private final String id;
+    private final String vendor;
+    private final String version;
+
+    public DriverInfo( String id, String vendor, String version ) {
+      this.id = id;
+      this.vendor = vendor;
+      this.version = version;
+    }
+
+    public String getId() {
+      return id;
+    }
+
+    public String getVendor() {
+      return vendor;
+    }
+
+    public String getVersion() {
+      return version;
+    }
+  }
+
+  private static final Map<String, DriverInfo> DRIVER_INFO_MAP = new HashMap<>();
+
+  static {
+    DRIVER_INFO_MAP.put( "apachevanilla", new DriverInfo( "apachevanilla", "ApacheVanilla", "3.4.0" ) );
+    DRIVER_INFO_MAP.put( "cdpdc71", new DriverInfo( "cdpdc71", "Cloudera", "7.1" ) );
+    DRIVER_INFO_MAP.put( "dataproc1421", new DriverInfo( "dataproc1421", "Google Dataproc", "1.4" ) );
+    DRIVER_INFO_MAP.put( "emr770", new DriverInfo( "emr770", "EMR", "7.7" ) );
+    DRIVER_INFO_MAP.put( "hdi40", new DriverInfo( "hdi40", "HDInsight", "4.0" ) );
+    DRIVER_INFO_MAP.put( "apache", new DriverInfo( "apache", "Apache", "3.4" ) );
+  }
+
   public enum FileType {
     CONFIGURATION( "configuration" ),
     DRIVER( ".kar" );
@@ -242,6 +280,35 @@ public abstract class NamedClusterHelper {
       return null;
     }
     return hadoopConfiguration.getHadoopShim().getShimIdentifier();
+  }
+
+  /**
+   * Get the vendor name for a given driver ID
+   * @param driverId The driver identifier
+   * @return The vendor name, or null if not found
+   */
+  public static String getVendorForDriver( String driverId ) {
+    DriverInfo driverInfo = DRIVER_INFO_MAP.get( driverId );
+    return driverInfo != null ? driverInfo.getVendor() : null;
+  }
+
+  /**
+   * Get the version for a given driver ID
+   * @param driverId The driver identifier
+   * @return The version, or null if not found
+   */
+  public static String getVersionForDriver( String driverId ) {
+    DriverInfo driverInfo = DRIVER_INFO_MAP.get( driverId );
+    return driverInfo != null ? driverInfo.getVersion() : null;
+  }
+
+  /**
+   * Get the complete DriverInfo for a given driver ID
+   * @param driverId The driver identifier
+   * @return The DriverInfo object, or null if not found
+   */
+  public static DriverInfo getDriverInfo( String driverId ) {
+    return DRIVER_INFO_MAP.get( driverId );
   }
 }
 

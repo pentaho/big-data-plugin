@@ -77,7 +77,6 @@ public class NamedClusterBridgeImpl implements NamedCluster {
   public void replaceMeta( NamedCluster nc ) {
     delegate.setName( nc.getName() );
     delegate.setShimIdentifier( nc.getShimIdentifier() );
-    delegate.setShimVendor( nc.getShimVendor() );
     delegate.setHdfsHost( nc.getHdfsHost() );
     delegate.setHdfsHost( nc.getHdfsHost() );
     delegate.setHdfsPort( nc.getHdfsPort() );
@@ -222,18 +221,6 @@ public class NamedClusterBridgeImpl implements NamedCluster {
   public String getShimIdentifier() {
     return delegate.getShimIdentifier();
   }
-
-  @Override
-  public String getShimVendor() { return delegate.getShimVendor(); }
-
-  @Override
-  public void setShimVendor( String shimVendor ) { delegate.setShimVendor( shimVendor ); }
-
-  @Override
-  public String getShimVersion() { return delegate.getShimVersion(); }
-
-  @Override
-  public void setShimVersion( String shimVersion ) { delegate.setShimVersion( shimVersion ); }
 
   @Override
   public void setShimIdentifier( String shimIdentifier ) {
