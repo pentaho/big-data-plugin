@@ -24,7 +24,6 @@ import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages.
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages.TestResultsPage;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.BadSiteFilesException;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.CustomWizardDialog;
-import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.CachedFileItemStream;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClusterManager;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
 import org.pentaho.big.data.plugins.common.ui.ClusterTestDialog;
@@ -56,7 +55,6 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages.SecuritySettingsPage.NamedClusterSecurityType.NONE;
-import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.processSiteFiles;
 
 /*
  * To run this dialog as stand alone for development purposes under UBUNTU do the following:
@@ -128,8 +126,7 @@ public class NamedClusterDialog extends Wizard {
       isCreatingCluster = true;
     }
     model.setName( model.getName() == null ? "" : model.getName() );
-    model.setShimVendor( model.getShimVendor() == null ? "" : model.getShimVendor() );
-    model.setShimVersion( model.getShimVersion() == null ? "" : model.getShimVersion() );
+    model.setShimIdentifier( model.getShimIdentifier() == null ? "" : model.getShimIdentifier() );
     model.setHdfsHost( model.getHdfsHost() == null ? "" : model.getHdfsHost() );
     model.setHdfsPort( model.getHdfsPort() == null && isCreatingCluster? "8020" : model.getHdfsPort() == null ? "" : model.getHdfsPort() );
     model.setHdfsUsername( model.getHdfsUsername() == null ? "" : model.getHdfsUsername() );

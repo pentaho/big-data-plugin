@@ -230,8 +230,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       NamedCluster nc = namedClusterService.getClusterTemplate();
       nc.setHdfsHost( "" );
       nc.setHdfsPort( "" );
-      nc.setShimVendor( model.getShimVendor() );
-      nc.setShimVersion( model.getShimVersion() );
       nc.setJobTrackerHost( "" );
       nc.setJobTrackerPort( "" );
       nc.setZooKeeperHost( "" );
@@ -240,8 +238,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       nc.setName( model.getName() );
       nc.setHdfsUsername( model.getHdfsUsername() );
       nc.setHdfsPassword( encodePassword( model.getHdfsPassword() ) );
-      if (MAPR_SHIM.equals(model.getShimVendor()))
-        nc.setStorageScheme(MAPRFS_SCHEME);
       if ( variableSpace != null ) {
         nc.shareVariablesWith( variableSpace );
       } else {
@@ -249,7 +245,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       }
 
       boolean isConfigurationSet =
-        configureNamedCluster( siteFilesSource, nc, model.getShimVendor(), model.getShimVersion() );
+        configureNamedCluster( siteFilesSource, nc);
       if ( isConfigurationSet ) {
         deleteNamedClusterSchemaOnly( model );
         setupKnoxSecurity( nc, model );
@@ -279,8 +275,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
     NamedCluster nc = namedClusterService.getClusterTemplate();
     nc.setName( model.getName() );
-    nc.setShimVendor( model.getShimVendor() );
-    nc.setShimVersion( model.getShimVersion() );
     nc.setHdfsHost( model.getHdfsHost() );
     nc.setHdfsPort( model.getHdfsPort() );
     nc.setHdfsUsername( model.getHdfsUsername() );
@@ -292,8 +286,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     nc.setOozieUrl( model.getOozieUrl() );
     nc.setKafkaBootstrapServers( model.getKafkaBootstrapServers() );
     resolveShimIdentifier( nc );
-    if (MAPR_SHIM.equals(model.getShimVendor()))
-      nc.setStorageScheme(MAPRFS_SCHEME);
     setupKnoxSecurity( nc, model );
     if ( variableSpace != null ) {
       nc.shareVariablesWith( variableSpace );
@@ -423,8 +415,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         if ( nc.getName().equalsIgnoreCase( namedCluster ) ) {
           model = new ThinNameClusterModel();
           model.setName( nc.getName() );
-          model.setShimVendor( nc.getShimVendor() );
-          model.setShimVersion( nc.getShimVersion() );
+          model.setShimIdentifier( nc.getShimIdentifier());
           model.setHdfsHost( nc.getHdfsHost() );
           model.setHdfsUsername( nc.getHdfsUsername() );
           model.setHdfsPassword( nc.getHdfsPassword() );
@@ -435,7 +426,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           model.setOozieUrl( nc.getOozieUrl() );
           model.setZooKeeperPort( nc.getZooKeeperPort() );
           model.setZooKeeperHost( nc.getZooKeeperHost() );
-          resolveShimVendorAndVersion( model, nc.getShimIdentifier() );
           model.setGatewayPassword( nc.getGatewayPassword() );
           String gatewayURL = nc.getGatewayUrl();
           if( gatewayURL != null && !gatewayURL.startsWith( "Encrypted" )) {
@@ -461,8 +451,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     return model;
   }
 
-  private boolean configureNamedCluster( Map<String, CachedFileItemStream> siteFilesSource, NamedCluster nc,
-                                         String shimVendor, String shimVersion ) {
+  private boolean configureNamedCluster( Map<String, CachedFileItemStream> siteFilesSource, NamedCluster nc ) {
     resolveShimIdentifier( nc );
 
     String oozieBaseUrl = "oozie.base.url";
@@ -560,16 +549,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     ShimIdentifier shimIdentifier = getShimIdentifier();
     if( shimIdentifier != null ) {
       nc.setShimIdentifier( shimIdentifier.getId() );
-    }
-  }
-
-  private void resolveShimVendorAndVersion( ThinNameClusterModel model, String shimIdentifier ) {
-    List<ShimIdentifierInterface> shims = getShimIdentifiers();
-    for ( ShimIdentifierInterface shim : shims ) {
-      if ( shim.getId().equals( shimIdentifier ) ) {
-        model.setShimVersion( shim.getVersion() );
-        model.setShimVendor( shim.getVendor() );
-      }
     }
   }
 
