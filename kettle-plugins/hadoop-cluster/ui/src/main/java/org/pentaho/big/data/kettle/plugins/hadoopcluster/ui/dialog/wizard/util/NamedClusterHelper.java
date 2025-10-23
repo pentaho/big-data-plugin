@@ -231,17 +231,5 @@ public abstract class NamedClusterHelper {
     }
     return password;
   }
-
-  public static ShimIdentifier getShimIdentifier() {
-    HadoopConfigurationBootstrap hadoopConfigurationBootstrap = HadoopConfigurationBootstrap.getInstance();
-    HadoopConfiguration hadoopConfiguration;
-    try {
-      HadoopConfigurationLocator hadoopConfigurationProvider = (HadoopConfigurationLocator) hadoopConfigurationBootstrap.getProvider();
-      hadoopConfiguration = hadoopConfigurationProvider.getActiveConfiguration();
-    } catch ( ConfigurationException e ) {
-      return null;
-    }
-    return hadoopConfiguration.getHadoopShim().getShimIdentifier();
-  }
 }
 

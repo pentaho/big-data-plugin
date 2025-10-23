@@ -14,11 +14,18 @@ package org.pentaho.big.data.api.services.impl;
 
 import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
 import org.pentaho.bigdata.api.hdfs.impl.HadoopFileSystemLocatorImpl;
+import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.service.ServiceProvider;
 import org.pentaho.di.core.service.ServiceProviderInterface;
+import org.pentaho.hadoop.shim.HadoopConfiguration;
+import org.pentaho.hadoop.shim.HadoopConfigurationLocator;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
+import org.pentaho.hadoop.shim.api.internal.ShimIdentifier;
 import org.pentaho.hadoop.shim.api.services.BigDataServicesProxy;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @ServiceProvider(
         id = "BigDataServicesProxy",
@@ -51,4 +58,22 @@ public class BigDataServicesProxyImpl implements BigDataServicesProxy, ServicePr
         }
         return hadoopFileSystemLocator;
     }
+
+  @Override
+  public Map<String, String> getShimIdentifier() {
+    HadoopConfigurationBootstrap hadoopConfigurationBootstrap = HadoopConfigurationBootstrap.getInstance();
+    HadoopConfiguration hadoopConfiguration;
+    try {
+      HadoopConfigurationLocator hadoopConfigurationProvider = (HadoopConfigurationLocator) hadoopConfigurationBootstrap.getProvider();
+      hadoopConfiguration = hadoopConfigurationProvider.getActiveConfiguration();
+    } catch ( org.pentaho.hadoop.shim.api.ConfigurationException e ) {
+      return null;
+    }
+    ShimIdentifier identifier = hadoopConfiguration.getHadoopShim().getShimIdentifier();
+    Map<String, String> shimIdentifier = new HashMap<>();
+    shimIdentifier.put( ShimIdentifier.SHIM_ID, identifier.getId() );
+    shimIdentifier.put( ShimIdentifier.SHIM_VENDOR, identifier.getVendor() );
+    shimIdentifier.put( ShimIdentifier.SHIM_VERSION, identifier.getVersion() );
+    return shimIdentifier;
+  }
 }

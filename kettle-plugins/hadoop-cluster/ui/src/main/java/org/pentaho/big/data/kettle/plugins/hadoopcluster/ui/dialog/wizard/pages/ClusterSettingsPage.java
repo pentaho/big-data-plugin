@@ -52,7 +52,6 @@ import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.createLabel;
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.createText;
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.decodePassword;
-import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.getShimIdentifier;
 import static org.pentaho.di.ui.core.PropsUI.getDisplay;
 
 public class ClusterSettingsPage extends WizardPage {
@@ -86,17 +85,12 @@ public class ClusterSettingsPage extends WizardPage {
   private static final Class<?> PKG = ClusterSettingsPage.class;
   private String loadedShimVendor = BaseMessages.getString( PKG, "NamedClusterDialog.noDriver" );
   private String loadedShimVersion = "";
+  private Map<String, String> shimIdentifier;
 
   public ClusterSettingsPage( VariableSpace variables, ThinNameClusterModel model ) {
     super( ClusterSettingsPage.class.getSimpleName() );
     variableSpace = variables;
     thinNameClusterModel = model;
-    try {
-      loadedShimVendor = getLoadedDriverVendor();
-      loadedShimVersion = getLoadedDriverVersion();
-    } catch ( Exception e ) {
-      // Do nothing go with defined loaded shim vendor and version
-    }
     setPageComplete( false );
   }
 
@@ -171,6 +165,12 @@ public class ClusterSettingsPage extends WizardPage {
   }
 
   private void createDriverGroup() {
+    try {
+      loadedShimVendor = getLoadedDriverVendor();
+      loadedShimVersion = getLoadedDriverVersion();
+    } catch ( Exception e ) {
+      // Do nothing go with defined loaded shim vendor and version
+    }
     String loadedDriverText = loadedShimVendor + " " + loadedShimVersion;
     String originalDriverText;
     if ( StringUtil.isEmpty( thinNameClusterModel.getShimVendor() ) ) {
@@ -206,19 +206,25 @@ public class ClusterSettingsPage extends WizardPage {
   }
 
   private String getLoadedDriverVersion() {
-    ShimIdentifier shimIdentifier = getShimIdentifier();
+    if( shimIdentifier == null ) {
+      NamedClusterDialog namedClusterDialog = (NamedClusterDialog) getWizard();
+      shimIdentifier = namedClusterDialog.getShimIdentifier();
+    }
     String version = "";
     if( shimIdentifier != null ) {
-      version = shimIdentifier.getVersion();
+      version = shimIdentifier.get( ShimIdentifier.SHIM_VERSION );
     }
     return version;
   }
 
   private String getLoadedDriverVendor() {
-    ShimIdentifier shimIdentifier = getShimIdentifier();
+    if( shimIdentifier == null ) {
+      NamedClusterDialog namedClusterDialog = (NamedClusterDialog) getWizard();
+      shimIdentifier = namedClusterDialog.getShimIdentifier();
+    }
     String vendor = "";
     if( shimIdentifier != null ) {
-      vendor = shimIdentifier.getVendor();
+      vendor = shimIdentifier.get( ShimIdentifier.SHIM_VENDOR );
     }
     return vendor;
   }
