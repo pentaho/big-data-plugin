@@ -22,6 +22,7 @@ import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterService
 import org.pentaho.big.data.api.jdbc.impl.ClusterInitializingDriver;
 import org.pentaho.big.data.api.jdbc.impl.DriverLocatorImpl;
 import org.pentaho.big.data.api.jdbc.impl.JdbcUrlParserImpl;
+import org.pentaho.big.data.api.shims.LegacyShimLocator;
 import org.pentaho.big.data.impl.cluster.tests.hdfs.GatewayListHomeDirectoryTest;
 import org.pentaho.big.data.impl.cluster.tests.hdfs.GatewayListRootDirectoryTest;
 import org.pentaho.big.data.impl.cluster.tests.hdfs.GatewayPingFileSystemEntryPoint;
@@ -36,6 +37,7 @@ import org.pentaho.big.data.impl.shim.mapreduce.MapReduceServiceFactoryImpl;
 import org.pentaho.big.data.impl.shim.mapreduce.TransformationVisitorService;
 import org.pentaho.hadoop.shim.api.HadoopClientServices;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceFactory;
+import org.pentaho.hadoop.shim.api.core.ShimIdentifierInterface;
 import org.pentaho.hadoop.shim.api.mapreduce.MapReduceService;
 import org.pentaho.big.data.impl.vfs.hdfs.AzureHdInsightsFileNameParser;
 import org.pentaho.big.data.impl.vfs.hdfs.HDFSFileNameParser;
@@ -93,6 +95,10 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
       HadoopConfiguration hadoopConfiguration = hadoopConfigurationProvider.getActiveConfiguration();
       HadoopShim hadoopShim = hadoopConfiguration.getHadoopShim();
       List<String> shimAvailableServices = hadoopShim.getAvailableServices();
+      // Add active shim to the Legacy Shim Locator
+      List<ShimIdentifierInterface> registeredShims = new ArrayList<>();
+      registeredShims.add( hadoopShim.getShimIdentifier() );
+      LegacyShimLocator .getInstance().setRegisteredShims( registeredShims );
 
       //////////////////////////////////////////////////////////////////////////////////
       /// Bootstrapping the authentication manager service
