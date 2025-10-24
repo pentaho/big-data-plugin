@@ -1354,16 +1354,16 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
    * @return the referenced object once loaded
    * @throws KettleException
    */
-  public Object loadReferencedObject( int index, Repository rep, VariableSpace space ) throws KettleException {
+  public Object loadReferencedObject( Bowl bowl, int index, Repository rep, IMetaStore metaStore, VariableSpace space ) throws KettleException {
     switch ( index ) {
       case 0:
-        return loadTransMeta( parentJobMeta.getBowl(), space, rep, mapTrans, mapRepositoryReference, mapRepositoryDir,
+        return loadTransMeta( bowl, space, rep, mapTrans, mapRepositoryReference, mapRepositoryDir,
           mapRepositoryFile );
       case 1:
-        return loadTransMeta( parentJobMeta.getBowl(), space, rep, combinerTrans, combinerRepositoryReference,
+        return loadTransMeta( bowl, space, rep, combinerTrans, combinerRepositoryReference,
           combinerRepositoryDir, combinerRepositoryFile );
       case 2:
-        return loadTransMeta( parentJobMeta.getBowl(), space, rep, reduceTrans, reduceRepositoryReference,
+        return loadTransMeta( bowl, space, rep, reduceTrans, reduceRepositoryReference,
           reduceRepositoryDir, reduceRepositoryFile );
     }
     return null;
@@ -1414,7 +1414,7 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
         //
         // First load the transformation metadata...
         //
-        transMeta = (TransMeta) loadReferencedObject( i, repository, space );
+        transMeta = (TransMeta) loadReferencedObject( executionBowl, i, repository, metaStore, space );
         // Also go down into the transformation and export the files there. (mapping recursively down)
         //
         String proposedNewFilename =
