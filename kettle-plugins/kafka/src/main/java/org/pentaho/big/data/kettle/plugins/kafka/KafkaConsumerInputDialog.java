@@ -197,7 +197,8 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
       }
     } );
     props.setLook( wbCluster );
-    wbCluster.setEnabled( true );
+
+    wbCluster.setEnabled( consumerMeta.getNamedClusterService() != null );
 
     Label environmentSeparator = new Label( wConnectionGroup, SWT.SEPARATOR | SWT.VERTICAL );
     FormData fdenvironmentSeparator = new FormData();
@@ -570,17 +571,18 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
       wFileSection.wFileName.setText( meta.getTransformationPath() );
     }
 
-    try {
-      List<String> names = consumerMeta.getNamedClusterService().listNames( spoonInstance.getMetaStore() );
-      wClusterName.setItems( names.toArray( new String[ 0 ] ) );
-    } catch ( MetaStoreException e ) {
-      log.logError( "Failed to get defined named clusters", e );
-    }
+    if ( consumerMeta.getNamedClusterService() != null ) {
+      try {
+        List<String> names = consumerMeta.getNamedClusterService().listNames(spoonInstance.getMetaStore());
+        wClusterName.setItems(names.toArray(new String[0]));
+      } catch (MetaStoreException e) {
+        log.logError("Failed to get defined named clusters", e);
+      }
 
-    if ( consumerMeta.getClusterName() != null ) {
-      wClusterName.setText( consumerMeta.getClusterName() );
+      if (consumerMeta.getClusterName() != null) {
+        wClusterName.setText(consumerMeta.getClusterName());
+      }
     }
-
     if ( consumerMeta.getDirectBootstrapServers() != null ) {
       wBootstrapServers.setText( consumerMeta.getDirectBootstrapServers() );
     }

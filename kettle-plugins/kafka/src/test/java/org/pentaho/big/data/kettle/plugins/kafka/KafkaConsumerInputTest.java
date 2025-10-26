@@ -39,7 +39,6 @@ import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.logging.LogChannelInterfaceFactory;
 import org.pentaho.di.core.logging.LogLevel;
-import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.StepPluginType;
 import org.pentaho.di.core.variables.Variables;
@@ -52,6 +51,7 @@ import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepStatus;
 import org.pentaho.di.trans.steps.abort.AbortMeta;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.metastore.locator.api.MetastoreLocator;
 
 import java.util.ArrayList;
@@ -127,7 +127,7 @@ public class KafkaConsumerInputTest {
     when( logChannelFactory.create( any(), any() ) ).thenReturn( logChannel );
     when( logChannelFactory.create( any() ) ).thenReturn( logChannel );
 
-    NamedClusterManager namedClusterService = mock( NamedClusterManager.class );
+    NamedClusterService namedClusterService = mock( NamedClusterService.class );
     MetastoreLocator metastoreLocator = mock( MetastoreLocator.class );
 
     meta = new KafkaConsumerInputMeta();
