@@ -41,7 +41,6 @@ import org.apache.commons.vfs2.provider.url.UrlFileName;
 import org.apache.commons.vfs2.provider.url.UrlFileNameParser;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleValueException;
-import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.osgi.api.NamedClusterOsgi;
 import org.pentaho.di.core.osgi.api.NamedClusterSiteFile;
 import org.pentaho.di.core.osgi.impl.NamedClusterSiteFileImpl;
@@ -52,7 +51,6 @@ import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
-import org.pentaho.hadoop.shim.api.ConfigurationException;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.security.Base64TwoWayPasswordEncoder;
@@ -91,12 +89,6 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
 
   @MetaStoreAttribute
   private String shimIdentifier;
-
-  @MetaStoreAttribute
-  String shimVendor;
-
-  @MetaStoreAttribute
-  String shimVersion;
 
   @MetaStoreAttribute
   private String storageScheme;
@@ -169,36 +161,7 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
   }
 
   public String getShimIdentifier() {
-    // Fetch the current configured shim if we don't have it already
-    // No matter what shim was used to configure this named cluster, we want
-    // to use the current active shim
-    if ( hadoopActiveConfiguration == null ) {
-      try {
-        if (HadoopConfigurationBootstrap.getInstance().getProvider() != null) {
-          hadoopActiveConfiguration = HadoopConfigurationBootstrap.getInstance().getProvider()
-                  .getActiveConfiguration().getIdentifier();
-        }
-      } catch ( ConfigurationException e ) {
-        LOGGER.error( "Error getting active hadoop configuration", e );
-      }
-    }
-    return hadoopActiveConfiguration;
-  }
-
-  @Override public String getShimVendor() {
-    return shimVendor;
-  }
-
-  @Override public void setShimVendor( String shimVendor ) {
-    this.shimVendor = shimVendor;
-  }
-
-  @Override public String getShimVersion() {
-    return shimVersion;
-  }
-
-  @Override public void setShimVersion( String shimVersion ) {
-    this.shimVersion = shimVersion;
+    return this.shimIdentifier;
   }
 
   public void setShimIdentifier( String shimIdentifier ) {
@@ -287,8 +250,6 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
     this.setName( nc.getName() );
     this.setShimIdentifier( nc.getShimIdentifier() );
     this.setStorageScheme( nc.getStorageScheme() );
-    this.setShimVendor( nc.getShimVendor() );
-    this.setShimVersion( nc.getShimVersion() );
     this.setHdfsHost( nc.getHdfsHost() );
     this.setHdfsPort( nc.getHdfsPort() );
     this.setHdfsUsername( nc.getHdfsUsername() );

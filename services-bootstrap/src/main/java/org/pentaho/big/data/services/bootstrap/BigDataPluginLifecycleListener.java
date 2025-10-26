@@ -98,7 +98,7 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
       // Add active shim to the Legacy Shim Locator
       List<ShimIdentifierInterface> registeredShims = new ArrayList<>();
       registeredShims.add( hadoopShim.getShimIdentifier() );
-      LegacyShimLocator .getInstance().setRegisteredShims( registeredShims );
+      LegacyShimLocator.getInstance().setRegisteredShims( registeredShims );
 
       //////////////////////////////////////////////////////////////////////////////////
       /// Bootstrapping the authentication manager service

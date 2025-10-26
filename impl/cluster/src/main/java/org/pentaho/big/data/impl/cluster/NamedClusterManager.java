@@ -19,9 +19,6 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.cm.Configuration;
-import org.osgi.service.cm.ConfigurationAdmin;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.attributes.metastore.EmbeddedMetaStore;
@@ -52,8 +49,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Dictionary;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,11 +60,7 @@ public class NamedClusterManager implements NamedClusterService {
   private static NamedClusterManager instance = new NamedClusterManager();
   public static final String BIG_DATA_SLAVE_METASTORE_DIR = "hadoop.configurations.path";
   private static final Class<?> PKG = NamedClusterManager.class;
-
-  private BundleContext bundleContext;
-
   private Map<IMetaStore, MetaStoreFactory<NamedClusterImpl>> factoryMap = new HashMap<>();
-
   private NamedCluster clusterTemplate;
 
   private LogChannel log = new LogChannel( this );
@@ -82,33 +73,6 @@ public class NamedClusterManager implements NamedClusterService {
 
   public static NamedClusterManager getInstance() {
     return instance;
-  }
-
-  public BundleContext getBundleContext() {
-    return bundleContext;
-  }
-
-  public void setBundleContext( BundleContext bundleContext ) {
-    this.bundleContext = bundleContext;
-    initProperties();
-  }
-
-  protected void initProperties() {
-    final ServiceReference<?> serviceReference =
-      getBundleContext().getServiceReference( ConfigurationAdmin.class.getName() );
-    if ( serviceReference != null ) {
-      try {
-        final ConfigurationAdmin admin = (ConfigurationAdmin) getBundleContext().getService( serviceReference );
-        final Configuration configuration = admin.getConfiguration( "pentaho.big.data.impl.cluster" );
-        Dictionary<String, Object> rawProperties = configuration.getProperties();
-        for ( Enumeration<String> keys = rawProperties.keys(); keys.hasMoreElements(); ) {
-          String key = keys.nextElement();
-          properties.put( key, rawProperties.get( key ) );
-        }
-      } catch ( Exception e ) {
-        properties = new HashMap<>();
-      }
-    }
   }
 
   /**
