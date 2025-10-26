@@ -162,7 +162,7 @@ public class SecuritySettingsPage extends WizardPage {
       securityType = NamedClusterSecurityType.KNOX;
     }
     knoxButton.setVisible(
-      model.getShimVendor().equals( "Cloudera" ) || model.getShimVendor().equals( "Hortonworks" ) );
+      model.getShimIdentifier().equals( "cdpdc71" ) || model.getShimIdentifier().equals( "hdp31" ) );
   }
 
   public NamedClusterSecurityType getSecurityType() {

@@ -32,8 +32,7 @@ public class ThinNameClusterModel {
   public static final String NAME_KEY = "name";
 
   private String name;
-  private String shimVendor;
-  private String shimVersion;
+  private String shimIdentifier;
   private String hdfsHost;
   private String hdfsPort;
   private String hdfsUsername;
@@ -58,20 +57,12 @@ public class ThinNameClusterModel {
   private String keytabImpFile;
   private List<SimpleImmutableEntry<String, String>> siteFiles;
 
-  public String getShimVendor() {
-    return shimVendor;
+  public void setShimIdentifier(String shimIdentifier ) {
+    this.shimIdentifier = shimIdentifier;
   }
 
-  public void setShimVendor( String shimVendor ) {
-    this.shimVendor = shimVendor;
-  }
-
-  public String getShimVersion() {
-    return shimVersion;
-  }
-
-  public void setShimVersion( String shimVersion ) {
-    this.shimVersion = shimVersion;
+  public String getShimIdentifier() {
+    return shimIdentifier;
   }
 
   public String getHdfsHost() {
@@ -275,8 +266,7 @@ public class ThinNameClusterModel {
       JSONParser parser = new JSONParser();
       JSONObject json = (JSONObject) parser.parse( inputStreamReader );
       model.setName( (String) json.get( "name" ) );
-      model.setShimVendor( (String) json.get( "shimVendor" ) );
-      model.setShimVersion( (String) json.get( "shimVersion" ) );
+      model.setShimIdentifier( (String) json.get( "shimIdentifier" ) );
       model.setHdfsHost( (String) json.get( "hdfsHost" ) );
       model.setHdfsPort( (String) json.get( "hdfsPort" ) );
       model.setHdfsUsername( (String) json.get( "hdfsUsername" ) );

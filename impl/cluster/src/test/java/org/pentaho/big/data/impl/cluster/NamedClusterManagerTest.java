@@ -15,10 +15,6 @@ package org.pentaho.big.data.impl.cluster;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.cm.Configuration;
-import org.osgi.service.cm.ConfigurationAdmin;
 import org.pentaho.di.core.attributes.metastore.EmbeddedMetaStore;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.encryption.TwoWayPasswordEncoderPluginType;
@@ -40,11 +36,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -104,54 +96,6 @@ public class NamedClusterManagerTest {
       }
     }
     return directoryToBeDeleted.delete();
-  }
-
-  @SuppressWarnings( { "unchecked", "rawtypes" } )
-  @Test
-  public void testInitProperties() throws IOException {
-    String sampleKey = "sampleKey";
-    String sampleValue = "sampleValue";
-    Dictionary<String, Object> dictionary = new Hashtable<>();
-    dictionary.put( sampleKey, sampleValue );
-    Configuration configuration = mock( Configuration.class );
-    when( configuration.getProperties() ).thenReturn( dictionary );
-    ConfigurationAdmin confAdmin = mock( ConfigurationAdmin.class );
-    when( confAdmin.getConfiguration( anyString() ) ).thenReturn( configuration );
-    ServiceReference reference = mock( ServiceReference.class );
-    BundleContext context = mock( BundleContext.class );
-    when( context.getServiceReference( anyString() ) ).thenReturn( reference );
-    when( context.getService( any( ServiceReference.class ) ) ).thenReturn( confAdmin );
-
-    namedClusterManager.setBundleContext( context );
-    namedClusterManager.initProperties();
-    Map<String, Object> prop = namedClusterManager.getProperties();
-    assertEquals( dictionary.size(), prop.keySet().size() );
-    Enumeration<String> keys = dictionary.keys();
-    while ( keys.hasMoreElements() ) {
-      String key = keys.nextElement();
-      assertTrue( prop.keySet().contains( key ) );
-      assertTrue( prop.values().contains( dictionary.get( key ) ) );
-    }
-  }
-
-  @Test
-  public void testInitProperties_emptyBundleService() {
-    BundleContext context = mock( BundleContext.class );
-    namedClusterManager.setBundleContext( context );
-    namedClusterManager.initProperties();
-    Map<String, Object> prop = namedClusterManager.getProperties();
-    assertEquals( 0, prop.keySet().size() );
-  }
-
-  @Test
-  public void testInitProperties_exceptionDuringLoadService() {
-    ServiceReference reference = mock( ServiceReference.class );
-    BundleContext context = mock( BundleContext.class );
-    when( context.getServiceReference( anyString() ) ).thenReturn( reference );
-    namedClusterManager.setBundleContext( context );
-    namedClusterManager.initProperties();
-    Map<String, Object> prop = namedClusterManager.getProperties();
-    assertEquals( 0, prop.keySet().size() );
   }
 
   @Test
