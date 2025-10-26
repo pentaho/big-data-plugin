@@ -31,11 +31,11 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.di.core.logging.KettleLogStore;
-import org.pentaho.di.core.namedcluster.NamedClusterManager;
-import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.locator.api.MetastoreLocator;
 
@@ -51,7 +51,7 @@ import static org.mockito.Mockito.when;
 public class KafkaFactoryTest {
   @Mock Function<Map<String, Object>, Consumer> consumerFun;
   @Mock Function<Map<String, Object>, Producer<Object, Object>> producerFun;
-  @Mock NamedClusterManager namedClusterService;
+  @Mock NamedClusterService namedClusterService;
   @Mock MetastoreLocator metastoreLocator;
   @Mock IMetaStore metastore;
   @Mock NamedCluster namedCluster;

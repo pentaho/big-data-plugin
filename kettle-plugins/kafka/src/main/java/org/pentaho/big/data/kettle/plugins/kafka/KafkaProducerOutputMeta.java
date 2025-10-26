@@ -20,13 +20,10 @@ import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionSupported;
-import org.pentaho.di.core.namedcluster.NamedClusterManager;
-import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
-import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.Trans;
@@ -36,6 +33,9 @@ import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.services.BigDataServicesProxy;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.locator.api.MetastoreLocator;
 import org.pentaho.metaverse.api.analyzer.kettle.annotations.Metaverse;
@@ -128,7 +128,7 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
 
   private Map<String, String> config = new LinkedHashMap<>();
 
-  private NamedClusterManager namedClusterService = NamedClusterManager.getInstance();
+  private NamedClusterService namedClusterService =  null;
 
   //private NamedClusterServiceLocator namedClusterServiceLocator;
 
@@ -142,6 +142,16 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
       this.metastoreLocator = metastoreLocators.stream().findFirst().get();
     } catch ( Exception e ) {
       getLog().logError( "Error getting MetastoreLocator", e );
+    }
+
+    try {
+      Collection<BigDataServicesProxy> bigDataServicesProxies = PluginServiceLoader.loadServices( BigDataServicesProxy.class);
+      if ( bigDataServicesProxies != null && !bigDataServicesProxies.isEmpty() ) {
+        BigDataServicesProxy bigDataServicesProxy = bigDataServicesProxies.stream().findFirst().get();
+        this.namedClusterService = bigDataServicesProxy.getNamedClusterService();
+      }
+    } catch ( Exception e ) {
+      getLog().logError( "Error getting NamedClusterService", e );
     }
   }
 
@@ -247,17 +257,21 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
       //todo: this needed for spark.  should make metastoreLocator know how to find embedded metastore in spark
       metastore = getParentStepMeta().getParentTransMeta().getEmbeddedMetaStore();
     }
-    Optional<NamedCluster> namedClusterByName = Optional.ofNullable(
-      namedClusterService.getNamedClusterByName(
-        parentStepMeta.getParentTransMeta().environmentSubstitute( clusterName ), metastore ) );
-    if ( !namedClusterByName.isPresent() ) {
-      namedClusterByName = Optional.ofNullable(
-        namedClusterService.getNamedClusterByName(
-          parentStepMeta.getParentTransMeta().environmentSubstitute( clusterName ),
-          getParentStepMeta().getParentTransMeta().getEmbeddedMetaStore() ) );
+    if ( namedClusterService != null ) {
+      Optional<NamedCluster> namedClusterByName = Optional.ofNullable(
+              namedClusterService.getNamedClusterByName(
+                      parentStepMeta.getParentTransMeta().environmentSubstitute( clusterName ), metastore ) );
+      if ( !namedClusterByName.isPresent() ) {
+        namedClusterByName = Optional.ofNullable(
+                namedClusterService.getNamedClusterByName(
+                        parentStepMeta.getParentTransMeta().environmentSubstitute( clusterName ),
+                        getParentStepMeta().getParentTransMeta().getEmbeddedMetaStore() ) );
+      }
+      return namedClusterByName
+              .map( NamedCluster::getKafkaBootstrapServers ).orElse( "" );
     }
-    return namedClusterByName
-        .map( NamedCluster::getKafkaBootstrapServers ).orElse( "" );
+    getLog().logError( "Unable to get the named cluster service" );
+    return "";
   }
 
   public String getClientId() {
@@ -327,7 +341,7 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     return retval.toString();
   }
 
-  public NamedClusterManager getNamedClusterService() {
+  public NamedClusterService getNamedClusterService() {
     return namedClusterService;
   }
 
@@ -360,7 +374,7 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     return config;
   }
 
-  public void setNamedClusterService( NamedClusterManager namedClusterService ) {
+  public void setNamedClusterService( NamedClusterService namedClusterService ) {
     this.namedClusterService = namedClusterService;
   }
 
