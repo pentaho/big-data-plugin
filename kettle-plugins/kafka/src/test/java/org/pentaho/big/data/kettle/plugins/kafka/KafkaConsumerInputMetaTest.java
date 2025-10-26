@@ -25,8 +25,6 @@ import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.ProgressMonitorListener;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.namedcluster.NamedClusterManager;
-import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.StepPluginType;
 import org.pentaho.di.core.variables.Variables;
@@ -36,6 +34,8 @@ import org.pentaho.di.repository.StringObjectId;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.steps.named.cluster.NamedClusterEmbedManager;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.locator.api.MetastoreLocator;
 import org.w3c.dom.Node;
@@ -478,7 +478,7 @@ public class KafkaConsumerInputMetaTest {
     NamedCluster namedCluster = mock( NamedCluster.class );
     when( namedCluster.getKafkaBootstrapServers() ).thenReturn( "server:11111" );
 
-    NamedClusterManager namedClusterService = mock( NamedClusterManager.class );
+    NamedClusterService namedClusterService = mock( NamedClusterService.class );
     when( namedClusterService.getNamedClusterByName( eq( "my_cluster" ), nullable( IMetaStore.class ) ) )
       .thenReturn( namedCluster );
 

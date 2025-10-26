@@ -13,12 +13,14 @@
 package org.pentaho.big.data.api.services.impl;
 
 import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.bigdata.api.hdfs.impl.HadoopFileSystemLocatorImpl;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.service.ServiceProvider;
 import org.pentaho.di.core.service.ServiceProviderInterface;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.pentaho.hadoop.shim.HadoopConfigurationLocator;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
 import org.pentaho.hadoop.shim.api.internal.ShimIdentifier;
@@ -36,6 +38,7 @@ public class BigDataServicesProxyImpl implements BigDataServicesProxy, ServicePr
 
     private static NamedClusterServiceLocator namedClusterServiceLocator = null;
     private static HadoopFileSystemLocator hadoopFileSystemLocator = null;
+    private static NamedClusterService namedClusterService = null;
 
     @Override
     public boolean isSingleton() {
@@ -76,4 +79,12 @@ public class BigDataServicesProxyImpl implements BigDataServicesProxy, ServicePr
     shimIdentifier.put( ShimIdentifier.SHIM_VERSION, identifier.getVersion() );
     return shimIdentifier;
   }
+
+    @Override
+    public NamedClusterService getNamedClusterService() {
+        if ( namedClusterService == null ) {
+            namedClusterService = NamedClusterManager.getInstance();
+        }
+        return namedClusterService;
+    }
 }
