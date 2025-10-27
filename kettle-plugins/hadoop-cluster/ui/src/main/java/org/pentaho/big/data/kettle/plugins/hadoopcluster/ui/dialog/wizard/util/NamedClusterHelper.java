@@ -27,13 +27,8 @@ import org.pentaho.di.repository.Repository;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.spoon.Spoon;
-import org.pentaho.hadoop.shim.api.ConfigurationException;
 import org.pentaho.metastore.api.security.Base64TwoWayPasswordEncoder;
 import org.pentaho.metastore.api.security.ITwoWayPasswordEncoder;
-import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
-import org.pentaho.hadoop.shim.HadoopConfiguration;
-import org.pentaho.hadoop.shim.HadoopConfigurationLocator;
-import org.pentaho.hadoop.shim.api.internal.ShimIdentifier;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -268,18 +263,6 @@ public abstract class NamedClusterHelper {
       }
     }
     return password;
-  }
-
-  public static ShimIdentifier getShimIdentifier() {
-    HadoopConfigurationBootstrap hadoopConfigurationBootstrap = HadoopConfigurationBootstrap.getInstance();
-    HadoopConfiguration hadoopConfiguration;
-    try {
-      HadoopConfigurationLocator hadoopConfigurationProvider = (HadoopConfigurationLocator) hadoopConfigurationBootstrap.getProvider();
-      hadoopConfiguration = hadoopConfigurationProvider.getActiveConfiguration();
-    } catch ( ConfigurationException e ) {
-      return null;
-    }
-    return hadoopConfiguration.getHadoopShim().getShimIdentifier();
   }
 
   /**

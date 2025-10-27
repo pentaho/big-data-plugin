@@ -43,7 +43,6 @@ import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.internal.ShimIdentifier;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.runtime.test.RuntimeTestStatus;
 import org.pentaho.runtime.test.RuntimeTester;
@@ -56,7 +55,6 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages.SecuritySettingsPage.NamedClusterSecurityType.NONE;
-import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.getShimIdentifier;
 
 /*
  * To run this dialog as stand alone for development purposes under UBUNTU do the following:
@@ -121,7 +119,7 @@ public class NamedClusterDialog extends Wizard {
     return isConnectedToRepo;
   }
 
-  public Map<String, String> getShimIdentifier() {
+  public String getShimIdentifier() {
     return hadoopClusterManager.getShimIdentifier();
   }
 
@@ -229,9 +227,9 @@ public class NamedClusterDialog extends Wizard {
   public boolean performFinish() {
     boolean finish = false;
     // We are about to either create or edit hadoop cluster. Send shim identifier to the currently loaded driver
-    Map<String, String> shimIdentifier = getShimIdentifier();
+    String shimIdentifier = getShimIdentifier();
     if ( shimIdentifier != null ) {
-      thinNameClusterModel.setShimIdentifier( shimIdentifier.get( ShimIdentifier.SHIM_ID ) );
+      thinNameClusterModel.setShimIdentifier( shimIdentifier );
     }
 
     String currentPage = super.getContainer().getCurrentPage().getName();
