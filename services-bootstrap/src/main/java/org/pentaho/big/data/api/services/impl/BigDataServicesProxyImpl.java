@@ -26,9 +26,6 @@ import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
 import org.pentaho.hadoop.shim.api.internal.ShimIdentifier;
 import org.pentaho.hadoop.shim.api.services.BigDataServicesProxy;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @ServiceProvider(
         id = "BigDataServicesProxy",
         description = "Provides access to shared big data services",
@@ -63,21 +60,16 @@ public class BigDataServicesProxyImpl implements BigDataServicesProxy, ServicePr
     }
 
   @Override
-  public Map<String, String> getShimIdentifier() {
-    HadoopConfigurationBootstrap hadoopConfigurationBootstrap = HadoopConfigurationBootstrap.getInstance();
-    HadoopConfiguration hadoopConfiguration;
+  public String getShimIdentifier() {
     try {
+      HadoopConfigurationBootstrap hadoopConfigurationBootstrap = HadoopConfigurationBootstrap.getInstance();
       HadoopConfigurationLocator hadoopConfigurationProvider = (HadoopConfigurationLocator) hadoopConfigurationBootstrap.getProvider();
-      hadoopConfiguration = hadoopConfigurationProvider.getActiveConfiguration();
+      HadoopConfiguration hadoopConfiguration = hadoopConfigurationProvider.getActiveConfiguration();
+      ShimIdentifier identifier = hadoopConfiguration.getHadoopShim().getShimIdentifier();
+      return identifier.getId();
     } catch ( org.pentaho.hadoop.shim.api.ConfigurationException e ) {
       return null;
     }
-    ShimIdentifier identifier = hadoopConfiguration.getHadoopShim().getShimIdentifier();
-    Map<String, String> shimIdentifier = new HashMap<>();
-    shimIdentifier.put( ShimIdentifier.SHIM_ID, identifier.getId() );
-    shimIdentifier.put( ShimIdentifier.SHIM_VENDOR, identifier.getVendor() );
-    shimIdentifier.put( ShimIdentifier.SHIM_VERSION, identifier.getVersion() );
-    return shimIdentifier;
   }
 
     @Override

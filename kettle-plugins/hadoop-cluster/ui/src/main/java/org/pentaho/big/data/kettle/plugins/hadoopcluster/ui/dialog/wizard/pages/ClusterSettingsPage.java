@@ -12,7 +12,6 @@
 
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages;
 
-import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper;
 import org.pentaho.di.core.util.StringUtil;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
@@ -39,7 +38,6 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.util.HelpUtils;
-import org.pentaho.hadoop.shim.api.internal.ShimIdentifier;
 
 import java.io.File;
 import java.util.AbstractMap.SimpleImmutableEntry;
@@ -53,6 +51,8 @@ import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.createLabel;
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.createText;
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.decodePassword;
+import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.getVersionForDriver;
+import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.getVendorForDriver;
 import static org.pentaho.di.ui.core.PropsUI.getDisplay;
 
 public class ClusterSettingsPage extends WizardPage {
@@ -86,7 +86,7 @@ public class ClusterSettingsPage extends WizardPage {
   private static final Class<?> PKG = ClusterSettingsPage.class;
   private String loadedShimVendor = BaseMessages.getString( PKG, "NamedClusterDialog.noDriver" );
   private String loadedShimVersion = "";
-  private Map<String, String> shimIdentifier;
+  private String shimIdentifier;
 
   public ClusterSettingsPage( VariableSpace variables, ThinNameClusterModel model ) {
     super( ClusterSettingsPage.class.getSimpleName() );
@@ -178,8 +178,8 @@ public class ClusterSettingsPage extends WizardPage {
     if ( StringUtil.isEmpty( shimIdentifier ) ) {
       originalDriverText = BaseMessages.getString( PKG, "NamedClusterDialog.noDriver" );
     } else {
-      String vendor  = NamedClusterHelper.getVendorForDriver( shimIdentifier );
-      String version = NamedClusterHelper.getVersionForDriver( shimIdentifier );
+      String vendor  = getVendorForDriver( shimIdentifier );
+      String version = getVersionForDriver( shimIdentifier );
       if ( StringUtil.isEmpty( vendor ) || StringUtil.isEmpty( version ) ) {
         originalDriverText = BaseMessages.getString( PKG, "NamedClusterDialog.noDriver" );
       } else {
@@ -220,7 +220,7 @@ public class ClusterSettingsPage extends WizardPage {
     }
     String version = "";
     if( shimIdentifier != null ) {
-      version = shimIdentifier.get( ShimIdentifier.SHIM_VERSION );
+      version = getVersionForDriver( shimIdentifier );
     }
     return version;
   }
@@ -232,7 +232,7 @@ public class ClusterSettingsPage extends WizardPage {
     }
     String vendor = "";
     if( shimIdentifier != null ) {
-      vendor = shimIdentifier.get( ShimIdentifier.SHIM_VENDOR );
+      vendor = getVendorForDriver( shimIdentifier );
     }
     return vendor;
   }

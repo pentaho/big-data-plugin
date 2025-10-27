@@ -19,7 +19,6 @@ import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
 import org.pentaho.hadoop.shim.api.services.BigDataServicesProxy;
 
 import java.util.Collection;
-import java.util.Map;
 
 public class BigDataServicesHelper {
 
@@ -48,7 +47,7 @@ public class BigDataServicesHelper {
         }
     }
 
-    public static Map<String, String> getShimIdentifier() {
+    public static String getShimIdentifier() {
       try {
         Collection<BigDataServicesProxy> namedClusterServiceLocatorFactories = PluginServiceLoader.loadServices( BigDataServicesProxy.class );
         return namedClusterServiceLocatorFactories.stream().findFirst().get().getShimIdentifier();

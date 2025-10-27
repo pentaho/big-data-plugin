@@ -102,7 +102,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.pentaho.hadoop.shim.api.internal.ShimIdentifier;
 
 import static org.pentaho.big.data.impl.cluster.tests.Constants.HADOOP_FILE_SYSTEM;
 import static org.pentaho.big.data.impl.cluster.tests.Constants.OOZIE;
@@ -538,9 +537,9 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   }
 
   private void resolveShimIdentifier( NamedCluster nc ) {
-    Map<String, String> shimIdentifier = getShimIdentifier();
+    String shimIdentifier = getShimIdentifier();
     if( shimIdentifier != null ) {
-      nc.setShimIdentifier( shimIdentifier.get( ShimIdentifier.SHIM_ID ) );
+      nc.setShimIdentifier( shimIdentifier );
     }
   }
 
@@ -993,14 +992,14 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  public Map<String, String> getShimIdentifier() {
-    Map<String, String> shimIdentifier = null;
+  public String getShimIdentifier() {
+    String shimIdentifier = null;
     if ( isConnectedToRepo() ) {
       String endpointURL = NamedClusterHelper.getEndpointURL( "getShimIdentifier" );
       String result = doGet( endpointURL );
       ObjectMapper mapper = new ObjectMapper();
       try {
-        return mapper.readValue( result, Map.class );
+        return mapper.readValue( result, String.class );
       } catch ( Exception e ) {
         log.logError( e.getMessage() );
       }
