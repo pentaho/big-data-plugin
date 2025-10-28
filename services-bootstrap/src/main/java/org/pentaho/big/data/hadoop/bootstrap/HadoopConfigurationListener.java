@@ -20,7 +20,7 @@
  *
  ******************************************************************************/
 
-package org.pentaho.di.core.hadoop;
+package org.pentaho.big.data.hadoop.bootstrap;
 
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 
