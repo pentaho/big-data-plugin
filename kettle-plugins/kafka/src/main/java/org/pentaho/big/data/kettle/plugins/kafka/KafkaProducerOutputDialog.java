@@ -293,7 +293,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
       }
     } );
     props.setLook( wbCluster );
-    wbCluster.setEnabled( KafkaDialogHelper.isKarafEnabled() );
+    wbCluster.setEnabled( meta.getNamedClusterService() != null );
 
     Label environmentSeparator = new Label( wConnectionGroup, SWT.SEPARATOR | SWT.VERTICAL );
     FormData fdenvironmentSeparator = new FormData();
@@ -429,7 +429,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     wSetupComp.layout();
     wSetupTab.setControl( wSetupComp );
 
-    toggleConnectionType( !KafkaDialogHelper.isKarafEnabled() );
+    toggleConnectionType( true );
   }
 
   private void toggleConnectionType( final boolean isDirect ) {
@@ -540,17 +540,18 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
   }
 
   private void getData() {
-    try {
-      List<String> names = meta.getNamedClusterService().listNames( Spoon.getInstance().getMetaStore() );
-      wClusterName.setItems( names.toArray( new String[ 0 ] ) );
-    } catch ( MetaStoreException e ) {
-      log.logError( "Failed to get defined named clusters", e );
-    }
+    if ( meta.getNamedClusterService() != null ) {
+      try {
+        List<String> names = meta.getNamedClusterService().listNames(Spoon.getInstance().getMetaStore());
+        wClusterName.setItems(names.toArray(new String[0]));
+      } catch (MetaStoreException e) {
+        log.logError("Failed to get defined named clusters", e);
+      }
 
-    if ( meta.getClusterName() != null ) {
-      wClusterName.setText( meta.getClusterName() );
+      if (meta.getClusterName() != null) {
+        wClusterName.setText(meta.getClusterName());
+      }
     }
-
     if ( meta.getDirectBootstrapServers() != null ) {
       wBootstrapServers.setText( meta.getDirectBootstrapServers() );
     }

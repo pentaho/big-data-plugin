@@ -140,6 +140,8 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
 
   private ITwoWayPasswordEncoder passwordEncoder = new Base64TwoWayPasswordEncoder();
 
+  private static String hadoopActiveConfiguration = null;
+
   public NamedClusterImpl() {
     siteFiles = new ArrayList<>();
     initializeVariablesFrom( null );
@@ -159,7 +161,7 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
   }
 
   public String getShimIdentifier() {
-    return shimIdentifier;
+    return this.shimIdentifier;
   }
 
   public void setShimIdentifier( String shimIdentifier ) {

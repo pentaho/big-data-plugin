@@ -1,0 +1,123 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<window id="hadoop-window-wrapper" onload="controller.init()">
+<dialog id="sqoop-export"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        xmlns:pen="http://www.pentaho.org/2008/xul"
+        title="${Sqoop.JobEntry.Export.Dialog.Title}"
+        resizable="true"
+        appicon="ui/images/spoon.ico"
+        width="650"
+        height="400"
+        buttons=""
+        buttonalign="center">
+  <!--
+  buttons="accept,cancel,extra1,extra2"
+  -->
+  <vbox>
+    <grid>
+      <columns>
+        <column/>
+        <column/>
+      </columns>
+      <rows>
+        <row>
+          <vbox flex="1">
+            <label value="${Sqoop.JobEntry.Name.Label}"/>
+            <textbox id="jobEntryName" flex="1" multiline="false"/>
+          </vbox>
+          <hbox flex="1">
+            <spacer flex="1"/>
+            <image src="sqoop-export.png" />
+          </hbox>
+        </row>
+      </rows>
+    </grid>
+  </vbox>
+  <vbox flex="1">
+    <deck id="modeDeck" flex="1">
+      <vbox id="quickSetupPanel">
+        <groupbox>
+          <caption label="${Sqoop.JobEntry.Source.Group}"/>
+          <grid>
+            <columns>
+              <column/>
+              <column flex="1"/>
+            </columns>
+            <rows>
+                <row>
+                    <label value="${Sqoop.JobEntry.NamedCluster.Label}" width="200"/>
+                    <grid>
+                        <columns>
+                            <column/>
+                            <column/>
+                            <column/>
+                        </columns>
+                        <rows>
+                            <row>
+                                <menulist id="named-clusters" pen:binding="name">
+                                    <menupopup>
+                                    </menupopup>
+                                </menulist>
+                                <button id="editNamedCluster" label="${Sqoop.JobEntry.NamedCluster.Edit}" onclick="controller.editNamedCluster()"/>
+                                <button id="newNamedCluster" label="${Sqoop.JobEntry.NamedCluster.New}" onclick="controller.newNamedCluster()"/>
+                            </row>
+                        </rows>
+                    </grid>
+                </row>
+                <row>
+                <label value="${Sqoop.JobEntry.Export.Export.Directory.Label}"/>
+                <!-- Wrap with an hbox so all components align -->
+                <hbox flex="1">
+                  <textbox pen:customclass="variabletextbox" id="exportDir" flex="1"/>
+                  <button label="${Sqoop.JobEntry.Browse.Button.Text}" onclick="controller.browseForExportDirectory();"/>
+                </hbox>
+              </row>
+            </rows>
+          </grid>
+        </groupbox>
+        <groupbox>
+          <caption label="${Sqoop.JobEntry.Target.Group}"/>
+          <grid align="start">
+            <columns>
+              <column/>
+              <column/>
+            </columns>
+            <rows>
+              <row>
+                <label value="${Sqoop.JobEntry.Connection.Label}"/>
+                <hbox flex="1">
+                  <menulist id="connection" flex="1">
+                    <menupopup>
+                    </menupopup>
+                  </menulist>
+                  <button id="editConnectionButton" label="${Sqoop.JobEntry.Edit.Button.Text}" onclick="controller.editConnection();"/>
+                  <button label="${Sqoop.JobEntry.New.Button.Text}" onclick="controller.newConnection();"/>
+                </hbox>
+              </row>
+              <!-- TODO Determine if schema is required
+              <row>
+                <label value="${Sqoop.JobEntry.Schema.Label}"/>
+                <hbox flex="1">
+                  <textbox pen:customclass="variabletextbox" id="schema" flex="1"/>
+                  <button id="browseSchemaButton" label="${Sqoop.JobEntry.Browse.Button.Text}" onclick="controller.browseSchema();"/>
+                </hbox>
+              </row>
+              -->
+              <row align="start">
+                <label value="${Sqoop.JobEntry.Table.Label}" align="start"/>
+                <hbox flex="1" align="start">
+                  <textbox pen:customclass="variabletextbox" id="table" flex="1"/>
+                  <button id="browseTableButton" label="${Sqoop.JobEntry.Browse.Button.Text}" onclick="controller.browseTable();"/>
+                </hbox>
+              </row>
+            </rows>
+          </grid>
+        </groupbox>
+      </vbox>
+      <pen:include src="advanced-mode.xul"/>
+    </deck>
+    <pen:include src="button-bar.xul"/>
+  </vbox>
+</dialog>
+</window>

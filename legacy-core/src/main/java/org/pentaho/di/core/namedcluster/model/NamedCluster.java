@@ -54,7 +54,6 @@ public class NamedCluster implements Cloneable, VariableSpace {
 
   @MetaStoreAttribute
   private String storageScheme;
-
   @MetaStoreAttribute
   private String hdfsHost;
   @MetaStoreAttribute

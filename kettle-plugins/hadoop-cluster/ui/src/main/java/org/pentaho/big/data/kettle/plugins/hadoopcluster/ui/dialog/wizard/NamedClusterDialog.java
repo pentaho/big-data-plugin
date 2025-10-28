@@ -15,7 +15,7 @@ package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-//import org.pentaho.big.data.impl.cluster.NamedClusterManager;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages.ClusterSettingsPage;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages.KerberosSettingsPage;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages.KnoxSettingsPage;
@@ -24,7 +24,6 @@ import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages.
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages.TestResultsPage;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.BadSiteFilesException;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.CustomWizardDialog;
-import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.CachedFileItemStream;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClusterManager;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
 import org.pentaho.big.data.plugins.common.ui.ClusterTestDialog;
@@ -56,7 +55,6 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages.SecuritySettingsPage.NamedClusterSecurityType.NONE;
-import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.processSiteFiles;
 
 /*
  * To run this dialog as stand alone for development purposes under UBUNTU do the following:
@@ -121,6 +119,10 @@ public class NamedClusterDialog extends Wizard {
     return isConnectedToRepo;
   }
 
+  public String getShimIdentifier() {
+    return hadoopClusterManager.getShimIdentifier();
+  }
+
   private ThinNameClusterModel createModel( ThinNameClusterModel model ) {
     boolean isCreatingCluster = false;
     if ( model == null ) {
@@ -128,8 +130,7 @@ public class NamedClusterDialog extends Wizard {
       isCreatingCluster = true;
     }
     model.setName( model.getName() == null ? "" : model.getName() );
-    model.setShimVendor( model.getShimVendor() == null ? "" : model.getShimVendor() );
-    model.setShimVersion( model.getShimVersion() == null ? "" : model.getShimVersion() );
+    model.setShimIdentifier( model.getShimIdentifier() == null ? "" : model.getShimIdentifier() );
     model.setHdfsHost( model.getHdfsHost() == null ? "" : model.getHdfsHost() );
     model.setHdfsPort( model.getHdfsPort() == null && isCreatingCluster? "8020" : model.getHdfsPort() == null ? "" : model.getHdfsPort() );
     model.setHdfsUsername( model.getHdfsUsername() == null ? "" : model.getHdfsUsername() );
@@ -225,6 +226,12 @@ public class NamedClusterDialog extends Wizard {
 
   public boolean performFinish() {
     boolean finish = false;
+    // We are about to either create or edit hadoop cluster. Send shim identifier to the currently loaded driver
+    String shimIdentifier = getShimIdentifier();
+    if ( shimIdentifier != null ) {
+      thinNameClusterModel.setShimIdentifier( shimIdentifier );
+    }
+
     String currentPage = super.getContainer().getCurrentPage().getName();
     if ( reportPage != null && !currentPage.equals( reportPage.getClass().getSimpleName() ) &&
       !currentPage.equals( testResultsPage.getClass().getSimpleName() ) ) {
@@ -328,7 +335,6 @@ public class NamedClusterDialog extends Wizard {
     return isEditMode;
   }
 
-  /*
   public static void main( String[] args ) {
     try {
       PluginRegistry.addPluginType( TwoWayPasswordEncoderPluginType.getInstance() );
@@ -348,5 +354,4 @@ public class NamedClusterDialog extends Wizard {
       log.logError( e.getMessage() );
     }
   }
-  */
 }

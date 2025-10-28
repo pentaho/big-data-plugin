@@ -6,10 +6,6 @@
   </formats>
   <fileSets>
     <fileSet>
-      <directory>target/dependencies/karaf</directory>
-      <outputDirectory>system/karaf</outputDirectory>
-    </fileSet>
-    <fileSet>
       <directory>target/classes</directory>
       <outputDirectory>.</outputDirectory>
     </fileSet>
@@ -111,13 +107,11 @@
         <include>net.java.dev.javacc:javacc</include>
         <include>net.sf.ehcache:ehcache-core</include>
         <include>net.sf.saxon:Saxon-HE</include>
+        <include>org.xmlresolver:xmlresolver</include>
         <include>net.sf.scannotation:scannotation</include>
         <include>ognl:ognl</include>
         <include>org.antlr:antlr-complete</include>
         <include>org.apache.commons:commons-compress</include>
-        <include>org.apache.karaf:org.apache.karaf.main</include>
-        <include>org.apache.karaf.jaas:org.apache.karaf.jaas.boot</include>
-        <include>org.apache.karaf.diagnostic:org.apache.karaf.diagnostic.boot</include>
         <include>org.apache.poi:poi</include>
         <include>org.apache.poi:poi-ooxml</include>
         <include>org.apache.poi:poi-ooxml-schemas</include>
@@ -201,24 +195,20 @@
         <include>org.pentaho.reporting.library:libserializer</include>
         <include>org.pentaho.reporting.library:libswing</include>
         <include>org.pentaho.reporting.library:libxml</include>
-        <include>pentaho:pdi-osgi-bridge-core</include>
-        <include>org.osgi:osgi.core</include>
         <include>pentaho:pentaho-platform-api</include>
         <include>pentaho:pentaho-platform-core</include>
         <include>pentaho:pentaho-platform-extensions</include>
         <include>pentaho:pentaho-xul-core</include>
         <include>pentaho:metastore</include>
         <include>pentaho:mondrian</include>
-        <include>pentaho:pentaho-capability-manager</include>
         <include>org.pentaho:commons-database-model</include>
         <include>org.pentaho:pentaho-metadata</include>
-        <include>pentaho:pentaho-osgi-utils-api</include>
+        <include>org.pentaho:shim-api</include>
         <include>org.pentaho:shim-api-core</include>
         <include>org.pentaho:pentaho-registry</include>
         <include>pentaho:simple-jndi</include>
         <include>org.pentaho:pentaho-encryption-support</include>
         <include>org.pentaho.reporting.engine:classic-core</include>
-        <include>pentaho:pentaho-service-coordinator</include>
         <include>org.mozilla:rhino</include>
         <include>com.wcohen:com.wcohen.secondstring</include>
         <include>stax:stax</include>
@@ -237,6 +227,10 @@
         <include>org.apache.avro:avro-mapred</include>
         <include>org.pentaho.di.plugins:pentaho-metastore-locator-api</include>
         <include>org.pentaho.di.plugins:pentaho-kettle-repository-locator-api</include>
+        <include>pentaho:pentaho-authentication-mapper-api</include>
+        <include>pentaho:pentaho-authentication-mapper-impl</include>
+        <include>org.pentaho.hadoop.shims:pentaho-hadoop-shims-common-dependencies</include>
+        <include>org.pentaho.hadoop.shims:pentaho-hadoop-shims-common-base</include>
       </includes>
     </dependencySet>
   </dependencySets>

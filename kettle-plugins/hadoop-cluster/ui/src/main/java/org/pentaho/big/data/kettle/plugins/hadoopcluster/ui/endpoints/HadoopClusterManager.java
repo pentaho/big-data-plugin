@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.fileupload.FileItemStream;
+import org.apache.commons.fileupload2.core.FileItemInput;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -39,6 +39,7 @@ import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.pentaho.big.data.api.services.BigDataServicesHelper;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDialog;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.BadSiteFilesException;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper;
@@ -57,12 +58,10 @@ import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.spoon.Spoon;
-import org.pentaho.hadoop.shim.api.core.ShimIdentifierInterface;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
-import org.pentaho.platform.engine.core.system.PentahoSystem;
 import org.pentaho.runtime.test.RuntimeTest;
 import org.pentaho.runtime.test.RuntimeTestProgressCallback;
 import org.pentaho.runtime.test.RuntimeTestStatus;
@@ -96,16 +95,13 @@ import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 
 import static org.pentaho.big.data.impl.cluster.tests.Constants.HADOOP_FILE_SYSTEM;
 import static org.pentaho.big.data.impl.cluster.tests.Constants.OOZIE;
@@ -117,7 +113,6 @@ import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel.NAME_KEY;
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.encodePassword;
 
-//HadoopClusterDelegateImpl
 public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
   private static final Class<?> PKG = HadoopClusterDialog.class;
@@ -197,9 +192,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   private static final String KEYTAB_IMPERSONATION_LOCATION =
     "pentaho.authentication.default.mapping.server.credentials.kerberos.keytabLocation";
 
-  @VisibleForTesting Supplier<List<ShimIdentifierInterface>> shimIdentifiersSupplier =
-    () -> PentahoSystem.getAll( ShimIdentifierInterface.class );
-
   private final Spoon spoon;
   private final NamedClusterService namedClusterService;
   private final IMetaStore metaStore;
@@ -213,6 +205,11 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     this.metaStore = metaStore != null ? metaStore : spoon.getMetaStore();
     this.variableSpace = spoon == null ? new Variables() : (AbstractMeta) spoon.getActiveMeta();
     this.internalShim = internalShim;
+  }
+
+  public HadoopClusterManager( NamedClusterService namedClusterService, IMetaStore metaStore,
+                               String internalShim ) {
+    this( null, namedClusterService, metaStore, internalShim);
   }
 
   public JSONObject importNamedCluster( ThinNameClusterModel model,
@@ -232,8 +229,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       nc.setName( model.getName() );
       nc.setHdfsUsername( model.getHdfsUsername() );
       nc.setHdfsPassword( encodePassword( model.getHdfsPassword() ) );
-      if (MAPR_SHIM.equals(model.getShimVendor()))
-        nc.setStorageScheme(MAPRFS_SCHEME);
       if ( variableSpace != null ) {
         nc.shareVariablesWith( variableSpace );
       } else {
@@ -241,7 +236,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       }
 
       boolean isConfigurationSet =
-        configureNamedCluster( siteFilesSource, nc, model.getShimVendor(), model.getShimVersion() );
+        configureNamedCluster( siteFilesSource, nc);
       if ( isConfigurationSet ) {
         deleteNamedClusterSchemaOnly( model );
         setupKnoxSecurity( nc, model );
@@ -281,9 +276,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     nc.setZooKeeperPort( model.getZooKeeperPort() );
     nc.setOozieUrl( model.getOozieUrl() );
     nc.setKafkaBootstrapServers( model.getKafkaBootstrapServers() );
-    resolveShimIdentifier( nc, model.getShimVendor(), model.getShimVersion() );
-    if (MAPR_SHIM.equals(model.getShimVendor()))
-      nc.setStorageScheme(MAPRFS_SCHEME);
+    resolveShimIdentifier( nc );
     setupKnoxSecurity( nc, model );
     if ( variableSpace != null ) {
       nc.shareVariablesWith( variableSpace );
@@ -340,13 +333,13 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       final NamedCluster newNc = namedClusterService.getNamedClusterByName( model.getName(), metaStore );
       final NamedCluster oldNc = namedClusterService.getNamedClusterByName( model.getOldName(), metaStore );
       // Must get the current shim identifier before the creation of the Named Cluster xml schema for later comparison.
+
       String shimId = null;
       List<NamedClusterSiteFile> existingSiteFiles = new ArrayList<>();
       if ( oldNc != null ) {
         shimId = oldNc.getShimIdentifier();
         existingSiteFiles = oldNc.getSiteFiles();
       }
-
       NamedCluster nc = convertToNamedCluster( model );
       nc.setSiteFiles( getIntersectionSiteFiles( model, existingSiteFiles ) );
       installSiteFiles( siteFilesSource, nc );
@@ -413,6 +406,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         if ( nc.getName().equalsIgnoreCase( namedCluster ) ) {
           model = new ThinNameClusterModel();
           model.setName( nc.getName() );
+          model.setShimIdentifier( nc.getShimIdentifier());
           model.setHdfsHost( nc.getHdfsHost() );
           model.setHdfsUsername( nc.getHdfsUsername() );
           model.setHdfsPassword( nc.getHdfsPassword() );
@@ -423,8 +417,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           model.setOozieUrl( nc.getOozieUrl() );
           model.setZooKeeperPort( nc.getZooKeeperPort() );
           model.setZooKeeperHost( nc.getZooKeeperHost() );
-          resolveShimVendorAndVersion( model, nc.getShimIdentifier() );
-          model.setGatewayPassword(  nc.getGatewayPassword() );
+          model.setGatewayPassword( nc.getGatewayPassword() );
           String gatewayURL = nc.getGatewayUrl();
           if( gatewayURL != null && !gatewayURL.startsWith( "Encrypted" )) {
             gatewayURL = encodePassword( gatewayURL );
@@ -449,9 +442,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     return model;
   }
 
-  private boolean configureNamedCluster( Map<String, CachedFileItemStream> siteFilesSource, NamedCluster nc,
-                                         String shimVendor, String shimVersion ) {
-    resolveShimIdentifier( nc, shimVendor, shimVersion );
+  private boolean configureNamedCluster( Map<String, CachedFileItemStream> siteFilesSource, NamedCluster nc ) {
+    resolveShimIdentifier( nc );
 
     String oozieBaseUrl = "oozie.base.url";
     Map<String, String> properties = new HashMap();
@@ -544,22 +536,10 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     return isConfigurationSet;
   }
 
-  private void resolveShimIdentifier( NamedCluster nc, String shimVendor, String shimVersion ) {
-    List<ShimIdentifierInterface> shims = getShimIdentifiers();
-    for ( ShimIdentifierInterface shim : shims ) {
-      if ( shim.getVendor().equals( shimVendor ) && shim.getVersion().equals( shimVersion ) ) {
-        nc.setShimIdentifier( shim.getId() );
-      }
-    }
-  }
-
-  private void resolveShimVendorAndVersion( ThinNameClusterModel model, String shimIdentifier ) {
-    List<ShimIdentifierInterface> shims = getShimIdentifiers();
-    for ( ShimIdentifierInterface shim : shims ) {
-      if ( shim.getId().equals( shimIdentifier ) ) {
-        model.setShimVersion( shim.getVersion() );
-        model.setShimVendor( shim.getVendor() );
-      }
+  private void resolveShimIdentifier( NamedCluster nc ) {
+    String shimIdentifier = getShimIdentifier();
+    if( shimIdentifier != null ) {
+      nc.setShimIdentifier( shimIdentifier );
     }
   }
 
@@ -589,12 +569,12 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  public JSONObject installDriver( FileItemStream driver ) {
+  public JSONObject installDriver( FileItemInput driver ) {
     boolean success = false;
     if ( driver != null ) {
       String destination = Const.getShimDriverDeploymentLocation();
 
-      try ( final InputStream driverStream = driver.openStream() ) {
+      try ( final InputStream driverStream = driver.getInputStream() ) {
         FileUtils.copyInputStreamToFile( driverStream,
           new File( destination + fileSeparator + driver.getFieldName() ) );
         success = true;
@@ -794,7 +774,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         model.setKerberosAuthenticationUsername( (String) config.getProperty( KERBEROS_AUTHENTICATION_USERNAME ) );
         model.setKerberosAuthenticationPassword( (String) config.getProperty( KERBEROS_AUTHENTICATION_PASS ) );
         model.setKerberosImpersonationUsername( (String) config.getProperty( KERBEROS_IMPERSONATION_USERNAME ) );
-        model.setKerberosImpersonationPassword( (String) config.getProperty( KERBEROS_IMPERSONATION_PASS )  );
+        model.setKerberosImpersonationPassword( (String) config.getProperty( KERBEROS_IMPERSONATION_PASS ) );
         String keytabAuthenticationLocation = (String) config.getProperty( KEYTAB_AUTHENTICATION_LOCATION );
         String keytabImpersonationLocation = (String) config.getProperty( KEYTAB_IMPERSONATION_LOCATION );
 
@@ -1012,13 +992,21 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  /**
-   * @return shim identifiers, excluding the internal shim, which should not be exposed to the cluster ui.
-   */
-  List<ShimIdentifierInterface> getShimIdentifiers() {
-    List<ShimIdentifierInterface> shims = shimIdentifiersSupplier.get();
-    shims.sort( Comparator.comparing( ShimIdentifierInterface::getVendor ) );
-    return shims;
+  public String getShimIdentifier() {
+    String shimIdentifier = null;
+    if ( isConnectedToRepo() ) {
+      String endpointURL = NamedClusterHelper.getEndpointURL( "getShimIdentifier" );
+      String result = doGet( endpointURL );
+      ObjectMapper mapper = new ObjectMapper();
+      try {
+        return mapper.readValue( result, String.class );
+      } catch ( Exception e ) {
+        log.logError( e.getMessage() );
+      }
+    } else {
+      shimIdentifier = BigDataServicesHelper.getShimIdentifier();
+    }
+    return shimIdentifier;
   }
 
   public NamedCluster getNamedClusterByName( String namedCluster) {

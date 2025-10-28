@@ -8,11 +8,11 @@
     <version>11.0.0.0-SNAPSHOT</version>
   </parent>
   <groupId>pentaho</groupId>
-  <artifactId>pentaho-big-data-bundles</artifactId>
+  <artifactId>pentaho-big-data-parent</artifactId>
   <version>11.0.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
-  <description>Parent project for Pentaho OSGI Bundles</description>
+  <description>Parent project for Pentaho Big Data Plugin</description>
   <url>http://www.pentaho.com</url>
   <licenses>
     <license>
@@ -61,8 +61,6 @@
     <plugin.org.apache.maven.plugins.maven-failsafe-plugin.version>2.17</plugin.org.apache.maven.plugins.maven-failsafe-plugin.version>
     <dependency.junit.revision>4.13.2</dependency.junit.revision>
     <dependency.maven-bundle-plugin.version>2.4.0</dependency.maven-bundle-plugin.version>
-    <pentaho-osgi-bundles.version>11.0.0.0-SNAPSHOT</pentaho-osgi-bundles.version>
-    <pdi-osgi-bridge.version>11.0.0.0-SNAPSHOT</pdi-osgi-bridge.version>
     <dependency.jline.revision>0.9.94</dependency.jline.revision>
     <dependency.xmlpull.revision>1.1.3.1</dependency.xmlpull.revision>
     <dependency.bean-matchers.revision>0.9</dependency.bean-matchers.revision>
@@ -76,6 +74,8 @@
     <thoughtworks.paranamer.version>2.7</thoughtworks.paranamer.version>
     <dependency.commons-httpclient.revision>3.1</dependency.commons-httpclient.revision>
     <mockito.version>5.10.0</mockito.version>
+    <hamcrest.version>1.3</hamcrest.version>
+    <mockito-inline.version>5.2.0</mockito-inline.version>
     <maven-surefire-plugin.argLine> --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED </maven-surefire-plugin.argLine>
   </properties>
 
@@ -119,7 +119,7 @@
         <module>legacy</module>
         <module>api</module>
         <module>impl</module>
-        <module>s3-vfs</module>
+        <module>authentication-mapper</module>
       </modules>
     </profile>
     <profile>
@@ -132,6 +132,17 @@
       <modules>
         <module>legacy-amazon</module>
         <module>kettle-plugins</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>bootstrap</id>
+      <activation>
+        <property>
+          <name>!skipDefault</name>
+        </property>
+      </activation>
+      <modules>
+        <module>services-bootstrap</module>
       </modules>
     </profile>
     <profile>

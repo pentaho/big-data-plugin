@@ -25,10 +25,10 @@
     <dependency.javax.ws.rs-api.version>2.0</dependency.javax.ws.rs-api.version>
     <dependency.osgi.version>4.3.1</dependency.osgi.version>
     <version.for.license>${project.version}</version.for.license>
-    <pentaho-osgi-bundles.version>11.0.0.0-SNAPSHOT</pentaho-osgi-bundles.version>
     <platform.version>11.0.0.0-SNAPSHOT</platform.version>
     <cxf.karaf.version>3.0.13</cxf.karaf.version>
     <swt.version>4.6</swt.version>
+    <jface.version>3.34.0</jface.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -36,19 +36,19 @@
         <groupId>pentaho-kettle</groupId>
         <artifactId>kettle-core</artifactId>
         <version>${pdi.version}</version>
-        <scope>provided</scope>
+        <scope>provided</scope><!--FOR UI EXECUTION AS A STANDALONE (comment scope)-->
       </dependency>
       <dependency>
         <groupId>pentaho-kettle</groupId>
         <artifactId>kettle-ui-swt</artifactId>
         <version>${pdi.version}</version>
-        <scope>provided</scope>
+        <scope>provided</scope><!--FOR UI EXECUTION AS A STANDALONE (comment scope)-->
       </dependency>
       <dependency>
         <groupId>pentaho-kettle</groupId>
         <artifactId>kettle-engine</artifactId>
         <version>${pdi.version}</version>
-        <scope>provided</scope>
+        <scope>provided</scope><!--FOR UI EXECUTION AS A STANDALONE (comment scope)-->
       </dependency>
       <dependency>
         <groupId>pentaho</groupId>
@@ -60,30 +60,6 @@
         <groupId>pentaho</groupId>
         <artifactId>pentaho-platform-extensions</artifactId>
         <version>${platform.version}</version>
-        <scope>provided</scope>
-        <exclusions>
-          <exclusion>
-            <artifactId>*</artifactId>
-            <groupId>*</groupId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>pentaho</groupId>
-        <artifactId>pentaho-i18n-bundle</artifactId>
-        <version>${pentaho-osgi-bundles.version}</version>
-        <scope>provided</scope>
-        <exclusions>
-          <exclusion>
-            <artifactId>*</artifactId>
-            <groupId>*</groupId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>pentaho</groupId>
-        <artifactId>pentaho-i18n-webservice-bundle</artifactId>
-        <version>${pentaho-osgi-bundles.version}</version>
         <scope>provided</scope>
         <exclusions>
           <exclusion>
@@ -108,6 +84,12 @@
         <groupId>org.eclipse.swt</groupId>
         <artifactId>org.eclipse.swt.gtk.linux.x86_64</artifactId>
         <version>${swt.version}</version>
+        <!--scope>provided</scope--><!--FOR UI EXECUTION AS A STANDALONE (comment scope)-->
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.platform</groupId>
+        <artifactId>org.eclipse.jface</artifactId>
+        <version>${jface.version}</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
@@ -117,41 +99,4 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
-  <build>
-    <resources>
-      <resource>
-        <filtering>false</filtering>
-        <directory>src/main/resources</directory>
-        <includes>
-          <include>**/*</include>
-        </includes>
-        <excludes>
-          <exclude>META-INF/**/*</exclude>
-        </excludes>
-      </resource>
-      <resource>
-        <filtering>true</filtering>
-        <directory>src/main/resources</directory>
-        <includes>
-          <include>META-INF/**/*</include>
-        </includes>
-      </resource>
-    </resources>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.felix</groupId>
-          <artifactId>maven-bundle-plugin</artifactId>
-          <version>${maven-bundle-plugin.version}</version>
-          <extensions>true</extensions>
-          <configuration>
-            <instructions>
-              <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-              <Bundle-Version>${project.version}</Bundle-Version>
-            </instructions>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-  </build>
 </project>

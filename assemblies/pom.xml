@@ -4,39 +4,78 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>pentaho</groupId>
-    <artifactId>pentaho-big-data-bundles</artifactId>
+    <artifactId>pentaho-big-data-parent</artifactId>
     <version>11.0.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>pentaho-big-data-assemblies</artifactId>
   <version>11.0.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
+
+  <modules>
+    <module>samples</module>
+    <module>pmr-libraries</module>
+    <!-- pentaho-big-data-plugin must be last since it depends on samples and pmr-libraries -->
+    <module>pentaho-big-data-plugin</module>
+  </modules>
+
+  <build>
+    <plugins>
+      <!-- Ensure proper build order and validate Maven/Java versions -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+          <execution>
+            <id>enforce-versions</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>[3.6.0,)</version>
+                </requireMavenVersion>
+                <requireJavaVersion>
+                  <version>[11,)</version>
+                </requireJavaVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
   <profiles>
+    <!-- Profile to skip tests during assembly builds -->
     <profile>
-      <id>featuresOnly</id>
+      <id>assembly-skip-tests</id>
       <activation>
         <property>
-          <name>!assemblyOnly</name>
+          <name>skipTests</name>
+          <value>true</value>
         </property>
       </activation>
+      <properties>
+        <maven.test.skip>true</maven.test.skip>
+      </properties>
+    </profile>
+
+    <!-- Profile to build only pentaho-big-data-plugin assembly -->
+    <profile>
+      <id>plugin-only</id>
       <modules>
-        <module>features</module>
+        <module>pentaho-big-data-plugin</module>
       </modules>
     </profile>
+    <!-- Profile to build only pentaho-big-data-plugin assembly -->
     <profile>
-      <id>assemblyOnly</id>
-      <activation>
-        <property>
-          <name>!featuresOnly</name>
-        </property>
-      </activation>
+      <id>non-big-data-plugin</id>
       <modules>
         <module>samples</module>
         <module>pmr-libraries</module>
-        <module>legacy-plugin</module>
-        <module>s3-vfs</module>
-        <module>kafka-plugin</module>
       </modules>
     </profile>
-
   </profiles>
 </project>

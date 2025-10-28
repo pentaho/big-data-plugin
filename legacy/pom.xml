@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>pentaho</groupId>
-    <artifactId>pentaho-big-data-bundles</artifactId>
+    <artifactId>pentaho-big-data-parent</artifactId>
     <version>11.0.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>pentaho-big-data-legacy</artifactId>
@@ -31,9 +31,13 @@
     <high-scale-lib.version>1.1.2</high-scale-lib.version>
     <jline.version>0.9.94</jline.version>
     <easymock.version>3.0</easymock.version>
-    <mockito-core.version>5.17.0</mockito-core.version>
   </properties>
   <dependencies>
+    <dependency>
+      <groupId>org.pentaho.hadoop.shims</groupId>
+      <artifactId>pentaho-hadoop-shims-common-base</artifactId>
+      <version>${pentaho-hadoop-shims.version}</version>
+    </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-legacy-core</artifactId>
@@ -208,7 +212,7 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>${mockito-core.version}</version>
+      <version>${mockito.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -268,6 +272,11 @@
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
+      <artifactId>shim-api-core</artifactId>
+      <version>${pentaho-hadoop-shims.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.pentaho</groupId>
       <artifactId>shim-api</artifactId>
       <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
@@ -276,6 +285,12 @@
       <artifactId>kettle-core</artifactId>
       <version>${pdi.version}</version>
       <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-annotations</artifactId>
+      <version>3.4.1</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

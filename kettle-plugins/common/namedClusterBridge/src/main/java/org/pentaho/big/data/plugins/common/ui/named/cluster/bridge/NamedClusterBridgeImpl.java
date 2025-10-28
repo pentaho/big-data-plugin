@@ -78,6 +78,7 @@ public class NamedClusterBridgeImpl implements NamedCluster {
     delegate.setName( nc.getName() );
     delegate.setShimIdentifier( nc.getShimIdentifier() );
     delegate.setHdfsHost( nc.getHdfsHost() );
+    delegate.setHdfsHost( nc.getHdfsHost() );
     delegate.setHdfsPort( nc.getHdfsPort() );
     delegate.setHdfsUsername( nc.getHdfsUsername() );
     delegate.setHdfsPassword( nc.getHdfsPassword() );

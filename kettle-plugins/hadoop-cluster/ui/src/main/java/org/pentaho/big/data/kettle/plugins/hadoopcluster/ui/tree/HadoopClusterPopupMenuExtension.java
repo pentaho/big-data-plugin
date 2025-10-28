@@ -21,6 +21,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Tree;
+import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDelegate;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClusterManager;
 import org.pentaho.di.core.extension.ExtensionPoint;
@@ -33,6 +34,8 @@ import org.pentaho.di.ui.core.ConstUI;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.spoon.TreeSelection;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.runtime.test.RuntimeTester;
+import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +57,6 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
   public static final String IMPORT_STATE = "import";
   public static final String NEW_EDIT_STATE = "new-edit";
   public static final String TESTING_STATE = "testing";
-  public static final String ADD_DRIVER_STATE = "add-driver";
   public static final String DELETE_STATE = "delete";
   private static final int RESULT_YES = 0;
 
@@ -66,6 +68,16 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
   private String internalShim;
   private static final Logger logChannel = LoggerFactory.getLogger( HadoopClusterPopupMenuExtension.class );
   private NamedCluster lastNamedCluster;
+  private RuntimeTester runtimeTester = RuntimeTesterImpl.getInstance();
+  private HadoopClusterManager hadoopClusterManager;
+
+  public HadoopClusterPopupMenuExtension() {
+    this.namedClusterService = NamedClusterManager.getInstance();
+    this.hadoopClusterDelegate = new HadoopClusterDelegate( this.namedClusterService, runtimeTester );
+    this.internalShim = "";
+    this.hadoopClusterManager =
+      new HadoopClusterManager( spoonSupplier.get(), namedClusterService, spoonSupplier.get().getMetaStore(), internalShim );
+  }
 
   public HadoopClusterPopupMenuExtension( HadoopClusterDelegate hadoopClusterDelegate,
                                           NamedClusterService namedClusterService, String internalShim ) {
@@ -114,8 +126,6 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
         NEW_EDIT_STATE );
       createPopupMenuItem( rootMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Import" ),
         IMPORT_STATE );
-      createPopupMenuItem( rootMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Add.Driver" ),
-        ADD_DRIVER_STATE );
     }
     return rootMenu;
   }
@@ -169,8 +179,6 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
       @Override
       public void widgetSelected( SelectionEvent selectionEvent ) {
         hadoopClusterDelegate.openDialog( state, urlParams );
-
-
       }
     } );
   }
@@ -199,10 +207,6 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
           if ( response != RESULT_YES ) {
             return;
           }
-          HadoopClusterManager hadoopClusterManager =
-            new HadoopClusterManager( spoonSupplier.get(), namedClusterService,
-              spoonSupplier.get().getMetaStore(),
-              internalShim );
           hadoopClusterManager.deleteNamedCluster( spoonSupplier.get().getMetaStore(), nCluster, true );
         } catch ( UnsupportedEncodingException e ) {
           logChannel.error( e.getMessage() );
@@ -212,4 +216,3 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
   }
 
 }
-

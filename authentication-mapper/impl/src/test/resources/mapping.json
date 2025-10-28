@@ -1,0 +1,15 @@
+{
+  "cluster_security_mapping_configuration": {
+    "default": {
+      "pentaho_server_credentials": {
+        "kerberos": {
+          "principal": "oozie@PENTAHOQA.COM",
+          "keytab": "/home/bryan/platform-codebase/kerb-integration-2/7.0-SNAPSHOT-218/data-integration-server/oozie.keytab"
+        }
+      },
+      "user_impersonation_mapping": {
+        "type": "simple_mapping"
+      }
+    }
+  }
+}

@@ -24,7 +24,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.TableItem;
 import org.pentaho.di.core.exception.KettleStepException;
-import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.util.StringUtil;
@@ -34,6 +33,7 @@ import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.ui.core.widget.ComboVar;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.metastore.locator.api.MetastoreLocator;
 
 import java.io.File;
@@ -53,7 +53,7 @@ public class KafkaDialogHelper {
   protected Button wbCluster;
   protected TextVar wBootstrapServers;
   private KafkaFactory kafkaFactory;
-  private NamedClusterManager namedClusterService;
+  private NamedClusterService namedClusterService;
   private MetastoreLocator metastoreLocator;
   //private NamedClusterServiceLocator namedClusterServiceLocator;
   protected TableView optionsTable;
@@ -65,7 +65,7 @@ public class KafkaDialogHelper {
   // less parameters in the constructor
   @SuppressWarnings( "squid:S00107" )
   public KafkaDialogHelper( ComboVar wClusterName, ComboVar wTopic, Button wbCluster, TextVar wBootstrapServers,
-                            KafkaFactory kafkaFactory, NamedClusterManager namedClusterService, MetastoreLocator metastoreLocator,
+                            KafkaFactory kafkaFactory, NamedClusterService namedClusterService, MetastoreLocator metastoreLocator,
                             TableView optionsTable, StepMeta parentMeta ) {
     this.wClusterName = wClusterName;
     this.wTopic = wTopic;
@@ -180,13 +180,5 @@ public class KafkaDialogHelper {
       }
     }
     return advancedConfig;
-  }
-
-  public static boolean isKarafEnabled() {
-    String karafHome = System.getProperty( "karaf.home" );
-    if ( null != karafHome && !karafHome.isEmpty() ) {
-      return (new File( karafHome )).exists();
-    }
-    return false;
   }
 }

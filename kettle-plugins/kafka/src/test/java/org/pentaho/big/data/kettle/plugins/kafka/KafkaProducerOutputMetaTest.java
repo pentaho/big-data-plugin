@@ -22,14 +22,14 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.attributes.metastore.EmbeddedMetaStore;
 import org.pentaho.di.core.logging.KettleLogStore;
-import org.pentaho.di.core.namedcluster.NamedClusterManager;
-import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.repository.StringObjectId;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.steps.named.cluster.NamedClusterEmbedManager;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.locator.api.MetastoreLocator;
 import org.w3c.dom.Node;
@@ -65,7 +65,7 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.
 public class KafkaProducerOutputMetaTest {
   @Mock IMetaStore metastore;
   @Mock Repository rep;
-  @Mock NamedClusterManager namedClusterService;
+  @Mock NamedClusterService namedClusterService;
   @Mock MetastoreLocator metastoreLocator;
 
   @Before
@@ -241,7 +241,7 @@ public class KafkaProducerOutputMetaTest {
     NamedCluster namedCluster = mock( NamedCluster.class );
     when( namedCluster.getKafkaBootstrapServers() ).thenReturn( "server:11111" );
 
-    NamedClusterManager namedClusterService = mock( NamedClusterManager.class );
+    NamedClusterService namedClusterService = mock( NamedClusterService.class );
     when( namedClusterService.getNamedClusterByName( eq( "my_cluster" ), nullable( IMetaStore.class ) ) )
         .thenReturn( namedCluster );
 
@@ -270,7 +270,7 @@ public class KafkaProducerOutputMetaTest {
     when( namedCluster.getKafkaBootstrapServers() ).thenReturn( "server:11111" );
 
     EmbeddedMetaStore embeddedMetaStore = mock( EmbeddedMetaStore.class );
-    NamedClusterManager namedClusterService = mock( NamedClusterManager.class );
+    NamedClusterService namedClusterService = mock( NamedClusterService.class );
     when( namedClusterService.getNamedClusterByName( "my_cluster", embeddedMetaStore ) )
       .thenReturn( namedCluster );
 

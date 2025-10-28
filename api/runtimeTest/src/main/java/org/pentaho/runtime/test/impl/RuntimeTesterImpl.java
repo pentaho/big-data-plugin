@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by bryan on 8/12/15.
@@ -31,10 +32,19 @@ public class RuntimeTesterImpl implements RuntimeTester {
   private final ExecutorService executorService;
   private final RuntimeTestRunner.Factory runtimeTestRunnerFactory;
   private RuntimeTestComparator runtimeTestComparator;
+  private static RuntimeTesterImpl instance;
 
   public RuntimeTesterImpl( List<RuntimeTest> runtimeTests, ExecutorService executorService,
                             String orderedModulesString ) {
     this( runtimeTests, executorService, orderedModulesString, new RuntimeTestRunner.Factory() );
+  }
+
+  public static RuntimeTester getInstance(){
+    if ( instance == null ) {
+      List<RuntimeTest> runtimeTests = new ArrayList<>();
+      instance = new RuntimeTesterImpl( runtimeTests, Executors.newCachedThreadPool(), "Hadoop Configuration,Hadoop File System,Map Reduce,Oozie,Zookeeper" );
+    }
+    return instance;
   }
 
   public RuntimeTesterImpl( List<RuntimeTest> runtimeTests, ExecutorService executorService,
@@ -61,5 +71,9 @@ public class RuntimeTesterImpl implements RuntimeTester {
           .runTests();
       }
     } );
+  }
+
+  public void addRuntimeTest( RuntimeTest test ) {
+    this.runtimeTests.add( test );
   }
 }

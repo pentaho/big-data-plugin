@@ -1,0 +1,224 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<window id="hadoop-window-wrapper">
+
+<dialog id="job-entry-dialog"
+	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+	xmlns:pen="http://www.pentaho.org/2008/xul"
+	title="${JobEntryDialog.Title}"
+	resizable="true"
+	height="600" width="650"
+	appicon="ui/images/spoon.ico"
+	buttons="">
+
+	<vbox>
+		<grid>
+			<columns>
+				<column/>
+				<column flex="1"/>
+			</columns>
+			<rows>
+				<row>
+					<label value="${JobEntry.Name.Label}"/>
+					<textbox id="jobentry-name" flex="1" multiline="false"/>
+				</row>
+				<row>
+					<label value="${JobEntryHadoopJobExecutor.Name.Label}" />
+					<textbox pen:customclass="variabletextbox" id="jobentry-hadoopjob-name" flex="1" multiline="false"/>
+				</row>
+				<row>
+					<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.Label}" width="200"/>
+					<grid>
+						<columns>
+							<column/>
+							<column/>
+							<column/>
+						</columns>
+						<rows>
+							<row>
+								<menulist id="named-clusters" pen:binding="name">
+									<menupopup>
+									</menupopup>
+								</menulist>
+								<button id="editNamedCluster" label="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.Edit}" onclick="jobEntryController.editNamedCluster()"/>
+								<button id="newNamedCluster" label="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.New}" onclick="jobEntryController.newNamedCluster()"/>
+							</row>
+						</rows>
+					</grid>
+				</row>
+				<row>
+					<label value="${JobEntryHadoopJobExecutor.JarUrl.Label}" />
+					<hbox>
+						<textbox pen:customclass="variabletextbox" id="jar-url" flex="1" width="400" multiline="false" />
+						<button id="browseJarUrl" label="${JobEntryHadoopJobExecutor.JarUrl.Browse}" onclick="jobEntryController.browseJar()"/>
+					</hbox>
+				</row>
+                <row>
+                    <label value="${JobEntryHadoopJobExecutor.Driver.Class.Label}" />
+                    <menulist pen:customclass="variablemenulist" id="driver-class" editable="true" flex="1">
+                        <menupopup>
+                        </menupopup>
+                    </menulist>
+                </row>
+			</rows>
+		</grid>
+
+		<groupbox>
+			<caption label="${JobEntryHadoopJobExecutor.Configuration.Label}"/>
+			<hbox>
+			  <radio id="simpleRadioButton" label="${JobEntryHadoopJobExecutor.ModeSimple.Label}" command="jobEntryController.setSimple(true)" selected="true" />
+			  <radio id="advancedRadioButton" label="${JobEntryHadoopJobExecutor.ModeAdvanced.Label}" command="jobEntryController.setSimple(false)" />
+			</hbox>
+			<vbox id="content-pane" />
+		</groupbox>
+	</vbox>
+
+	<vbox id="simple-configuration" flex="1" hidden="true">
+	 <grid>
+	   <columns>
+	     <column />
+	     <column flex="1" />
+     </columns>
+	   <rows>
+	     <row>
+        <label value="${JobEntryHadoopJobExecutor.ModeSimple.CommandLineArguments.Label}"/>
+        <textbox pen:customclass="variabletextbox" id="command-line-arguments" flex="1" multiline="false"/>
+	     </row>
+	     <row>
+        <label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Blocking.Label}" />
+        <checkbox id="simple-blocking" flex="1" command="jobEntryController.invertSimpleBlocking()"/>
+	     </row>
+	     <row>
+        <label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Logging.Interval.Label}" />
+        <textbox pen:customclass="variabletextbox" id="simple-logging-interval" width="80" flex="1" multiline="false"/>
+	     </row>
+     </rows>
+   </grid>
+	</vbox>
+
+	<vbox id="advanced-configuration" flex="1" hidden="true">
+		<tabbox flex="1">
+			<tabs>
+				<tab label="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Classes.Label}"/>
+				<tab label="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.Label}"/>
+				<tab label="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.UserDefined.Label}"/>
+			</tabs>
+			<tabpanels>
+    			<tabpanel style="overflow: auto">
+    				<grid>
+    					<columns>
+    						<column />
+    						<column flex="1"/>
+    					</columns>
+    					<rows>
+    						<row>
+    							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Classes.OutputKeyClass.Label}" />
+    							<textbox pen:customclass="variabletextbox" id="classes-output-key-class" flex="1" multiline="false"/>
+    						</row>
+    						<row>
+    							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Classes.OutputValueClass.Label}" />
+    							<textbox pen:customclass="variabletextbox" id="classes-output-value-class" flex="1" multiline="false"/>
+    						</row>
+    						<row>
+    							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Classes.MapperClass.Label}" />
+    							<textbox pen:customclass="variabletextbox" id="classes-mapper-class" flex="1" multiline="false"/>
+    						</row>
+    						<row>
+    							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Classes.CombinerClass.Label}" />
+    							<textbox pen:customclass="variabletextbox" id="classes-combiner-class" flex="1" multiline="false"/>
+    						</row>
+    						<row>
+    							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Classes.ReducerClass.Label}" />
+    							<textbox pen:customclass="variabletextbox" id="classes-reducer-class" flex="1" multiline="false"/>
+    						</row>
+    						<row>
+    							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.InputPath.Label}" />
+    							<textbox pen:customclass="variabletextbox" id="input-path" flex="1" multiline="false"/>
+    						</row>
+    						<row>
+    							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.OutputPath.Label}" />
+    							<textbox pen:customclass="variabletextbox" id="output-path" flex="1" multiline="false"/>
+    						</row>
+    						<row>
+    							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Classes.InputFormat.Label}" />
+    							<textbox pen:customclass="variabletextbox" id="classes-input-format" flex="1" multiline="false"/>
+    						</row>
+    						<row>
+    							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Classes.OutputFormat.Label}" />
+    							<textbox pen:customclass="variabletextbox" id="classes-output-format" flex="1" multiline="false"/>
+    						</row>
+    					</rows>
+    				</grid>
+    			</tabpanel>
+    			<tabpanel>
+    				<grid>
+    					<columns>
+    						<column />
+    						<column flex="1"/>
+    					</columns>
+    					<rows>
+    						<row>
+    							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.NumMapTasks.Label}" />
+    							<textbox pen:customclass="variabletextbox" id="num-map-tasks" flex="1" multiline="false"/>
+    						</row>
+    						<row>
+    							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.NumReduceTasks.Label}" />
+    							<textbox pen:customclass="variabletextbox" id="num-reduce-tasks" flex="1" multiline="false"/>
+    						</row>
+    						<row>
+    							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Blocking.Label}" />
+    							<checkbox id="blocking" flex="1" command="jobEntryController.invertBlocking()"/>
+    						</row>
+    						<row>
+    							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Logging.Interval.Label}" />
+    							<textbox pen:customclass="variabletextbox" id="logging-interval" width="80" flex="1" multiline="false"/>
+    						</row>
+    					</rows>
+    				</grid>
+    			</tabpanel>
+    			<tabpanel>
+    				<tree id="fields-table" flex="1" hidecolumnpicker="true" autocreatenewrows="true" newitembinding="jobEntryController.newUserDefinedItem()">
+						<treecols>
+							<treecol id="name-col" editable="true" flex="1" label="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.UserDefined.NameColumn.Label}" pen:binding="name"/>
+							<treecol id="value-col" editable="true" flex="1" label="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.UserDefined.ValueColumn.Label}" pen:binding="value"/>
+						</treecols>
+						<treechildren />
+					</tree>
+    			</tabpanel>
+			</tabpanels>
+		</tabbox>
+	</vbox>
+
+	<vbox height="7"></vbox>
+
+	<hbox>
+		<hbox width="9"></hbox>
+		<separator padding="0" flex="1" orient="HORIZONTAL"/>
+		<hbox width="9"></hbox>
+	</hbox>
+
+	<vbox height="6"></vbox>
+
+	<hbox padding="0">
+		<hbox width="11"></hbox>
+		<button label="${Dialog.Help}" image="help_web.png" onclick="jobEntryController.help()"/>
+		<spacer flex="1"/>
+		<button label="${Dialog.Accept}" width="75" onclick="jobEntryController.accept()"/>
+		<hbox width="1"></hbox>
+		<button label="${Dialog.Cancel}" width="75" onclick="jobEntryController.cancel()"/>
+		<hbox width="11"></hbox>
+	</hbox>
+
+	<vbox padding="0" height="11"></vbox>
+
+</dialog>
+
+  <!--  ###############################################################################   -->
+  <!--     ERROR DIALOG: Dialog to display error text                                     -->
+  <!--  ###############################################################################   -->   
+  <dialog id="hadoop-error-dialog" title="${Dialog.Error}" buttonlabelaccept="${Dialog.Accept}" buttons="accept" ondialogaccept="jobEntryController.closeErrorDialog()" width="600" height="300" buttonalign="center">
+        <textbox id="hadoop-error-message" value="${errorDialog.errorOccurred}" multiline="true" readonly="true" flex="1" />
+  </dialog>
+  
+</window>

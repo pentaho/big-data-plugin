@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<window id="hadoop-window-wrapper" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:pen="http://www.pentaho.org/2008/xul">
+   <dialog id="job-entry-dialog" title="${JobEntryDialog.Title}" resizable="true" buttons="" padding="15"
+           ondialogaccept="jobEntryController.accept()" ondialogcancel="jobEntryController.cancel()" width="625"
+           appicon="ui/images/spoon.ico">
+      <vbox>
+         <grid>
+            <columns>
+               <column />
+               <column flex="1" />
+               <column />
+            </columns>
+            <rows>
+               <row>
+                  <vbox flex="1">
+                     <label value="${JobEntry.Name.Label}" />
+                     <textbox id="jobentry-name" width="265" flex="1" multiline="false" />
+                  </vbox>
+                  <spacer flex="2" />
+                  <image src="HDT.png" width="32" height="32" />
+               </row>
+            </rows>
+         </grid>
+         <separator class="groove-thin" height="20" flex="1" />
+      </vbox>
+      <vbox id="advanced-configuration" flex="5" hidden="false">
+         <tabbox flex="2">
+            <tabs>
+               <tab label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.MapReduceMapper.Label}" />
+               <tab label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.MapReduceCombiner.Label}" />
+               <tab label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.MapReduceReducer.Label}" />
+               <tab label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.JobSetup.Label}" />
+               <tab label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Cluster.Label}" />
+               <tab label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.UserDefined.Label}" />
+            </tabs>
+            <tabpanels>
+               <!-- The Mapper tab -->
+               <tabpanel padding="8">
+                  <vbox flex="1">
+                     <grid>
+                        <columns>
+                           <column />
+                           <column flex="1" />
+                        </columns>
+                        <rows>
+                           <row>
+                              <label value="${JobEntryHadoopTransJobExecutor.MapTrans.Label}" />
+                              <spacer />
+                           </row>
+                           <row>
+                              <textbox pen:customclass="variabletextbox" id="jobentry-map-transformation" width="365" flex="1" multiline="false" />
+                              <button id="browse" label="${JobEntryHadoopTransJobExecutor.MapTrans.Browse}" onclick="jobEntryController.mapTransBrowse()" />
+                           </row>
+                           <row>
+                              <label value="${JobEntryHadoopTransJobExecutor.MapInputStepName.Label}" />
+                              <spacer />
+                           </row>
+                           <row>
+                              <textbox pen:customclass="variabletextbox" id="jobentry-map-input-stepname" flex="1" width="265" multiline="false" />
+                              <spacer />
+                           </row>
+                           <row>
+                              <label value="${JobEntryHadoopTransJobExecutor.MapOutputStepName.Label}" />
+                              <spacer />
+                           </row>
+                           <row>
+                              <textbox pen:customclass="variabletextbox" id="jobentry-map-output-stepname" flex="1" width="265" multiline="false" />
+                              <spacer />
+                           </row>
+                        </rows>
+                     </grid>
+                  </vbox>
+               </tabpanel>
+               <!-- The Combiner tab -->
+               <tabpanel padding="8">
+                  <vbox flex="1">
+                     <grid>
+                        <columns>
+                           <column />
+                           <column flex="1" />
+                        </columns>
+                        <rows>
+                           <row>
+                              <label value="${JobEntryHadoopTransJobExecutor.CombinerTrans.Label}" />
+                              <spacer />
+                           </row>
+                           <row>
+                              <textbox pen:customclass="variabletextbox" id="jobentry-combiner-transformation" flex="1" width="365" multiline="false" />
+                              <button id="browse" label="${JobEntryHadoopTransJobExecutor.CombinerTrans.Browse}" onclick="jobEntryController.combinerTransBrowse()" />
+                           </row>
+                           <row>
+                              <label value="${JobEntryHadoopTransJobExecutor.CombinerInputStepName.Label}" />
+                              <spacer />
+                           </row>
+                           <row>
+                              <textbox pen:customclass="variabletextbox" id="jobentry-combiner-input-stepname" flex="1" width="265" multiline="false" />
+                              <spacer />
+                           </row>
+                           <row>
+                              <label value="${JobEntryHadoopTransJobExecutor.CombinerOutputStepName.Label}" />
+                              <spacer />
+                           </row>
+                           <row>
+                              <textbox pen:customclass="variabletextbox" id="jobentry-combiner-output-stepname" flex="1" width="265" multiline="false" />
+                              <spacer />
+                           </row>
+                           <row>
+                              <hbox>
+                                 <checkbox id="jobentry-combiner-single-threaded" flex="1" command="jobEntryController.invertCombiningSingleThreaded()" label="${JobEntryHadoopTransJobExecutor.CombinerSingleThreaded.Label}" />
+                              </hbox>
+                              <spacer />
+                           </row>
+                        </rows>
+                     </grid>
+                  </vbox>
+               </tabpanel>
+               <!-- The Reducer tab -->
+               <tabpanel padding="8">
+                  <vbox flex="1">
+                     <grid>
+                        <columns>
+                           <column />
+                           <column flex="1" />
+                        </columns>
+                        <rows>
+                           <row>
+                              <label value="${JobEntryHadoopTransJobExecutor.ReduceTrans.Label}" />
+                              <spacer />
+                           </row>
+                           <row>
+                              <textbox pen:customclass="variabletextbox" id="jobentry-reduce-transformation" flex="1" width="365" multiline="false" />
+                              <button id="browse" label="${JobEntryHadoopTransJobExecutor.ReduceTrans.Browse}" onclick="jobEntryController.reduceTransBrowse()" />
+                           </row>
+                           <row>
+                              <label value="${JobEntryHadoopTransJobExecutor.ReduceInputStepName.Label}" />
+                              <spacer />
+                           </row>
+                           <row>
+                              <textbox pen:customclass="variabletextbox" id="jobentry-reduce-input-stepname" flex="1" width="265" multiline="false" />
+                              <spacer />
+                           </row>
+                           <row>
+                              <label value="${JobEntryHadoopTransJobExecutor.ReduceOutputStepName.Label}" />
+                              <spacer />
+                           </row>
+                           <row>
+                              <textbox pen:customclass="variabletextbox" id="jobentry-reduce-output-stepname" flex="1" width="265" multiline="false" />
+                              <spacer />
+                           </row>
+                           <row>
+                              <hbox>
+                                 <checkbox id="jobentry-reduce-single-threaded" flex="1" command="jobEntryController.invertReducingSingleThreaded()" label="${JobEntryHadoopTransJobExecutor.ReduceSingleThreaded.Label}" />
+                              </hbox>
+                              <spacer />
+                           </row>
+                        </rows>
+                     </grid>
+                  </vbox>
+               </tabpanel>
+               <!-- Job Setup Tab -->
+               <tabpanel padding="8">
+                  <vbox flex="1">
+                     <grid>
+                        <columns>
+                           <column />
+                        </columns>
+                        <rows>
+                           <row>
+                              <label value="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.InputPath.Label}" />
+                           </row>
+                           <row>
+                              <textbox pen:customclass="variabletextbox" id="input-path" width="365" flex="1" multiline="false" />
+                           </row>
+                           <row>
+                              <label value="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.OutputPath.Label}" />
+                           </row>
+                           <row>
+                              <textbox pen:customclass="variabletextbox" id="output-path" width="365" flex="1" multiline="false" />
+                           </row>
+                           <row>
+                              <hbox>
+                                 <checkbox id="clean-output-path" flex="1" command="jobEntryController.invertCleanOutputPath()" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.CleanOutputPath.Label}" />
+                              </hbox>
+                           </row>
+                           <row>
+                              <label value="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Classes.InputFormat.Label}" />
+                           </row>
+                           <row>
+                              <textbox pen:customclass="variabletextbox" id="classes-input-format" width="365" flex="1" multiline="false" />
+                           </row>
+                           <row>
+                              <label value="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Classes.OutputFormat.Label}" />
+                           </row>
+                           <row>
+                              <textbox pen:customclass="variabletextbox" id="classes-output-format" width="365" flex="1" multiline="false" />
+                           </row>
+                           <row>
+                              <hbox>
+                                 <checkbox id="classes-suppress-output-map-key" flex="1" command="jobEntryController.invertSuppressOutputOfMapKey()" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.SuppressMapOutputKey.Label}" />
+                              </hbox>
+                           </row>
+                           <row>
+                              <hbox>
+                                 <checkbox id="classes-suppress-output-map-value" flex="1" command="jobEntryController.invertSuppressOutputOfMapValue()" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.SuppressMapOutputValue.Label}" />
+                              </hbox>
+                           </row>
+                           <row>
+                              <hbox>
+                                 <checkbox id="classes-suppress-output-key" flex="1" command="jobEntryController.invertSuppressOutputOfKey()" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.SuppressOutputKey.Label}" />
+                              </hbox>
+                           </row>
+                           <row>
+                              <hbox>
+                                 <checkbox id="classes-suppress-output-value" flex="1" command="jobEntryController.invertSuppressOutputOfValue()" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.SuppressOutputValue.Label}" />
+                              </hbox>
+                           </row>
+                        </rows>
+                     </grid>
+                  </vbox>
+               </tabpanel>
+               <!-- Cluster Tab -->
+               <tabpanel padding="8">
+                  <vbox flex="1">
+                     <grid>
+                        <columns>
+                           <column />
+                        </columns>
+                        <rows>
+                           <row>
+                              <label value="${JobEntryHadoopTransJobExecutor.Name.Label}" />
+                           </row>
+                           <row>
+                              <textbox pen:customclass="variabletextbox" id="jobentry-hadoopjob-name" width="365" flex="1" multiline="false" />
+                           </row>
+                           <row>
+                              <label value="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.Label}" width="200" />
+                           </row>
+                           <row>
+                           	  <hbox>
+                                 <menulist id="named-clusters" pen:binding="name" width="200">
+                                    <menupopup />
+                                 </menulist>
+                                 <button id="editNamedCluster" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.Edit}" onclick="jobEntryController.editNamedCluster()" />
+                                 <button id="newNamedCluster" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.New}" onclick="jobEntryController.newNamedCluster()" />
+                              </hbox>
+                           </row>
+                           <row>
+                              <label value="${JobEntryHadoopTransJobExecutor.ModeAdvanced.NumMapTasks.Label}" />
+                           </row>
+                           <row>
+                              <textbox pen:customclass="variabletextbox" id="num-map-tasks" flex="1" width="140" multiline="false" />
+                           </row>
+                           <row>
+                              <label value="${JobEntryHadoopTransJobExecutor.ModeAdvanced.NumReduceTasks.Label}" />
+                           </row>
+                           <row>
+                              <textbox pen:customclass="variabletextbox" id="num-reduce-tasks" flex="1" width="140" multiline="false" />
+                           </row>
+                           <row>
+                              <label value="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Logging.Interval.Label}" />
+                           </row>
+                           <row>
+                              <textbox pen:customclass="variabletextbox" id="logging-interval" width="140" flex="1" multiline="false" />
+                           </row>
+                           <row>
+                              <hbox>
+                                 <checkbox id="blocking" flex="1" command="jobEntryController.invertBlocking()" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Blocking.Label}" />
+                              </hbox>
+                           </row>
+                           <row />
+                        </rows>
+                     </grid>
+                  </vbox>
+               </tabpanel>
+               <tabpanel padding="12">
+                  <tree id="fields-table" flex="1" hidecolumnpicker="true" autocreatenewrows="true" newitembinding="jobEntryController.newUserDefinedItem()">
+                     <treecols>
+                        <treecol id="name-col" editable="true" width="270" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.UserDefined.NameColumn.Label}" pen:binding="name" />
+                        <treecol id="value-col" editable="true" width="270" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.UserDefined.ValueColumn.Label}" pen:binding="value" />
+                     </treecols>
+                     <treechildren />
+                  </tree>
+               </tabpanel>
+            </tabpanels>
+         </tabbox>
+      </vbox>
+      <separator class="groove-thin" height="25" flex="1" />
+      <hbox>
+         <button label="${Dialog.Help}" image="${HelpImage.Url}" onclick="jobEntryController.help()" />
+         <spacer flex="1" />
+         <button label="${Dialog.Accept}" onclick="jobEntryController.accept()" width="80" />
+         <button label="${Dialog.Cancel}" onclick="jobEntryController.cancel()" width="80" />
+      </hbox>
+   </dialog>
+   <!--  ###############################################################################   -->
+   <!--     ERROR DIALOG: Dialog to display error text                                     -->
+   <!--  ###############################################################################   -->
+   <dialog id="hadoop-error-dialog" title="${Dialog.Error}" buttonlabelaccept="${Dialog.Accept}" buttons="accept" ondialogaccept="jobEntryController.closeErrorDialog()" width="600" height="300" buttonalign="center">
+      <textbox id="hadoop-error-message" value="${errorDialog.errorOccurred}" multiline="true" readonly="true" flex="1" />
+   </dialog>
+</window>

@@ -12,13 +12,10 @@
 
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.pages;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.pentaho.di.core.util.StringUtil;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -26,6 +23,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Table;
@@ -33,8 +31,6 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.NamedClusterDialog;
-import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper;
-import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClusterManager;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -42,13 +38,10 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.util.HelpUtils;
-import org.pentaho.hadoop.shim.api.core.ShimIdentifierInterface;
-import org.pentaho.platform.engine.core.system.PentahoSystem;
 
 import java.io.File;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +51,9 @@ import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.createLabel;
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.createText;
 import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.decodePassword;
+import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.getVersionForDriver;
+import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.util.NamedClusterHelper.getVendorForDriver;
+import static org.pentaho.di.ui.core.PropsUI.getDisplay;
 
 public class ClusterSettingsPage extends WizardPage {
   private PropsUI props;
@@ -77,8 +73,6 @@ public class ClusterSettingsPage extends WizardPage {
   private Button deleteSiteFilesButton;
   private Text nameOfNamedCluster;
   private Table siteFilesTable;
-  private CCombo shimVendorCombo;
-  private CCombo shimVersionCombo;
   private Group hdfsGroup;
   private Group jobTrackerGroup;
   private Group zooKeeperGroup;
@@ -88,9 +82,11 @@ public class ClusterSettingsPage extends WizardPage {
   private Map<String, String> siteFilesPath;
   private ThinNameClusterModel thinNameClusterModel;
   private final Listener clusterListener = e -> validate();
-  private final Listener shimVendorListener = e -> displayShimVersions( true );
   private final VariableSpace variableSpace;
   private static final Class<?> PKG = ClusterSettingsPage.class;
+  private String loadedShimVendor = BaseMessages.getString( PKG, "NamedClusterDialog.noDriver" );
+  private String loadedShimVersion = "";
+  private String shimIdentifier;
 
   public ClusterSettingsPage( VariableSpace variables, ThinNameClusterModel model ) {
     super( ClusterSettingsPage.class.getSimpleName() );
@@ -170,39 +166,75 @@ public class ClusterSettingsPage extends WizardPage {
   }
 
   private void createDriverGroup() {
+    try {
+      loadedShimVendor = getLoadedDriverVendor();
+      loadedShimVersion = getLoadedDriverVersion();
+    } catch ( Exception e ) {
+      // Do nothing go with defined loaded shim vendor and version
+    }
+    String loadedDriverText = loadedShimVendor + " " + loadedShimVersion;
+    String originalDriverText;
+    String shimIdentifier = thinNameClusterModel.getShimIdentifier();
+    if ( StringUtil.isEmpty( shimIdentifier ) ) {
+      originalDriverText = BaseMessages.getString( PKG, "NamedClusterDialog.noDriver" );
+    } else {
+      String vendor  = getVendorForDriver( shimIdentifier );
+      String version = getVersionForDriver( shimIdentifier );
+      if ( StringUtil.isEmpty( vendor ) || StringUtil.isEmpty( version ) ) {
+        originalDriverText = BaseMessages.getString( PKG, "NamedClusterDialog.noDriver" );
+      } else {
+        originalDriverText = vendor + " " + version;
+      }
+    }
+
     Composite driverGroupPanel = new Composite( mainPanel, SWT.NONE );
-    GridLayout driverGroupGridLayout = new GridLayout( TWO_COLUMNS, true );
+    GridLayout driverGroupGridLayout = new GridLayout( ONE_COLUMN, true );
     driverGroupGridLayout.marginWidth = 0;
     driverGroupPanel.setLayout( driverGroupGridLayout );
     GridData driverGroupPanelGridData = new GridData( SWT.FILL, SWT.FILL, false, false );
     driverGroupPanel.setLayoutData( driverGroupPanelGridData );
     props.setLook( driverGroupPanel );
 
-    GridData driverLabelGroupGridData = new GridData( SWT.BEGINNING, SWT.FILL, true, false );
-    createLabel( driverGroupPanel, BaseMessages.getString( PKG, "NamedClusterDialog.driver" ),
-      driverLabelGroupGridData, props );
+    GridData driverInfoGroupGridData = new GridData();
+    Label loadedDriverLabel = new Label( driverGroupPanel, SWT.NONE );
+    loadedDriverLabel.setText( BaseMessages.getString( PKG, "NamedClusterDialog.activeDriver" ) + " " + loadedDriverText );
+    loadedDriverLabel.setLayoutData( driverInfoGroupGridData );
 
-    GridData versionLabelGroupGridData = new GridData();
-    createLabel( driverGroupPanel, BaseMessages.getString( PKG, "NamedClusterDialog.version" ),
-      versionLabelGroupGridData, props );
+    if ( ( (NamedClusterDialog) getWizard() ).isEditMode() ) {
+      Label originalDriverLabel = new Label( driverGroupPanel, SWT.NONE );
+      originalDriverLabel.setText( BaseMessages.getString( PKG, "NamedClusterDialog.originalDriver" ) + " " + originalDriverText );
+      originalDriverLabel.setLayoutData( driverInfoGroupGridData );
+      if ( !originalDriverText.equals( loadedDriverText ) ) {
+        Label driverMismatchLabel = new Label( driverGroupPanel, SWT.NONE );
+        driverMismatchLabel.setText( BaseMessages.getString( PKG, "NamedClusterDialog.mismatchedDriver" ) );
+        driverMismatchLabel.setForeground( getDisplay().getSystemColor( SWT.COLOR_RED ) );
+        driverMismatchLabel.setLayoutData( driverInfoGroupGridData );
+      }
+    }
+  }
 
-    GridData driverComboGroupGridData = new GridData();
-    driverComboGroupGridData.widthHint = 204; // Combo width
-    shimVendorCombo =
-      new CCombo( driverGroupPanel, SWT.SINGLE | SWT.READ_ONLY | SWT.BORDER );
-    shimVendorCombo.setLayoutData( driverComboGroupGridData );
-    shimVendorCombo.setItems( getVendors() );
-    shimVendorCombo.addListener( SWT.Selection, shimVendorListener );
-    props.setLook( shimVendorCombo );
+  private String getLoadedDriverVersion() {
+    if( shimIdentifier == null ) {
+      NamedClusterDialog namedClusterDialog = (NamedClusterDialog) getWizard();
+      shimIdentifier = namedClusterDialog.getShimIdentifier();
+    }
+    String version = "";
+    if( shimIdentifier != null ) {
+      version = getVersionForDriver( shimIdentifier );
+    }
+    return version;
+  }
 
-    GridData versionComboGroupGridData = new GridData();
-    versionComboGroupGridData.widthHint = 204; // Combo width
-    shimVersionCombo =
-      new CCombo( driverGroupPanel, SWT.SINGLE | SWT.READ_ONLY | SWT.BORDER );
-    shimVersionCombo.setLayoutData( versionComboGroupGridData );
-    shimVersionCombo.addListener( SWT.CHANGED, clusterListener );
-    shimVersionCombo.addListener( SWT.MouseExit, clusterListener );
-    props.setLook( shimVersionCombo );
+  private String getLoadedDriverVendor() {
+    if( shimIdentifier == null ) {
+      NamedClusterDialog namedClusterDialog = (NamedClusterDialog) getWizard();
+      shimIdentifier = namedClusterDialog.getShimIdentifier();
+    }
+    String vendor = "";
+    if( shimIdentifier != null ) {
+      vendor = getVendorForDriver( shimIdentifier );
+    }
+    return vendor;
   }
 
   private void createSiteXMLFilesGroup() {
@@ -464,18 +496,9 @@ public class ClusterSettingsPage extends WizardPage {
     }
   }
 
-  private void displayShimVersions( boolean validate ) {
-    shimVersionCombo.setItems( getVersionsForVendor( shimVendorCombo.getText() ) );
-    if ( validate ) {
-      shimVersionCombo.select( 0 );
-      validate();
-    }
-  }
 
   private void validate() {
     thinNameClusterModel.setName( nameOfNamedCluster.getText() );
-    thinNameClusterModel.setShimVendor( shimVendorCombo.getText() );
-    thinNameClusterModel.setShimVersion( shimVersionCombo.getText() );
     thinNameClusterModel.setHdfsUsername( userNameTextFieldHdfsGroup.getText() );
     thinNameClusterModel.setHdfsPassword( passwordTextFieldHdfsGroup.getText() );
     thinNameClusterModel.setSiteFiles( getTableItems( siteFilesTable.getItems() ) );
@@ -490,8 +513,7 @@ public class ClusterSettingsPage extends WizardPage {
       thinNameClusterModel.setOozieUrl( hostNameTextFieldOozieGroup.getText() );
       thinNameClusterModel.setKafkaBootstrapServers( hostNameTextFieldKafkaGroup.getText() );
       setPageComplete( !thinNameClusterModel.getName().isBlank() && !thinNameClusterModel.getHdfsHost().isBlank()
-        && !thinNameClusterModel.getShimVendor().isBlank() && !thinNameClusterModel.getShimVersion().isBlank()
-        && thinNameClusterModel.getName().matches( "^[a-zA-Z0-9-]+$" ) );
+              && thinNameClusterModel.getName().matches( "^[a-zA-Z0-9-]+$" ) );
     }
     if ( ( (NamedClusterDialog) getWizard() ).getDialogState().equals( "import" ) ) {
       setPageComplete( !thinNameClusterModel.getName().isBlank()
@@ -544,19 +566,7 @@ public class ClusterSettingsPage extends WizardPage {
     thinNameClusterModel = model;
     siteFilesPath = new HashMap<>();
     nameOfNamedCluster.setText( model.getName() );
-    if ( !model.getShimVendor().isBlank() ) {
-      shimVendorCombo.setText( model.getShimVendor() );
-    } else {
-      shimVendorCombo.select( 0 );
-    }
-    if ( !shimVendorCombo.getText().isBlank() ) {
-      displayShimVersions( false );
-    }
-    if ( !model.getShimVersion().isBlank() ) {
-      shimVersionCombo.setText( model.getShimVersion() );
-    } else {
-      shimVersionCombo.select( 0 );
-    }
+
     setTableItems( model.getSiteFiles() );
     disposeComponents();
     createHdfsGroup();
@@ -615,7 +625,7 @@ public class ClusterSettingsPage extends WizardPage {
     for ( TableItem tableItem : tableItems ) {
       String path = siteFilesPath.get( tableItem.getText() );
       path = path == null ? "" : path;
-      siteFiles.add( new SimpleImmutableEntry( path, tableItem.getText() ) );
+      siteFiles.add( new SimpleImmutableEntry<>( path, tableItem.getText() ) );
     }
     return siteFiles;
   }
@@ -640,145 +650,8 @@ public class ClusterSettingsPage extends WizardPage {
     item.setText( 0, fileName );
   }
 
-  private String[] getVendors() {
-    List<ShimIdentifierInterface> shims = getShimIdentifiers();
-    List<String> vendors = new ArrayList<>();
-    for ( ShimIdentifierInterface shim : shims ) {
-      if ( !vendors.contains( shim.getVendor() ) ) {
-        vendors.add( shim.getVendor() );
-      }
-    }
-    return vendors.toArray( new String[ 0 ] );
-  }
-
-  private String[] getVersionsForVendor( String vendor ) {
-    List<String> versions = new ArrayList<>();
-    if ( !vendor.isBlank() ) {
-      List<ShimIdentifierInterface> shims = getShimIdentifiers();
-      for ( ShimIdentifierInterface shim : shims ) {
-        if ( shim.getVendor().equals( vendor ) ) {
-          versions.add( shim.getVersion() );
-        }
-      }
-    }
-    return versions.toArray( new String[ 0 ] );
-  }
-
-  // FOR DEV MODE ONLY
-  class ShimMock implements ShimIdentifierInterface {
-
-    private String vendor;
-    private String version;
-
-    public ShimMock( String venVar, String verVar ) {
-      vendor = venVar;
-      version = verVar;
-    }
-
-    public String getId() {
-      return null;
-    }
-
-    public void setId( String var1 ) {
-    }
-
-    public String getVendor() {
-      return vendor;
-    }
-
-    public void setVendor( String var1 ) {
-      vendor = var1;
-    }
-
-    public String getVersion() {
-      return version;
-    }
-
-    public void setVersion( String var1 ) {
-      version = var1;
-    }
-
-    public ShimType getType() {
-      return null;
-    }
-
-    public void setType( ShimType var1 ) {
-    }
-  }
-
   private boolean isDevMode() {
     NamedClusterDialog namedClusterDialog = (NamedClusterDialog) getWizard();
     return namedClusterDialog.isDevMode();
   }
-
-  private List<ShimIdentifierInterface> getShimIdentifiers() {
-    List<ShimIdentifierInterface> shims = new ArrayList<>();
-    if ( NamedClusterHelper.isConnectedToRepo() ) {
-      String shimIdentifiersEndpoint = NamedClusterHelper.getEndpointURL( "getShimIdentifiers" );
-      String jsonResult = HadoopClusterManager.doGet( shimIdentifiersEndpoint );
-      ObjectMapper objectMapper = new ObjectMapper();
-      try {
-        List<ShimIdentifier> tempList = objectMapper.readValue(jsonResult, new TypeReference<List<ShimIdentifier>>() {});
-        shims.addAll( tempList );
-      } catch ( JsonProcessingException e ) {
-        throw new RuntimeException( e );
-      }
-
-    } else {
-      shims = PentahoSystem.getAll( ShimIdentifierInterface.class );
-    }
-    shims.sort( Comparator.comparing( ShimIdentifierInterface::getVendor ) );
-    if ( isDevMode() ) {
-      shims = new ArrayList<>();
-      shims.add( new ShimMock( "Apache", "1.1" ) );
-      shims.add( new ShimMock( "Apache", "1.2" ) );
-      shims.add( new ShimMock( "Cloudera", "2.1" ) );
-      shims.add( new ShimMock( "Cloudera", "2.2" ) );
-    }
-    return shims;
-  }
-
-  private static class ShimIdentifier implements ShimIdentifierInterface {
-    private String id;
-    private String vendor;
-    private String version;
-    private ShimIdentifierInterface.ShimType type;
-
-    public ShimIdentifier() {
-      super();
-    }
-
-    public String getId() {
-      return this.id;
-    }
-
-    public void setId(String id) {
-      this.id = id;
-    }
-
-    public String getVendor() {
-      return this.vendor;
-    }
-
-    public void setVendor(String vendor) {
-      this.vendor = vendor;
-    }
-
-    public String getVersion() {
-      return this.version;
-    }
-
-    public void setVersion(String version) {
-      this.version = version;
-    }
-
-    public ShimIdentifierInterface.ShimType getType() {
-      return this.type;
-    }
-
-    public void setType(ShimIdentifierInterface.ShimType type) {
-      this.type = type;
-    }
-  }
-
 }
