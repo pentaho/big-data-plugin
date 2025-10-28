@@ -203,7 +203,8 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
       /// Bootstrap the common format service factories
       //////////////////////////////////////////////////////////////////////////////////
       logger.debug( "Bootstrap the common format service factories." );
-      NamedClusterServiceLocatorImpl namedClusterServiceLocator = NamedClusterServiceLocatorImpl.getInstance();
+      NamedClusterServiceLocatorImpl namedClusterServiceLocator = NamedClusterServiceLocatorImpl
+              .getInstance( hadoopShim.getShimIdentifier().getId() );
       if ( shimAvailableServices.contains( "common_formats" ) ) {
         CommonFormatShim commonFormatShim = new CommonFormatShim();
         FormatServiceFactory formatServiceFactory = new FormatServiceFactory( commonFormatShim );
