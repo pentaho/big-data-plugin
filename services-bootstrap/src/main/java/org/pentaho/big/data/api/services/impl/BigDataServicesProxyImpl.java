@@ -13,9 +13,9 @@
 package org.pentaho.big.data.api.services.impl;
 
 import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
+import org.pentaho.big.data.hadoop.bootstrap.HadoopConfigurationBootstrap;
 import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.bigdata.api.hdfs.impl.HadoopFileSystemLocatorImpl;
-import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.service.ServiceProvider;
 import org.pentaho.di.core.service.ServiceProviderInterface;
 import org.pentaho.hadoop.shim.HadoopConfiguration;

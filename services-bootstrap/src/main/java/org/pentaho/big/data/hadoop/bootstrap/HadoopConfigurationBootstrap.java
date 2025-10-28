@@ -18,7 +18,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-package org.pentaho.di.core.hadoop;
+package org.pentaho.big.data.hadoop.bootstrap;
 
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.vfs2.FileObject;
@@ -26,6 +26,9 @@ import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.pentaho.di.core.annotations.KettleLifecyclePlugin;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.hadoop.HadoopConfigurationInfo;
+import org.pentaho.di.core.hadoop.HadoopConfigurationPrompter;
+import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.lifecycle.KettleLifecycleListener;
 import org.pentaho.di.core.lifecycle.LifecycleException;
 import org.pentaho.di.core.logging.LogChannel;
@@ -37,9 +40,9 @@ import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.hadoop.PluginPropertiesUtil;
-import org.pentaho.hadoop.shim.api.ConfigurationException;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.pentaho.hadoop.shim.HadoopConfigurationLocator;
+import org.pentaho.hadoop.shim.api.ConfigurationException;
 import org.pentaho.hadoop.shim.api.internal.ActiveHadoopConfigurationLocator;
 import org.pentaho.hadoop.shim.api.internal.ShimProperties;
 import org.pentaho.hadoop.shim.spi.HadoopConfigurationProvider;
@@ -54,7 +57,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This class serves to initialize the Hadoop Configuration subsystem. This class provides an anchor point for all
