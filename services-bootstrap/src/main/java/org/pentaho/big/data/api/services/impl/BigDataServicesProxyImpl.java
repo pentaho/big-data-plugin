@@ -46,7 +46,11 @@ public class BigDataServicesProxyImpl implements BigDataServicesProxy, ServicePr
     @Override
     public NamedClusterServiceLocator getNamedClusterServiceLocator() {
         if ( namedClusterServiceLocator == null ) {
-            namedClusterServiceLocator = NamedClusterServiceLocatorImpl.getInstance();
+            String shimIdentifier = getShimIdentifier();
+            if ( shimIdentifier == null ) {
+              shimIdentifier = "NONE";
+            }
+            namedClusterServiceLocator = NamedClusterServiceLocatorImpl.getInstance( shimIdentifier);
         }
         return namedClusterServiceLocator;
     }
