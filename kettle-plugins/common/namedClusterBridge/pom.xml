@@ -29,7 +29,7 @@
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-kettle-plugins-hdfs</artifactId>
+      <artifactId>pdi-hdfs-core</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
