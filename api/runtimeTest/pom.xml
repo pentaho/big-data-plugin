@@ -55,11 +55,6 @@
       <version>${pdi.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.pentaho.hadoop.shims</groupId>
-      <artifactId>pentaho-hadoop-shims-common-base</artifactId>
-      <version>${pdi.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>shim-api-core</artifactId>
       <version>${pdi.version}</version>
