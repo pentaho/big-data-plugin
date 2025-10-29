@@ -996,13 +996,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     String shimIdentifier = null;
     if ( isConnectedToRepo() ) {
       String endpointURL = NamedClusterHelper.getEndpointURL( "getShimIdentifier" );
-      String result = doGet( endpointURL );
-      ObjectMapper mapper = new ObjectMapper();
-      try {
-        return mapper.readValue( result, String.class );
-      } catch ( Exception e ) {
-        log.logError( e.getMessage() );
-      }
+      shimIdentifier = doGet( endpointURL );
     } else {
       shimIdentifier = BigDataServicesHelper.getShimIdentifier();
     }
