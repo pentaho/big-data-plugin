@@ -413,7 +413,7 @@
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-legacy-amazon</artifactId>
+      <artifactId>pdi-legacy-amazon-core</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
