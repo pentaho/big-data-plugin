@@ -682,8 +682,8 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     this.bindings = bindings;
   }
 
-  public void accept( Bowl bowl ) {
-    syncModel( bowl );
+  public void accept( ) {
+    syncModel( Spoon.getInstance().getExecutionBowl() );
 
     String validationErrors = buildValidationErrorMessages();
 
