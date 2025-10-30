@@ -161,9 +161,15 @@ public class SecuritySettingsPage extends WizardPage {
     if ( knoxButton.getSelection() ) {
       securityType = NamedClusterSecurityType.KNOX;
     }
+    String shimIdentifier = model.getShimIdentifier();
+    if( shimIdentifier == null || shimIdentifier.isEmpty() ) {
+      NamedClusterDialog namedClusterDialog = (NamedClusterDialog) getWizard();
+      shimIdentifier = namedClusterDialog.getShimIdentifier();
+    }
     knoxButton.setVisible(
-      model.getShimIdentifier().equals( "cdpdc71" ) || model.getShimIdentifier().equals( "hdp31" ) );
+      shimIdentifier.equals( "cdpdc71" ) || shimIdentifier.equals( "hdp31" ) );
   }
+
 
   public NamedClusterSecurityType getSecurityType() {
     return securityType;
