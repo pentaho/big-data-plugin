@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
-
+<window id="hadoop-window-wrapper" onload="controller.init()">
 <dialog id="oozie-job-executor"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         xmlns:pen="http://www.pentaho.org/2008/xul"
@@ -10,8 +10,7 @@
         width="650"
         height="600"
         buttons=""
-        buttonalign="center"
-        onload="controller.init()">
+        buttonalign="center">
     <vbox>
         <grid>
             <columns>
@@ -122,3 +121,4 @@
         <pen:include src="button-bar.xul"/>
     </vbox>
 </dialog>
+</window>
