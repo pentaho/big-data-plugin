@@ -9,8 +9,6 @@
  *
  * Change Date: 2029-07-20
  ******************************************************************************/
-
-
 package org.pentaho.big.data.kettle.plugins.formats.impl;
 
 import org.pentaho.big.data.api.services.BigDataServicesHelper;
@@ -37,11 +35,11 @@ public class NamedClusterResolver {
 
   private NamedClusterResolver() {
     this( BigDataServicesHelper.getNamedClusterServiceLocator(),
-            NamedClusterManager.getInstance() );
+      NamedClusterManager.getInstance() );
   }
 
   private NamedClusterResolver( NamedClusterServiceLocator namedClusterServiceLocator,
-                               NamedClusterService namedClusterService ) {
+                                NamedClusterService namedClusterService ) {
     this.namedClusterServiceLocator = namedClusterServiceLocator;
     this.namedClusterService = namedClusterService;
 
@@ -58,7 +56,7 @@ public class NamedClusterResolver {
     if ( this.metaStoreService == null ) {
       try {
         Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
-        this.metaStoreService = metastoreLocators.stream().findFirst().get();
+        this.metaStoreService = metastoreLocators.stream().findFirst().orElse( null );
       } catch ( Exception e ) {
         LOG.logError( "Error getting MetastoreLocator", e );
       }
@@ -79,18 +77,22 @@ public class NamedClusterResolver {
     if ( uri.isPresent() ) {
       String scheme = uri.get().getScheme();
       String hostName = uri.get().getHost();
-      if ( scheme != null && scheme.equals( "hc" ) ) {
-        namedCluster = namedClusterService.getNamedClusterByName( hostName, getMetastoreLocator().getMetastore( ) );
-        if ( namedCluster == null && embeddedMetastoreKey != null ) {
-          namedCluster = namedClusterService
-            .getNamedClusterByName( hostName, getMetastoreLocator().getExplicitMetastore( embeddedMetastoreKey ) );
-        }
-      } else {
-        namedCluster =
-          namedClusterService.getNamedClusterByHost( hostName, getMetastoreLocator().getMetastore( embeddedMetastoreKey ) );
-        if ( namedCluster == null && embeddedMetastoreKey != null ) {
-          namedCluster = namedClusterService
-            .getNamedClusterByHost( hostName, getMetastoreLocator().getExplicitMetastore( embeddedMetastoreKey ) );
+      MetastoreLocator metastoreLocator = getMetastoreLocator();
+
+      if ( metastoreLocator != null ) {
+        if ( scheme != null && scheme.equals( "hc" ) ) {
+          namedCluster = namedClusterService.getNamedClusterByName( hostName, metastoreLocator.getMetastore() );
+          if ( namedCluster == null && embeddedMetastoreKey != null ) {
+            namedCluster = namedClusterService
+              .getNamedClusterByName( hostName, metastoreLocator.getExplicitMetastore( embeddedMetastoreKey ) );
+          }
+        } else {
+          namedCluster
+            = namedClusterService.getNamedClusterByHost( hostName, metastoreLocator.getMetastore( embeddedMetastoreKey ) );
+          if ( namedCluster == null && embeddedMetastoreKey != null ) {
+            namedCluster = namedClusterService
+              .getNamedClusterByHost( hostName, metastoreLocator.getExplicitMetastore( embeddedMetastoreKey ) );
+          }
         }
       }
     }
