@@ -22,11 +22,12 @@ import org.pentaho.big.data.kettle.plugins.hdfs.trans.HadoopFileInputMeta;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-@RunWith( MockitoJUnitRunner.class )
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class HadoopFileInputStepAnalyzerTest
   extends HadoopBaseStepAnalyzerTest<HadoopFileInputStepAnalyzer, HadoopFileInputMeta> {
 
-  @Mock private HadoopFileInputMeta meta;
+  @Mock
+  private HadoopFileInputMeta meta;
 
   @Override
   protected HadoopFileInputStepAnalyzer getAnalyzer() {

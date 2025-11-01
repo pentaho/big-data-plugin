@@ -59,17 +59,25 @@ import org.w3c.dom.Document;
 /**
  * User: RFellows Date: 6/5/12
  */
-@RunWith( MockitoJUnitRunner.class )
+@RunWith(MockitoJUnitRunner.class)
 public class OozieJobExecutorJobEntryTest {
 
-  @Mock NamedClusterService namedClusterService;
-  @Mock NamedCluster namedCluster;
-  @Mock OozieJobExecutorConfig config;
-  @Mock RuntimeTestActionService runtimeTestActionService;
-  @Mock NamedClusterServiceLocator namedClusterServiceLocator;
-  @Mock RuntimeTester runtimeTester;
-  @Mock IMetaStore metaStore;
-  @InjectMocks OozieJobExecutorJobEntry oozieJobEntry;
+  @Mock
+  NamedClusterService namedClusterService;
+  @Mock
+  NamedCluster namedCluster;
+  @Mock
+  OozieJobExecutorConfig config;
+  @Mock
+  RuntimeTestActionService runtimeTestActionService;
+  @Mock
+  NamedClusterServiceLocator namedClusterServiceLocator;
+  @Mock
+  RuntimeTester runtimeTester;
+  @Mock
+  IMetaStore metaStore;
+  @InjectMocks
+  OozieJobExecutorJobEntry oozieJobEntry;
 
   final String OOZIE_URL = "http://the.url";
   final String CLUSTER_NAME = "cluster name";
@@ -98,6 +106,9 @@ public class OozieJobExecutorJobEntryTest {
     Document d = XMLHandler.loadXMLString( xml );
 
     OozieJobExecutorJobEntry jobEntry2 = new OozieJobExecutorJobEntry();
+    JobMeta jobMeta = new JobMeta();
+    jobMeta.setBowl( DefaultBowl.getInstance() );
+    jobEntry2.setParentJobMeta( jobMeta );
     jobEntry2.loadXML( d.getDocumentElement(), null, null, null );
 
     OozieJobExecutorConfig jobConfig2 = jobEntry2.getJobConfig();
@@ -129,6 +140,9 @@ public class OozieJobExecutorJobEntryTest {
     Document d = XMLHandler.loadXMLString( xml );
 
     OozieJobExecutorJobEntry jobEntry2 = new OozieJobExecutorJobEntry();
+    JobMeta jobMeta = new JobMeta();
+    jobMeta.setBowl( DefaultBowl.getInstance() );
+    jobEntry2.setParentJobMeta( jobMeta );
     jobEntry2.loadXML( d.getDocumentElement(), null, null, null );
 
     OozieJobExecutorConfig jobConfig2 = jobEntry2.getJobConfig();
@@ -145,6 +159,9 @@ public class OozieJobExecutorJobEntryTest {
     OozieJobExecutorConfig config = new OozieJobExecutorConfig();
 
     OozieJobExecutorJobEntry je = new OozieJobExecutorJobEntry();
+    JobMeta jobMeta = new JobMeta();
+    jobMeta.setBowl( DefaultBowl.getInstance() );
+    je.setParentJobMeta( jobMeta );
     List<String> warnings = je.getValidationWarnings( config );
 
     assertEquals( 2, warnings.size() );
@@ -164,7 +181,9 @@ public class OozieJobExecutorJobEntryTest {
     OozieJobExecutorConfig config = new OozieJobExecutorConfig();
     config.setOozieWorkflowConfig( "${propertiesFile}" );
     OozieJobExecutorJobEntry je = new OozieJobExecutorJobEntry();
-    je.setParentJobMeta( new JobMeta() );
+    JobMeta jobMeta = new JobMeta();
+    jobMeta.setBowl( DefaultBowl.getInstance() );
+    je.setParentJobMeta( jobMeta );
     je.setVariable( "propertiesFile", "src/test/resources/job.properties" );
 
     Properties props = je.getProperties( config );
