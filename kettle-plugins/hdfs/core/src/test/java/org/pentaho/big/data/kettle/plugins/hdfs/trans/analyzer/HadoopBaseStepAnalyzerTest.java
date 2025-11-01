@@ -61,7 +61,7 @@ public abstract class HadoopBaseStepAnalyzerTest<A extends HadoopBaseStepAnalyze
 
     meta = getMetaMock();
     StepMeta mockStepMeta = mock( StepMeta.class );
-    lenient()..getParentStepMeta() ).thenReturn( mockStepMeta );
+    lenient().when( meta.getParentStepMeta() ).thenReturn( mockStepMeta );
 
     lenient().when( transMeta.getBowl() ).thenReturn( DefaultBowl.getInstance() );
     lenient().when( mockStepMeta.getParentTransMeta() ).thenReturn( transMeta );
