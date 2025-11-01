@@ -23,36 +23,35 @@ import java.util.Collection;
 public class BigDataServicesHelper {
 
 
-    private BigDataServicesHelper(){}
+  private BigDataServicesHelper() {
+  }
 
-    public static NamedClusterServiceLocator getNamedClusterServiceLocator() {
-        try {
-            Collection<BigDataServicesProxy> namedClusterServiceLocatorFactories = PluginServiceLoader.loadServices( BigDataServicesProxy.class );
-            NamedClusterServiceLocator namedClusterServiceLocator = namedClusterServiceLocatorFactories.stream().findFirst().get().getNamedClusterServiceLocator();
-            return namedClusterServiceLocator;
-        } catch (KettlePluginException e) {
-            e.printStackTrace();
-            return null;
-        }
+  public static NamedClusterServiceLocator getNamedClusterServiceLocator() {
+    try {
+      Collection<BigDataServicesProxy> namedClusterServiceLocatorFactories = PluginServiceLoader.loadServices( BigDataServicesProxy.class );
+      return namedClusterServiceLocatorFactories.stream().findFirst().map( BigDataServicesProxy::getNamedClusterServiceLocator ).orElse( null );
+    } catch ( KettlePluginException e ) {
+      e.printStackTrace();
+      return null;
     }
+  }
 
-    public static HadoopFileSystemLocator getHadoopFileSystemLocator() {
-        try {
-            Collection<BigDataServicesProxy> namedClusterServiceLocatorFactories = PluginServiceLoader.loadServices( BigDataServicesProxy.class );
-            HadoopFileSystemLocator hadoopFileSystemLocator = namedClusterServiceLocatorFactories.stream().findFirst().get().getHadoopFileSystemLocator();
-            return hadoopFileSystemLocator;
-        } catch (KettlePluginException e) {
-            e.printStackTrace();
-            return null;
-        }
+  public static HadoopFileSystemLocator getHadoopFileSystemLocator() {
+    try {
+      Collection<BigDataServicesProxy> namedClusterServiceLocatorFactories = PluginServiceLoader.loadServices( BigDataServicesProxy.class );
+      return namedClusterServiceLocatorFactories.stream().findFirst().map( BigDataServicesProxy::getHadoopFileSystemLocator ).orElse( null );
+    } catch ( KettlePluginException e ) {
+      e.printStackTrace();
+      return null;
     }
+  }
 
-    public static String getShimIdentifier() {
-      try {
-        Collection<BigDataServicesProxy> namedClusterServiceLocatorFactories = PluginServiceLoader.loadServices( BigDataServicesProxy.class );
-        return namedClusterServiceLocatorFactories.stream().findFirst().get().getShimIdentifier();
-      } catch (Exception e) {
-        return null;
-      }
+  public static String getShimIdentifier() {
+    try {
+      Collection<BigDataServicesProxy> namedClusterServiceLocatorFactories = PluginServiceLoader.loadServices( BigDataServicesProxy.class );
+      return namedClusterServiceLocatorFactories.stream().findFirst().map( BigDataServicesProxy::getShimIdentifier ).orElse( null );
+    } catch ( Exception e ) {
+      return null;
     }
+  }
 }

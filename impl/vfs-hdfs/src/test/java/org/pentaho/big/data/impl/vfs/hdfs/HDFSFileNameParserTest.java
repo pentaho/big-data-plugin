@@ -14,8 +14,8 @@
 package org.pentaho.big.data.impl.vfs.hdfs;
 
 import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.VFS;
-import org.apache.commons.vfs2.impl.StandardFileSystemManager;
 import org.apache.commons.vfs2.provider.FileNameParser;
 import org.apache.commons.vfs2.provider.URLFileName;
 import org.apache.commons.vfs2.provider.URLFileNameParser;
@@ -42,17 +42,18 @@ import static org.mockito.Mockito.when;
 /**
  * Created by bryan on 8/7/15.
  */
-@RunWith( MockitoJUnitRunner.class )
+@RunWith(MockitoJUnitRunner.class)
 public class HDFSFileNameParserTest {
   private static final String PREFIX = "hdfs";
   private static final String BASE_PATH = "//";
   private static final String BASE_URI = PREFIX + ":" + BASE_PATH;
 
-  private StandardFileSystemManager fsm;
+  private FileSystemManager fsm;
   private MockedStatic<VFS> vfsMockedStatic;
   private MockedStatic<UriParser> uriParserMockedStatic;
 
-  @Rule public final ExpectedException exception = ExpectedException.none();
+  @Rule
+  public final ExpectedException exception = ExpectedException.none();
 
   @Before
   public void setUp() {
@@ -66,7 +67,7 @@ public class HDFSFileNameParserTest {
     uriParserMockedStatic.when( () -> UriParser.fixSeparators( any( StringBuilder.class ) ) ).thenCallRealMethod();
     uriParserMockedStatic.when( () -> UriParser.extractScheme( anyString(), any( StringBuilder.class ) ) ).thenCallRealMethod();
 
-    fsm = mock( StandardFileSystemManager.class );
+    fsm = mock( FileSystemManager.class );
     vfsMockedStatic.when( VFS::getManager ).thenReturn( fsm );
   }
 
@@ -100,7 +101,7 @@ public class HDFSFileNameParserTest {
     buildExtractSchemeMocks( PREFIX, URI, BASE_PATH + FILEPATH );
 
     URLFileName urlFileName =
-      (URLFileName) HDFSFileNameParser.getInstance().parseUri( null, null, URI );
+      ( URLFileName ) HDFSFileNameParser.getInstance().parseUri( null, null, URI );
     assertEquals( "testUpperCaseHost", urlFileName.getHostName() );
   }
 
@@ -112,7 +113,7 @@ public class HDFSFileNameParserTest {
     buildExtractSchemeMocks( PREFIX, URI, BASE_PATH + FILEPATH );
 
     URLFileName urlFileName =
-      (URLFileName) HDFSFileNameParser.getInstance().parseUri( null, null, URI );
+      ( URLFileName ) HDFSFileNameParser.getInstance().parseUri( null, null, URI );
     assertEquals( "testUpperCaseHost", urlFileName.getHostName() );
   }
 
@@ -132,9 +133,9 @@ public class HDFSFileNameParserTest {
     buildExtractSchemeMocks( PREFIX, URI, BASE_PATH + FILEPATH );
 
     URLFileName hdfsFileName =
-      (URLFileName) HDFSFileNameParser.getInstance()
+      ( URLFileName ) HDFSFileNameParser.getInstance()
         .parseUri( null, null, URI );
-    URLFileName urlFileName = (URLFileName) new URLFileNameParser( 7000 ).parseUri( null, null, URI );
+    URLFileName urlFileName = ( URLFileName ) new URLFileNameParser( 7000 ).parseUri( null, null, URI );
     assertEquals( 8080, hdfsFileName.getPort() );
     assertEquals( "root", hdfsFileName.getUserName() );
     assertEquals( "/long/test/name", hdfsFileName.getPath() );
@@ -146,13 +147,13 @@ public class HDFSFileNameParserTest {
   private Answer buildSchemeAnswer( String prefix, String buildPath ) {
     return invocation -> {
       Object[] args = invocation.getArguments();
-      ( (StringBuilder) args[2] ).append( buildPath );
+      ( ( StringBuilder ) args[2] ).append( buildPath );
       return prefix;
     };
   }
 
   private void buildExtractSchemeMocks( String prefix, String fullPath, String pathWithoutPrefix ) {
-    String[] schemes = { "hdfs" };
+    String[] schemes = {"hdfs"};
     when( fsm.getSchemes() ).thenReturn( schemes );
     uriParserMockedStatic.when( () -> UriParser.extractScheme( eq( schemes ), eq( fullPath ), any( StringBuilder.class ) ) )
       .thenAnswer( buildSchemeAnswer( prefix, pathWithoutPrefix ) );
