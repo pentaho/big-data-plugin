@@ -7,11 +7,11 @@
   <parent>
     <artifactId>pentaho-big-data-kettle-plugins</artifactId>
     <groupId>pentaho</groupId>
-    <version>11.1.0.0-SNAPSHOT</version>
+    <version>11.1.0.0-2</version>
   </parent>
 
   <artifactId>pentaho-big-data-kettle-plugins-hdfs</artifactId>
-  <version>11.1.0.0-SNAPSHOT</version>
+  <version>11.1.0.0-2</version>
   <packaging>pom</packaging>
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <description>a Pentaho open source project</description>
