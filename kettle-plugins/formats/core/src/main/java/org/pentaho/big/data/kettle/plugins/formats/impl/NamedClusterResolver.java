@@ -9,8 +9,6 @@
  *
  * Change Date: 2029-07-20
  ******************************************************************************/
-
-
 package org.pentaho.big.data.kettle.plugins.formats.impl;
 
 import org.pentaho.big.data.api.services.BigDataServicesHelper;
@@ -31,20 +29,13 @@ import java.util.Optional;
 public class NamedClusterResolver {
 
   private final NamedClusterServiceLocator namedClusterServiceLocator;
-  private final NamedClusterService namedClusterService;
+  private NamedClusterService namedClusterService;
   private MetastoreLocator metaStoreService;
   private static NamedClusterResolver namedClusterResolver = null;
 
   private NamedClusterResolver() {
-    this( BigDataServicesHelper.getNamedClusterServiceLocator(),
-            NamedClusterManager.getInstance() );
-  }
-
-  private NamedClusterResolver( NamedClusterServiceLocator namedClusterServiceLocator,
-                               NamedClusterService namedClusterService ) {
-    this.namedClusterServiceLocator = namedClusterServiceLocator;
-    this.namedClusterService = namedClusterService;
-
+    this.namedClusterServiceLocator = BigDataServicesHelper.getNamedClusterServiceLocator();
+    this.namedClusterService = getNamedClusterService();
   }
 
   public static synchronized NamedClusterResolver getInstance() {
@@ -54,11 +45,23 @@ public class NamedClusterResolver {
     return namedClusterResolver;
   }
 
+  private NamedClusterService getNamedClusterService() {
+    if ( this.namedClusterService == null ) {
+      try {
+        Collection<NamedClusterService> namedClusterServices = PluginServiceLoader.loadServices( NamedClusterService.class );
+        this.namedClusterService = namedClusterServices.stream().findFirst().orElse( null );
+      } catch ( Exception e ) {
+        LOG.logError( "Error getting NamedClusterService", e );
+      }
+    }
+    return this.namedClusterService;
+  }
+
   protected synchronized MetastoreLocator getMetastoreLocator() {
     if ( this.metaStoreService == null ) {
       try {
         Collection<MetastoreLocator> metastoreLocators = PluginServiceLoader.loadServices( MetastoreLocator.class );
-        this.metaStoreService = metastoreLocators.stream().findFirst().get();
+        this.metaStoreService = metastoreLocators.stream().findFirst().orElse( null );
       } catch ( Exception e ) {
         LOG.logError( "Error getting MetastoreLocator", e );
       }
@@ -79,18 +82,22 @@ public class NamedClusterResolver {
     if ( uri.isPresent() ) {
       String scheme = uri.get().getScheme();
       String hostName = uri.get().getHost();
-      if ( scheme != null && scheme.equals( "hc" ) ) {
-        namedCluster = namedClusterService.getNamedClusterByName( hostName, getMetastoreLocator().getMetastore( ) );
-        if ( namedCluster == null && embeddedMetastoreKey != null ) {
-          namedCluster = namedClusterService
-            .getNamedClusterByName( hostName, getMetastoreLocator().getExplicitMetastore( embeddedMetastoreKey ) );
-        }
-      } else {
-        namedCluster =
-          namedClusterService.getNamedClusterByHost( hostName, getMetastoreLocator().getMetastore( embeddedMetastoreKey ) );
-        if ( namedCluster == null && embeddedMetastoreKey != null ) {
-          namedCluster = namedClusterService
-            .getNamedClusterByHost( hostName, getMetastoreLocator().getExplicitMetastore( embeddedMetastoreKey ) );
+      MetastoreLocator metastoreLocator = getMetastoreLocator();
+
+      if ( metastoreLocator != null ) {
+        if ( scheme != null && scheme.equals( "hc" ) ) {
+          namedCluster = namedClusterService.getNamedClusterByName( hostName, metastoreLocator.getMetastore() );
+          if ( namedCluster == null && embeddedMetastoreKey != null ) {
+            namedCluster = namedClusterService
+              .getNamedClusterByName( hostName, metastoreLocator.getExplicitMetastore( embeddedMetastoreKey ) );
+          }
+        } else {
+          namedCluster
+            = namedClusterService.getNamedClusterByHost( hostName, metastoreLocator.getMetastore( embeddedMetastoreKey ) );
+          if ( namedCluster == null && embeddedMetastoreKey != null ) {
+            namedCluster = namedClusterService
+              .getNamedClusterByHost( hostName, metastoreLocator.getExplicitMetastore( embeddedMetastoreKey ) );
+          }
         }
       }
     }

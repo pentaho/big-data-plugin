@@ -41,10 +41,12 @@ public abstract class HadoopBaseStepAnalyzerTest<A extends HadoopBaseStepAnalyze
 
   protected A analyzer;
 
-  @Mock private INamespace mockNamespace;
+  @Mock
+  private INamespace mockNamespace;
   private IComponentDescriptor descriptor;
   private M meta;
-  @Mock private TransMeta transMeta;
+  @Mock
+  private TransMeta transMeta;
 
   @Before
   public void setUp() throws Exception {
@@ -59,7 +61,7 @@ public abstract class HadoopBaseStepAnalyzerTest<A extends HadoopBaseStepAnalyze
 
     meta = getMetaMock();
     StepMeta mockStepMeta = mock( StepMeta.class );
-    when( meta.getParentStepMeta() ).thenReturn( mockStepMeta );
+    lenient().when( meta.getParentStepMeta() ).thenReturn( mockStepMeta );
 
     lenient().when( transMeta.getBowl() ).thenReturn( DefaultBowl.getInstance() );
     lenient().when( mockStepMeta.getParentTransMeta() ).thenReturn( transMeta );
@@ -106,7 +108,7 @@ public abstract class HadoopBaseStepAnalyzerTest<A extends HadoopBaseStepAnalyze
     assertEquals( DictionaryConst.NODE_TYPE_FILE, resourceNode.getType() );
 
     // remote
-    final HadoopFileMeta hMeta = (HadoopFileMeta) getMetaMock();
+    final HadoopFileMeta hMeta = ( HadoopFileMeta ) getMetaMock();
     IExternalResourceInfo remoteResource = mock( IExternalResourceInfo.class );
     final String hostName = "foo.com";
     final String filePath = "hdfs://" + hostName + "/file.csv";
