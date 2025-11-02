@@ -70,7 +70,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith( MockitoJUnitRunner.class )
+@RunWith(MockitoJUnitRunner.class)
 public class ParquetOutputTest {
 
   private static final String OUTPUT_STEP_NAME = "Output Step Name";
@@ -127,7 +127,11 @@ public class ParquetOutputTest {
     try ( MockedStatic<PluginServiceLoader> pluginServiceLoaderMockedStatic = Mockito.mockStatic( PluginServiceLoader.class ) ) {
       pluginServiceLoaderMockedStatic.when( () -> PluginServiceLoader.loadServices( MetastoreLocator.class ) )
         .thenReturn( metastoreLocatorCollection );
-      namedClusterResolver = NamedClusterResolver.getInstance();
+
+      // Mock the NamedClusterResolver instead of using the singleton
+      namedClusterResolver = Mockito.mock( NamedClusterResolver.class );
+      when( namedClusterResolver.getNamedClusterServiceLocator() ).thenReturn( mockNamedClusterServiceLocator );
+      when( namedClusterResolver.resolveNamedCluster( any( String.class ) ) ).thenReturn( null );
 
       parquetOutputMeta = new ParquetOutputMeta( namedClusterResolver );
       parquetOutputMeta.setFilename( OUTPUT_FILE_NAME );
@@ -184,7 +188,7 @@ public class ParquetOutputTest {
     List<Object[]> dataCaptured = dataCaptor.getAllValues();
     for ( int rowNum = 0; rowNum < 3; rowNum++ ) {
       assertEquals( 0, rowMetaCaptured.get( rowNum ).indexOfValue( "StringName" ) );
-      assertEquals( "string" + ( rowNum % 3 + 1 ), dataCaptured.get( rowNum )[ 0 ] );
+      assertEquals( "string" + ( rowNum % 3 + 1 ), dataCaptured.get( rowNum )[0] );
     }
   }
 
@@ -245,7 +249,7 @@ public class ParquetOutputTest {
   private Object[] returnNextParquetRow() {
     Object[] result = null;
     if ( currentParquetRow < dataInputRows.length ) {
-      result = dataInputRows[ currentParquetRow ].getData().clone();
+      result = dataInputRows[currentParquetRow].getData().clone();
       currentParquetRow++;
     }
     return result;
@@ -253,7 +257,7 @@ public class ParquetOutputTest {
 
   private void setParquetOutputRows() {
     ParquetOutputField parquetOutputField = mock( ParquetOutputField.class );
-    parquetOutputFields =  new ArrayList<>();
+    parquetOutputFields = new ArrayList<>();
     parquetOutputFields.add( parquetOutputField );
   }
 
@@ -296,7 +300,7 @@ public class ParquetOutputTest {
     List<Object[]> dataCaptured = dataCaptor.getAllValues();
     for ( int rowNum = 0; rowNum < 3; rowNum++ ) {
       assertEquals( 0, rowMetaCaptured.get( rowNum ).indexOfValue( "StringName" ) );
-      assertEquals( "string" + ( rowNum % 3 + 1 ), dataCaptured.get( rowNum )[ 0 ] );
+      assertEquals( "string" + ( rowNum % 3 + 1 ), dataCaptured.get( rowNum )[0] );
     }
     assertFalse( new File( aliasPath ).exists() );
     File outputFile = new File( OUTPUT_FILE_NAME );

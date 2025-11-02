@@ -66,7 +66,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith( MockitoJUnitRunner.class )
+@RunWith(MockitoJUnitRunner.class)
 public class OrcOutputTest {
 
   private static final String OUTPUT_STEP_NAME = "Output Step Name";
@@ -119,7 +119,11 @@ public class OrcOutputTest {
     try ( MockedStatic<PluginServiceLoader> pluginServiceLoaderMockedStatic = Mockito.mockStatic( PluginServiceLoader.class ) ) {
       pluginServiceLoaderMockedStatic.when( () -> PluginServiceLoader.loadServices( MetastoreLocator.class ) )
         .thenReturn( metastoreLocatorCollection );
-      namedClusterResolver = NamedClusterResolver.getInstance();
+
+      // Mock the NamedClusterResolver instead of using the singleton
+      namedClusterResolver = Mockito.mock( NamedClusterResolver.class );
+      when( namedClusterResolver.getNamedClusterServiceLocator() ).thenReturn( mockNamedClusterServiceLocator );
+      when( namedClusterResolver.resolveNamedCluster( any( String.class ) ) ).thenReturn( null );
 
       orcOutputMeta = new OrcOutputMeta( namedClusterResolver );
       orcOutputMeta.setFilename( OUTPUT_FILE_NAME );
@@ -174,7 +178,7 @@ public class OrcOutputTest {
     List<Object[]> dataCaptured = dataCaptor.getAllValues();
     for ( int rowNum = 0; rowNum < 3; rowNum++ ) {
       assertEquals( 0, rowMetaCaptured.get( rowNum ).indexOfValue( "StringName" ) );
-      assertEquals( "string" + ( rowNum % 3 + 1 ), dataCaptured.get( rowNum )[ 0 ] );
+      assertEquals( "string" + ( rowNum % 3 + 1 ), dataCaptured.get( rowNum )[0] );
     }
   }
 
@@ -219,7 +223,7 @@ public class OrcOutputTest {
   private Object[] returnNextParquetRow() {
     Object[] result = null;
     if ( currentOrcRow < dataInputRows.length ) {
-      result = dataInputRows[ currentOrcRow ].getData().clone();
+      result = dataInputRows[currentOrcRow].getData().clone();
       currentOrcRow++;
     }
     return result;
@@ -228,7 +232,7 @@ public class OrcOutputTest {
   private void setOrcOutputRows() {
     OrcOutputField orcOutputField = mock( OrcOutputField.class );
     when( orcOutputField.getPentahoFieldName() ).thenReturn( "StringName" );
-    orcOutputFields =  new ArrayList<>();
+    orcOutputFields = new ArrayList<>();
     orcOutputFields.add( orcOutputField );
   }
 
@@ -271,7 +275,7 @@ public class OrcOutputTest {
     List<Object[]> dataCaptured = dataCaptor.getAllValues();
     for ( int rowNum = 0; rowNum < 3; rowNum++ ) {
       assertEquals( 0, rowMetaCaptured.get( rowNum ).indexOfValue( "StringName" ) );
-      assertEquals( "string" + ( rowNum % 3 + 1 ), dataCaptured.get( rowNum )[ 0 ] );
+      assertEquals( "string" + ( rowNum % 3 + 1 ), dataCaptured.get( rowNum )[0] );
     }
     assertFalse( new File( aliasPath ).exists() );
     File outputFile = new File( OUTPUT_FILE_NAME );
