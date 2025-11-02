@@ -61,7 +61,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith( MockitoJUnitRunner.class )
+@RunWith(MockitoJUnitRunner.class)
 public class OrcInputTest {
   private static final String INPUT_STEP_NAME = "Input Step Name";
   private static final String INPUT_STREAM_FIELD_NAME = "inputStreamFieldName";
@@ -114,10 +114,14 @@ public class OrcInputTest {
     try ( MockedStatic<PluginServiceLoader> pluginServiceLoaderMockedStatic = Mockito.mockStatic( PluginServiceLoader.class ) ) {
       pluginServiceLoaderMockedStatic.when( () -> PluginServiceLoader.loadServices( MetastoreLocator.class ) )
         .thenReturn( metastoreLocatorCollection );
-      namedClusterResolver = NamedClusterResolver.getInstance();
+
+      // Mock the NamedClusterResolver instead of using the singleton
+      namedClusterResolver = Mockito.mock( NamedClusterResolver.class );
+      when( namedClusterResolver.getNamedClusterServiceLocator() ).thenReturn( mockNamedClusterServiceLocator );
+      when( namedClusterResolver.resolveNamedCluster( any( String.class ) ) ).thenReturn( null );
 
       orcInputMeta = spy( new OrcInputMeta( namedClusterResolver ) );
-      orcInputMeta.inputFiles.fileName = new String[ 1 ];
+      orcInputMeta.inputFiles.fileName = new String[1];
       orcInputMeta.setFilename( INPUT_STREAM_FIELD_NAME );
 
       orcInputMeta.setParentStepMeta( mockStepMeta );
@@ -148,7 +152,7 @@ public class OrcInputTest {
   private Object[] returnNextInputRow() {
     Object[] result = null;
     if ( currentOrcInputRow < inputRows.length ) {
-      result = inputRows[ currentOrcInputRow ].getData().clone();
+      result = inputRows[currentOrcInputRow].getData().clone();
       currentOrcInputRow++;
     }
     return result;
@@ -175,7 +179,7 @@ public class OrcInputTest {
     List<Object[]> dataCaptured = dataCaptor.getAllValues();
     for ( int rowNum = 0; rowNum < 2; rowNum++ ) {
       assertEquals( 0, rowMeta.get( rowNum ).indexOfValue( "str" ) );
-      assertEquals( "string" + ( rowNum % 2 + 1 ), dataCaptured.get( rowNum )[ 0 ] );
+      assertEquals( "string" + ( rowNum % 2 + 1 ), dataCaptured.get( rowNum )[0] );
     }
   }
 
@@ -263,7 +267,8 @@ public class OrcInputTest {
       reset = false;
     }
 
-    @Override public boolean hasNext() {
+    @Override
+    public boolean hasNext() {
       if ( reset ) {
         init();
       }
@@ -273,7 +278,8 @@ public class OrcInputTest {
       return iter.hasNext();
     }
 
-    @Override public RowMetaAndData next() {
+    @Override
+    public RowMetaAndData next() {
       if ( reset ) {
         init(); // Simultate a new iterator for the new file
       }
