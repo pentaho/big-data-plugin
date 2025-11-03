@@ -422,16 +422,6 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.oozie</groupId>
-      <artifactId>oozie-client</artifactId>
-      <version>${dependency.oozie.revision}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.oozie</groupId>
-      <artifactId>oozie-core</artifactId>
-      <version>${dependency.oozie.revision}</version>
-    </dependency>
-    <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-iam</artifactId>
       <exclusions>
