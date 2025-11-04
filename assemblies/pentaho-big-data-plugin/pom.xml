@@ -5,10 +5,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-assemblies</artifactId>
-    <version>11.1.0.0-SNAPSHOT</version>
+    <version>11.1.0.0-7</version>
   </parent>
   <artifactId>pentaho-big-data-plugin</artifactId>
-  <version>11.1.0.0-SNAPSHOT</version>
+  <version>11.1.0.0-7</version>
   <packaging>pom</packaging>
   <licenses>
     <license>
@@ -30,7 +30,7 @@
     <hadoop.shim.destFileName>apache</hadoop.shim.destFileName>
     <plugin.classifier>-apache</plugin.classifier>
     <active.hadoop.configuration>apache</active.hadoop.configuration>
-    <pentaho-kettle-yarn-plugin.version>11.0.0.0-SNAPSHOT</pentaho-kettle-yarn-plugin.version>
+    <pentaho-kettle-yarn-plugin.version>11.1.0.0-7</pentaho-kettle-yarn-plugin.version>
   </properties>
 
   <profiles>
