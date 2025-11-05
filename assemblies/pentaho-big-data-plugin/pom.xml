@@ -30,7 +30,6 @@
     <hadoop.shim.destFileName>apache</hadoop.shim.destFileName>
     <plugin.classifier>-apache</plugin.classifier>
     <active.hadoop.configuration>apache</active.hadoop.configuration>
-    <pentaho-kettle-yarn-plugin.version>11.0.0.0-SNAPSHOT</pentaho-kettle-yarn-plugin.version>
   </properties>
 
   <profiles>
@@ -714,18 +713,6 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-yarn-kettle-plugin</artifactId>
-      <version>${pentaho-kettle-yarn-plugin.version}</version>
-      <type>zip</type>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
   </dependencies>
   <build>
     <resources>
@@ -842,13 +829,6 @@
                   <artifactId>pdi-legacy-amazon-plugin</artifactId>
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/plugins</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>pentaho</groupId>
-                  <artifactId>pentaho-yarn-kettle-plugin</artifactId>
-                  <type>zip</type>
-                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/plugins</outputDirectory>
-                  <excludes>**/version.xml</excludes>
                 </artifactItem>
               </artifactItems>
             </configuration>
