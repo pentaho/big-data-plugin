@@ -9,7 +9,7 @@
   </parent>
   <artifactId>pentaho-big-data-impl-shim-shimTests</artifactId>
   <version>11.1.0.0-SNAPSHOT</version>
-  <packaging>bundle</packaging>
+  <packaging>jar</packaging>
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <description>a Pentaho open source project</description>
   <url>http://www.pentaho.com</url>
@@ -72,25 +72,4 @@
           <version>${pentaho-hadoop-shims.version}</version>
       </dependency>
   </dependencies>
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <version>${dependency.maven-bundle-plugin.version}</version>
-        <extensions>true</extensions>
-        <configuration>
-          <instructions>
-            <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-            <Import-Package>
-              org.pentaho.hadoop.shim.api.cluster,org.pentaho.bigdata.api.hdfs.*,
-              org.pentaho.hadoop.shim.api.hdfs.*,
-              !org.apache.hadoop.*,!org.pentaho.di.core.hadoop.*,
-              !org.pentaho.hadoop.*,!org.pentaho.yarn.*,*
-            </Import-Package>
-          </instructions>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 </project>

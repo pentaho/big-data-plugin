@@ -11,15 +11,13 @@
 
   <artifactId>hadoop-cluster-ui</artifactId>
   <version>11.1.0.0-SNAPSHOT</version>
-  <packaging>bundle</packaging>
-
+  <packaging>jar</packaging>
   <name>Hadoop Cluster Plugin UI</name>
 
   <properties>
     <maven-replacer-plugin.version>1.5.2</maven-replacer-plugin.version>
     <platform.version>11.1.0.0-SNAPSHOT</platform.version>
     <mockito4.version>4.0.0</mockito4.version>
-      <commons-configuration.version>1.6</commons-configuration.version>
     <!--FOR UI EXECUTION AS A STANDALONE (uncomment "exec.mainClass" property)-->
     <exec.mainClass>org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.wizard.NamedClusterDialog</exec.mainClass>
     </properties>
@@ -176,11 +174,6 @@
       <artifactId>javax.servlet-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.osgi</groupId>
-      <artifactId>osgi.core</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-legacy</artifactId>
       <version>${project.version}</version>
@@ -249,59 +242,6 @@
       </resource>
     </resources>
     <plugins>
-      <plugin>
-        <artifactId>maven-remote-resources-plugin</artifactId>
-        <version>1.5</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>bundle</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <includes>
-            <include>**/*</include>
-          </includes>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <version>2.4.0</version>
-        <extensions>true</extensions>
-        <configuration>
-          <instructions>
-            <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-            <!--
-            Fix for karaf wiring exception in Pentaho Server caused by DTE changes related to:
-            https://hv-eng.atlassian.net/browse/TAP-5183
-            If this causes future problems in DTE then it will be necessary to reevaluate
-            where the org.pentaho.di.ui.repo.endpoints.WebSpoonFilter resides. Probably
-            move it to "core-ui" as "repositories-plugin-core" is not available in karaf at the Pentaho Server
-            -->
-            <!--
-            Update: WebSpoonFilter was moved to this package; removing references to org.pentaho.di.ui.repo package
-            since no such package should be in karaf now.
-            -->
-            <Export-Package>
-              org.apache.commons.collections4.*,
-              org.apache.http.entity.mime.*,
-              org.ops4j.pax.swissbox.core,
-              org.ops4j.lang</Export-Package>
-            <Import-Package>org.pentaho.di.osgi,
-              org.pentaho.di.core.plugins,
-              org.pentaho.di.core.extension,
-              org.pentaho.big.data.impl.cluster;resolution:=optional,
-              org.osgi.framework;resolution:=optional,
-              org.pentaho.di.webspoon;resolution:=optional,
-              *</Import-Package>
-            <Provide-Capability>
-              org.pentaho.webpackage;root=/app
-            </Provide-Capability>
-          </instructions>
-        </configuration>
-      </plugin>
     </plugins>
   </build>
 </project>
