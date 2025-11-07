@@ -12,6 +12,11 @@
     <artifactId>services-bootstrap</artifactId>
     <version>11.0.0.0-SNAPSHOT</version>
 
+    <properties>
+        <junit.version>4.13.2</junit.version>
+        <mockito-inline.version>5.2.0</mockito-inline.version>
+        <mockito-junit-jupitor.version>5.1.1</mockito-junit-jupitor.version>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>pentaho-kettle</groupId>
@@ -124,6 +129,43 @@
             <groupId>pentaho</groupId>
             <artifactId>pentaho-authentication-mapper-impl</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.pentaho</groupId>
+            <artifactId>shim-api</artifactId>
+            <version>${pentaho-hadoop-shims.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>pentaho-kettle</groupId>
+            <artifactId>kettle-core</artifactId>
+            <version>${pdi.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>pentaho-kettle</groupId>
+            <artifactId>kettle-core</artifactId>
+            <version>${pdi.version}</version>
+            <scope>compile</scope>
+        </dependency>
+            <!-- Test dependencies -->
+        <dependency>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+          <version>${junit.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.mockito</groupId>
+          <artifactId>mockito-inline</artifactId>
+          <version>${mockito-inline.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.mockito</groupId>
+          <artifactId>mockito-junit-jupiter</artifactId>
+          <version>${mockito-junit-jupitor.version}</version>
+          <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
