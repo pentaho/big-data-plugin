@@ -9,7 +9,7 @@
   </parent>
   <artifactId>pentaho-big-data-api-runtimeTest</artifactId>
   <version>11.1.0.0-SNAPSHOT</version>
-  <packaging>bundle</packaging>
+  <packaging>jar</packaging>
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <description>a Pentaho open source project</description>
   <url>http://www.pentaho.com</url>
@@ -62,18 +62,6 @@
   </dependencies>
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <version>${dependency.maven-bundle-plugin.version}</version>
-        <extensions>true</extensions>
-        <configuration>
-          <instructions>
-            <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-            <Export-Package>org.pentaho.runtime.test.*</Export-Package>
-          </instructions>
-        </configuration>
-      </plugin>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
         <version>2.5</version>
