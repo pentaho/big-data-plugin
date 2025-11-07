@@ -1,0 +1,540 @@
+/*! ******************************************************************************
+ *
+ * Pentaho
+ *
+ * Copyright (C) 2024 by Hitachi Vantara, LLC : http://www.pentaho.com
+ *
+ * Use of this software is governed by the Business Source License included
+ * in the LICENSE.TXT file.
+ *
+ * Change Date: 2029-07-20
+ ******************************************************************************/
+
+package org.pentaho.big.data.services.bootstrap;
+
+import com.pentaho.big.data.bundles.impl.shim.hbase.HBaseServiceFactory;
+import com.pentaho.big.data.bundles.impl.shim.hdfs.HadoopFileSystemFactoryImpl;
+import com.pentaho.big.data.bundles.impl.shim.hive.HiveDriver;
+import com.pentaho.big.data.bundles.impl.shim.hive.ImpalaDriver;
+import com.pentaho.big.data.bundles.impl.shim.hive.ImpalaSimbaDriver;
+import com.pentaho.big.data.bundles.impl.shim.hive.SparkSimbaDriver;
+import org.apache.commons.vfs2.FileSystemException;
+import org.pentaho.authentication.mapper.api.AuthenticationMappingManager;
+import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
+import org.pentaho.big.data.api.jdbc.impl.ClusterInitializingDriver;
+import org.pentaho.big.data.api.jdbc.impl.DriverLocatorImpl;
+import org.pentaho.big.data.api.jdbc.impl.JdbcUrlParserImpl;
+import org.pentaho.big.data.api.shims.LegacyShimLocator;
+import org.pentaho.big.data.hadoop.bootstrap.HadoopConfigurationBootstrap;
+import org.pentaho.big.data.impl.cluster.tests.hdfs.GatewayListHomeDirectoryTest;
+import org.pentaho.big.data.impl.cluster.tests.hdfs.GatewayListRootDirectoryTest;
+import org.pentaho.big.data.impl.cluster.tests.hdfs.GatewayPingFileSystemEntryPoint;
+import org.pentaho.big.data.impl.cluster.tests.hdfs.GatewayWriteToAndDeleteFromUsersHomeFolderTest;
+import org.pentaho.big.data.impl.cluster.tests.kafka.KafkaConnectTest;
+import org.pentaho.big.data.impl.cluster.tests.mr.GatewayPingJobTrackerTest;
+import org.pentaho.big.data.impl.cluster.tests.oozie.GatewayPingOozieHostTest;
+import org.pentaho.big.data.impl.cluster.tests.zookeeper.GatewayPingZookeeperEnsembleTest;
+import org.pentaho.big.data.impl.shim.HadoopClientServicesFactory;
+import org.pentaho.big.data.impl.shim.format.FormatServiceFactory;
+import org.pentaho.big.data.impl.shim.mapreduce.MapReduceServiceFactoryImpl;
+import org.pentaho.big.data.impl.shim.mapreduce.TransformationVisitorService;
+import org.pentaho.big.data.impl.vfs.hdfs.AzureHdInsightsFileNameParser;
+import org.pentaho.big.data.impl.vfs.hdfs.HDFSFileNameParser;
+import org.pentaho.big.data.impl.vfs.hdfs.HDFSFileProvider;
+import org.pentaho.big.data.impl.vfs.hdfs.MapRFileNameParser;
+import org.pentaho.big.data.impl.vfs.hdfs.nc.NamedClusterProvider;
+import org.pentaho.bigdata.api.hdfs.impl.HadoopFileSystemLocatorImpl;
+import org.pentaho.di.core.service.ServiceProvider;
+import org.pentaho.di.core.service.ServiceProviderInterface;
+import org.pentaho.hadoop.shim.HadoopConfiguration;
+import org.pentaho.hadoop.shim.HadoopConfigurationLocator;
+import org.pentaho.hadoop.shim.api.ConfigurationException;
+import org.pentaho.hadoop.shim.api.core.ShimIdentifierInterface;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemFactory;
+import org.pentaho.hadoop.shim.api.jdbc.JdbcUrlParser;
+import org.pentaho.hadoop.shim.api.services.BigDataServicesInitializer;
+import org.pentaho.hadoop.shim.common.CommonFormatShim;
+import org.pentaho.hadoop.shim.spi.HadoopShim;
+import org.pentaho.hbase.shim.common.HBaseShimImpl;
+import org.pentaho.runtime.test.RuntimeTester;
+import org.pentaho.runtime.test.i18n.impl.BaseMessagesMessageGetterFactoryImpl;
+import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
+import org.pentaho.runtime.test.network.impl.ConnectivityTestFactoryImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Executors;
+
+@ServiceProvider(id = "BigDataCEServiceInitializer", description = "", provides = BigDataServicesInitializer.class)
+public class BigDataCEServiceInitializerImpl implements BigDataServicesInitializer, ServiceProviderInterface<BigDataServicesInitializer> {
+  protected static final Logger logger = LoggerFactory.getLogger( BigDataServicesInitializer.class );
+
+
+  @Override
+  public void doInitialize() {
+    logger.debug( "Starting Pentaho Big Data Plugin bootstrap process." );
+    try {
+      HadoopShim hadoopShim = initializeCommonServices();
+      if ( hadoopShim == null ) {
+        return;
+      }
+
+      List<String> shimAvailableServices = hadoopShim.getAvailableServices();
+      AuthenticationMappingManager authenticationMappingManager =
+        initializeAuthenticationManager( hadoopShim, shimAvailableServices );
+      HadoopFileSystemLocatorImpl hadoopFileSystemLocator =
+        initializeHdfsServices( hadoopShim, shimAvailableServices, authenticationMappingManager );
+      NamedClusterServiceLocatorImpl namedClusterServiceLocator = NamedClusterServiceLocatorImpl
+        .getInstance( hadoopShim.getShimIdentifier().getId() );
+      initializeFormatServices( hadoopShim, shimAvailableServices, namedClusterServiceLocator );
+      initializeMapReduceServices( hadoopShim, shimAvailableServices, authenticationMappingManager,
+        namedClusterServiceLocator );
+      initializeSqoopServices( hadoopShim, shimAvailableServices, authenticationMappingManager,
+        namedClusterServiceLocator );
+      initializeHiveServices( hadoopShim, shimAvailableServices, authenticationMappingManager );
+      initializeHBaseServices( hadoopShim, shimAvailableServices, authenticationMappingManager,
+        namedClusterServiceLocator );
+      initializeYarnServices( hadoopShim, shimAvailableServices, authenticationMappingManager,
+        hadoopFileSystemLocator, namedClusterServiceLocator );
+      initializeRuntimeTests( hadoopFileSystemLocator, namedClusterServiceLocator );
+
+    } catch ( ConfigurationException | ClassNotFoundException | IllegalAccessException | InstantiationException e ) {
+      logger.error(
+        "There was an error during the Pentaho Big Data Plugin bootstrap process. Some Big Data features may not be "
+          + "available after startup.",
+        e );
+    }
+
+    logger.debug( "Finished Pentaho Big Data Plugin bootstrap process." );
+
+  }
+
+  @Override
+  public int getPriority() {
+    return 100;
+  }
+
+  @Override
+  public boolean useProxyWrap() {
+    return true;
+  }
+
+  /**
+   * Initialize common Hadoop services and configuration
+   *
+   * @return HadoopShim instance or null if no configuration found
+   */
+  protected HadoopShim initializeCommonServices() throws ConfigurationException {
+    logger.debug( "Bootstrapping the Common Services." );
+    HadoopConfigurationBootstrap hadoopConfigurationBootstrap = HadoopConfigurationBootstrap.getInstance();
+    HadoopConfigurationLocator hadoopConfigurationProvider =
+      ( HadoopConfigurationLocator ) hadoopConfigurationBootstrap.getProvider();
+    if ( hadoopConfigurationProvider == null ) {
+      logger.info( "No Hadoop active configuration found." );
+      return null;
+    }
+    HadoopConfiguration hadoopConfiguration = hadoopConfigurationProvider.getActiveConfiguration();
+    HadoopShim hadoopShim = hadoopConfiguration.getHadoopShim();
+
+    // Add active shim to the Legacy Shim Locator
+    List<ShimIdentifierInterface> registeredShims = new ArrayList<>();
+    registeredShims.add( hadoopShim.getShimIdentifier() );
+    LegacyShimLocator.getInstance().setRegisteredShims( registeredShims );
+
+    return hadoopShim;
+  }
+
+  /**
+   * Initialize authentication manager service
+   *
+   * @param hadoopShim            the Hadoop shim
+   * @param shimAvailableServices list of available services
+   * @return AuthenticationMappingManager instance or null
+   */
+  protected AuthenticationMappingManager initializeAuthenticationManager( HadoopShim hadoopShim,
+                                                                          List<String> shimAvailableServices ) {
+    logger.debug( "Bootstrapping the authentication manager service." );
+    logger.debug( "No authentication manager service available in CE - continuing without authentication" );
+    return null;
+  }
+
+  /**
+   * Initialize HDFS services and file providers
+   *
+   * @param hadoopShim                   the Hadoop shim
+   * @param shimAvailableServices        list of available services
+   * @param authenticationMappingManager authentication manager
+   * @return HadoopFileSystemLocatorImpl instance or null
+   */
+  protected HadoopFileSystemLocatorImpl initializeHdfsServices( HadoopShim hadoopShim,
+                                                                List<String> shimAvailableServices,
+                                                                AuthenticationMappingManager authenticationMappingManager ) {
+    logger.debug( "Bootstrapping the HDFS Services." );
+    HadoopFileSystemLocatorImpl hadoopFileSystemLocator = null;
+    if ( shimAvailableServices.contains( "hdfs" ) ) {
+      List<String> availableHdfsOptions = hadoopShim.getServiceOptions( "hdfs" );
+      List<String> availableHdfsSchemas = hadoopShim.getAvailableHdfsSchemas();
+      List<HadoopFileSystemFactory> hadoopFileSystemFactoryList = new ArrayList<>();
+
+      if ( availableHdfsOptions.contains( "hdfs" ) ) {
+        logger.debug( "Adding 'hdfs' factory." );
+        HadoopFileSystemFactory hadoopFileSystemFactory =
+          new HadoopFileSystemFactoryImpl( hadoopShim, hadoopShim.getShimIdentifier() );
+        hadoopFileSystemFactoryList.add( hadoopFileSystemFactory );
+      }
+
+      hadoopFileSystemLocator = HadoopFileSystemLocatorImpl.getInstance();
+      hadoopFileSystemLocator.setHadoopFileSystemFactories( hadoopFileSystemFactoryList );
+
+      initializeHdfsSchemas( hadoopFileSystemLocator, availableHdfsSchemas );
+    } else {
+      logger.debug( "No HDFS Services defined." );
+    }
+    return hadoopFileSystemLocator;
+  }
+
+  /**
+   * Initialize HDFS schemas (hdfs, maprfs, wasb, etc.)
+   *
+   * @param hadoopFileSystemLocator the file system locator
+   * @param availableHdfsSchemas    list of available HDFS schemas
+   */
+  protected void initializeHdfsSchemas( HadoopFileSystemLocatorImpl hadoopFileSystemLocator,
+                                        List<String> availableHdfsSchemas ) {
+    if ( availableHdfsSchemas.contains( "hdfs" ) ) {
+      logger.debug( "Adding 'hdfs' schema.'" );
+      try {
+        HDFSFileProvider hdfsHDFSFileProvider =
+          new HDFSFileProvider( hadoopFileSystemLocator, "hdfs", HDFSFileNameParser.getInstance() );
+      } catch ( FileSystemException e ) {
+        throw new RuntimeException( e );
+      }
+    }
+    if ( availableHdfsSchemas.contains( "maprfs" ) ) {
+      logger.debug( "Adding 'maprfs' schema.'" );
+      try {
+        HDFSFileProvider maprfsHDFSFileProvider =
+          new HDFSFileProvider( hadoopFileSystemLocator, "maprfs", MapRFileNameParser.getInstance() );
+      } catch ( FileSystemException e ) {
+        throw new RuntimeException( e );
+      }
+    }
+    if ( availableHdfsSchemas.contains( "escalefs" ) ) {
+      logger.debug( "Adding 'escalefs' schema.'" );
+      try {
+        HDFSFileProvider escalefsHDFSFileProvider =
+          new HDFSFileProvider( hadoopFileSystemLocator, "escalefs", MapRFileNameParser.getInstance() );
+      } catch ( FileSystemException e ) {
+        throw new RuntimeException( e );
+      }
+    }
+    if ( availableHdfsSchemas.contains( "wasb" ) ) {
+      logger.debug( "Adding 'wasb' schema.'" );
+      try {
+        HDFSFileProvider wasbHDFSFileProvider =
+          new HDFSFileProvider( hadoopFileSystemLocator, "wasb", AzureHdInsightsFileNameParser.getInstance() );
+      } catch ( FileSystemException e ) {
+        throw new RuntimeException( e );
+      }
+    }
+    if ( availableHdfsSchemas.contains( "wasbs" ) ) {
+      logger.debug( "Adding 'wasbs' schema.'" );
+      try {
+        HDFSFileProvider wasbsHDFSFileProvider =
+          new HDFSFileProvider( hadoopFileSystemLocator, "wasbs", AzureHdInsightsFileNameParser.getInstance() );
+      } catch ( FileSystemException e ) {
+        throw new RuntimeException( e );
+      }
+    }
+    if ( availableHdfsSchemas.contains( "abfs" ) ) {
+      logger.debug( "Adding 'abfs' schema.'" );
+      try {
+        HDFSFileProvider abfsHDFSFileProvider =
+          new HDFSFileProvider( hadoopFileSystemLocator, "abfs", AzureHdInsightsFileNameParser.getInstance() );
+      } catch ( FileSystemException e ) {
+        throw new RuntimeException( e );
+      }
+    }
+    if ( availableHdfsSchemas.contains( "hc" ) ) {
+      logger.debug( "Adding 'hc' schema.'" );
+      try {
+        NamedClusterProvider namedClusterProvider =
+          new NamedClusterProvider( hadoopFileSystemLocator, "hc", HDFSFileNameParser.getInstance() );
+      } catch ( FileSystemException e ) {
+        throw new RuntimeException( e );
+      }
+
+      // Initialize UI NamedClusterProvider if available (Spoon environment)
+      initializeUINamedClusterProvider();
+    }
+  }
+
+  /**
+   * Initialize format service factories (Parquet, ORC, Avro, etc.)
+   *
+   * @param hadoopShim                 the Hadoop shim
+   * @param shimAvailableServices      list of available services
+   * @param namedClusterServiceLocator the service locator
+   */
+  protected void initializeFormatServices( HadoopShim hadoopShim,
+                                           List<String> shimAvailableServices,
+                                           NamedClusterServiceLocatorImpl namedClusterServiceLocator ) {
+    logger.debug( "Bootstrap the common format service factories." );
+    if ( shimAvailableServices.contains( "common_formats" ) ) {
+      CommonFormatShim commonFormatShim = new CommonFormatShim();
+      FormatServiceFactory formatServiceFactory = new FormatServiceFactory( commonFormatShim );
+      Map formatFactoryMap = new HashMap<String, String>();
+      formatFactoryMap.put( "shim", hadoopShim.getShimIdentifier().getId() );
+      formatFactoryMap.put( "service", "format" );
+      namedClusterServiceLocator.factoryAdded( formatServiceFactory, formatFactoryMap );
+    } else {
+      logger.debug( "No common format service factories defined." );
+    }
+  }
+
+  /**
+   * Initialize MapReduce service factories
+   *
+   * @param hadoopShim                   the Hadoop shim
+   * @param shimAvailableServices        list of available services
+   * @param authenticationMappingManager authentication manager
+   * @param namedClusterServiceLocator   the service locator
+   */
+  protected void initializeMapReduceServices( HadoopShim hadoopShim,
+                                              List<String> shimAvailableServices,
+                                              AuthenticationMappingManager authenticationMappingManager,
+                                              NamedClusterServiceLocatorImpl namedClusterServiceLocator ) {
+    logger.debug( "Bootstrap the mapreduce service factories." );
+    if ( shimAvailableServices.contains( "mapreduce" ) ) {
+      List<String> availableMapreduceOptions = hadoopShim.getServiceOptions( "mapreduce" );
+      List<TransformationVisitorService> visitorServices = new ArrayList<>();
+      Map mapReducefactoryMap = new HashMap<String, String>();
+      mapReducefactoryMap.put( "shim", hadoopShim.getShimIdentifier().getId() );
+      mapReducefactoryMap.put( "service", "mapreduce" );
+
+      if ( availableMapreduceOptions.contains( "mapreduce" ) ) {
+        logger.debug( "Adding 'mapreduce' factory." );
+        MapReduceServiceFactoryImpl mapReduceServiceFactory = new MapReduceServiceFactoryImpl(
+          hadoopShim,
+          Executors.newCachedThreadPool(),
+          visitorServices
+        );
+        namedClusterServiceLocator.factoryAdded( mapReduceServiceFactory, mapReducefactoryMap );
+      }
+    } else {
+      logger.debug( "No mapreduce service factories defined." );
+    }
+  }
+
+  /**
+   * Initialize Sqoop (Hadoop client) service factories
+   *
+   * @param hadoopShim                   the Hadoop shim
+   * @param shimAvailableServices        list of available services
+   * @param authenticationMappingManager authentication manager
+   * @param namedClusterServiceLocator   the service locator
+   */
+  protected void initializeSqoopServices( HadoopShim hadoopShim,
+                                          List<String> shimAvailableServices,
+                                          AuthenticationMappingManager authenticationMappingManager,
+                                          NamedClusterServiceLocatorImpl namedClusterServiceLocator ) {
+    logger.debug( "Bootstrap the hadoop client (Sqoop) service factories." );
+    if ( shimAvailableServices.contains( "sqoop" ) ) {
+      List<String> availableSqoopOptions = hadoopShim.getServiceOptions( "sqoop" );
+      Map hadoopClientFactoryMap = new HashMap<String, String>();
+      hadoopClientFactoryMap.put( "shim", hadoopShim.getShimIdentifier().getId() );
+      hadoopClientFactoryMap.put( "service", "shimservices" );
+
+      if ( availableSqoopOptions.contains( "sqoop" ) ) {
+        logger.debug( "Adding 'sqoop' factory." );
+        HadoopClientServicesFactory hadoopClientServicesFactory = new HadoopClientServicesFactory( hadoopShim );
+        namedClusterServiceLocator.factoryAdded( hadoopClientServicesFactory, hadoopClientFactoryMap );
+      }
+    } else {
+      logger.debug( "No hadoop client (Sqoop) service factories defined." );
+    }
+  }
+
+  /**
+   * Initialize Hive service drivers
+   *
+   * @param hadoopShim                   the Hadoop shim
+   * @param shimAvailableServices        list of available services
+   * @param authenticationMappingManager authentication manager
+   */
+  protected void initializeHiveServices( HadoopShim hadoopShim,
+                                         List<String> shimAvailableServices,
+                                         AuthenticationMappingManager authenticationMappingManager ) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    logger.debug( "Bootstrap the Hive services." );
+    if ( shimAvailableServices.contains( "hive" ) ) {
+      JdbcUrlParser jdbcUrlParser = JdbcUrlParserImpl.getInstance();
+      DriverLocatorImpl driverLocator = DriverLocatorImpl.getInstance();
+      int pentaho_jdbc_lazydrivers_num = 5;
+      ClusterInitializingDriver clusterInitializingDriver = new ClusterInitializingDriver(
+        jdbcUrlParser,
+        driverLocator,
+        pentaho_jdbc_lazydrivers_num );
+      List<String> availableHiveDrivers = hadoopShim.getAvailableHiveDrivers();
+
+      // Register CE Hive drivers
+      registerHiveDrivers( hadoopShim, availableHiveDrivers, jdbcUrlParser, driverLocator );
+    } else {
+      logger.debug( "No Hive services defined." );
+    }
+  }
+
+  /**
+   * Register Community Edition Hive drivers
+   *
+   * @param hadoopShim           the Hadoop shim
+   * @param availableHiveDrivers list of available Hive drivers
+   * @param jdbcUrlParser        JDBC URL parser
+   * @param driverLocator        driver locator
+   */
+  protected void registerHiveDrivers( HadoopShim hadoopShim,
+                                      List<String> availableHiveDrivers,
+                                      JdbcUrlParser jdbcUrlParser,
+                                      DriverLocatorImpl driverLocator ) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    if ( availableHiveDrivers.contains( "hive" ) ) {
+      logger.debug( "Adding 'hive' driver." );
+      HiveDriver hiveDriver = null;
+      hiveDriver = new HiveDriver(
+        jdbcUrlParser,
+        "org.apache.hive.jdbc.HiveDriver",
+        hadoopShim.getShimIdentifier().getId() );
+      driverLocator.registerDriver( hiveDriver );
+    }
+    if ( availableHiveDrivers.contains( "impala" ) ) {
+      logger.debug( "Adding 'impala' driver." );
+      ImpalaDriver impalaDriver = null;
+      impalaDriver = new ImpalaDriver(
+        jdbcUrlParser,
+        "com.cloudera.impala.jdbc41.Driver",
+        hadoopShim.getShimIdentifier().getId() );
+      driverLocator.registerDriver( impalaDriver );
+    }
+    if ( availableHiveDrivers.contains( "impala_simba" ) ) {
+      logger.debug( "Adding 'impala_simba' driver." );
+      ImpalaSimbaDriver impalaSimbaDriver = null;
+      impalaSimbaDriver = new ImpalaSimbaDriver(
+        jdbcUrlParser,
+        "com.cloudera.impala.jdbc41.Driver",
+        hadoopShim.getShimIdentifier().getId() );
+      driverLocator.registerDriver( impalaSimbaDriver );
+    }
+    if ( availableHiveDrivers.contains( "spark_simba" ) ) {
+      logger.debug( "Adding 'spark_simba' driver." );
+      SparkSimbaDriver sparkSimbaDriver = null;
+      sparkSimbaDriver = new SparkSimbaDriver(
+        jdbcUrlParser,
+        "org.apache.hive.jdbc.HiveDriver",
+        hadoopShim.getShimIdentifier().getId() );
+      driverLocator.registerDriver( sparkSimbaDriver );
+    }
+  }
+
+  /**
+   * Initialize HBase service factories
+   *
+   * @param hadoopShim                   the Hadoop shim
+   * @param shimAvailableServices        list of available services
+   * @param authenticationMappingManager authentication manager
+   * @param namedClusterServiceLocator   the service locator
+   */
+  protected void initializeHBaseServices( HadoopShim hadoopShim,
+                                          List<String> shimAvailableServices,
+                                          AuthenticationMappingManager authenticationMappingManager,
+                                          NamedClusterServiceLocatorImpl namedClusterServiceLocator ) throws ConfigurationException {
+    logger.debug( "Bootstrap the HBase services." );
+    if ( shimAvailableServices.contains( "hbase" ) ) {
+      List<String> availableHbaseOptions = hadoopShim.getServiceOptions( "hbase" );
+      HBaseShimImpl hBaseShim = new HBaseShimImpl();
+      Map hBaseServiceFactoryMap = new HashMap<String, String>();
+      hBaseServiceFactoryMap.put( "shim", hadoopShim.getShimIdentifier().getId() );
+      hBaseServiceFactoryMap.put( "service", "hbase" );
+
+      if ( availableHbaseOptions.contains( "hbase" ) ) {
+        logger.debug( "Adding 'hbase' factory." );
+        HBaseServiceFactory hBaseServiceFactory = new HBaseServiceFactory( hBaseShim );
+        namedClusterServiceLocator.factoryAdded( hBaseServiceFactory, hBaseServiceFactoryMap );
+      }
+    } else {
+      logger.debug( "No HBase services defined." );
+    }
+  }
+
+  /**
+   * Initialize Yarn service factories
+   *
+   * @param hadoopShim                   the Hadoop shim
+   * @param shimAvailableServices        list of available services
+   * @param authenticationMappingManager authentication manager
+   * @param hadoopFileSystemLocator      file system locator
+   * @param namedClusterServiceLocator   the service locator
+   */
+  protected void initializeYarnServices( HadoopShim hadoopShim,
+                                         List<String> shimAvailableServices,
+                                         AuthenticationMappingManager authenticationMappingManager,
+                                         HadoopFileSystemLocatorImpl hadoopFileSystemLocator,
+                                         NamedClusterServiceLocatorImpl namedClusterServiceLocator ) {
+    logger.debug( "Bootstrap the Yarn services." );
+    // CE version does not support Yarn - EE version will override
+    logger.debug( "No Yarn services available in CE" );
+  }
+
+  /**
+   * Initialize UI NamedClusterProvider for Spoon environment
+   * This provider is optional and only available in UI contexts
+   */
+  protected void initializeUINamedClusterProvider() {
+    try {
+      // Try to instantiate the UI NamedClusterProvider (browse plugin)
+      org.pentaho.big.data.impl.browse.NamedClusterProvider uiProvider =
+        new org.pentaho.big.data.impl.browse.NamedClusterProvider();
+      logger.debug( "UI NamedClusterProvider initialized successfully for Spoon environment" );
+    } catch ( NoClassDefFoundError | Exception e ) {
+      logger.debug(
+        "The UI NamedClusterProvider could not be instantiated. This is OK for Pentaho Server but it should be "
+          + "examined for Spoon." );
+    }
+  }
+
+  /**
+   * Initialize runtime tests for cluster connectivity and health checks
+   *
+   * @param hadoopFileSystemLocator    file system locator
+   * @param namedClusterServiceLocator the service locator
+   */
+  protected void initializeRuntimeTests( HadoopFileSystemLocatorImpl hadoopFileSystemLocator,
+                                         NamedClusterServiceLocatorImpl namedClusterServiceLocator ) {
+    logger.debug( "Bootstrap the run time tests." );
+    RuntimeTester runtimeTester = RuntimeTesterImpl.getInstance();
+    runtimeTester.addRuntimeTest(
+      new GatewayPingFileSystemEntryPoint( BaseMessagesMessageGetterFactoryImpl.getInstance(),
+        new ConnectivityTestFactoryImpl() ) );
+    runtimeTester.addRuntimeTest( new GatewayPingJobTrackerTest( BaseMessagesMessageGetterFactoryImpl.getInstance(),
+      new ConnectivityTestFactoryImpl() ) );
+    runtimeTester.addRuntimeTest( new GatewayPingOozieHostTest( BaseMessagesMessageGetterFactoryImpl.getInstance(),
+      new ConnectivityTestFactoryImpl() ) );
+    runtimeTester.addRuntimeTest(
+      new GatewayPingZookeeperEnsembleTest( BaseMessagesMessageGetterFactoryImpl.getInstance(),
+        new ConnectivityTestFactoryImpl() ) );
+    runtimeTester.addRuntimeTest(
+      new GatewayListRootDirectoryTest( BaseMessagesMessageGetterFactoryImpl.getInstance(),
+        new ConnectivityTestFactoryImpl(), hadoopFileSystemLocator ) );
+    runtimeTester.addRuntimeTest(
+      new GatewayListHomeDirectoryTest( BaseMessagesMessageGetterFactoryImpl.getInstance(),
+        new ConnectivityTestFactoryImpl(), hadoopFileSystemLocator ) );
+    runtimeTester.addRuntimeTest(
+      new GatewayWriteToAndDeleteFromUsersHomeFolderTest( BaseMessagesMessageGetterFactoryImpl.getInstance(),
+        hadoopFileSystemLocator ) );
+    runtimeTester.addRuntimeTest(
+      new KafkaConnectTest( BaseMessagesMessageGetterFactoryImpl.getInstance(), namedClusterServiceLocator ) );
+  }
+
+
+}
