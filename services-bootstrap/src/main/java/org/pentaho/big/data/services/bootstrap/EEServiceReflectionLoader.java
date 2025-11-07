@@ -548,7 +548,7 @@ public class EEServiceReflectionLoader {
    * @param hadoopFileSystemLocator The file system locator for Yarn services
    * @return NamedClusterServiceFactory representing the YarnServiceFactoryImpl, or null if EE classes not available
    */
-  public static NamedClusterServiceFactory<?> loadEEYarnServiceFactory( Object hadoopFileSystemLocator ) {
+  public static NamedClusterServiceFactory<?> loadEEYarnServiceFactory( Object hadoopFileSystemLocator, Object authenticationMappingManager ) {
     if ( !isEEAvailable() ) {
       logger.debug( "EE services not available - skipping Yarn service factory loading" );
       return null;
@@ -562,9 +562,10 @@ public class EEServiceReflectionLoader {
       
       // Create instance using constructor: YarnServiceFactoryImpl(HadoopFileSystemLocator hadoopFileSystemLocator)
       Constructor<?> constructor = yarnServiceFactoryClass.getConstructor( 
-        Class.forName( "org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator" ) 
+        Class.forName( "org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator" ),
+        Class.forName( "org.pentaho.authentication.mapper.api.AuthenticationMappingManager" )
       );
-      Object yarnServiceFactory = constructor.newInstance( hadoopFileSystemLocator );
+      Object yarnServiceFactory = constructor.newInstance( hadoopFileSystemLocator ,authenticationMappingManager );
       
       logger.debug( "Successfully loaded EE Yarn service factory: " + yarnServiceFactory.getClass().getSimpleName() );
       

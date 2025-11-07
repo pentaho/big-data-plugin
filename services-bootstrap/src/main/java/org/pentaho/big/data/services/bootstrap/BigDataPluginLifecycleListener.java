@@ -404,7 +404,7 @@ public class BigDataPluginLifecycleListener implements KettleLifecycleListener {
         // Load EE Yarn service factory via reflection
         logger.debug( "Loading EE Yarn service factory via reflection" );
         NamedClusterServiceFactory<?> yarnServiceFactory =
-          EEServiceReflectionLoader.loadEEYarnServiceFactory( hadoopFileSystemLocator );
+          EEServiceReflectionLoader.loadEEYarnServiceFactory( hadoopFileSystemLocator, authenticationMappingManager );
 
         if ( yarnServiceFactory != null ) {
           try {
