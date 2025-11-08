@@ -9,7 +9,7 @@
   </parent>
   <artifactId>pentaho-big-data-kettle-plugins-common-named-cluster-bridge</artifactId>
   <version>11.1.0.0-SNAPSHOT</version>
-  <packaging>bundle</packaging>
+  <packaging>jar</packaging>
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <description>a Pentaho open source project</description>
   <url>http://www.pentaho.com</url>
@@ -68,20 +68,4 @@
       <scope>provided</scope>
     </dependency>
   </dependencies>
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <version>${dependency.maven-bundle-plugin.version}</version>
-        <extensions>true</extensions>
-        <configuration>
-          <instructions>
-            <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-            <Import-Package>org.eclipse.swt*;resolution:=optional,org.pentaho.di.ui.xul*;resolution:=optional,org.pentaho.ui.xul*;resolution:=optional,org.pentaho.di.osgi,org.pentaho.di.core.plugins,!org.pentaho.di.core.hadoop,!org.pentaho.di.core.namedcluster.*,!org.pentaho.di.ui.core.namedcluster.*,*</Import-Package>
-          </instructions>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 </project>
