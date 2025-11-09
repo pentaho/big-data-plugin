@@ -12,7 +12,6 @@
   <packaging>pom</packaging>
   <modules>
     <module>ui</module>
-    <module>namedClusterBridge</module>
     <module>job</module>
   </modules>
 </project>
