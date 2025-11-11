@@ -24,8 +24,6 @@
     <hbase.version>0.90.3</hbase.version>
     <xml-apis.version>2.0.2</xml-apis.version>
     <commands.version>3.3.0-I20070605-0010</commands.version>
-    <avro.version>1.6.2</avro.version>
-    <libthrift.version>0.6</libthrift.version>
     <publish-sonar-phase>site</publish-sonar-phase>
     <high-scale-lib.version>1.1.2</high-scale-lib.version>
     <jline.version>0.9.94</jline.version>
@@ -167,11 +165,6 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.apache.avro</groupId>
-      <artifactId>avro</artifactId>
-      <version>${avro.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.eclipse.core</groupId>
       <artifactId>commands</artifactId>
       <version>${commands.version}</version>
@@ -203,11 +196,6 @@
       <groupId>jline</groupId>
       <artifactId>jline</artifactId>
       <version>${jline.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>libthrift</groupId>
-      <artifactId>libthrift</artifactId>
-      <version>${libthrift.version}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
