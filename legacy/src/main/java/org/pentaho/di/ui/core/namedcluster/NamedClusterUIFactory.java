@@ -15,8 +15,8 @@ package org.pentaho.di.ui.core.namedcluster;
 
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
-import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.ui.spoon.Spoon;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 
 /**
  * Created by bryan on 8/17/15.
