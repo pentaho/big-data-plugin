@@ -21,18 +21,18 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Tree;
-import org.pentaho.big.data.impl.cluster.NamedClusterManager;
+import org.pentaho.big.data.api.services.BigDataServicesHelper;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDelegate;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClusterManager;
 import org.pentaho.di.core.extension.ExtensionPoint;
 import org.pentaho.di.core.extension.ExtensionPointInterface;
 import org.pentaho.di.core.logging.LogChannelInterface;
-import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.ui.core.ConstUI;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.spoon.TreeSelection;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
@@ -72,7 +72,8 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
   private HadoopClusterManager hadoopClusterManager;
 
   public HadoopClusterPopupMenuExtension() {
-    this.namedClusterService = NamedClusterManager.getInstance();
+
+    this.namedClusterService =  BigDataServicesHelper.getNamedClusterService();
     this.hadoopClusterDelegate = new HadoopClusterDelegate( this.namedClusterService, runtimeTester );
     this.internalShim = "";
     this.hadoopClusterManager =

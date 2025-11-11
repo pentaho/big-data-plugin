@@ -13,16 +13,16 @@
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.tree;
 
 import com.google.common.collect.ImmutableMap;
-import org.pentaho.big.data.impl.cluster.NamedClusterManager;
+import org.pentaho.big.data.api.services.BigDataServicesHelper;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDelegate;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.extension.ExtensionPoint;
 import org.pentaho.di.core.extension.ExtensionPointInterface;
 import org.pentaho.di.core.logging.LogChannelInterface;
-import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.ui.spoon.SelectionTreeExtension;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +39,7 @@ public class ThinHadoopClusterEditExtension implements ExtensionPointInterface {
   private static final Logger logChannel = LoggerFactory.getLogger( ThinHadoopClusterEditExtension.class );
 
   public ThinHadoopClusterEditExtension() {
-    this.hadoopClusterDelegate = new HadoopClusterDelegate( NamedClusterManager.getInstance(), RuntimeTesterImpl.getInstance() );
+    this.hadoopClusterDelegate = new HadoopClusterDelegate( BigDataServicesHelper.getNamedClusterService(), RuntimeTesterImpl.getInstance() );
   }
 
   public ThinHadoopClusterEditExtension( HadoopClusterDelegate hadoopClusterDelegate ) {

@@ -13,9 +13,10 @@
 
 package org.pentaho.di.ui.core.namedcluster;
 
-import org.pentaho.di.core.namedcluster.NamedClusterManager;
-import org.pentaho.di.core.namedcluster.model.NamedCluster;
+import org.pentaho.big.data.api.services.BigDataServicesHelper;
 import org.pentaho.di.ui.spoon.Spoon;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 
 import java.util.ArrayList;
@@ -47,14 +48,22 @@ public class NamedClusterUIHelper {
    */
   public static List<NamedCluster> getNamedClusters() {
     try {
-      return NamedClusterManager.getInstance().list( Spoon.getInstance().getMetaStore() );
+      NamedClusterService namedClusterService = BigDataServicesHelper.getNamedClusterService();
+      if ( namedClusterService != null ) {
+        return namedClusterService.list( Spoon.getInstance().getMetaStore() );
+      }
+      return new ArrayList<>();
     } catch ( MetaStoreException e ) {
       return new ArrayList<>();
     }
   }
 
   public static NamedCluster getNamedCluster( String namedCluster ) throws MetaStoreException {
-    return NamedClusterManager.getInstance().read( namedCluster, Spoon.getInstance().getMetaStore() );
+    NamedClusterService namedClusterService = BigDataServicesHelper.getNamedClusterService();
+    if ( namedClusterService != null ) {
+      return namedClusterService.read( namedCluster, Spoon.getInstance().getMetaStore() );
+    }
+    return null;
   }
 
   static class NamedClusterUIFactoryHolder {
