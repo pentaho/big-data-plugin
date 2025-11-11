@@ -46,7 +46,6 @@ import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.pentaho.runtime.test.action.impl.RuntimeTestActionServiceImpl;
 import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
 import org.pentaho.big.data.impl.cluster.NamedClusterManager;
-import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
 import org.w3c.dom.Node;
 
 

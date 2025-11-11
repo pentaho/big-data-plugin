@@ -42,7 +42,6 @@ import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.pentaho.runtime.test.action.impl.RuntimeTestActionServiceImpl;
-import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
 import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
 
 

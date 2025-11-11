@@ -13,8 +13,8 @@
 
 package org.pentaho.di.ui.repository.repositoryexplorer.model;
 
-import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.repository.Repository;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 
 import java.lang.reflect.Constructor;
 

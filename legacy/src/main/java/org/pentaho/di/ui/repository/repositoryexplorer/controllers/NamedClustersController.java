@@ -22,8 +22,7 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
-import org.pentaho.di.core.namedcluster.NamedClusterManager;
-import org.pentaho.di.core.namedcluster.model.NamedCluster;
+import org.pentaho.big.data.api.services.BigDataServicesHelper;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
@@ -40,6 +39,8 @@ import org.pentaho.di.ui.repository.repositoryexplorer.model.UINamedClusters;
 import org.pentaho.di.ui.repository.repositoryexplorer.model.UIObjectCreationException;
 import org.pentaho.di.ui.repository.repositoryexplorer.model.UINamedClusterObjectRegistry;
 import org.pentaho.di.ui.spoon.Spoon;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.ui.xul.XulException;
 import org.pentaho.ui.xul.binding.Binding;
 import org.pentaho.ui.xul.binding.BindingFactory;
@@ -80,6 +81,8 @@ public class NamedClustersController extends LazilyInitializedController impleme
 
   private Repository diRepository;
 
+  private NamedClusterService namedClusterService;
+
   public NamedClustersController() {
   }
 
@@ -90,6 +93,13 @@ public class NamedClustersController extends LazilyInitializedController impleme
 
   public void init( Repository repository ) throws ControllerInitializationException {
     this.diRepository = repository;
+  }
+
+  private NamedClusterService getNamedClusterService() {
+    if ( namedClusterService == null ) {
+      namedClusterService = BigDataServicesHelper.getNamedClusterService();
+    }
+    return namedClusterService;
   }
 
   private NamedClusterDialog getNamedClusterDialog() {
@@ -185,7 +195,7 @@ public class NamedClustersController extends LazilyInitializedController impleme
     Runnable r = new Runnable() {
       public void run() {
         try {
-          for ( NamedCluster namedCluster : NamedClusterManager.getInstance().list( diRepository.getRepositoryMetaStore() ) ) {
+          for ( NamedCluster namedCluster : getNamedClusterService().list( diRepository.getRepositoryMetaStore() ) ) {
             try {
               tmpList.add( UINamedClusterObjectRegistry.getInstance().constructUINamedCluster( namedCluster, diRepository ) );
             } catch ( UIObjectCreationException uoe ) {
@@ -208,7 +218,7 @@ public class NamedClustersController extends LazilyInitializedController impleme
     try {
       // user will have to select from list of templates
       // for now hard code to hadoop-cluster
-      NamedCluster namedCluterTemplate = NamedClusterManager.getInstance().getClusterTemplate();
+      NamedCluster namedCluterTemplate = getNamedClusterService().getClusterTemplate();
       namedCluterTemplate.initializeVariablesFrom( null );
       getNamedClusterDialog().setNamedCluster( namedCluterTemplate );
       getNamedClusterDialog().setNewClusterCheck( true );
@@ -216,9 +226,9 @@ public class NamedClustersController extends LazilyInitializedController impleme
       String namedClusterName = getNamedClusterDialog().open();
       if ( namedClusterName != null && !namedClusterName.equals( "" ) ) {
         // See if this named cluster exists...
-        NamedCluster namedCluster = NamedClusterManager.getInstance().read( namedClusterName, Spoon.getInstance().getMetaStore() );
+        NamedCluster namedCluster = getNamedClusterService().read( namedClusterName, Spoon.getInstance().getMetaStore() );
         if ( namedCluster == null ) {
-          NamedClusterManager.getInstance().create( getNamedClusterDialog().getNamedCluster(), Spoon.getInstance().getMetaStore() );
+          getNamedClusterService().create( getNamedClusterDialog().getNamedCluster(), Spoon.getInstance().getMetaStore() );
         } else {
           MessageBox mb = new MessageBox( shell, SWT.ICON_ERROR | SWT.OK );
           mb.setMessage( BaseMessages.getString(
@@ -303,7 +313,7 @@ public class NamedClustersController extends LazilyInitializedController impleme
         NamedCluster namedCluster = original.clone();
 
         // Make sure this NamedCluster already exists and store its id for updating
-        if ( NamedClusterManager.getInstance().read( namedCluster.getName(), Spoon.getInstance().getMetaStore() ) == null ) {
+        if ( getNamedClusterService().read( namedCluster.getName(), Spoon.getInstance().getMetaStore() ) == null ) {
           MessageBox mb = new MessageBox( shell, SWT.ICON_ERROR | SWT.OK );
           mb.setMessage( BaseMessages.getString(
             PKG, "RepositoryExplorerDialog.NamedCluster.Edit.DoesNotExists.Message" ) );
@@ -317,8 +327,8 @@ public class NamedClustersController extends LazilyInitializedController impleme
           String namedClusterName = getNamedClusterDialog().open();
           if ( namedClusterName != null && !namedClusterName.equals( "" ) ) {
             // delete original
-            NamedClusterManager.getInstance().delete( original.getName(), Spoon.getInstance().getMetaStore() );
-            NamedClusterManager.getInstance().create( namedCluster, Spoon.getInstance().getMetaStore() );
+            getNamedClusterService().delete( original.getName(), Spoon.getInstance().getMetaStore() );
+            getNamedClusterService().create( namedCluster, Spoon.getInstance().getMetaStore() );
           }
         }
       } else {
@@ -353,7 +363,7 @@ public class NamedClustersController extends LazilyInitializedController impleme
             NamedCluster namedCluster = uiNamedCluster.getNamedCluster();
 
             // Make sure this named cluster already exists and store its id for updating
-            if ( NamedClusterManager.getInstance().read( namedCluster.getName(), diRepository.getRepositoryMetaStore() ) == null ) {
+            if ( getNamedClusterService().read( namedCluster.getName(), diRepository.getRepositoryMetaStore() ) == null ) {
               MessageBox mb = new MessageBox( shell, SWT.ICON_ERROR | SWT.OK );
               mb
                 .setMessage( BaseMessages.getString(
@@ -361,7 +371,7 @@ public class NamedClustersController extends LazilyInitializedController impleme
               mb.setText( BaseMessages.getString( PKG, "RepositoryExplorerDialog.NamedCluster.Delete.DoesNotExists.Title" ) );
               mb.open();
             } else {
-              NamedClusterManager.getInstance().delete( namedCluster.getName(), diRepository.getRepositoryMetaStore() );
+              getNamedClusterService().delete( namedCluster.getName(), diRepository.getRepositoryMetaStore() );
             }
           }
         }

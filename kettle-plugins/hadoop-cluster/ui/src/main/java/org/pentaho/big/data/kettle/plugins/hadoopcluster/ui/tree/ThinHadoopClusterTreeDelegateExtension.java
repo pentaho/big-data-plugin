@@ -13,15 +13,16 @@
 
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.tree;
 
-import org.pentaho.di.core.namedcluster.NamedClusterManager;
+import org.pentaho.big.data.api.services.BigDataServicesHelper;
 import org.pentaho.di.base.AbstractMeta;
 import org.pentaho.di.core.extension.ExtensionPoint;
 import org.pentaho.di.core.extension.ExtensionPointInterface;
 import org.pentaho.di.core.logging.LogChannelInterface;
-import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.spoon.TreeSelection;
 import org.pentaho.di.ui.spoon.delegates.SpoonTreeDelegateExtension;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 
 import java.util.List;
@@ -32,6 +33,7 @@ import java.util.function.Supplier;
 
 public class ThinHadoopClusterTreeDelegateExtension implements ExtensionPointInterface {
   private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
+  private NamedClusterService namedClusterService;
 
   public void callExtensionPoint( LogChannelInterface log, Object extension ) {
 
@@ -52,10 +54,12 @@ public class ThinHadoopClusterTreeDelegateExtension implements ExtensionPointInt
       case 3:
         if ( path[ 1 ].equals( ThinHadoopClusterFolderProvider.STRING_NEW_HADOOP_CLUSTER ) ) {
           try {
-            NamedClusterManager ncm = NamedClusterManager.getInstance();
-            String name = path[ 2 ];
-            NamedCluster nc = ncm.read( name, spoonSupplier.get().getMetaStore() );
-            object = new TreeSelection( path[ 2 ], nc, meta );
+            String name = path[2];
+            NamedClusterService ncs = getNamedClusterService();
+            if ( ncs != null ) {
+              NamedCluster nc = ncs.read( name, spoonSupplier.get().getMetaStore() );
+              object = new TreeSelection( path[2], nc, meta );
+            }
           } catch ( MetaStoreException e ) {
             // Ignore
           }
@@ -66,5 +70,12 @@ public class ThinHadoopClusterTreeDelegateExtension implements ExtensionPointInt
     if ( object != null ) {
       objects.add( object );
     }
+  }
+
+  private NamedClusterService getNamedClusterService() {
+    if ( namedClusterService == null ) {
+      namedClusterService = BigDataServicesHelper.getNamedClusterService();
+    }
+    return namedClusterService;
   }
 }
