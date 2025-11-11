@@ -14,8 +14,8 @@
 package org.pentaho.di.ui.core.namedcluster;
 
 import org.eclipse.swt.widgets.Shell;
-import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.metastore.api.IMetaStore;
 
 /**
