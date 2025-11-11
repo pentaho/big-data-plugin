@@ -29,13 +29,19 @@ import java.util.Optional;
 public class NamedClusterResolver {
 
   private final NamedClusterServiceLocator namedClusterServiceLocator;
-  private NamedClusterService namedClusterService;
+  private final NamedClusterService namedClusterService;
   private MetastoreLocator metaStoreService;
   private static NamedClusterResolver namedClusterResolver = null;
 
   private NamedClusterResolver() {
-    this.namedClusterServiceLocator = BigDataServicesHelper.getNamedClusterServiceLocator();
-    this.namedClusterService = getNamedClusterService();
+    this( BigDataServicesHelper.getNamedClusterServiceLocator(),
+      NamedClusterManager.getInstance() );
+  }
+
+  private NamedClusterResolver( NamedClusterServiceLocator namedClusterServiceLocator,
+                                NamedClusterService namedClusterService ) {
+    this.namedClusterServiceLocator = namedClusterServiceLocator;
+    this.namedClusterService = namedClusterService;
   }
 
   public static synchronized NamedClusterResolver getInstance() {
@@ -43,18 +49,6 @@ public class NamedClusterResolver {
       namedClusterResolver = new NamedClusterResolver();
     }
     return namedClusterResolver;
-  }
-
-  private NamedClusterService getNamedClusterService() {
-    if ( this.namedClusterService == null ) {
-      try {
-        Collection<NamedClusterService> namedClusterServices = PluginServiceLoader.loadServices( NamedClusterService.class );
-        this.namedClusterService = namedClusterServices.stream().findFirst().orElse( null );
-      } catch ( Exception e ) {
-        LOG.logError( "Error getting NamedClusterService", e );
-      }
-    }
-    return this.namedClusterService;
   }
 
   protected synchronized MetastoreLocator getMetastoreLocator() {
