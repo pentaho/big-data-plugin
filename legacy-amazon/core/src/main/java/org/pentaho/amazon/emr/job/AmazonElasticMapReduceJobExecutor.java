@@ -77,23 +77,7 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobExecutor
   }
 
   public String getMainClass( URL localJarUrl ) throws Exception {
-
-    List<ShimIdentifierInterface> shimIdentifers = PentahoSystem.getAll( ShimIdentifierInterface.class );
-    Iterator<ShimIdentifierInterface> iterator = shimIdentifers.iterator();
-    ClassLoader parentClassloader = null;
-
-    while ( iterator.hasNext() ) {
-      ShimIdentifierInterface shimIdentifier = iterator.next();
-      String vendor = shimIdentifier.getVendor();
-      if ( vendor.equals( EMR_SHIM_VENDOR ) ) {
-        parentClassloader = shimIdentifier.getClass().getClassLoader();
-      }
-    }
-
-    if ( parentClassloader == null ) {
-      throw new KettleException(
-              BaseMessages.getString( PKG, "AmazonElasticMapReduceJobExecutor.Shim.Error" ) );
-    }
+    ClassLoader parentClassloader = this.getClass().getClassLoader();
 
     URLClassLoader newClassLoader = new URLClassLoader( new URL[] { localJarUrl }, parentClassloader );
 
@@ -161,6 +145,7 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobExecutor
     numInstances = XMLHandler.getTagValue( entrynode, "num_instances" );
     emrRelease = XMLHandler.getTagValue( entrynode, "emr_release" );
     cmdLineArgs = XMLHandler.getTagValue( entrynode, "command_line_args" );
+    ec2SubnetId = XMLHandler.getTagValue( entrynode, "ec2_subnet_id" );
     alive = "Y".equalsIgnoreCase( XMLHandler.getTagValue( entrynode, "alive" ) );
     runOnNewCluster = "Y".equalsIgnoreCase( XMLHandler.getTagValue( entrynode, "runOnNewCluster" ) );
     blocking = "Y".equalsIgnoreCase( XMLHandler.getTagValue( entrynode, "blocking" ) );
@@ -189,6 +174,7 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobExecutor
     retval.append( "      " ).append( XMLHandler.addTagValue( "num_instances", numInstances ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "staging_dir", stagingDir ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "command_line_args", cmdLineArgs ) );
+    retval.append( "      " ).append( XMLHandler.addTagValue( "ec2_subnet_id", ec2SubnetId ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "alive", alive ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "runOnNewCluster", runOnNewCluster ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "blocking", blocking ) );
@@ -221,6 +207,7 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobExecutor
       setEmrRelease( rep.getJobEntryAttributeString( id_jobentry, "emr_release" ) );
       setNumInstances( rep.getJobEntryAttributeString( id_jobentry, "num_instances" ) );
       setCmdLineArgs( rep.getJobEntryAttributeString( id_jobentry, "command_line_args" ) );
+      setEc2SubnetId( rep.getJobEntryAttributeString( id_jobentry, "ec2_subnet_id" ) );
       setAlive( rep.getJobEntryAttributeBoolean( id_jobentry, "alive" ) );
       setRunOnNewCluster( rep.getJobEntryAttributeBoolean( id_jobentry, "runOnNewCluster" ) );
       setBlocking( rep.getJobEntryAttributeBoolean( id_jobentry, "blocking" ) );
@@ -255,6 +242,7 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobExecutor
       rep.saveJobEntryAttribute( id_job, getObjectId(), "emr_release", emrRelease );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "num_instances", numInstances );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "command_line_args", cmdLineArgs );
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "ec2_subnet_id", ec2SubnetId );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "alive", alive );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "runOnNewCluster", runOnNewCluster );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "blocking", blocking );

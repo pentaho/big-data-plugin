@@ -24,6 +24,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
 import org.pentaho.amazon.client.ClientFactoriesManager;
 import org.pentaho.amazon.client.ClientType;
+import org.pentaho.amazon.client.api.Ec2Client;
 import org.pentaho.amazon.client.api.EmrClient;
 import org.pentaho.amazon.client.api.S3Client;
 import org.pentaho.di.core.Const;
@@ -41,9 +42,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -173,6 +176,28 @@ public abstract class AbstractAmazonJobExecutor extends AbstractAmazonJobEntry {
   public abstract String getMainClass() throws Exception;
 
   public abstract String getStepType();
+
+  /**
+   * Retrieves a list of available VPC subnets from AWS for the configured region and credentials.
+   * This method can be called from UI controllers to populate subnet dropdown lists.
+   * 
+   * @param accessKey AWS access key ID
+   * @param secretKey AWS secret access key
+   * @param sessionToken AWS session token (can be null or empty)
+   * @param region AWS region (e.g., "us-east-1")
+   * @return List of SubnetInfo objects containing subnet details, or empty list if error occurs
+   */
+  public static List<Ec2Client.SubnetInfo> getAvailableSubnets( String accessKey, String secretKey, 
+                                                                 String sessionToken, String region ) {
+    try {
+      ClientFactoriesManager manager = ClientFactoriesManager.getInstance();
+      Ec2Client ec2Client = manager.createClient( accessKey, secretKey, sessionToken, region, ClientType.EC2 );
+      return ec2Client.getAvailableSubnets();
+    } catch ( Exception e ) {
+      // Return empty list if there's an error
+      return new ArrayList<>();
+    }
+  }
 
   private void runNewJobFlow( String stagingS3FileUrl, String stagingS3BucketUrl ) throws Exception {
     emrClient

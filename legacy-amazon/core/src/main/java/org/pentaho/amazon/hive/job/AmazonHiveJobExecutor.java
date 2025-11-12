@@ -132,6 +132,7 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobExecutor {
     bootstrapActions = XMLHandler.getTagValue( entrynode, "bootstrap_actions" );
     stagingDir = XMLHandler.getTagValue( entrynode, "staging_dir" );
     cmdLineArgs = XMLHandler.getTagValue( entrynode, "command_line_args" );
+    ec2SubnetId = XMLHandler.getTagValue( entrynode, "ec2_subnet_id" );
     alive = "Y".equalsIgnoreCase( XMLHandler.getTagValue( entrynode, "alive" ) );
     runOnNewCluster = "Y".equalsIgnoreCase( XMLHandler.getTagValue( entrynode, "runOnNewCluster" ) );
     blocking = "Y".equalsIgnoreCase( XMLHandler.getTagValue( entrynode, "blocking" ) );
@@ -164,6 +165,7 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobExecutor {
     retval.append( "      " ).append( XMLHandler.addTagValue( "bootstrap_actions", bootstrapActions ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "staging_dir", stagingDir ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "command_line_args", cmdLineArgs ) );
+    retval.append( "      " ).append( XMLHandler.addTagValue( "ec2_subnet_id", ec2SubnetId ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "alive", alive ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "runOnNewCluster", runOnNewCluster ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "blocking", blocking ) );
@@ -203,6 +205,7 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobExecutor {
       setBootstrapActions( rep.getJobEntryAttributeString( id_jobentry, "bootstrap_actions" ) );
       setStagingDir( rep.getJobEntryAttributeString( id_jobentry, "staging_dir" ) );
       setCmdLineArgs( rep.getJobEntryAttributeString( id_jobentry, "command_line_args" ) );
+      setEc2SubnetId( rep.getJobEntryAttributeString( id_jobentry, "ec2_subnet_id" ) );
       setAlive( rep.getJobEntryAttributeBoolean( id_jobentry, "alive" ) );
       setRunOnNewCluster( rep.getJobEntryAttributeBoolean( id_jobentry, "runOnNewCluster" ) );
       setBlocking( rep.getJobEntryAttributeBoolean( id_jobentry, "blocking" ) );
@@ -240,6 +243,7 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobExecutor {
       rep.saveJobEntryAttribute( id_job, getObjectId(), "bootstrap_actions", bootstrapActions );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "staging_dir", stagingDir );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "command_line_args", cmdLineArgs );
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "ec2_subnet_id", ec2SubnetId );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "alive", alive );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "blocking", blocking );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "runOnNewCluster", runOnNewCluster );
