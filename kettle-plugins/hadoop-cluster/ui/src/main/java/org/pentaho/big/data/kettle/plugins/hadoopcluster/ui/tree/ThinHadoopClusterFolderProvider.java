@@ -14,9 +14,8 @@
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.tree;
 
 import org.eclipse.swt.graphics.Image;
+import org.pentaho.big.data.api.services.BigDataServicesHelper;
 import org.pentaho.di.base.AbstractMeta;
-import org.pentaho.di.core.namedcluster.NamedClusterManager;
-import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.ConstUI;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
@@ -24,6 +23,8 @@ import org.pentaho.di.ui.core.widget.tree.TreeNode;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.spoon.tree.TreeFolderProvider;
 import org.pentaho.di.ui.util.SwtSvgImageUtil;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 
 import java.util.ArrayList;
@@ -37,28 +38,32 @@ public class ThinHadoopClusterFolderProvider extends TreeFolderProvider {
     BaseMessages.getString( ThinHadoopClusterFolderProvider.class, "HadoopClusterTree.Title" );
   private static Class<?> PKG = Spoon.class;
   private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
+  private NamedClusterService namedClusterService;
 
   @Override
   public void refresh( Optional<AbstractMeta> meta, TreeNode treeNode, String filter ) {
-    List<NamedCluster> namedClusters;
-    List<MetaStoreException> exceptionList = new ArrayList<>();
-    try {
-      namedClusters = NamedClusterManager.getInstance().list( Spoon.getInstance().getMetaStore(), exceptionList );
-      for ( MetaStoreException e : exceptionList ) {
+
+    if ( getNamedClusterService() != null ) {
+      List<NamedCluster> namedClusters = null;
+      List<MetaStoreException> exceptionList = new ArrayList<>();
+      try {
+        namedClusters = getNamedClusterService().list( Spoon.getInstance().getMetaStore(), exceptionList );
+        for ( MetaStoreException e : exceptionList ) {
+          new ErrorDialog( Spoon.getInstance().getShell(), BaseMessages.getString( PKG, "Spoon.ErrorDialog.Title" ),
+            BaseMessages.getString( PKG, "Spoon.ErrorDialog.ErrorFetchingFromRepo.NamedCluster" ), e );
+        }
+      } catch ( MetaStoreException e ) {
         new ErrorDialog( Spoon.getInstance().getShell(), BaseMessages.getString( PKG, "Spoon.ErrorDialog.Title" ),
           BaseMessages.getString( PKG, "Spoon.ErrorDialog.ErrorFetchingFromRepo.NamedCluster" ), e );
+        return;
       }
-    } catch ( MetaStoreException e ) {
-      new ErrorDialog( Spoon.getInstance().getShell(), BaseMessages.getString( PKG, "Spoon.ErrorDialog.Title" ),
-        BaseMessages.getString( PKG, "Spoon.ErrorDialog.ErrorFetchingFromRepo.NamedCluster" ), e );
-      return;
-    }
 
-    for ( NamedCluster namedCluster : namedClusters ) {
-      if ( !filterMatch( namedCluster.getName(), filter ) ) {
-        continue;
+      for ( NamedCluster namedCluster : namedClusters ) {
+        if ( !filterMatch( namedCluster.getName(), filter ) ) {
+          continue;
+        }
+        createTreeNode( treeNode, namedCluster.getName(), getHadoopClusterImage() );
       }
-      createTreeNode( treeNode, namedCluster.getName(), getHadoopClusterImage() );
     }
   }
 
@@ -76,5 +81,12 @@ public class ThinHadoopClusterFolderProvider extends TreeFolderProvider {
     return SwtSvgImageUtil
       .getImage( spoonSupplier.get().getShell().getDisplay(), getClass().getClassLoader(), "images/hadoop_clusters.svg",
         ConstUI.ICON_SIZE, ConstUI.ICON_SIZE );
+  }
+
+  private NamedClusterService getNamedClusterService() {
+    if ( namedClusterService == null ) {
+      namedClusterService = BigDataServicesHelper.getNamedClusterService();
+    }
+    return namedClusterService;
   }
 }

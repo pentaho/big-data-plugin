@@ -14,6 +14,7 @@ package org.pentaho.big.data.api.services;
 
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.service.PluginServiceLoader;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
 import org.pentaho.hadoop.shim.api.services.BigDataServicesProxy;
@@ -51,6 +52,16 @@ public class BigDataServicesHelper {
       Collection<BigDataServicesProxy> namedClusterServiceLocatorFactories = PluginServiceLoader.loadServices( BigDataServicesProxy.class );
       return namedClusterServiceLocatorFactories.stream().findFirst().map( BigDataServicesProxy::getShimIdentifier ).orElse( null );
     } catch ( Exception e ) {
+      return null;
+    }
+  }
+
+  public static NamedClusterService getNamedClusterService() {
+    try {
+      Collection<BigDataServicesProxy> bigDataServicesProxies = PluginServiceLoader.loadServices( BigDataServicesProxy.class );
+      return bigDataServicesProxies.stream().findFirst().map( BigDataServicesProxy::getNamedClusterService ).orElse( null );
+    } catch ( KettlePluginException e ) {
+      e.printStackTrace();
       return null;
     }
   }
