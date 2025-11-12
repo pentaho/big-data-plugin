@@ -17,5 +17,5 @@ package org.pentaho.amazon.client;
  * Created by Aliaksandr_Zhuk on 2/5/2018.
  */
 public enum ClientType {
-  S3, EMR, AIM, PRICING
+  S3, EMR, AIM, PRICING, EC2
 }

@@ -179,6 +179,12 @@
                                     <menupopup>
                                     </menupopup>
                                   </menulist>
+                                  <hbox padding="0"></hbox>
+                                  <label value="${AmazonElasticMapReduceJobExecutor.Ec2SubnetId.Label}"/>
+                                  <menulist width="90" id="ec2-subnet-id" editable="true" disabled="true">
+                                    <menupopup>
+                                    </menupopup>
+                                  </menulist>
                                   <vbox padding="0" spacing="0"></vbox>
                                 </vbox>
                                 <hbox padding="0" width="11"></hbox>

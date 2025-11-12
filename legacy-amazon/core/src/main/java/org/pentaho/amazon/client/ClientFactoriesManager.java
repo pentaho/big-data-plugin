@@ -14,6 +14,7 @@
 package org.pentaho.amazon.client;
 
 import org.pentaho.amazon.client.impl.AimClientFactory;
+import org.pentaho.amazon.client.impl.Ec2ClientFactory;
 import org.pentaho.amazon.client.impl.EmrClientFactory;
 import org.pentaho.amazon.client.impl.PricingClientFactory;
 import org.pentaho.amazon.client.impl.S3ClientFactory;
@@ -35,6 +36,7 @@ public class ClientFactoriesManager {
     clientFactoryMap.put( ClientType.EMR, new EmrClientFactory() );
     clientFactoryMap.put( ClientType.AIM, new AimClientFactory() );
     clientFactoryMap.put( ClientType.PRICING, new PricingClientFactory() );
+    clientFactoryMap.put( ClientType.EC2, new Ec2ClientFactory() );
   }
 
   public static ClientFactoriesManager getInstance() {

@@ -209,12 +209,17 @@ public class EmrClientImpl implements EmrClient {
   }
 
   private JobFlowInstancesConfig initEC2Instance( Integer numInsts, String masterInstanceType,
-                                                  String slaveInstanceType ) {
+                                                  String slaveInstanceType, String ec2SubnetId ) {
     JobFlowInstancesConfig instances = new JobFlowInstancesConfig();
     instances.setInstanceCount( numInsts );
     instances.setMasterInstanceType( masterInstanceType );
     instances.setSlaveInstanceType( slaveInstanceType );
     instances.setKeepJobFlowAliveWhenNoSteps( isAlive() );
+    
+    // Set EC2 subnet if provided (required for VPC-only instance types like c5.*)
+    if ( ec2SubnetId != null && !ec2SubnetId.trim().isEmpty() ) {
+      instances.setEc2SubnetId( ec2SubnetId.trim() );
+    }
 
     return instances;
   }
@@ -234,7 +239,7 @@ public class EmrClientImpl implements EmrClient {
 
     JobFlowInstancesConfig instances =
       initEC2Instance( Integer.parseInt( jobEntry.getNumInstances() ), jobEntry.getMasterInstanceType(),
-        jobEntry.getSlaveInstanceType() );
+        jobEntry.getSlaveInstanceType(), jobEntry.getEc2SubnetId() );
     runJobFlowRequest.setInstances( instances );
 
     List<StepConfig> steps = initSteps( stagingS3FileUrl, stepType, mainClass, jobEntry );
