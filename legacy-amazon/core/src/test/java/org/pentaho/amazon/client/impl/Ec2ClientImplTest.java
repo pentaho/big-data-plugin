@@ -9,7 +9,6 @@
  *
  * Change Date: 2029-07-20
  ******************************************************************************/
-
 package org.pentaho.amazon.client.impl;
 
 import com.amazonaws.services.ec2.AmazonEC2;
@@ -121,8 +120,8 @@ public class Ec2ClientImplTest {
     Ec2Client.SubnetInfo subnetInfo = subnets.get( 0 );
     assertEquals( "subnet-12345", subnetInfo.getSubnetId() );
     // When no Name tag exists, getSubnetName() returns the subnet ID as fallback
-    assertEquals( "Subnet name should fallback to subnet ID when no Name tag", 
-                  "subnet-12345", subnetInfo.getSubnetName() );
+    assertEquals( "Subnet name should fallback to subnet ID when no Name tag",
+      "subnet-12345", subnetInfo.getSubnetName() );
     assertEquals( "vpc-12345", subnetInfo.getVpcId() );
   }
 
@@ -173,8 +172,8 @@ public class Ec2ClientImplTest {
     String displayString = subnetInfo.getDisplayString();
 
     // Assert
-    assertEquals( "Test Subnet (subnet-12345) - AZ: us-east-1a - CIDR: 10.0.1.0/24", 
-                  displayString );
+    assertEquals( "Test Subnet (subnet-12345) - AZ: us-east-1a - CIDR: 10.0.1.0/24",
+      displayString );
   }
 
   @Test
@@ -193,8 +192,8 @@ public class Ec2ClientImplTest {
     String displayString = subnetInfo.getDisplayString();
 
     // Assert
-    assertEquals( "subnet-12345 - AZ: us-east-1a - CIDR: 10.0.1.0/24", 
-                  displayString );
+    assertEquals( "subnet-12345 - AZ: us-east-1a - CIDR: 10.0.1.0/24",
+      displayString );
   }
 
   @Test
@@ -213,8 +212,8 @@ public class Ec2ClientImplTest {
     String displayString = subnetInfo.getDisplayString();
 
     // Assert
-    assertEquals( "subnet-12345 - AZ: us-east-1a - CIDR: 10.0.1.0/24", 
-                  displayString );
+    assertEquals( "subnet-12345 - AZ: us-east-1a - CIDR: 10.0.1.0/24",
+      displayString );
   }
 
   @Test
@@ -247,7 +246,7 @@ public class Ec2ClientImplTest {
       .withAvailabilityZone( "us-east-1a" )
       .withCidrBlock( "10.0.1.0/24" )
       .withState( "available" )
-      .withTags( 
+      .withTags(
         new Tag( "Environment", "Production" ),
         new Tag( "Name", "Prod Subnet" ),
         new Tag( "Owner", "DevOps" )
