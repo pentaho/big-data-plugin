@@ -25,9 +25,8 @@ import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -35,7 +34,7 @@ import java.lang.reflect.Method;
  * User: RFellows Date: 6/8/12
  */
 public class VfsFileChooserHelper {
-  private static final Logger logger = LoggerFactory.getLogger( VfsFileChooserHelper.class );
+  private static final Logger logger = LogManager.getLogger( VfsFileChooserHelper.class );
   private VfsFileChooserDialog fileChooserDialog = null;
   private Shell shell = null;
   private VariableSpace variableSpace = null;

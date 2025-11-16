@@ -43,9 +43,8 @@ import org.pentaho.ui.xul.containers.XulTree;
 import org.pentaho.ui.xul.containers.XulVbox;
 import org.pentaho.ui.xul.swt.SwtXulLoader;
 import org.pentaho.ui.xul.swt.SwtXulRunner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -55,7 +54,7 @@ import java.util.ResourceBundle;
   documentationUrl = "https://pentaho-community.atlassian.net/wiki/display/EAI/Hadoop+Job+Executor" )
 public class JobEntryHadoopJobExecutorDialog extends JobEntryDialog implements JobEntryDialogInterface {
   private static final Class<?> CLZ = JobEntryHadoopJobExecutor.class;
-  private static final Logger logger = LoggerFactory.getLogger( JobEntryHadoopJobExecutorDialog.class );
+  private static final Logger logger = LogManager.getLogger( JobEntryHadoopJobExecutorDialog.class );
   private final NamedClusterService namedClusterService;
   private final JobEntryHadoopJobExecutorController controller;
   private JobEntryHadoopJobExecutor jobEntry;

@@ -24,6 +24,8 @@ import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.AbstractOriginatingFileProvider;
 import org.apache.commons.vfs2.provider.FileNameParser;
 import org.apache.commons.vfs2.provider.GenericFileName;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.pentaho.big.data.impl.vfs.hdfs.nc.NamedClusterConfigBuilder;
 import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.di.core.vfs.KettleVFS;
@@ -32,8 +34,6 @@ import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
 import org.pentaho.metastore.locator.api.MetastoreLocator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 
 import java.net.URI;
@@ -43,7 +43,7 @@ import java.util.Collections;
 
 public class HDFSFileProvider extends AbstractOriginatingFileProvider {
 
-  protected static Logger logger = LoggerFactory.getLogger( HDFSFileProvider.class );
+  protected static Logger logger = LogManager.getLogger( HDFSFileProvider.class );
   private MetastoreLocator metaStoreService;
   /**
    * The scheme this provider was designed to support
