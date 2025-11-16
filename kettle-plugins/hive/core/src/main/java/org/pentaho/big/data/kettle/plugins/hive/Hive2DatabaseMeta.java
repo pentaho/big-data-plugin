@@ -13,6 +13,8 @@
 package org.pentaho.big.data.kettle.plugins.hive;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.pentaho.big.data.api.jdbc.impl.DriverLocatorImpl;
 import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.di.core.database.DatabaseMeta;
@@ -23,8 +25,6 @@ import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.jdbc.DriverLocator;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.locator.api.MetastoreLocator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
@@ -43,7 +43,7 @@ public class Hive2DatabaseMeta extends DatabaseMetaWithVersion {
   protected static final String DRIVER_CLASS_NAME = "org.apache.hive.jdbc.HiveDriver";
   protected NamedClusterService namedClusterService;
   protected MetastoreLocator metastoreLocator;
-  private Logger logger = LoggerFactory.getLogger( Hive2DatabaseMeta.class );
+  private final Logger logger = LogManager.getLogger( Hive2DatabaseMeta.class );
 
   public Hive2DatabaseMeta(){
     this( DriverLocatorImpl.getInstance() );

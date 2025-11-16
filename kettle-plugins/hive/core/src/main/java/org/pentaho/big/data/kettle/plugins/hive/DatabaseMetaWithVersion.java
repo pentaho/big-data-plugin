@@ -13,6 +13,8 @@
 
 package org.pentaho.big.data.kettle.plugins.hive;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.pentaho.hadoop.shim.api.jdbc.DriverLocator;
 import org.pentaho.di.core.database.BaseDatabaseMeta;
 import org.pentaho.di.core.database.DatabaseMeta;
@@ -26,14 +28,11 @@ import java.sql.DatabaseMetaData;
 import java.sql.Driver;
 import java.sql.SQLException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * Created by bryan on 4/14/16.
  */
 public abstract class DatabaseMetaWithVersion extends BaseDatabaseMeta {
-  private static final Logger logger = LoggerFactory.getLogger( DatabaseMetaWithVersion.class );
+  private static final Logger logger = LogManager.getLogger( DatabaseMetaWithVersion.class );
   private final DriverLocator driverLocator;
 
   protected DatabaseMetaWithVersion( DriverLocator driverLocator ) {

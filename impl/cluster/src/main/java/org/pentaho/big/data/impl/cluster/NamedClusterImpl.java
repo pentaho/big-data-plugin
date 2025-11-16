@@ -57,11 +57,11 @@ import org.pentaho.metastore.api.security.Base64TwoWayPasswordEncoder;
 import org.pentaho.metastore.api.security.ITwoWayPasswordEncoder;
 import org.pentaho.metastore.persist.MetaStoreAttribute;
 import org.pentaho.metastore.persist.MetaStoreElementType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -80,7 +80,7 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
   public static final String UPPER_STRING = "String";
 
 
-  private static final Logger LOGGER = LoggerFactory.getLogger( NamedClusterImpl.class );
+  private static final Logger LOGGER = LogManager.getLogger( NamedClusterImpl.class );
 
   private VariableSpace variables = new Variables();
 

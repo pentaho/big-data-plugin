@@ -20,9 +20,8 @@ import org.pentaho.dictionary.MetaverseAnalyzers;
 import org.pentaho.metaverse.api.IMetaverseNode;
 import org.pentaho.metaverse.api.MetaverseAnalyzerException;
 import org.pentaho.metaverse.api.analyzer.kettle.jobentry.JobEntryAnalyzer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -38,7 +37,7 @@ public class JobEntrySparkSubmitAnalyzer extends JobEntryAnalyzer<JobEntrySparkS
   private static final String DRIVER_MEMORY = "driverMemory";
   private static final String MASTER_URL = "masterUrl";
 
-  private Logger log = LoggerFactory.getLogger( JobEntrySparkSubmitAnalyzer.class );
+  private Logger log = LogManager.getLogger( JobEntrySparkSubmitAnalyzer.class );
 
   @Override
   public Set<Class<? extends JobEntryInterface>> getSupportedEntries() {

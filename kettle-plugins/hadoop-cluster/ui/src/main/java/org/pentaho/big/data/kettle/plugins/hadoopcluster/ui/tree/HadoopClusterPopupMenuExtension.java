@@ -36,8 +36,8 @@ import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -66,7 +66,8 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
   private HadoopClusterDelegate hadoopClusterDelegate;
   private NamedClusterService namedClusterService;
   private String internalShim;
-  private static final Logger logChannel = LoggerFactory.getLogger( HadoopClusterPopupMenuExtension.class );
+
+  private static final Logger logChannel = LogManager.getLogger( HadoopClusterPopupMenuExtension.class );
   private NamedCluster lastNamedCluster;
   private RuntimeTester runtimeTester = RuntimeTesterImpl.getInstance();
   private HadoopClusterManager hadoopClusterManager;
