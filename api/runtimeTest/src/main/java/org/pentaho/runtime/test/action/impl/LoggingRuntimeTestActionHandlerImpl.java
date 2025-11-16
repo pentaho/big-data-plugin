@@ -19,8 +19,8 @@ import org.pentaho.runtime.test.i18n.MessageGetter;
 import org.pentaho.runtime.test.i18n.MessageGetterFactory;
 import org.pentaho.runtime.test.i18n.impl.BaseMessagesMessageGetterFactoryImpl;
 import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Created by bryan on 9/8/15.
@@ -38,7 +38,7 @@ public class LoggingRuntimeTestActionHandlerImpl implements RuntimeTestActionHan
   }
 
   public LoggingRuntimeTestActionHandlerImpl( MessageGetterFactory messageGetterFactory ) {
-    this( messageGetterFactory, LoggerFactory.getLogger( LoggingRuntimeTestActionHandlerImpl.class ) );
+    this( messageGetterFactory, LogManager.getLogger( LoggingRuntimeTestActionHandlerImpl.class ) );
   }
 
   public LoggingRuntimeTestActionHandlerImpl( MessageGetterFactory messageGetterFactory, Logger logger ) {

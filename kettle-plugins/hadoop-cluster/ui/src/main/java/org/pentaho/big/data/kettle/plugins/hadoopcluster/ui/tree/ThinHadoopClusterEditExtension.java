@@ -23,9 +23,8 @@ import org.pentaho.di.ui.spoon.SelectionTreeExtension;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Collections;
@@ -36,7 +35,7 @@ import java.util.Collections;
 public class ThinHadoopClusterEditExtension implements ExtensionPointInterface {
 
   HadoopClusterDelegate hadoopClusterDelegate;
-  private static final Logger logChannel = LoggerFactory.getLogger( ThinHadoopClusterEditExtension.class );
+  private static final Logger logChannel = LogManager.getLogger( ThinHadoopClusterEditExtension.class );
 
   public ThinHadoopClusterEditExtension() {
     this.hadoopClusterDelegate = new HadoopClusterDelegate( BigDataServicesHelper.getNamedClusterService(), RuntimeTesterImpl.getInstance() );

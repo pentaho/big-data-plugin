@@ -39,9 +39,8 @@ import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.locator.api.MetastoreLocator;
 import org.pentaho.big.data.impl.cluster.NamedClusterManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -57,7 +56,7 @@ public class NamedClusterProvider extends BaseFileProvider<NamedClusterFile> {
 
   private NamedClusterService namedClusterManager;
   private MetastoreLocator metastoreLocator;
-  private Logger logger = LoggerFactory.getLogger( NamedClusterProvider.class );
+  private Logger logger = LogManager.getLogger( NamedClusterProvider.class );
   private boolean initialized = false;
 
   public NamedClusterProvider() {

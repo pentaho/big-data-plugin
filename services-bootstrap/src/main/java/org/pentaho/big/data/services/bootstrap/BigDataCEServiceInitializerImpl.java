@@ -18,7 +18,9 @@ import com.pentaho.big.data.bundles.impl.shim.hive.HiveDriver;
 import com.pentaho.big.data.bundles.impl.shim.hive.ImpalaDriver;
 import com.pentaho.big.data.bundles.impl.shim.hive.ImpalaSimbaDriver;
 import com.pentaho.big.data.bundles.impl.shim.hive.SparkSimbaDriver;
+import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.apache.logging.log4j.Logger;
 import org.pentaho.authentication.mapper.api.AuthenticationMappingManager;
 import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
 import org.pentaho.big.data.api.jdbc.impl.ClusterInitializingDriver;
@@ -44,8 +46,15 @@ import org.pentaho.big.data.impl.vfs.hdfs.HDFSFileProvider;
 import org.pentaho.big.data.impl.vfs.hdfs.MapRFileNameParser;
 import org.pentaho.big.data.impl.vfs.hdfs.nc.NamedClusterProvider;
 import org.pentaho.bigdata.api.hdfs.impl.HadoopFileSystemLocatorImpl;
+import org.pentaho.di.core.bowl.DefaultBowl;
+import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
+import org.pentaho.di.core.plugins.LifecyclePluginType;
+import org.pentaho.di.core.plugins.PluginInterface;
+import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.service.ServiceProvider;
 import org.pentaho.di.core.service.ServiceProviderInterface;
+import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.pentaho.hadoop.shim.HadoopConfigurationLocator;
 import org.pentaho.hadoop.shim.api.ConfigurationException;
@@ -60,23 +69,33 @@ import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.i18n.impl.BaseMessagesMessageGetterFactoryImpl;
 import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
 import org.pentaho.runtime.test.network.impl.ConnectivityTestFactoryImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Level;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.Executors;
 
 @ServiceProvider(id = "BigDataCEServiceInitializer", description = "", provides = BigDataServicesInitializer.class)
 public class BigDataCEServiceInitializerImpl implements BigDataServicesInitializer, ServiceProviderInterface<BigDataServicesInitializer> {
-  protected static final Logger logger = LoggerFactory.getLogger( BigDataServicesInitializer.class );
+  protected static final Logger logger = LogManager.getLogger(BigDataCEServiceInitializerImpl.class );
+  private static final String LOGGING_PROPERTIES_FILE = "bigdata-logging.properties";
+  private static final String LOGGER_PREFIX = "logger.";
 
 
   @Override
   public void doInitialize() {
-    logger.debug( "Starting Pentaho Big Data Plugin bootstrap process." );
+    // Register loggers from properties file first
+    registerLoggers();
+
+    // Initialize Big Data logging configuration
+    BigDataLogConfig.initializeBigDataLogging();
+
+    logger.info("Starting Pentaho Big Data Plugin bootstrap process.");
     try {
       HadoopShim hadoopShim = initializeCommonServices();
       if ( hadoopShim == null ) {
@@ -109,8 +128,77 @@ public class BigDataCEServiceInitializerImpl implements BigDataServicesInitializ
         e );
     }
 
-    logger.debug( "Finished Pentaho Big Data Plugin bootstrap process." );
+    logger.info( "Finished Pentaho Big Data Plugin bootstrap process." );
 
+  }
+
+  /**
+   * Register all loggers from the bigdata-logging.properties file.
+   * Loggers are registered dynamically based on the file contents.
+   */
+  protected void registerLoggers() {
+    logger.info("Registering Big Data loggers from {}", LOGGING_PROPERTIES_FILE);
+
+    Properties props = new Properties();
+    InputStream is = null;
+    try {
+      // Get the plugin interface to locate the plugin directory
+      PluginInterface pluginInterface = PluginRegistry.getInstance()
+        .findPluginWithId( LifecyclePluginType.class, HadoopSpoonPlugin.PLUGIN_ID );
+
+      if ( pluginInterface == null ) {
+        logger.warn( "Could not find Big Data plugin in registry - cannot load {}", LOGGING_PROPERTIES_FILE );
+        return;
+      }
+
+      // Construct the path to the logging properties file in the plugin root directory
+      FileObject pluginDir = KettleVFS.getInstance( DefaultBowl.getInstance() )
+        .getFileObject( pluginInterface.getPluginDirectory().getPath() );
+      FileObject loggingPropsFile = pluginDir.resolveFile( LOGGING_PROPERTIES_FILE );
+
+      if ( !loggingPropsFile.exists() ) {
+        logger.warn( "Could not find {} in plugin directory {} - no loggers will be registered",
+          LOGGING_PROPERTIES_FILE, pluginDir.getName().getPath() );
+        return;
+      }
+
+      is = loggingPropsFile.getContent().getInputStream();
+      props.load( is );
+      logger.debug( "Loaded logging configuration from {}", loggingPropsFile.getName().getPath() );
+
+      int registeredCount = 0;
+      for ( String propName : props.stringPropertyNames() ) {
+        if ( propName.startsWith( LOGGER_PREFIX ) ) {
+          String loggerName = propName.substring( LOGGER_PREFIX.length() );
+          String levelStr = props.getProperty( propName );
+
+          try {
+            Level level = Level.toLevel( levelStr, Level.INFO );
+            BigDataLogConfig.registerLogger( loggerName, level );
+            logger.debug( "Registered logger: {} = {}", loggerName, level );
+            registeredCount++;
+          } catch ( Exception e ) {
+            logger.warn( "Invalid log level '{}' for logger '{}', defaulting to INFO", levelStr, loggerName );
+            BigDataLogConfig.registerLogger( loggerName, Level.INFO );
+            registeredCount++;
+          }
+        }
+      }
+      logger.info( "Registered {} Big Data loggers", registeredCount );
+    } catch ( KettleException e ) {
+      logger.error( "Error accessing plugin directory for {} - no loggers will be registered",
+        LOGGING_PROPERTIES_FILE, e );
+    } catch (IOException e) {
+      logger.error("Error loading {} - no loggers will be registered", LOGGING_PROPERTIES_FILE, e);
+    } finally {
+      if ( is != null ) {
+        try {
+          is.close();
+        } catch ( IOException e ) {
+          logger.warn( "Error closing input stream for {}", LOGGING_PROPERTIES_FILE, e );
+        }
+      }
+    }
   }
 
   @Override
