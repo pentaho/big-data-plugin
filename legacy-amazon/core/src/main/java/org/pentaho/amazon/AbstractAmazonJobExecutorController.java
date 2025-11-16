@@ -1211,15 +1211,22 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
   /**
    * Show an error dialog with the title and message provided.
+   * Uses the existing XUL error dialog mechanism to avoid SWT focus management issues.
    *
    * @param title   Dialog window title
    * @param message Dialog message
    */
   protected void showErrorDialog( String title, String message ) {
-    MessageBox mb = new MessageBox( getShell(), SWT.OK | SWT.ICON_ERROR );
-    mb.setText( title );
-    mb.setMessage( message );
-    mb.open();
+    // Use the existing XUL error dialog instead of creating new SWT MessageBox
+    // This avoids focus management issues with disposed widgets
+    Shell shell = getShell();
+    if ( shell != null && !shell.isDisposed() ) {
+      shell.getDisplay().asyncExec( () -> {
+        if ( !shell.isDisposed() ) {
+          openErrorDialog( title, message );
+        }
+      } );
+    }
   }
 
   public void init() throws XulException, InvocationTargetException {
