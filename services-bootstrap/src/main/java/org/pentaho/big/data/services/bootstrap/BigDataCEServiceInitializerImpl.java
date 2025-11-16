@@ -137,7 +137,7 @@ public class BigDataCEServiceInitializerImpl implements BigDataServicesInitializ
    * Loggers are registered dynamically based on the file contents.
    */
   protected void registerLoggers() {
-    logger.info("Registering Big Data loggers from {}", LOGGING_PROPERTIES_FILE);
+    logger.debug("Registering Big Data loggers from {}", LOGGING_PROPERTIES_FILE);
 
     Properties props = new Properties();
     InputStream is = null;
@@ -184,7 +184,7 @@ public class BigDataCEServiceInitializerImpl implements BigDataServicesInitializ
           }
         }
       }
-      logger.info( "Registered {} Big Data loggers", registeredCount );
+      logger.debug( "Registered {} Big Data loggers", registeredCount );
     } catch ( KettleException e ) {
       logger.error( "Error accessing plugin directory for {} - no loggers will be registered",
         LOGGING_PROPERTIES_FILE, e );

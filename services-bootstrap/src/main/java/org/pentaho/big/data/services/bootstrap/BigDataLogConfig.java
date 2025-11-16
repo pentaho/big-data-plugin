@@ -44,9 +44,9 @@ public class BigDataLogConfig {
       LoggerContext context = ( LoggerContext ) LogManager.getContext( false );
 
       // Log the configuration source
-      logger.info( "Big Data Plugin logging initialized. Configuration source: " +
+      logger.debug( "Big Data Plugin logging initialized. Configuration source: " +
         context.getConfiguration().getName() );
-      logger.info( "Big Data logs will be written to logs/pdi.log and console output" );
+      logger.debug( "Big Data logs will be written to logs/pdi.log and console output" );
 
       initialized = true;
 
