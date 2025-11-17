@@ -25,9 +25,8 @@ import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.locator.api.MetastoreLocator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +39,7 @@ public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInt
   protected static final String DRIVER_CLASS_NAME = "org.apache.hive.jdbc.HiveDriver";
   protected static final int DEFAULT_PORT = 21050;
 
-  private static final Logger logChannel = LoggerFactory.getLogger( ImpalaDatabaseMeta.class );
+  private static final Logger logChannel = LogManager.getLogger( ImpalaDatabaseMeta.class );
 
   @VisibleForTesting
   ImpalaDatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService,

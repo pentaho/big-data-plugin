@@ -13,6 +13,7 @@
 
 package org.pentaho.runtime.test.action.impl;
 
+import org.apache.logging.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.runtime.test.TestMessageGetterFactory;
@@ -20,7 +21,6 @@ import org.pentaho.runtime.test.action.RuntimeTestAction;
 import org.pentaho.runtime.test.action.RuntimeTestActionPayload;
 import org.pentaho.runtime.test.i18n.MessageGetter;
 import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
-import org.slf4j.Logger;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
