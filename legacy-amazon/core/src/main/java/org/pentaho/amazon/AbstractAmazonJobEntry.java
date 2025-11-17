@@ -35,6 +35,7 @@ public abstract class AbstractAmazonJobEntry extends JobEntryBase implements Clo
   protected String emrRelease;
   protected String stagingDir = "";
   protected String cmdLineArgs;
+  protected String ec2SubnetId = "";
   protected boolean alive;
   protected boolean blocking;
   protected boolean runOnNewCluster = true;
@@ -150,6 +151,14 @@ public abstract class AbstractAmazonJobEntry extends JobEntryBase implements Clo
 
   public void setCmdLineArgs( String cmdLineArgs ) {
     this.cmdLineArgs = cmdLineArgs;
+  }
+
+  public String getEc2SubnetId() {
+    return ec2SubnetId;
+  }
+
+  public void setEc2SubnetId( String ec2SubnetId ) {
+    this.ec2SubnetId = ec2SubnetId;
   }
 
   public boolean getAlive() {

@@ -9,8 +9,6 @@
  *
  * Change Date: 2029-07-20
  ******************************************************************************/
-
-
 package org.pentaho.amazon;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -29,6 +27,7 @@ import org.eclipse.swt.widgets.Text;
 import org.pentaho.amazon.client.ClientFactoriesManager;
 import org.pentaho.amazon.client.ClientType;
 import org.pentaho.amazon.client.api.AimClient;
+import org.pentaho.amazon.client.api.Ec2Client;
 import org.pentaho.amazon.client.api.PricingClient;
 import org.pentaho.amazon.client.api.S3Client;
 import org.pentaho.amazon.s3.S3VfsFileChooserHelper;
@@ -94,6 +93,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   public static final String SLAVE_INSTANCE_TYPE = "slaveInstanceType";
   public static final String EC2_ROLE = "ec2Role";
   public static final String EMR_ROLE = "emrRole";
+  public static final String EC2_SUBNET_ID = "ec2SubnetId";
   public static final String CMD_LINE_ARGS = "commandLineArgs";
   public static final String BLOCKING = "blocking";
   public static final String RUN_ON_NEW_CLUSTER = "runOnNewCluster";
@@ -110,6 +110,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   public static final String XUL_REGION = "region";
   public static final String XUL_EC2_ROLE = "ec2-role";
   public static final String XUL_EMR_ROLE = "emr-role";
+  public static final String XUL_EC2_SUBNET_ID = "ec2-subnet-id";
   public static final String XUL_MASTER_INSTANCE_TYPE = "master-instance-type";
   public static final String XUL_SLAVE_INSTANCE_TYPE = "slave-instance-type";
   public static final String XUL_EMR_RELEASE = "emr-release";
@@ -134,8 +135,9 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   private static final String DISABLED_FLAG = "disabled";
   private static final String BOOLEAN_TO_STR_CONVERSION_ERROR = "Boolean to String conversion is not supported";
 
-  protected static final String[] XUL_EMR_MENU_ID_ARRAY =
-    { XUL_EC2_ROLE, XUL_EMR_ROLE, XUL_MASTER_INSTANCE_TYPE, XUL_SLAVE_INSTANCE_TYPE, XUL_EMR_RELEASE };
+  protected static final String[] XUL_EMR_MENU_ID_ARRAY
+    = {XUL_EC2_ROLE, XUL_EMR_ROLE, XUL_MASTER_INSTANCE_TYPE, XUL_SLAVE_INSTANCE_TYPE, XUL_EMR_RELEASE,
+    XUL_EC2_SUBNET_ID};
 
   protected String jobEntryName;
   protected String hadoopJobName;
@@ -158,6 +160,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
   protected String ec2Role;
   protected String emrRole;
+  protected String ec2SubnetId;
 
   protected String commandLineArgs;
   protected boolean blocking;
@@ -181,6 +184,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   private AbstractModelList<String> ec2Roles;
   private AbstractModelList<String> emrRoles;
   private AbstractModelList<String> releases;
+  private AbstractModelList<String> ec2Subnets;
 
   protected boolean suppressEventHandling = false;
 
@@ -197,6 +201,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     masterInstanceTypes = new AbstractModelList<>();
     slaveInstanceTypes = new AbstractModelList<>();
     releases = new AbstractModelList<>();
+    ec2Subnets = new AbstractModelList<>();
     bindings = new ArrayList<>();
   }
 
@@ -214,29 +219,29 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
   protected void initializeTextFields() {
 
-    XulTextbox numInstances = (XulTextbox) container.getDocumentRoot().getElementById( XUL_NUM_INSTANCES );
+    XulTextbox numInstances = ( XulTextbox ) container.getDocumentRoot().getElementById( XUL_NUM_INSTANCES );
     numInstances.setValue( getNumInstances() );
-    XulTextbox loggingInterval =
-      (XulTextbox) container.getDocumentRoot().getElementById( XUL_LOGGING_INTERVAL1 );
+    XulTextbox loggingInterval
+      = ( XulTextbox ) container.getDocumentRoot().getElementById( XUL_LOGGING_INTERVAL1 );
     loggingInterval.setValue( getLoggingInterval() );
 
-    ExtTextbox tempBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_ACCESS_KEY );
+    ExtTextbox tempBox = ( ExtTextbox ) container.getDocumentRoot().getElementById( XUL_ACCESS_KEY );
     tempBox.setVariableSpace( getVariableSpace() );
-    tempBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_SECRET_KEY );
+    tempBox = ( ExtTextbox ) container.getDocumentRoot().getElementById( XUL_SECRET_KEY );
     tempBox.setVariableSpace( getVariableSpace() );
-    tempBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_SESSION_TOKEN );
+    tempBox = ( ExtTextbox ) container.getDocumentRoot().getElementById( XUL_SESSION_TOKEN );
     tempBox.setVariableSpace( getVariableSpace() );
-    tempBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_JOBENTRY_HADOOPJOB_NAME );
+    tempBox = ( ExtTextbox ) container.getDocumentRoot().getElementById( XUL_JOBENTRY_HADOOPJOB_NAME );
     tempBox.setVariableSpace( getVariableSpace() );
-    tempBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_JOBENTRY_HADOOPJOB_FLOW_ID );
+    tempBox = ( ExtTextbox ) container.getDocumentRoot().getElementById( XUL_JOBENTRY_HADOOPJOB_FLOW_ID );
     tempBox.setVariableSpace( getVariableSpace() );
-    tempBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_S3_STAGING_DIRECTORY );
+    tempBox = ( ExtTextbox ) container.getDocumentRoot().getElementById( XUL_S3_STAGING_DIRECTORY );
     tempBox.setVariableSpace( getVariableSpace() );
-    tempBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_COMMAND_LINE_ARGUMENTS );
+    tempBox = ( ExtTextbox ) container.getDocumentRoot().getElementById( XUL_COMMAND_LINE_ARGUMENTS );
     tempBox.setVariableSpace( getVariableSpace() );
-    tempBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_NUM_INSTANCES );
+    tempBox = ( ExtTextbox ) container.getDocumentRoot().getElementById( XUL_NUM_INSTANCES );
     tempBox.setVariableSpace( getVariableSpace() );
-    tempBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_LOGGING_INTERVAL1 );
+    tempBox = ( ExtTextbox ) container.getDocumentRoot().getElementById( XUL_LOGGING_INTERVAL1 );
     tempBox.setVariableSpace( getVariableSpace() );
   }
 
@@ -335,6 +340,21 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
         }
       } );
 
+    bindings.add( bindingFactory.createBinding( ec2Subnets, "children", XUL_EC2_SUBNET_ID, "elements" ) );
+    bindingFactory.createBinding( XUL_EC2_SUBNET_ID, "selectedIndex", this, "selectedEc2SubnetId",
+      new BindingConvertor<Integer, String>() {
+        public String sourceToTarget( final Integer index ) {
+          if ( index == -1 ) {
+            return null;
+          }
+          return ec2Subnets.get( index );
+        }
+
+        public Integer targetToSource( final String str ) {
+          return ec2Subnets.indexOf( str );
+        }
+      } );
+
     bindingFactory.createBinding( XUL_JOBENTRY_NAME, "value", this, JOB_ENTRY_NAME );
     bindingFactory.createBinding( XUL_JOBENTRY_HADOOPJOB_NAME, "value", this, HADOOP_JOB_NAME );
     bindingFactory.createBinding( XUL_JOBENTRY_HADOOPJOB_FLOW_ID, "value", this, HADOOP_JOB_FLOW_ID );
@@ -354,20 +374,20 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     bindingFactory
       .createBinding( XUL_SECRET_KEY, "value", XUL_EMR_SETTINGS, DISABLED_FLAG, accessKeyIsEmpty( container ) );
     bindingFactory
-            .createBinding( XUL_SESSION_TOKEN, "value", XUL_EMR_SETTINGS, DISABLED_FLAG, sessionTokenIsEmpty( container ) );
+      .createBinding( XUL_SESSION_TOKEN, "value", XUL_EMR_SETTINGS, DISABLED_FLAG, sessionTokenIsEmpty( container ) );
   }
 
   private static void disableAwsConnection( XulDomContainer container ) {
-    XulButton connectButton = (XulButton) container.getDocumentRoot().getElementById( XUL_EMR_SETTINGS );
+    XulButton connectButton = ( XulButton ) container.getDocumentRoot().getElementById( XUL_EMR_SETTINGS );
     connectButton.setDisabled( disableConnectButton( container ) );
   }
 
   public void updateClusterState() {
-    XulRadioGroup clusterModes =
-      (XulRadioGroup) getXulDomContainer().getDocumentRoot().getElementById( XUL_CLUSTER_MODE );
-    XulRadio newClusterMode = (XulRadio) clusterModes.getFirstChild();
+    XulRadioGroup clusterModes
+      = ( XulRadioGroup ) getXulDomContainer().getDocumentRoot().getElementById( XUL_CLUSTER_MODE );
+    XulRadio newClusterMode = ( XulRadio ) clusterModes.getFirstChild();
 
-    XulDeck clusterModeTab = (XulDeck) getXulDomContainer().getDocumentRoot().getElementById( XUL_CLUSTER_TAB );
+    XulDeck clusterModeTab = ( XulDeck ) getXulDomContainer().getDocumentRoot().getElementById( XUL_CLUSTER_TAB );
     disableAwsConnection( getXulDomContainer() );
 
     if ( newClusterMode.isSelected() ) {
@@ -382,19 +402,19 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
   //need for mac os to avoid getting NullPointerException after switching to Existing tab
   private void fixFocusLostOnTab() {
-    XulTextbox jobEntryName = (XulTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_JOBENTRY_NAME );
+    XulTextbox jobEntryName = ( XulTextbox ) getXulDomContainer().getDocumentRoot().getElementById( XUL_JOBENTRY_NAME );
     jobEntryName.setFocus();
   }
 
   private static String getTextBoxValueById( XulDomContainer container, String xulTextBoxName ) {
-    ExtTextbox textbox = (ExtTextbox) container.getDocumentRoot().getElementById( xulTextBoxName );
+    ExtTextbox textbox = ( ExtTextbox ) container.getDocumentRoot().getElementById( xulTextBoxName );
     return textbox.getValue();
   }
 
   private static boolean disableConnectButton( XulDomContainer container ) {
     String secretKeyValue = getTextBoxValueById( container, XUL_SECRET_KEY );
     String accessKeyValue = getTextBoxValueById( container, XUL_ACCESS_KEY );
-    XulRadio existingClusterMode = (XulRadio) container.getDocumentRoot().getElementById( XUL_EXISTING_CLUSTER_DECK );
+    XulRadio existingClusterMode = ( XulRadio ) container.getDocumentRoot().getElementById( XUL_EXISTING_CLUSTER_DECK );
 
     if ( existingClusterMode.isSelected() ) {
       return true;
@@ -409,11 +429,13 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
   private static BindingConvertor<String, Boolean> accessKeyIsEmpty( XulDomContainer container ) {
     return new BindingConvertor<String, Boolean>() {
-      @Override public Boolean sourceToTarget( String value ) {
+      @Override
+      public Boolean sourceToTarget( String value ) {
         return disableConnectButton( container );
       }
 
-      @Override public String targetToSource( Boolean value ) {
+      @Override
+      public String targetToSource( Boolean value ) {
         throw new AbstractMethodError( BOOLEAN_TO_STR_CONVERSION_ERROR );
       }
     };
@@ -421,11 +443,13 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
   private static BindingConvertor<String, Boolean> secretKeyIsEmpty( XulDomContainer container ) {
     return new BindingConvertor<String, Boolean>() {
-      @Override public Boolean sourceToTarget( String value ) {
+      @Override
+      public Boolean sourceToTarget( String value ) {
         return disableConnectButton( container );
       }
 
-      @Override public String targetToSource( Boolean value ) {
+      @Override
+      public String targetToSource( Boolean value ) {
         throw new AbstractMethodError( BOOLEAN_TO_STR_CONVERSION_ERROR );
       }
     };
@@ -433,11 +457,13 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
   private static BindingConvertor<String, Boolean> sessionTokenIsEmpty( XulDomContainer container ) {
     return new BindingConvertor<String, Boolean>() {
-      @Override public Boolean sourceToTarget( String value ) {
+      @Override
+      public Boolean sourceToTarget( String value ) {
         return disableConnectButton( container );
       }
 
-      @Override public String targetToSource( Boolean value ) {
+      @Override
+      public String targetToSource( Boolean value ) {
         throw new AbstractMethodError( BOOLEAN_TO_STR_CONVERSION_ERROR );
       }
     };
@@ -532,9 +558,9 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
   protected AbstractModelList<String> populateRegions() {
     regions.clear();
-    regions =
-      Arrays.stream( AmazonRegion.values() ).map( v -> v.getHumanReadableRegion() )
-        .collect( Collectors.toCollection( AbstractModelList<String>::new ) );
+    regions
+      = Arrays.stream( AmazonRegion.values() ).map( v -> v.getHumanReadableRegion() )
+      .collect( Collectors.toCollection( AbstractModelList<String>::new ) );
 
     String region = getJobEntry().getRegion();
 
@@ -547,9 +573,9 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
   protected AbstractModelList<String> populateReleases() {
     releases.clear();
-    releases =
-      Arrays.stream( AmazonEmrReleases.values() ).map( v -> v.getEmrRelease() )
-        .collect( Collectors.toCollection( AbstractModelList<String>::new ) );
+    releases
+      = Arrays.stream( AmazonEmrReleases.values() ).map( v -> v.getEmrRelease() )
+      .collect( Collectors.toCollection( AbstractModelList<String>::new ) );
 
     String emrRelease = getJobEntry().getEmrRelease();
 
@@ -568,7 +594,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   }
 
   private XulMenuList<String> getXulMenu( String elementMenuId ) {
-    return (XulMenuList<String>) getXulDomContainer().getDocumentRoot().getElementById( elementMenuId );
+    return ( XulMenuList<String> ) getXulDomContainer().getDocumentRoot().getElementById( elementMenuId );
   }
 
   private void setXulMenuDisabled( String elementMenuId, boolean isDisable ) {
@@ -604,13 +630,13 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
   public void getEmrSettings() {
 
-    ExtTextbox accessKeyBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_ACCESS_KEY );
+    ExtTextbox accessKeyBox = ( ExtTextbox ) getXulDomContainer().getDocumentRoot().getElementById( XUL_ACCESS_KEY );
 
-    ExtTextbox secretKeyBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_SECRET_KEY );
+    ExtTextbox secretKeyBox = ( ExtTextbox ) getXulDomContainer().getDocumentRoot().getElementById( XUL_SECRET_KEY );
 
-    ExtTextbox sessionTokenBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_SESSION_TOKEN );
+    ExtTextbox sessionTokenBox = ( ExtTextbox ) getXulDomContainer().getDocumentRoot().getElementById( XUL_SESSION_TOKEN );
 
-    XulButton connectButton = (XulButton) getXulDomContainer().getDocumentRoot().getElementById( XUL_EMR_SETTINGS );
+    XulButton connectButton = ( XulButton ) getXulDomContainer().getDocumentRoot().getElementById( XUL_EMR_SETTINGS );
 
     connectButton.setDisabled( true );
 
@@ -642,10 +668,13 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
       setXulMenusDisabled( false );
 
-      XulTextbox numInstances = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_NUM_INSTANCES );
+      XulTextbox numInstances = ( ExtTextbox ) container.getDocumentRoot().getElementById( XUL_NUM_INSTANCES );
       numInstances.setDisabled( false );
 
       setSelectedItemForEachMenu();
+
+      // Load subnets after successful connection
+      loadSubnetsInternal( accessKeyBox.getValue(), secretKeyBox.getValue(), sessionTokenBox.getValue() );
 
     } catch ( Exception e ) {
       e.printStackTrace();
@@ -655,6 +684,49 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
         errorMessage );
     } finally {
       connectButton.setDisabled( false );
+    }
+  }
+
+  /**
+   * Internal method to load subnets. Called automatically after successful
+   * connection.
+   */
+  private void loadSubnetsInternal( String accessKey, String secretKey, String sessionToken ) {
+    try {
+      String region = getJobEntry().getRegion();
+
+      if ( StringUtil.isEmpty( accessKey ) || StringUtil.isEmpty( secretKey ) || StringUtil.isEmpty( region ) ) {
+        return; // Silently return if credentials are incomplete
+      }
+
+      ClientFactoriesManager manager = ClientFactoriesManager.getInstance();
+      Ec2Client ec2Client = manager.createClient( accessKey, secretKey, sessionToken, region, ClientType.EC2 );
+
+      List<Ec2Client.SubnetInfo> subnets = ec2Client.getAvailableSubnets();
+
+      ec2Subnets.clear();
+      if ( subnets != null && !subnets.isEmpty() ) {
+        for ( Ec2Client.SubnetInfo subnet : subnets ) {
+          ec2Subnets.add( subnet.getDisplayString() );
+        }
+
+        // If there's a previously selected subnet, try to select it
+        String currentSubnet = getJobEntry().getEc2SubnetId();
+        if ( currentSubnet != null && !currentSubnet.isEmpty() ) {
+          // Try to find matching subnet by ID
+          for ( Ec2Client.SubnetInfo subnet : subnets ) {
+            if ( currentSubnet.equals( subnet.getSubnetId() )
+              || ec2Subnets.contains( currentSubnet ) ) {
+              this.ec2SubnetId = currentSubnet;
+              break;
+            }
+          }
+        }
+      }
+
+    } catch ( Exception e ) {
+      // Log error but don't show dialog to avoid interrupting the connection flow
+      e.printStackTrace();
     }
   }
 
@@ -678,11 +750,15 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     return regions;
   }
 
+  public AbstractModelList<String> getEc2Subnets() {
+    return ec2Subnets;
+  }
+
   public void setBindings( List<Binding> bindings ) {
     this.bindings = bindings;
   }
 
-  public void accept( ) {
+  public void accept() {
     syncModel( Spoon.getInstance().getExecutionBowl() );
 
     String validationErrors = buildValidationErrorMessages();
@@ -698,44 +774,44 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   }
 
   protected void syncModel( Bowl bowl ) {
-    XulMenuList<String> tempMenu =
-      (XulMenuList<String>) getXulDomContainer().getDocumentRoot().getElementById( XUL_REGION );
+    XulMenuList<String> tempMenu
+      = ( XulMenuList<String> ) getXulDomContainer().getDocumentRoot().getElementById( XUL_REGION );
     this.region = tempMenu.getValue();
-    tempMenu = (XulMenuList<String>) getXulDomContainer().getDocumentRoot().getElementById( XUL_EC2_ROLE );
+    tempMenu = ( XulMenuList<String> ) getXulDomContainer().getDocumentRoot().getElementById( XUL_EC2_ROLE );
     this.ec2Role = tempMenu.getValue();
-    tempMenu = (XulMenuList<String>) getXulDomContainer().getDocumentRoot().getElementById( XUL_EMR_ROLE );
+    tempMenu = ( XulMenuList<String> ) getXulDomContainer().getDocumentRoot().getElementById( XUL_EMR_ROLE );
     this.emrRole = tempMenu.getValue();
-    tempMenu = (XulMenuList<String>) getXulDomContainer().getDocumentRoot().getElementById( XUL_MASTER_INSTANCE_TYPE );
+    tempMenu = ( XulMenuList<String> ) getXulDomContainer().getDocumentRoot().getElementById( XUL_MASTER_INSTANCE_TYPE );
     this.masterInstanceType = tempMenu.getValue();
-    tempMenu = (XulMenuList<String>) getXulDomContainer().getDocumentRoot().getElementById( XUL_SLAVE_INSTANCE_TYPE );
+    tempMenu = ( XulMenuList<String> ) getXulDomContainer().getDocumentRoot().getElementById( XUL_SLAVE_INSTANCE_TYPE );
     this.slaveInstanceType = tempMenu.getValue();
-    tempMenu = (XulMenuList<String>) getXulDomContainer().getDocumentRoot().getElementById( XUL_EMR_RELEASE );
+    tempMenu = ( XulMenuList<String> ) getXulDomContainer().getDocumentRoot().getElementById( XUL_EMR_RELEASE );
     this.emrRelease = tempMenu.getValue();
-    ExtTextbox tempBox =
-      (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_JOBENTRY_HADOOPJOB_NAME );
-    this.hadoopJobName = ( (Text) tempBox.getTextControl() ).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_ACCESS_KEY );
-    this.accessKey = ( (Text) tempBox.getTextControl() ).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_SECRET_KEY );
-    this.secretKey = ( (Text) tempBox.getTextControl() ).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_SESSION_TOKEN );
-    this.sessionToken = ( (Text) tempBox.getTextControl() ).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_JOBENTRY_HADOOPJOB_FLOW_ID );
-    this.hadoopJobFlowId = ( (Text) tempBox.getTextControl() ).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_S3_STAGING_DIRECTORY );
-    this.stagingDir = ( (Text) tempBox.getTextControl() ).getText();
+    ExtTextbox tempBox
+      = ( ExtTextbox ) getXulDomContainer().getDocumentRoot().getElementById( XUL_JOBENTRY_HADOOPJOB_NAME );
+    this.hadoopJobName = ( ( Text ) tempBox.getTextControl() ).getText();
+    tempBox = ( ExtTextbox ) getXulDomContainer().getDocumentRoot().getElementById( XUL_ACCESS_KEY );
+    this.accessKey = ( ( Text ) tempBox.getTextControl() ).getText();
+    tempBox = ( ExtTextbox ) getXulDomContainer().getDocumentRoot().getElementById( XUL_SECRET_KEY );
+    this.secretKey = ( ( Text ) tempBox.getTextControl() ).getText();
+    tempBox = ( ExtTextbox ) getXulDomContainer().getDocumentRoot().getElementById( XUL_SESSION_TOKEN );
+    this.sessionToken = ( ( Text ) tempBox.getTextControl() ).getText();
+    tempBox = ( ExtTextbox ) getXulDomContainer().getDocumentRoot().getElementById( XUL_JOBENTRY_HADOOPJOB_FLOW_ID );
+    this.hadoopJobFlowId = ( ( Text ) tempBox.getTextControl() ).getText();
+    tempBox = ( ExtTextbox ) getXulDomContainer().getDocumentRoot().getElementById( XUL_S3_STAGING_DIRECTORY );
+    this.stagingDir = ( ( Text ) tempBox.getTextControl() ).getText();
     try {
       this.stagingDirFile = resolveFile( bowl, this.stagingDir );
     } catch ( Exception e ) {
       this.stagingDirFile = null;
     }
 
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_COMMAND_LINE_ARGUMENTS );
-    this.commandLineArgs = ( (Text) tempBox.getTextControl() ).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_NUM_INSTANCES );
-    this.numInstances = ( (Text) tempBox.getTextControl() ).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_LOGGING_INTERVAL1 );
-    this.loggingInterval = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = ( ExtTextbox ) getXulDomContainer().getDocumentRoot().getElementById( XUL_COMMAND_LINE_ARGUMENTS );
+    this.commandLineArgs = ( ( Text ) tempBox.getTextControl() ).getText();
+    tempBox = ( ExtTextbox ) getXulDomContainer().getDocumentRoot().getElementById( XUL_NUM_INSTANCES );
+    this.numInstances = ( ( Text ) tempBox.getTextControl() ).getText();
+    tempBox = ( ExtTextbox ) getXulDomContainer().getDocumentRoot().getElementById( XUL_LOGGING_INTERVAL1 );
+    this.loggingInterval = ( ( Text ) tempBox.getTextControl() ).getText();
   }
 
   public List<String> getValidationWarnings() {
@@ -835,6 +911,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     getJobEntry().setEmrRelease( getEmrRelease() );
     getJobEntry().setEc2Role( getEc2Role() );
     getJobEntry().setEmrRole( getEmrRole() );
+    getJobEntry().setEc2SubnetId( extractSubnetId( getEc2SubnetId() ) );
     getJobEntry().setCmdLineArgs( getCommandLineArgs() );
     getJobEntry().setAlive( isAlive() );
     getJobEntry().setRunOnNewCluster( isRunOnNewCluster() );
@@ -843,7 +920,6 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
     getJobEntry().setChanged();
   }
-
 
   public String getSelectedEc2Role() {
     return this.ec2Role;
@@ -923,6 +999,22 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     }
   }
 
+  public String getSelectedEc2SubnetId() {
+    return this.ec2SubnetId;
+  }
+
+  public void setSelectedEc2SubnetId( String selectedEc2SubnetId ) {
+    if ( !suppressEventHandling ) {
+      suppressEventHandling = true;
+      try {
+        firePropertyChange( "selectedEc2SubnetId", this.ec2SubnetId, selectedEc2SubnetId );
+        this.ec2SubnetId = selectedEc2SubnetId;
+      } finally {
+        suppressEventHandling = false;
+      }
+    }
+  }
+
   public String getSelectedRegion() {
     return getRegion();
   }
@@ -953,51 +1045,96 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     }
   }
 
+  public String getEc2SubnetId() {
+    return this.ec2SubnetId;
+  }
+
+  public void setEc2SubnetId( String ec2SubnetId ) {
+    String previousValue = this.ec2SubnetId;
+    this.ec2SubnetId = ec2SubnetId;
+    firePropertyChange( "ec2SubnetId", previousValue, ec2SubnetId );
+  }
+
+  /**
+   * Extract subnet ID from the display string format: "name (subnet-xxxxx) -
+   * AZ: xx - CIDR: xx" If the string is already a subnet ID or doesn't match
+   * the format, return as-is.
+   */
+  private String extractSubnetId( String displayString ) {
+    if ( displayString == null || displayString.isEmpty() ) {
+      return "";
+    }
+
+    // If it's already a subnet-id format, return as-is
+    if ( displayString.startsWith( "subnet-" ) && !displayString.contains( "(" ) ) {
+      return displayString;
+    }
+
+    // Try to extract from display format: "name (subnet-xxxxx) - AZ: xx - CIDR: xx"
+    int startIdx = displayString.indexOf( "(subnet-" );
+    if ( startIdx != -1 ) {
+      int endIdx = displayString.indexOf( ")", startIdx );
+      if ( endIdx != -1 ) {
+        return displayString.substring( startIdx + 1, endIdx );
+      }
+    }
+
+    // If no pattern matched, return original (might be a variable)
+    return displayString;
+  }
+
   protected void initializeEc2RoleSelection() {
-    @SuppressWarnings( "unchecked" )
+    @SuppressWarnings("unchecked")
     XulMenuList<String> ec2RoleMenu = getXulMenu( XUL_EC2_ROLE );
     String selectedEc2Role = getJobEntry().getEc2Role();
     ec2RoleMenu.setSelectedItem( selectedEc2Role );
   }
 
   protected void initializeEmrRoleSelection() {
-    @SuppressWarnings( "unchecked" )
+    @SuppressWarnings("unchecked")
     XulMenuList<String> emrRoleMenu = getXulMenu( XUL_EMR_ROLE );
     String selectedEmrRole = getJobEntry().getEmrRole();
     emrRoleMenu.setSelectedItem( selectedEmrRole );
   }
 
   protected void initializeMasterInstanceSelection() {
-    @SuppressWarnings( "unchecked" )
+    @SuppressWarnings("unchecked")
     XulMenuList<String> namedClusterMenu = getXulMenu( XUL_MASTER_INSTANCE_TYPE );
     String selectedMasterInstanceType = getJobEntry().getMasterInstanceType();
     namedClusterMenu.setSelectedItem( selectedMasterInstanceType );
   }
 
   protected void initializeSlaveInstanceSelection() {
-    @SuppressWarnings( "unchecked" )
+    @SuppressWarnings("unchecked")
     XulMenuList<String> namedClusterMenu = getXulMenu( XUL_SLAVE_INSTANCE_TYPE );
     String selectedSlaveInstanceType = getJobEntry().getSlaveInstanceType();
     namedClusterMenu.setSelectedItem( selectedSlaveInstanceType );
   }
 
   protected void initializeRegionSelection() {
-    @SuppressWarnings( "unchecked" )
+    @SuppressWarnings("unchecked")
     XulMenuList<String> namedClusterMenu = getXulMenu( XUL_REGION );
     String selectedRegion = getJobEntry().getRegion();
     namedClusterMenu.setSelectedItem( selectedRegion );
   }
 
   protected void initializeReleaseSelection() {
-    @SuppressWarnings( "unchecked" )
+    @SuppressWarnings("unchecked")
     XulMenuList<String> namedClusterMenu = getXulMenu( XUL_EMR_RELEASE );
     String selectedRelease = getJobEntry().getEmrRelease();
     namedClusterMenu.setSelectedItem( selectedRelease );
   }
 
+  protected void initializeEc2SubnetSelection() {
+    String savedSubnetId = getJobEntry().getEc2SubnetId();
+    if ( savedSubnetId != null && !savedSubnetId.isEmpty() ) {
+      this.ec2SubnetId = savedSubnetId;
+    }
+  }
+
   protected void initializeClusterSelection() {
-    XulRadio newCluster = (XulRadio) container.getDocumentRoot().getElementById( XUL_NEW_CLUSTER_DECK );
-    XulRadio existingCluster = (XulRadio) container.getDocumentRoot().getElementById( XUL_EXISTING_CLUSTER_DECK );
+    XulRadio newCluster = ( XulRadio ) container.getDocumentRoot().getElementById( XUL_NEW_CLUSTER_DECK );
+    XulRadio existingCluster = ( XulRadio ) container.getDocumentRoot().getElementById( XUL_EXISTING_CLUSTER_DECK );
 
     newCluster.setSelected( this.runOnNewCluster );
     existingCluster.setSelected( !this.runOnNewCluster );
@@ -1043,6 +1180,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     initializeMasterInstanceSelection();
     initializeSlaveInstanceSelection();
     initializeReleaseSelection();
+    initializeEc2SubnetSelection();
     initializeClusterSelection();
   }
 
@@ -1054,11 +1192,12 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
    * @return The dialog element referred to by {@link #getDialogElementId()}
    */
   protected SwtDialog getDialog() {
-    return (SwtDialog) getXulDomContainer().getDocumentRoot().getElementById( getDialogElementId() );
+    return ( SwtDialog ) getXulDomContainer().getDocumentRoot().getElementById( getDialogElementId() );
   }
 
   /**
-   * @return the shell for the currently visible dialog. This will be used to display additional dialogs/popups.
+   * @return the shell for the currently visible dialog. This will be used to
+   * display additional dialogs/popups.
    */
   protected Shell getShell() {
     return getDialog().getShell();
@@ -1097,32 +1236,32 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   }
 
   public void cancel() {
-    XulDialog xulDialog =
-      (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_JOB_ENTRY_DIALOG );
-    Shell shell = (Shell) xulDialog.getRootObject();
+    XulDialog xulDialog
+      = ( XulDialog ) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_JOB_ENTRY_DIALOG );
+    Shell shell = ( Shell ) xulDialog.getRootObject();
     if ( !shell.isDisposed() ) {
       WindowProperty winprop = new WindowProperty( shell );
       PropsUI.getInstance().setScreen( winprop );
-      ( (Composite) xulDialog.getManagedObject() ).dispose();
+      ( ( Composite ) xulDialog.getManagedObject() ).dispose();
       shell.dispose();
     }
   }
 
   public void openErrorDialog( String title, String message ) {
-    XulDialog errorDialog =
-      (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_ERROR_DIALOG );
+    XulDialog errorDialog
+      = ( XulDialog ) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_ERROR_DIALOG );
     errorDialog.setTitle( title );
 
-    XulTextbox errorMessage =
-      (XulTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_ERROR_MESSAGE );
+    XulTextbox errorMessage
+      = ( XulTextbox ) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_ERROR_MESSAGE );
     errorMessage.setValue( message );
 
     errorDialog.show();
   }
 
   public void closeErrorDialog() {
-    XulDialog errorDialog =
-      (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_ERROR_DIALOG );
+    XulDialog errorDialog
+      = ( XulDialog ) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_ERROR_DIALOG );
     errorDialog.hide();
   }
 
@@ -1132,8 +1271,8 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
       Spoon spoon = Spoon.getInstance();
       FileObject defaultInitialFile = KettleVFS.getInstance( spoon.getExecutionBowl() ).getFileObject( "file:///c:/" );
 
-      VfsFileChooserDialog fileChooserDialog =
-        Spoon.getInstance().getVfsFileChooserDialog( defaultInitialFile, initialFile );
+      VfsFileChooserDialog fileChooserDialog
+        = Spoon.getInstance().getVfsFileChooserDialog( defaultInitialFile, initialFile );
       this.fileChooserDialog = fileChooserDialog;
     }
     return this.fileChooserDialog;
@@ -1144,9 +1283,9 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
     if ( !Const.isEmpty( getAccessKey() ) || !Const.isEmpty( getSecretKey() ) ) {
       // create a FileSystemOptions with user & password
-      StaticUserAuthenticator userAuthenticator =
-        new StaticUserAuthenticator( null, getVariableSpace().environmentSubstitute( getAccessKey() ),
-          getVariableSpace().environmentSubstitute( getSecretKey() ) );
+      StaticUserAuthenticator userAuthenticator
+        = new StaticUserAuthenticator( null, getVariableSpace().environmentSubstitute( getAccessKey() ),
+        getVariableSpace().environmentSubstitute( getSecretKey() ) );
 
       DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts, userAuthenticator );
     }
@@ -1180,8 +1319,8 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   }
 
   public void browseS3StagingDir() throws KettleException, FileSystemException {
-    String[] fileFilters = new String[] { "*.*" };
-    String[] fileFilterNames = new String[] { "All" };
+    String[] fileFilters = new String[] {"*.*"};
+    String[] fileFilterNames = new String[] {"All"};
 
     String stagingDirText = getVariableSpace().environmentSubstitute( stagingDir );
     FileSystemOptions opts = getFileSystemOptions();
@@ -1413,7 +1552,6 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     return runOnNewCluster;
   }
 
-
   public void setRunOnNewCluster( boolean selected ) {
     boolean previousVal = this.runOnNewCluster;
     boolean newVal = selected;
@@ -1491,9 +1629,9 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
   protected S3VfsFileChooserHelper getFileChooserHelper() throws KettleFileException, FileSystemException {
     if ( helper == null ) {
-      XulDialog xulDialog =
-        (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_JOB_ENTRY_DIALOG );
-      Shell shell = (Shell) xulDialog.getRootObject();
+      XulDialog xulDialog
+        = ( XulDialog ) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_JOB_ENTRY_DIALOG );
+      Shell shell = ( Shell ) xulDialog.getRootObject();
 
       helper = new S3VfsFileChooserHelper( shell, getFileChooserDialog(), getVariableSpace(), getFileSystemOptions() );
     }
@@ -1502,11 +1640,11 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
   public void help() {
     JobEntryInterface jobEntry = getJobEntry();
-    XulDialog xulDialog =
-      (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_JOB_ENTRY_DIALOG );
-    Shell shell = (Shell) xulDialog.getRootObject();
-    PluginInterface plugin =
-      PluginRegistry.getInstance().findPluginWithId( JobEntryPluginType.class, jobEntry.getPluginId() );
+    XulDialog xulDialog
+      = ( XulDialog ) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_JOB_ENTRY_DIALOG );
+    Shell shell = ( Shell ) xulDialog.getRootObject();
+    PluginInterface plugin
+      = PluginRegistry.getInstance().findPluginWithId( JobEntryPluginType.class, jobEntry.getPluginId() );
     HelpUtils.openHelpDialog( shell, plugin );
   }
 }
