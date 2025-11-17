@@ -581,7 +581,9 @@ public class EmrClientImpl implements EmrClient {
 
     List<StepSummary> currentSteps = getSteps();
 
-    currentSteps.removeAll( stepSummaries );
+    if ( stepSummaries != null && !stepSummaries.isEmpty() ) {
+      currentSteps.removeAll( stepSummaries );
+    }
 
     if ( currentSteps.isEmpty() ) {
       return null;
