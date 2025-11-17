@@ -37,8 +37,10 @@
       <useProjectArtifact>false</useProjectArtifact>
       <includes>
         <include>pentaho:pdi-legacy-amazon-core:jar</include>
-        <include>com.amazonaws:aws-java-sdk-ec2:jar</include>
       </includes>
+      <excludes>
+        <exclude>com.amazonaws:aws-java-sdk-ec2:jar</exclude>
+      </excludes>
     </dependencySet>
     <dependencySet>
       <scope>runtime</scope>
