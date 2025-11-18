@@ -124,11 +124,5 @@
       <artifactId>pentaho-hadoop-shims-common-services-api</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.apache.pig</groupId>
-      <artifactId>pig</artifactId>
-      <version>0.8.1</version>
-      <scope>compile</scope>
-    </dependency>
   </dependencies>
 </project>
