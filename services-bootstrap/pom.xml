@@ -137,6 +137,12 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+            <groupId>pentaho</groupId>
+            <artifactId>pentaho-platform-core</artifactId>
+            <version>${project.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>pentaho-kettle</groupId>
             <artifactId>kettle-core</artifactId>
             <version>${pdi.version}</version>
