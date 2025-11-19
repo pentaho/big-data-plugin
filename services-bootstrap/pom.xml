@@ -16,6 +16,7 @@
         <junit.version>4.13.2</junit.version>
         <mockito-inline.version>5.2.0</mockito-inline.version>
         <mockito-junit-jupitor.version>5.1.1</mockito-junit-jupitor.version>
+        <osgi.core.version>8.0.0</osgi.core.version>
     </properties>
     <dependencies>
         <dependency>
@@ -172,6 +173,11 @@
           <artifactId>mockito-junit-jupiter</artifactId>
           <version>${mockito-junit-jupitor.version}</version>
           <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>osgi.core</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

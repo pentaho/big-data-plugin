@@ -26,8 +26,15 @@
     <jsch.version>0.2.9</jsch.version>
     <encryption-support.version>11.1.0.0-SNAPSHOT</encryption-support.version>
     <pdi-osgi-bridge.version>11.1.0.0-SNAPSHOT</pdi-osgi-bridge.version>
+    <osgi.core.version>8.0.0</osgi.core.version>
   </properties>
   <dependencies>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>osgi.core</artifactId>
+      <version>${osgi.core.version}</version>
+      <scope>runtime</scope>
+    </dependency>
     <dependency>
       <groupId>io.reactivex.rxjava2</groupId>
       <artifactId>rxjava</artifactId>
