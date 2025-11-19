@@ -18,7 +18,6 @@
   </licenses>
   <properties>
     <common.version>3.3.0-v20070426</common.version>
-    <pig.version>0.8.1</pig.version>
     <jets3t.version>0.9.4</jets3t.version>
     <hadoop.version>0.20.2</hadoop.version>
     <hbase.version>0.90.3</hbase.version>
@@ -271,12 +270,6 @@
       <groupId>org.jboss.shrinkwrap</groupId>
       <artifactId>shrinkwrap-impl-base</artifactId>
       <version>1.0.0-alpha-12</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.pig</groupId>
-      <artifactId>pig</artifactId>
-      <version>${pig.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
