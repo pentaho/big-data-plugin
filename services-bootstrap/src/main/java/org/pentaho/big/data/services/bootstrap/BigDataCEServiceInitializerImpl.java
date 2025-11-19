@@ -12,6 +12,11 @@
 
 package org.pentaho.big.data.services.bootstrap;
 
+import org.pentaho.di.core.database.DatabaseInterface;
+import org.pentaho.database.IDatabaseDialect;
+import org.pentaho.di.core.exception.KettlePluginException;
+import org.pentaho.di.core.plugins.DatabasePluginType;
+import org.pentaho.platform.engine.core.system.PentahoSystem;
 import com.pentaho.big.data.bundles.impl.shim.hbase.HBaseServiceFactory;
 import com.pentaho.big.data.bundles.impl.shim.hdfs.HadoopFileSystemFactoryImpl;
 import com.pentaho.big.data.bundles.impl.shim.hive.HiveDriver;
@@ -71,8 +76,10 @@ import org.pentaho.runtime.test.impl.RuntimeTesterImpl;
 import org.pentaho.runtime.test.network.impl.ConnectivityTestFactoryImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Level;
+
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -82,7 +89,7 @@ import java.util.concurrent.Executors;
 
 @ServiceProvider(id = "BigDataCEServiceInitializer", description = "", provides = BigDataServicesInitializer.class)
 public class BigDataCEServiceInitializerImpl implements BigDataServicesInitializer, ServiceProviderInterface<BigDataServicesInitializer> {
-  protected static final Logger logger = LogManager.getLogger(BigDataCEServiceInitializerImpl.class );
+  protected static final Logger logger = LogManager.getLogger( BigDataCEServiceInitializerImpl.class );
   private static final String LOGGING_PROPERTIES_FILE = "bigdata-logging.properties";
   private static final String LOGGER_PREFIX = "logger.";
 
@@ -95,7 +102,7 @@ public class BigDataCEServiceInitializerImpl implements BigDataServicesInitializ
     // Initialize Big Data logging configuration
     BigDataLogConfig.initializeBigDataLogging();
 
-    logger.info("Starting Pentaho Big Data Plugin bootstrap process.");
+    logger.info( "Starting Pentaho Big Data Plugin bootstrap process." );
     try {
       HadoopShim hadoopShim = initializeCommonServices();
       if ( hadoopShim == null ) {
@@ -120,8 +127,10 @@ public class BigDataCEServiceInitializerImpl implements BigDataServicesInitializ
       initializeYarnServices( hadoopShim, shimAvailableServices, authenticationMappingManager,
         hadoopFileSystemLocator, namedClusterServiceLocator );
       initializeRuntimeTests( hadoopFileSystemLocator, namedClusterServiceLocator );
+      registerBigDataDatabaseDialects();
 
-    } catch ( ConfigurationException | ClassNotFoundException | IllegalAccessException | InstantiationException e ) {
+    } catch ( ConfigurationException | ClassNotFoundException | IllegalAccessException | InstantiationException |
+              KettlePluginException e ) {
       logger.error(
         "There was an error during the Pentaho Big Data Plugin bootstrap process. Some Big Data features may not be "
           + "available after startup.",
@@ -137,7 +146,7 @@ public class BigDataCEServiceInitializerImpl implements BigDataServicesInitializ
    * Loggers are registered dynamically based on the file contents.
    */
   protected void registerLoggers() {
-    logger.debug("Registering Big Data loggers from {}", LOGGING_PROPERTIES_FILE);
+    logger.debug( "Registering Big Data loggers from {}", LOGGING_PROPERTIES_FILE );
 
     Properties props = new Properties();
     InputStream is = null;
@@ -188,8 +197,8 @@ public class BigDataCEServiceInitializerImpl implements BigDataServicesInitializ
     } catch ( KettleException e ) {
       logger.error( "Error accessing plugin directory for {} - no loggers will be registered",
         LOGGING_PROPERTIES_FILE, e );
-    } catch (IOException e) {
-      logger.error("Error loading {} - no loggers will be registered", LOGGING_PROPERTIES_FILE, e);
+    } catch ( IOException e ) {
+      logger.error( "Error loading {} - no loggers will be registered", LOGGING_PROPERTIES_FILE, e );
     } finally {
       if ( is != null ) {
         try {
@@ -472,6 +481,59 @@ public class BigDataCEServiceInitializerImpl implements BigDataServicesInitializ
       registerHiveDrivers( hadoopShim, availableHiveDrivers, jdbcUrlParser, driverLocator );
     } else {
       logger.debug( "No Hive services defined." );
+    }
+  }
+
+  /**
+   * We use to register using the Activation.java class when in OSGi. We have to now register all big-data
+   * dialect one by one using PentahoSystem.registerObject.  The reason to use reflection is that the bootstrap jar
+   * in big-data plugin has its own classloader and pdi-hive-core.jar which contains all these dialect is not loaded
+   * from this classloader
+   */
+  protected void registerBigDataDatabaseDialects() throws KettlePluginException {
+    if ( PentahoSystem.getInitializedOK() ) {
+      try {
+        PluginRegistry registry = PluginRegistry.getInstance();
+        PluginInterface plugin = registry.getPlugin( DatabasePluginType.class, "HIVE2" );
+        //Register a DatabaseMeta in the Pentaho System
+        Object hive2Meta = registry.loadClass( plugin );
+        PentahoSystem.registerObject( hive2Meta, DatabaseInterface.class );
+        //Register a dialect in the Pentaho System
+        Class<IDatabaseDialect> hive2Dialect = registry.getClass( plugin, "org.pentaho.big.data.kettle.plugins.hive.Hive2DatabaseDialect" );
+        PentahoSystem.registerObject( hive2Dialect.getDeclaredConstructor().newInstance(), IDatabaseDialect.class );
+
+        plugin = registry.getPlugin( DatabasePluginType.class, "IMPALA" );
+        //Register a DatabaseMeta in the Pentaho System
+        Object impalaMeta = registry.loadClass( plugin );
+        PentahoSystem.registerObject( impalaMeta, DatabaseInterface.class );
+        //Register a dialect in the Pentaho System
+        Class<IDatabaseDialect> impalaDialect = registry.getClass( plugin, "org.pentaho.big.data.kettle.plugins.hive.ImpalaDatabaseDialect" );
+        PentahoSystem.registerObject( impalaDialect.getDeclaredConstructor().newInstance(), IDatabaseDialect.class );
+
+        plugin = registry.getPlugin( DatabasePluginType.class, "IMPALASIMBA" );
+        //Register a DatabaseMeta in the Pentaho System
+        Object impalaSimbaMeta = registry.loadClass( plugin );
+        PentahoSystem.registerObject( impalaSimbaMeta, DatabaseInterface.class );
+        //Register a dialect in the Pentaho System
+        Class<IDatabaseDialect> impalaSimbaDialect = registry.getClass( plugin, "org.pentaho.big.data.kettle.plugins.hive.ImpalaSimbaDatabaseDialect" );
+        PentahoSystem.registerObject( impalaSimbaDialect.getDeclaredConstructor().newInstance(), IDatabaseDialect.class );
+
+        plugin = registry.getPlugin( DatabasePluginType.class, "SPARKSIMBA" );
+        //Register a DatabaseMeta in the Pentaho System
+        Object sparkSimbaMeta = registry.loadClass( plugin );
+        PentahoSystem.registerObject( sparkSimbaMeta, DatabaseInterface.class );
+        //Register a dialect in the Pentaho System
+        Class<IDatabaseDialect> sparkSimbaDialect = registry.getClass( plugin, "org.pentaho.big.data.kettle.plugins.hive.SparkSimbaDatabaseDialect" );
+        PentahoSystem.registerObject( sparkSimbaDialect.getDeclaredConstructor().newInstance(), IDatabaseDialect.class );
+      } catch ( NoSuchMethodException e ) {
+        throw new RuntimeException( e );
+      } catch ( InvocationTargetException e ) {
+        throw new RuntimeException( e );
+      } catch ( InstantiationException e ) {
+        throw new RuntimeException( e );
+      } catch ( IllegalAccessException e ) {
+        throw new RuntimeException( e );
+      }
     }
   }
 
