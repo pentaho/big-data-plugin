@@ -235,6 +235,7 @@
         <include>pentaho:pentaho-authentication-mapper-impl</include>
         <include>org.pentaho.hadoop.shims:pentaho-hadoop-shims-common-dependencies</include>
         <include>org.pentaho.hadoop.shims:pentaho-hadoop-shims-common-base</include>
+        <include>org.gwtproject:gwt-user</include>
       </includes>
     </dependencySet>
   </dependencySets>
