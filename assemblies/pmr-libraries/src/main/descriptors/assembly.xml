@@ -184,6 +184,7 @@
         <include>pentaho-kettle:kettle-core</include>
         <include>pentaho-kettle:kettle-engine</include>
         <include>pentaho-kettle:kettle-ui-swt</include>
+        <include>org.osgi:osgi.core</include>
         <include>org.pentaho:commons-xul-core</include>
         <include>org.pentaho.reporting.library:flute</include>
         <include>org.pentaho.reporting.library:libbase</include>
