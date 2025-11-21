@@ -95,6 +95,7 @@
         <include>javax.servlet:javax.servlet-api</include>
         <include>javax.validation:validation-api</include>
         <include>javax.xml:jaxrpc-api</include>
+        <include>jakarta.servlet:jakarta.servlet-api</include>
         <include>jaxen:jaxen</include>
         <include>jcifs:jcifs</include>
         <include>jexcelapi:jxl</include>
@@ -141,6 +142,7 @@
         <include>org.drools:drools-ruleunits-engine</include>
         <include>org.drools:drools-compiler</include>
         <include>org.drools:drools-core</include>
+        <include>org.eclipse.platform:org.eclipse.swt.gtk.linux.x86_64</include>
         <include>org.eclipse.jetty:jetty-continuation</include>
         <include>org.eclipse.jetty:jetty-http</include>
         <include>org.eclipse.jetty:jetty-io</include>
@@ -195,6 +197,7 @@
         <include>org.pentaho.reporting.library:libserializer</include>
         <include>org.pentaho.reporting.library:libswing</include>
         <include>org.pentaho.reporting.library:libxml</include>
+        <include>pentaho:pentaho-vfs-browser</include>
         <include>pentaho:pentaho-platform-api</include>
         <include>pentaho:pentaho-platform-core</include>
         <include>pentaho:pentaho-platform-extensions</include>
@@ -231,6 +234,7 @@
         <include>pentaho:pentaho-authentication-mapper-impl</include>
         <include>org.pentaho.hadoop.shims:pentaho-hadoop-shims-common-dependencies</include>
         <include>org.pentaho.hadoop.shims:pentaho-hadoop-shims-common-base</include>
+        <include>org.gwtproject:gwt-user</include>
       </includes>
     </dependencySet>
   </dependencySets>

@@ -11,10 +11,12 @@
   <version>11.0.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <properties>
+    <org.eclipse.swt.gtk.linux.x86_64.version>3.108.0</org.eclipse.swt.gtk.linux.x86_64.version>
     <javax.activation-api.version>1.1</javax.activation-api.version>
     <javax.mail.version>1.4.7</javax.mail.version>
     <jsp-api.version>2.0</jsp-api.version>
     <javax.servlet-api.version>3.0.1</javax.servlet-api.version>
+    <jakarta.servlet.version>6.0.0</jakarta.servlet.version>
     <validation-api.version>1.0.0.GA</validation-api.version>
     <ehcache.version>2.5.1</ehcache.version>
     <jersey.version>1.19.1</jersey.version>
@@ -26,6 +28,8 @@
     <jsch.version>0.2.9</jsch.version>
     <encryption-support.version>11.0.0.0-SNAPSHOT</encryption-support.version>
     <pdi-osgi-bridge.version>11.0.0.0-SNAPSHOT</pdi-osgi-bridge.version>
+    <osgi.core.version>8.0.0</osgi.core.version>
+    <gwt.version>2.12.2</gwt.version>
   </properties>
   <dependencies>
     <dependency>
@@ -348,6 +352,11 @@
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
       <version>${javax.servlet-api.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
+      <version>${jakarta.servlet.version}</version>
     </dependency>
     <dependency>
       <groupId>javax.validation</groupId>
@@ -807,6 +816,11 @@
       <version>${simple-jndi.version}</version>
     </dependency>
     <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-vfs-browser</artifactId>
+      <version>${pdi.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>shim-api</artifactId>
       <version>${pentaho-hadoop-shims.version}</version>
@@ -930,6 +944,11 @@
       <artifactId>httpclient5</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.eclipse.platform</groupId>
+      <artifactId>org.eclipse.swt.gtk.linux.x86_64</artifactId>
+      <version>${org.eclipse.swt.gtk.linux.x86_64.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-http</artifactId>
       <version>${jetty-hadoop.version}</version>
@@ -1036,6 +1055,11 @@
       <groupId>org.pentaho.di.plugins</groupId>
       <artifactId>pentaho-kettle-repository-locator-api</artifactId>
       <version>${pdi.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.gwtproject</groupId>
+      <artifactId>gwt-user</artifactId>
+      <version>${gwt.version}</version>
     </dependency>
   </dependencies>
   <build>
