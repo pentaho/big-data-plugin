@@ -32,6 +32,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
@@ -43,12 +44,15 @@ import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
+import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.locator.api.MetastoreLocator;
 
 @RunWith(MockitoJUnitRunner.class)
 public class NamedClusterResolverTest {
   @Mock
   private MetastoreLocator metaStoreService;
+  @Mock
+  private IMetaStore metaStore;
   @Mock
   private NamedClusterService namedClusterService;
   @Mock
@@ -83,10 +87,23 @@ public class NamedClusterResolverTest {
 
     KettleLogStore.init();
     KettleLogStore.getAppender().addLoggingEventListener( kettleLoggingEventListener );
-    when( namedClusterService.getNamedClusterByName( "testhc", null ) )
+
+    // Mock the metastore locator to return a metastore
+    lenient().when( metaStoreService.getMetastore() ).thenReturn( metaStore );
+    lenient().when( metaStoreService.getMetastore( ArgumentMatchers.any() ) ).thenReturn( metaStore );
+    lenient().when( metaStoreService.getExplicitMetastore( ArgumentMatchers.any() ) ).thenReturn( metaStore );
+
+    // Use the specific metaStore object in the mocks to ensure matching
+    lenient().when( namedClusterService.getNamedClusterByName( ArgumentMatchers.eq( "testhc" ), ArgumentMatchers.same( metaStore ) ) )
       .thenReturn( namedCluster );
-    when( namedClusterService.getNamedClusterByHost( "somehost", null ) )
+    lenient().when( namedClusterService.getNamedClusterByHost( ArgumentMatchers.eq( "somehost" ), ArgumentMatchers.same( metaStore ) ) )
       .thenReturn( namedCluster );
+
+    // Mock MetastoreLocator loading in the @Before so it's available for all tests
+    Collection<MetastoreLocator> metastoreLocatorCollection = new ArrayList<>();
+    metastoreLocatorCollection.add( metaStoreService );
+    pluginServiceLoaderMockedStatic.when( () -> PluginServiceLoader.loadServices( MetastoreLocator.class ) )
+      .thenReturn( metastoreLocatorCollection );
 
     Collection<NamedClusterServiceLocator> namedClusterServiceLocatorCollection = new ArrayList<>();
     namedClusterServiceLocatorCollection.add( namedClusterServiceLocator );
@@ -100,7 +117,21 @@ public class NamedClusterResolverTest {
     pluginServiceLoaderMockedStatic.when( () -> PluginServiceLoader.loadServices( NamedClusterService.class ) )
       .thenReturn( namedClusterServiceCollection );
 
-    namedClusterResolver = NamedClusterResolver.getInstance();
+    // Create NamedClusterResolver with mocked dependencies using the package-private constructor
+    namedClusterResolver = createResolverWithMocks();
+
+    // Set it as the singleton instance
+    Field instance = NamedClusterResolver.class.getDeclaredField( "namedClusterResolver" );
+    instance.setAccessible( true );
+    instance.set( null, namedClusterResolver );
+  }
+
+  private NamedClusterResolver createResolverWithMocks() throws Exception {
+    // Use reflection to call the package-private constructor
+    java.lang.reflect.Constructor<NamedClusterResolver> constructor =
+      NamedClusterResolver.class.getDeclaredConstructor( NamedClusterServiceLocator.class, NamedClusterService.class );
+    constructor.setAccessible( true );
+    return constructor.newInstance( namedClusterServiceLocator, namedClusterService );
   }
 
   @After
@@ -124,12 +155,11 @@ public class NamedClusterResolverTest {
   }
 
   @Test
-  public void testNamedClusterByName() {
-    Collection<MetastoreLocator> metastoreLocatorCollection = new ArrayList<>();
-    metastoreLocatorCollection.add( metaStoreService );
-
-    pluginServiceLoaderMockedStatic.when( () -> PluginServiceLoader.loadServices( MetastoreLocator.class ) )
-      .thenReturn( metastoreLocatorCollection );
+  public void testNamedClusterByName() throws Exception {
+    // Reset the metastoreLocator cache to force reload
+    Field metaStoreServiceField = NamedClusterResolver.class.getDeclaredField( "metaStoreService" );
+    metaStoreServiceField.setAccessible( true );
+    metaStoreServiceField.set( namedClusterResolver, null );
 
     NamedCluster cluster = namedClusterResolver.resolveNamedCluster( "hc://testhc/path" );
     assertEquals( namedCluster, cluster );
@@ -139,12 +169,11 @@ public class NamedClusterResolverTest {
   }
 
   @Test
-  public void testNamedClusterByHost() {
-    Collection<MetastoreLocator> metastoreLocatorCollection = new ArrayList<>();
-    metastoreLocatorCollection.add( metaStoreService );
-
-    pluginServiceLoaderMockedStatic.when( () -> PluginServiceLoader.loadServices( MetastoreLocator.class ) )
-      .thenReturn( metastoreLocatorCollection );
+  public void testNamedClusterByHost() throws Exception {
+    // Reset the metastoreLocator cache to force reload
+    Field metaStoreServiceField = NamedClusterResolver.class.getDeclaredField( "metaStoreService" );
+    metaStoreServiceField.setAccessible( true );
+    metaStoreServiceField.set( namedClusterResolver, null );
 
     NamedCluster cluster = namedClusterResolver.resolveNamedCluster( "hdfs://somehost/path" );
     assertEquals( namedCluster, cluster );
