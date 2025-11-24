@@ -85,7 +85,7 @@ public class GatewayWriteToAndDeleteFromUsersHomeFolderTest extends WriteToAndDe
     if ( !namedCluster.isUseGateway() ) {
       return super.runTest( objectUnderTest );
     } else {
-      String url = namedCluster.getGatewayUrl();
+      String url = namedCluster.decodePassword( namedCluster.getGatewayUrl() );
       String password =
         namedCluster.decodePassword( variables.environmentSubstitute( namedCluster.getGatewayPassword() ) );
       String username = variables.environmentSubstitute( namedCluster.getGatewayUsername() );
