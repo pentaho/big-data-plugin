@@ -50,7 +50,7 @@ public class GatewayListRootDirectoryTest extends ListRootDirectoryTest {
     } else {
       return new RuntimeTestResultSummaryImpl( new ClusterRuntimeTestEntry( messageGetterFactory,
         connectivityTestFactory.create( messageGetterFactory,
-            variables.environmentSubstitute( namedCluster.getGatewayUrl() ), TEST_PATH,
+            variables.environmentSubstitute( namedCluster.decodePassword( namedCluster.getGatewayUrl() ) ), TEST_PATH,
             variables.environmentSubstitute( namedCluster.getGatewayUsername() ),
             variables.environmentSubstitute( namedCluster.decodePassword( namedCluster.getGatewayPassword() ) ) )
           .runTest(), ClusterRuntimeTestEntry.DocAnchor.CLUSTER_CONNECT_GATEWAY ) );
