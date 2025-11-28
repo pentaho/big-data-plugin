@@ -7,7 +7,7 @@
   <parent>
     <artifactId>spark-assemblies</artifactId>
     <groupId>pentaho</groupId>
-    <version>11.1.0.0-SNAPSHOT</version>
+    <version>11.1.0.0-46</version>
   </parent>
 
   <artifactId>pdi-spark-plugin</artifactId>
