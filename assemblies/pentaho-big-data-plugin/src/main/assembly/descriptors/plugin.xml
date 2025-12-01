@@ -101,6 +101,7 @@
                 <include>xpp3:xpp3_min</include>
                 <include>com.thoughtworks.xstream:xstream</include>
                 <include>org.slf4j:slf4j-reload4j</include>
+                <include>org.apache.httpcomponents:httpmime</include>
             </includes>
         </dependencySet>
         <dependencySet>

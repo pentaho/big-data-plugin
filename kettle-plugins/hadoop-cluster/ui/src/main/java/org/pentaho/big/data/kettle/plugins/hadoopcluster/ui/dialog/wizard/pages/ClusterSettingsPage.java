@@ -531,10 +531,13 @@ public class ClusterSettingsPage extends WizardPage {
       !( ( (NamedClusterDialog) getWizard() ).isEditMode() && thinNameClusterModel.getName()
         .equals( thinNameClusterModel.getOldName() ) );
     if ( nextButtonPressed && clusterNameExists && notEditingUsingSameName ) {
-      MessageBox box = new MessageBox( mainPanel.getShell(), SWT.OK );
-      box.setMessage( BaseMessages.getString( PKG, "NamedClusterDialog.clusterNameExists" ) );
-      box.open();
-      return null;
+      MessageBox box = new MessageBox( mainPanel.getShell(), SWT.YES | SWT.NO | SWT.ICON_QUESTION );
+      box.setText( BaseMessages.getString( PKG, "NamedClusterDialog.clusterOverwriteTitle" ) );
+      box.setMessage( BaseMessages.getString( PKG, "NamedClusterDialog.clusterOverwrite", thinNameClusterModel.getName() ) );
+      int result = box.open();
+      if ( result != SWT.YES ) {
+        return null;
+      }
     }
 
     SecuritySettingsPage securitySettingsPage =
