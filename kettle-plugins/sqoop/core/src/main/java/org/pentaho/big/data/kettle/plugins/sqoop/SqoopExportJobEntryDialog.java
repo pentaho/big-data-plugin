@@ -31,8 +31,7 @@ import java.lang.reflect.InvocationTargetException;
  * 
  * @see SqoopExportJobEntry
  */
-@PluginDialog( id = "SqoopExport", image = "sqoop-export.svg", pluginType = PluginDialog.PluginType.JOBENTRY,
-  documentationUrl = "https://pentaho-community.atlassian.net/wiki/display/EAI/Sqoop+Export" )
+@PluginDialog( id = "SqoopExport", image = "sqoop-export.svg", pluginType = PluginDialog.PluginType.JOBENTRY )
 public class SqoopExportJobEntryDialog extends AbstractSqoopJobEntryDialog<SqoopExportConfig, SqoopExportJobEntry> {
 
   public SqoopExportJobEntryDialog( Shell parent, JobEntryInterface jobEntry, Repository rep, JobMeta jobMeta )

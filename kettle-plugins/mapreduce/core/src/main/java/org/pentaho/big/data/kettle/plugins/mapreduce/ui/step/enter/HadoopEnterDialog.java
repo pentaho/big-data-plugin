@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @PluginDialog( id = "HadoopEnterPlugin", image = "MRI.svg", pluginType = PluginDialog.PluginType.STEP,
-  documentationUrl = "Products/MapReduce_Input" )
+  documentationUrl = "pdi-transformation-steps-reference-overview/mapreduce-input" )
 public class HadoopEnterDialog extends BaseStepXulDialog implements StepDialogInterface {
   private static final Class<?> PKG = HadoopEnterMeta.class;
 

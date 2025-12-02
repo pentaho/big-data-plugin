@@ -62,8 +62,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-@PluginDialog( id = "OrcOutput", image = "OO.svg", pluginType = PluginDialog.PluginType.STEP,
-  documentationUrl = "Products/ORC_Output" )
+@PluginDialog( id = "OrcOutput", image = "OO.svg", pluginType = PluginDialog.PluginType.STEP )
 public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements StepDialogInterface {
 
   private static final Class<?> PKG = OrcOutputMeta.class;

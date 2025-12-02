@@ -46,8 +46,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.ResourceBundle;
 
-@PluginDialog( id = "HadoopTransJobExecutorPlugin", image = "HDT.svg", pluginType = PluginDialog.PluginType.JOBENTRY,
-  documentationUrl = "Products/Pentaho_MapReduce" )
+@PluginDialog( id = "HadoopTransJobExecutorPlugin", image = "HDT.svg", pluginType = PluginDialog.PluginType.JOBENTRY )
 public class JobEntryHadoopTransJobExecutorDialog extends JobEntryDialog implements JobEntryDialogInterface {
   private static final Class<?> CLZ = JobEntryHadoopTransJobExecutor.class;
 
