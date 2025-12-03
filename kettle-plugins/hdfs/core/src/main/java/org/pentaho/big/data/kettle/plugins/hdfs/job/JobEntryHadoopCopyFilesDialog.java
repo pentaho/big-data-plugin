@@ -55,7 +55,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@PluginDialog( id = "HadoopCopyFilesPlugin", image = "HDM.svg", pluginType = PluginDialog.PluginType.JOBENTRY )
+@PluginDialog( id = "HadoopCopyFilesPlugin", image = "HDM.svg", pluginType = PluginDialog.PluginType.JOBENTRY,
+        documentationUrl = "pdi-job-entries-reference-overview/hadoop-copy-files" )
 //@ParentFirst( patterns = { "../../lib" } )
 public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
   private static Class<?> BASE_PKG = JobEntryCopyFiles.class; // for i18n purposes, needed by Translator2!! $NON-NLS-1$

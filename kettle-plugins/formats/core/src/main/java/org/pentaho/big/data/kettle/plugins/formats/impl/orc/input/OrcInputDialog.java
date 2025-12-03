@@ -48,7 +48,8 @@ import org.pentaho.hadoop.shim.api.format.OrcSpec;
 
 import java.util.List;
 
-@PluginDialog( id = "OrcInput", image = "OI.svg", pluginType = PluginDialog.PluginType.STEP )
+@PluginDialog( id = "OrcInput", image = "OI.svg", pluginType = PluginDialog.PluginType.STEP,
+        documentationUrl = "pdi-transformation-steps-reference-overview/orc-input" )
 public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
 
   private static final int SHELL_WIDTH = 526;

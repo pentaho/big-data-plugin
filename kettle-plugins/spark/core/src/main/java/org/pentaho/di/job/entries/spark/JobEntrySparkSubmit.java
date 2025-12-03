@@ -70,8 +70,7 @@ import static org.pentaho.di.job.entry.validator.JobEntryValidatorUtils.notBlank
   id = MetaverseAnalyzers.JobEntrySparkSubmitAnalyzer.ID,
   name = "JobEntrySparkSubmit.Title", description = "JobEntrySparkSubmit.Description",
   categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
-  i18nPackageName = "org.pentaho.di.job.entries.spark",
-  documentationUrl = "pdi-job-entries-reference-overview/spark-submit" )
+  i18nPackageName = "org.pentaho.di.job.entries.spark" )
 public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobEntryInterface, JobEntryListener {
   public static final String JOB_TYPE_JAVA_SCALA = "Java or Scala";
   public static final String JOB_TYPE_PYTHON = "Python";
