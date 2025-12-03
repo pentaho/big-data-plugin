@@ -29,7 +29,8 @@ import org.pentaho.ui.xul.binding.BindingFactory;
  * 
  * @see SqoopImportJobEntry
  */
-@PluginDialog( id = "SqoopImport", image = "sqoop-import.svg", pluginType = PluginDialog.PluginType.JOBENTRY )
+@PluginDialog( id = "SqoopImport", image = "sqoop-import.svg", pluginType = PluginDialog.PluginType.JOBENTRY,
+        documentationUrl = "pdi-job-entries-reference-overview/sqoop-import-job" )
 public class SqoopImportJobEntryDialog extends AbstractSqoopJobEntryDialog<SqoopImportConfig, SqoopImportJobEntry> {
 
   public SqoopImportJobEntryDialog( Shell parent, JobEntryInterface jobEntry, Repository rep, JobMeta jobMeta )

@@ -31,7 +31,8 @@ import java.lang.reflect.InvocationTargetException;
  * 
  * @see SqoopExportJobEntry
  */
-@PluginDialog( id = "SqoopExport", image = "sqoop-export.svg", pluginType = PluginDialog.PluginType.JOBENTRY )
+@PluginDialog( id = "SqoopExport", image = "sqoop-export.svg", pluginType = PluginDialog.PluginType.JOBENTRY,
+        documentationUrl = "pdi-job-entries-reference-overview/sqoop-export-job" )
 public class SqoopExportJobEntryDialog extends AbstractSqoopJobEntryDialog<SqoopExportConfig, SqoopExportJobEntry> {
 
   public SqoopExportJobEntryDialog( Shell parent, JobEntryInterface jobEntry, Repository rep, JobMeta jobMeta )

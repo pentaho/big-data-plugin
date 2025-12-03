@@ -88,7 +88,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@PluginDialog( id = "HadoopFileOutputPlugin", image = "HDO.svg", pluginType = PluginDialog.PluginType.STEP )
+@PluginDialog( id = "HadoopFileOutputPlugin", image = "HDO.svg", pluginType = PluginDialog.PluginType.STEP,
+        documentationUrl = "pdi-transformation-steps-reference-overview/hadoop-file-output-cp-main-page" )
 public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialogInterface {
   private static Class<?> BASE_PKG = TextFileOutputMeta.class; // for i18n purposes, needed by Translator2!! $NON-NLS-1$
   private static Class<?> PKG = HadoopFileOutputMeta.class;

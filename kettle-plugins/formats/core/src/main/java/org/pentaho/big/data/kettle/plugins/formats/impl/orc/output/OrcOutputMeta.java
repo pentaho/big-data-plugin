@@ -25,7 +25,6 @@ import org.pentaho.di.trans.step.StepMeta;
 
 @Step( id = "OrcOutput", image = "OO.svg", name = "OrcOutput.Name", description = "OrcOutput.Description",
   categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
-  documentationUrl = "pdi-transformation-steps-reference-overview/orc-output",
   i18nPackageName = "org.pentaho.di.trans.steps.orc" )
 @InjectionSupported( localizationPrefix = "OrcOutput.Injection.", groups = {"FIELDS"} )
 public class OrcOutputMeta extends OrcOutputMetaBase {

@@ -28,7 +28,8 @@ import org.pentaho.ui.xul.binding.BindingFactory;
 
 import java.lang.reflect.InvocationTargetException;
 
-@PluginDialog( id = "EMRJobExecutorPlugin", image = "EMR.svg", pluginType = PluginDialog.PluginType.JOBENTRY )
+@PluginDialog( id = "EMRJobExecutorPlugin", image = "EMR.svg", pluginType = PluginDialog.PluginType.JOBENTRY,
+        documentationUrl = "pdi-job-entries-reference-overview/amazon-emr-job-executor" )
 public class AmazonElasticMapReduceJobExecutorDialog extends AbstractAmazonJobEntryDialog {
 
   public AmazonElasticMapReduceJobExecutorDialog( Shell parent, JobEntryInterface jobEntry, Repository rep,
