@@ -33,7 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @PluginDialog( id = "HadoopExitPlugin", image = "MRO.svg", pluginType = PluginDialog.PluginType.STEP,
-  documentationUrl = "Products/MapReduce_Output" )
+  documentationUrl = "pdi-transformation-steps-reference-overview/mapreduce-output" )
 public class HadoopExitDialog extends BaseStepXulDialog implements StepDialogInterface {
   @SuppressWarnings( "unused" )
   private static final Class<?> PKG = HadoopExit.class;

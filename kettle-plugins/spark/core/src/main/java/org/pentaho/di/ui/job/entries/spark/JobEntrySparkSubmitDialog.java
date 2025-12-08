@@ -84,7 +84,7 @@ import org.pentaho.vfs.ui.VfsFileChooserDialog;
  */
 @PluginDialog( id = MetaverseAnalyzers.JobEntrySparkSubmitAnalyzer.ID,
   image = "org/pentaho/di/ui/job/entries/spark/img/spark.svg", pluginType = PluginDialog.PluginType.JOBENTRY,
-  documentationUrl = "Products/Spark_Submit" )
+        documentationUrl = "pdi-job-entries-reference-overview/spark-submit" )
 public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntryDialogInterface {
   private static Class<?> PKG = JobEntrySparkSubmit.class; // for i18n purposes, needed by Translator2!!
   private static final int SHELL_MINIMUM_WIDTH = 400;

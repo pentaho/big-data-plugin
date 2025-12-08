@@ -64,7 +64,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 
 @PluginDialog( id = "ParquetOutput", image = "PO.svg", pluginType = PluginDialog.PluginType.STEP,
-  documentationUrl = "Products/Parquet_Output" )
+        documentationUrl = "pdi-transformation-steps-reference-overview/parquet-output" )
 public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta> implements StepDialogInterface {
 
   public static final Class<?> PKG = ParquetOutputMeta.class;

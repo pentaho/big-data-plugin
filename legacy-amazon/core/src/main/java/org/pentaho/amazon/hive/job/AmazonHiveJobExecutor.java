@@ -43,7 +43,6 @@ import org.w3c.dom.Node;
 @JobEntry( id = "HiveJobExecutorPlugin", image = "AWS-HIVE.svg", name = "HiveJobExecutorPlugin.Name",
   description = "HiveJobExecutorPlugin.Description",
   categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
-  documentationUrl = "mk-95pdia003/pdi-job-entries/amazon-hive-job-executor",
   i18nPackageName = "org.pentaho.amazon.hive.job" )
 public class AmazonHiveJobExecutor extends AbstractAmazonJobExecutor {
 

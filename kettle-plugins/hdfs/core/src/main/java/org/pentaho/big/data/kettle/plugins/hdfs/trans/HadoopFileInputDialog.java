@@ -121,7 +121,7 @@ import java.util.Map;
 import java.util.Vector;
 
 @PluginDialog( id = "HadoopFileInputPlugin", image = "HDI.svg", pluginType = PluginDialog.PluginType.STEP,
-  documentationUrl = "Products/Hadoop_File_Input" )
+        documentationUrl = "pdi-transformation-steps-reference-overview/hadoop-file-input-cp-main-page" )
 public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogInterface {
   private static final Class<?> BASE_PKG = TextFileInputMeta.class; // for i18n purposes, needed by Translator2!!
   private static final Class<?> PKG = HadoopFileInputMeta.class; // for i18n purposes, needed by Translator2!!
