@@ -12,6 +12,7 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.orc.output;
 
+import org.apache.orc.CompressionKind;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,28 +52,40 @@ public class OrcOutputMetabaseTest {
   @Test
   public void setCompressionType() {
     metaBase.setCompressionType( "snappy" );
-    Assert.assertTrue( metaBase.getCompressionType().equals( OrcOutputMetaBase.CompressionType.SNAPPY.toString() ) );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionKind.SNAPPY.toString() ) );
     metaBase.setCompressionType( "Snappy" );
-    Assert.assertTrue( metaBase.getCompressionType().equals( OrcOutputMetaBase.CompressionType.SNAPPY.toString() ) );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionKind.SNAPPY.toString() ) );
     metaBase.setCompressionType( "SNAPPY" );
-    Assert.assertTrue( metaBase.getCompressionType().equals( OrcOutputMetaBase.CompressionType.SNAPPY.toString() ) );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionKind.SNAPPY.toString() ) );
     metaBase.setCompressionType( "zlib" );
-    Assert.assertTrue( metaBase.getCompressionType().equals( OrcOutputMetaBase.CompressionType.ZLIB.toString() ) );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionKind.ZLIB.toString() ) );
     metaBase.setCompressionType( "Zlib" );
-    Assert.assertTrue( metaBase.getCompressionType().equals( OrcOutputMetaBase.CompressionType.ZLIB.toString() ) );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionKind.ZLIB.toString() ) );
     metaBase.setCompressionType( "ZLIB" );
-    Assert.assertTrue( metaBase.getCompressionType().equals( OrcOutputMetaBase.CompressionType.ZLIB.toString() ) );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionKind.ZLIB.toString() ) );
     metaBase.setCompressionType( "lzo" );
-    Assert.assertTrue( metaBase.getCompressionType().equals( OrcOutputMetaBase.CompressionType.LZO.toString() ) );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionKind.LZO.toString() ) );
     metaBase.setCompressionType( "Lzo" );
-    Assert.assertTrue( metaBase.getCompressionType().equals( OrcOutputMetaBase.CompressionType.LZO.toString() ) );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionKind.LZO.toString() ) );
     metaBase.setCompressionType( "LZO" );
-    Assert.assertTrue( metaBase.getCompressionType().equals( OrcOutputMetaBase.CompressionType.LZO.toString() ) );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionKind.LZO.toString() ) );
     metaBase.setCompressionType( "None" );
-    Assert.assertTrue( metaBase.getCompressionType().equals( OrcOutputMetaBase.CompressionType.NONE.toString() ) );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionKind.NONE.toString() ) );
     metaBase.setCompressionType( "none" );
-    Assert.assertTrue( metaBase.getCompressionType().equals( OrcOutputMetaBase.CompressionType.NONE.toString() ) );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionKind.NONE.toString() ) );
     metaBase.setCompressionType( "NONE" );
-    Assert.assertTrue( metaBase.getCompressionType().equals( OrcOutputMetaBase.CompressionType.NONE.toString() ) );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionKind.NONE.toString() ) );
+    metaBase.setCompressionType( "lz4" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionKind.LZ4.toString() ) );
+    metaBase.setCompressionType( "Lz4" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionKind.LZ4.toString() ) );
+    metaBase.setCompressionType( "LZ4" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionKind.LZ4.toString() ) );
+    metaBase.setCompressionType( "zstd" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionKind.ZSTD.toString() ) );
+    metaBase.setCompressionType( "Zstd" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionKind.ZSTD.toString() ) );
+    metaBase.setCompressionType( "ZSTD" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionKind.ZSTD.toString() ) );
   }
 }

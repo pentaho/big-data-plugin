@@ -14,6 +14,7 @@
 package org.pentaho.big.data.kettle.plugins.formats.orc.output;
 
 import org.apache.commons.vfs2.FileObject;
+import org.apache.orc.CompressionKind;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.bowl.Bowl;
 import org.pentaho.di.core.database.DatabaseMeta;
@@ -331,39 +332,22 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
   }
 
   public void setCompressionType( String value ) {
-    compressionType = StringUtil.isVariable( value ) ? value : parseFromToString( value, CompressionType.values(), CompressionType.NONE ).name();
+    compressionType = StringUtil.isVariable( value ) ? value : parseFromToString( value, CompressionKind.values(), CompressionKind.NONE ).toString();
   }
 
-  public CompressionType getCompressionType( VariableSpace vspace ) {
-    return parseReplace( compressionType, vspace, str -> findCompressionType( str ), CompressionType.NONE );
+  public CompressionKind getCompressionType(VariableSpace vspace ) {
+    return parseReplace( compressionType, vspace, str -> findCompressionType( str ), CompressionKind.NONE );
   }
 
   public String[] getCompressionTypes() {
-    return getStrings( CompressionType.values() );
+    return getStrings( CompressionKind.values() );
   }
 
-  private  CompressionType findCompressionType( String str ) {
+  private CompressionKind findCompressionType( String str ) {
     try {
-      return CompressionType.valueOf( str );
+      return CompressionKind.valueOf( str );
     } catch ( Throwable th ) {
-      return parseFromToString( str, CompressionType.values(), CompressionType.NONE );
-    }
-  }
-  public static enum CompressionType {
-    NONE( getMsg( "OrcOutput.CompressionType.NONE" ) ),
-    ZLIB( getMsg( "OrcOutput.CompressionType.ZLIB" ) ),
-    LZO( getMsg( "OrcOutput.CompressionType.LZO" ) ),
-    SNAPPY( getMsg( "OrcOutput.CompressionType.SNAPPY" ) );
-
-    private final String name;
-
-    private CompressionType( String name ) {
-      this.name = name;
-    }
-
-    @Override
-    public String toString() {
-      return name;
+      return parseFromToString( str, CompressionKind.values(), CompressionKind.NONE );
     }
   }
 
@@ -413,10 +397,6 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
       }
     }
     return outputFileName;
-  }
-
-  private static String getMsg( String key ) {
-    return BaseMessages.getString( PKG, key );
   }
 
   protected static class FieldNames {

@@ -14,6 +14,7 @@
     <easymock.versin>3.0</easymock.versin>
     <jface.version>3.3.0-I20070606-0010</jface.version>
     <mockito.version>4.0.0</mockito.version>
+    <org.apache.orc.version>1.9.6</org.apache.orc.version>
   </properties>
 
   <!-- VERIFY THESE IMPORTS THAT WERE IN THE BUILD SECTION WHEN THE PLUGIN WAS OSGI. ARE THEY NEEDED?
@@ -83,6 +84,17 @@
         <exclusion>
           <groupId>*</groupId>
           <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.orc</groupId>
+      <artifactId>orc-core</artifactId>
+      <version>${org.apache.orc.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-client-api</artifactId>
         </exclusion>
       </exclusions>
     </dependency>

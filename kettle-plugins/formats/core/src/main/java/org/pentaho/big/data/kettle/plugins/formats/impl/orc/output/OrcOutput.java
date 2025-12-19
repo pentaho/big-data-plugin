@@ -14,6 +14,7 @@
 package org.pentaho.big.data.kettle.plugins.formats.impl.orc.output;
 
 
+import org.apache.orc.CompressionKind;
 import org.pentaho.big.data.kettle.plugins.formats.impl.output.PvfsFileAliaser;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
@@ -125,14 +126,14 @@ public class OrcOutput extends BaseStep implements StepInterface {
     data.output.setOutputFile( pvfsFileAliaser.generateAlias(), meta.isOverrideOutput() );
     data.output.setFields( meta.getOutputFields() );
 
-    IPentahoOrcOutputFormat.COMPRESSION compression;
+    CompressionKind compression;
     try {
-      compression = IPentahoOrcOutputFormat.COMPRESSION.valueOf( meta.getCompressionType().toUpperCase() );
+      compression = CompressionKind.valueOf( meta.getCompressionType().toUpperCase() );
     } catch ( Exception ex ) {
-      compression = IPentahoOrcOutputFormat.COMPRESSION.NONE;
+      compression = CompressionKind.NONE;
     }
     data.output.setCompression( compression );
-    if ( compression != IPentahoOrcOutputFormat.COMPRESSION.NONE ) {
+    if ( compression != CompressionKind.NONE ) {
       data.output.setCompressSize( meta.getCompressSize() );
     }
     data.output.setRowIndexStride( meta.getRowsBetweenEntries() );
