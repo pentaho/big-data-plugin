@@ -14,6 +14,7 @@
 package org.pentaho.big.data.kettle.plugins.formats.parquet.output;
 
 import org.apache.commons.vfs2.FileObject;
+import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 import org.pentaho.big.data.kettle.plugins.formats.parquet.ParquetTypeConverter;
 import org.pentaho.di.core.bowl.Bowl;
 import org.pentaho.di.core.Const;
@@ -395,11 +396,11 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
 
   public void setCompressionType( String value ) {
     compressionType =
-      StringUtil.isVariable( value ) ? value : parseFromToString( value, CompressionType.values(), CompressionType.NONE ).name();
+      StringUtil.isVariable( value ) ? value : parseFromToString( value, CompressionCodecName.values(), CompressionCodecName.UNCOMPRESSED ).name();
   }
 
-  public CompressionType getCompressionType( VariableSpace vspace ) {
-    return parseReplace( compressionType, vspace, str -> findCompressionType( str ), CompressionType.NONE );
+  public CompressionCodecName getCompressionType(VariableSpace vspace ) {
+    return parseReplace( compressionType, vspace, str -> findCompressionType( str ), CompressionCodecName.UNCOMPRESSED );
   }
 
   public String getParquetVersion() {
@@ -408,7 +409,7 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
 
   public void setParquetVersion( String value ) {
     parquetVersion =
-      StringUtil.isVariable( value ) ? value : parseFromToString( value, ParquetVersion.values(), CompressionType.NONE ).name();
+      StringUtil.isVariable( value ) ? value : parseFromToString( value, ParquetVersion.values(), CompressionCodecName.UNCOMPRESSED ).name();
   }
 
   public ParquetVersion getParquetVersion( VariableSpace vspace ) {
@@ -440,18 +441,18 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
   }
 
   public String[] getCompressionTypes() {
-    return getStrings( CompressionType.values() );
+    return getStrings( CompressionCodecName.values() );
   }
 
   public String[] getVersionTypes() {
     return getStrings( ParquetVersion.values() );
   }
 
-  private  CompressionType findCompressionType( String str ) {
+  private  CompressionCodecName findCompressionType( String str ) {
     try {
-      return CompressionType.valueOf( str );
+      return CompressionCodecName.valueOf( str );
     } catch ( Throwable th ) {
-      return parseFromToString( str, CompressionType.values(), CompressionType.NONE );
+      return parseFromToString( str, CompressionCodecName.values(), CompressionCodecName.UNCOMPRESSED );
     }
   }
 
@@ -460,20 +461,6 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
       return ParquetVersion.valueOf( str );
     } catch ( Throwable th ) {
       return parseFromToString( str, ParquetVersion.values(), ParquetVersion.PARQUET_1 );
-    }
-  }
-  public static enum CompressionType {
-    NONE( "None" ), SNAPPY( "Snappy" ), GZIP( "GZIP" );
-
-    private final String uiName;
-
-    private CompressionType( String name ) {
-      this.uiName = name;
-    }
-
-    @Override
-    public String toString() {
-      return uiName;
     }
   }
 

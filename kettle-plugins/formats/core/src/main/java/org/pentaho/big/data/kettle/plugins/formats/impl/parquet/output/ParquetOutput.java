@@ -13,6 +13,7 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.output;
 
+import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 import org.pentaho.big.data.kettle.plugins.formats.impl.output.PvfsFileAliaser;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
@@ -112,12 +113,12 @@ public class ParquetOutput extends BaseStep implements StepInterface {
     data.output.setOutputFile( pvfsFileAliaser.generateAlias(), meta.overrideOutput );
     data.output.setFields( meta.getOutputFields() );
 
-    IPentahoParquetOutputFormat.COMPRESSION compression;
+    CompressionCodecName compression;
     try {
       compression =
-        IPentahoParquetOutputFormat.COMPRESSION.valueOf( meta.getCompressionType( variables ).name().toUpperCase() );
+              CompressionCodecName.valueOf( meta.getCompressionType( variables ).name().toUpperCase() );
     } catch ( Exception ex ) {
-      compression = IPentahoParquetOutputFormat.COMPRESSION.UNCOMPRESSED;
+      compression = CompressionCodecName.UNCOMPRESSED;
     }
     data.output.setCompression( compression );
     data.output
