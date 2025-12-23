@@ -15,6 +15,7 @@
     <jface.version>3.3.0-I20070606-0010</jface.version>
     <mockito.version>4.0.0</mockito.version>
     <org.apache.orc.version>1.9.6</org.apache.orc.version>
+    <parquet.version>1.15.2</parquet.version>
   </properties>
 
   <!-- VERIFY THESE IMPORTS THAT WERE IN THE BUILD SECTION WHEN THE PLUGIN WAS OSGI. ARE THEY NEEDED?
@@ -147,6 +148,12 @@
       <artifactId>pentaho-big-data-legacy-core</artifactId>
       <version>${project.version}</version>
       <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.parquet</groupId>
+      <artifactId>parquet-hadoop</artifactId>
+      <version>${parquet.version}</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 </project>

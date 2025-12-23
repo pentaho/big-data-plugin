@@ -15,6 +15,7 @@
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
     <easymock.versin>3.0</easymock.versin>
+    <parquet.version>1.15.2</parquet.version>
   </properties>
   <dependencies>
     <dependency>
@@ -43,6 +44,12 @@
       <artifactId>mockito-all</artifactId>
       <version>${dependency.mockito.revision}</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.parquet</groupId>
+      <artifactId>parquet-hadoop</artifactId>
+      <version>${parquet.version}</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 </project>

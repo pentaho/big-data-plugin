@@ -12,6 +12,7 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.parquet.output;
 
+import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -68,23 +69,53 @@ public class ParquetOutputMetaBaseTest {
   @Test
   public void setCompressionType() {
     metaBase.setCompressionType( "snappy" );
-    Assert.assertTrue( metaBase.getCompressionType().equals( ParquetOutputMetaBase.CompressionType.SNAPPY.toString() ) );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionCodecName.SNAPPY.toString() ) );
     metaBase.setCompressionType( "Snappy" );
-    Assert.assertTrue( metaBase.getCompressionType().equals( ParquetOutputMetaBase.CompressionType.SNAPPY.toString() ) );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionCodecName.SNAPPY.toString() ) );
     metaBase.setCompressionType( "SNAPPY" );
-    Assert.assertTrue( metaBase.getCompressionType().equals( ParquetOutputMetaBase.CompressionType.SNAPPY.toString() ) );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionCodecName.SNAPPY.toString() ) );
     metaBase.setCompressionType( "gzip" );
-    Assert.assertTrue( metaBase.getCompressionType().equals( ParquetOutputMetaBase.CompressionType.GZIP.toString() ) );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionCodecName.GZIP.toString() ) );
     metaBase.setCompressionType( "Gzip" );
-    Assert.assertTrue( metaBase.getCompressionType().equals( ParquetOutputMetaBase.CompressionType.GZIP.toString() ) );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionCodecName.GZIP.toString() ) );
     metaBase.setCompressionType( "GZIP" );
-    Assert.assertTrue( metaBase.getCompressionType().equals( ParquetOutputMetaBase.CompressionType.GZIP.toString() ) );
-    metaBase.setCompressionType( "None" );
-    Assert.assertTrue( metaBase.getCompressionType().equals( ParquetOutputMetaBase.CompressionType.NONE.toString() ) );
-    metaBase.setCompressionType( "none" );
-    Assert.assertTrue( metaBase.getCompressionType().equals( ParquetOutputMetaBase.CompressionType.NONE.toString() ) );
-    metaBase.setCompressionType( "NONE" );
-    Assert.assertTrue( metaBase.getCompressionType().equals( ParquetOutputMetaBase.CompressionType.NONE.toString() ) );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionCodecName.GZIP.toString() ) );
+    metaBase.setCompressionType( "lzo" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionCodecName.LZO.toString() ) );
+    metaBase.setCompressionType( "Lzo" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionCodecName.LZO.toString() ) );
+    metaBase.setCompressionType( "LZO" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionCodecName.LZO.toString() ) );
+    metaBase.setCompressionType( "brotli" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionCodecName.BROTLI.toString() ) );
+    metaBase.setCompressionType( "Brotli" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionCodecName.BROTLI.toString() ) );
+    metaBase.setCompressionType( "BROTLI" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionCodecName.BROTLI.toString() ) );
+    metaBase.setCompressionType( "lz4" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionCodecName.LZ4.toString() ) );
+    metaBase.setCompressionType( "Lz4" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionCodecName.LZ4.toString() ) );
+    metaBase.setCompressionType( "LZ4" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionCodecName.LZ4.toString() ) );
+    metaBase.setCompressionType( "zstd" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionCodecName.ZSTD.toString() ) );
+    metaBase.setCompressionType( "Zstd" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionCodecName.ZSTD.toString() ) );
+    metaBase.setCompressionType( "ZSTD" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionCodecName.ZSTD.toString() ) );
+    metaBase.setCompressionType( "lz4_raw" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionCodecName.LZ4_RAW.toString() ) );
+    metaBase.setCompressionType( "Lz4_raw" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionCodecName.LZ4_RAW.toString() ) );
+    metaBase.setCompressionType( "LZ4_RAW" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionCodecName.LZ4_RAW.toString() ) );
+    metaBase.setCompressionType( "uncompressed" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionCodecName.UNCOMPRESSED.toString() ) );
+    metaBase.setCompressionType( "Uncompressed" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionCodecName.UNCOMPRESSED.toString() ) );
+    metaBase.setCompressionType( "UNCOMPRESSED" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( CompressionCodecName.UNCOMPRESSED.toString() ) );
   }
 
   public void setParquetVersion() {
