@@ -75,6 +75,8 @@
     <mockito.version>5.10.0</mockito.version>
     <hamcrest.version>1.3</hamcrest.version>
     <mockito-inline.version>5.2.0</mockito-inline.version>
+    <mockito-inline.version>5.2.0</mockito-inline.version>
+    <parquet.version>1.15.2</parquet.version>
     <maven-surefire-plugin.argLine> --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED </maven-surefire-plugin.argLine>
   </properties>
 

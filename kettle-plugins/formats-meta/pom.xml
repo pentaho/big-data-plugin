@@ -44,5 +44,11 @@
       <version>${dependency.mockito.revision}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.apache.parquet</groupId>
+      <artifactId>parquet-hadoop</artifactId>
+      <version>${parquet.version}</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 </project>
