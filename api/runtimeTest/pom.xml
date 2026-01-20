@@ -8,7 +8,7 @@
     <version>10.2.0.6-378</version>
   </parent>
   <artifactId>pentaho-big-data-api-runtimeTest</artifactId>
-  <version>10.2.0.6-378</version>
+  <version>10.2.0.6-CUST-296</version>
   <packaging>bundle</packaging>
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <description>a Pentaho open source project</description>
