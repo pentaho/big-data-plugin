@@ -23,7 +23,9 @@ import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
 import org.pentaho.runtime.test.test.impl.RuntimeTestResultEntryImpl;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.InetAddress;
+import java.net.Proxy;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -112,16 +114,45 @@ public class ConnectivityTestImpl implements ConnectivityTest {
     } else {
       Socket socket = null;
       try {
-        if ( inetAddressFactory.create( hostname ).isReachable( 10 * 1000 ) ) {
+        if( !isSocks5ProxyServer() ) {
+          if ( inetAddressFactory.create( hostname ).isReachable( 10 * 1000 ) ) {
+            try {
+              socket = socketFactory.create( hostname, Integer.parseInt( port ) );
+              return new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.INFO,
+                      messageGetter.getMessage( CONNECT_TEST_CONNECT_SUCCESS_DESC ),
+                      messageGetter.getMessage( CONNECT_TEST_CONNECT_SUCCESS_MESSAGE, hostname, port ) );
+            } catch ( IOException e ) {
+              return new RuntimeTestResultEntryImpl( severityOfFalures,
+                      messageGetter.getMessage( CONNECT_TEST_CONNECT_FAIL_DESC ),
+                      messageGetter.getMessage( CONNECT_TEST_CONNECT_FAIL_MESSAGE, hostname, port ), e );
+            } finally {
+              if ( socket != null ) {
+                try {
+                  socket.close();
+                } catch ( IOException e ) {
+                  // Ignore
+                }
+              }
+            }
+          } else {
+            return new RuntimeTestResultEntryImpl( severityOfFalures,
+                    messageGetter.getMessage( CONNECT_TEST_UNREACHABLE_DESC, hostname ),
+                    messageGetter.getMessage( CONNECT_TEST_UNREACHABLE_MESSAGE, hostname ) );
+          }
+        }
+        else {
+          String proxyHost = System.getProperty( "socksProxyHost" );
+          int proxyPort = Integer.parseInt( System.getProperty( "socksProxyPort" ) );
+          SocketFactory proxySocketFactory = new SocketFactory( proxyHost, proxyPort );
           try {
-            socket = socketFactory.create( hostname, Integer.valueOf( port ) );
+            socket = proxySocketFactory.create( hostname, Integer.parseInt( port ) );
             return new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.INFO,
-              messageGetter.getMessage( CONNECT_TEST_CONNECT_SUCCESS_DESC ),
-              messageGetter.getMessage( CONNECT_TEST_CONNECT_SUCCESS_MESSAGE, hostname, port ) );
+                    messageGetter.getMessage( CONNECT_TEST_CONNECT_SUCCESS_DESC ),
+                    messageGetter.getMessage( CONNECT_TEST_CONNECT_SUCCESS_MESSAGE, hostname, port ) );
           } catch ( IOException e ) {
             return new RuntimeTestResultEntryImpl( severityOfFalures,
-              messageGetter.getMessage( CONNECT_TEST_CONNECT_FAIL_DESC ),
-              messageGetter.getMessage( CONNECT_TEST_CONNECT_FAIL_MESSAGE, hostname, port ), e );
+                    messageGetter.getMessage( CONNECT_TEST_CONNECT_FAIL_DESC ),
+                    messageGetter.getMessage( CONNECT_TEST_CONNECT_FAIL_MESSAGE, hostname, port ), e);
           } finally {
             if ( socket != null ) {
               try {
@@ -131,10 +162,6 @@ public class ConnectivityTestImpl implements ConnectivityTest {
               }
             }
           }
-        } else {
-          return new RuntimeTestResultEntryImpl( severityOfFalures,
-            messageGetter.getMessage( CONNECT_TEST_UNREACHABLE_DESC, hostname ),
-            messageGetter.getMessage( CONNECT_TEST_UNREACHABLE_MESSAGE, hostname ) );
         }
       } catch ( UnknownHostException e ) {
         return new RuntimeTestResultEntryImpl( severityOfFalures,
@@ -152,12 +179,36 @@ public class ConnectivityTestImpl implements ConnectivityTest {
     }
   }
 
+  private boolean isSocks5ProxyServer() {
+    String proxyHost = System.getProperty( "socksProxyHost" );
+    String proxyPort = System.getProperty( "socksProxyPort" );
+
+    return proxyHost != null && !proxyHost.isEmpty() && proxyPort != null && !proxyPort.isEmpty();
+  }
+
   /**
    * Pulled out class to enable mock injection in tests
    */
   public static class SocketFactory {
+    private final String proxyHost;
+    private final int proxyPort;
+    public SocketFactory() {
+      this.proxyHost = null;
+      this.proxyPort = -1;
+    }
+    public SocketFactory( String proxyHost, int proxyPort ) {
+      this.proxyHost = proxyHost;
+      this.proxyPort = proxyPort;
+    }
     public Socket create( String hostname, int port ) throws IOException {
-      return new Socket( hostname, port );
+      if ( proxyHost != null && proxyPort > 0 ) {
+        Proxy proxy = new Proxy( Proxy.Type.SOCKS, new InetSocketAddress( proxyHost, proxyPort ) );
+        Socket socket = new Socket( proxy);
+        socket.connect( new InetSocketAddress( hostname, port ), 10000 );
+        return socket;
+      } else {
+        return new Socket( hostname, port );
+      }
     }
   }
 
