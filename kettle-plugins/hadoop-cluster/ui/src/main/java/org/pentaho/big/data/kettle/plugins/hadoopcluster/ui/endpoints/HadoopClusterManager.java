@@ -1166,7 +1166,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     String result = null;
     try {
       HttpGet httpGet = new HttpGet( endpointURL );
-      HttpHost targetHost = new HttpHost( httpGet.getURI().getHost(), httpGet.getURI().getPort() );
+      HttpHost targetHost = new HttpHost( httpGet.getURI().getHost(), httpGet.getURI().getPort(), httpGet.getURI().getScheme() );
       BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
       AuthScope authScope = new AuthScope( targetHost );
       String userName = NamedClusterHelper.getSecurityCredentials().get( NamedClusterHelper.USERNAME );
@@ -1177,7 +1177,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       HttpClientContext context = HttpClientContext.create();
       context.setCredentialsProvider( credsProvider );
       context.setAuthCache( authCache );
-      try ( CloseableHttpClient httpClient = HttpClients.createDefault() ) {
+      try ( CloseableHttpClient httpClient = createHttpClientAcceptingTlsIfNeeded( endpointURL ) ) {
         try ( CloseableHttpResponse response = httpClient.execute( httpGet, context ) ) {
           HttpEntity entity = response.getEntity();
           if ( entity != null ) {
@@ -1195,7 +1195,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     boolean result;
     String endpointURL = NamedClusterHelper.getEndpointURL( endpoint );
     HttpPost httpPost = new HttpPost( endpointURL );
-    HttpHost targetHost = new HttpHost( httpPost.getURI().getHost(), httpPost.getURI().getPort() );
+    HttpHost targetHost = new HttpHost( httpPost.getURI().getHost(), httpPost.getURI().getPort(), httpPost.getURI().getScheme() );
     BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
     AuthScope authScope = new AuthScope( targetHost );
     String userName = NamedClusterHelper.getSecurityCredentials().get( NamedClusterHelper.USERNAME );
@@ -1242,14 +1242,53 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       String json = mapper.writeValueAsString( thinNameClusterModel );
       builder.addTextBody( "data", json, ContentType.APPLICATION_JSON );
     }
-    try ( CloseableHttpClient httpClient = HttpClients.createDefault() ) {
-      HttpEntity multipart = builder.build();
-      httpPost.setEntity( multipart );
-      try ( CloseableHttpResponse response = httpClient.execute( httpPost, context ) ) {
-        result = response.getStatusLine().getStatusCode() == 200;
+
+    // Use an HTTP client that can accept TLS or load certificates when needed.
+    try {
+      CloseableHttpClient httpClient = createHttpClientAcceptingTlsIfNeeded( endpointURL );
+      try ( CloseableHttpClient client = httpClient ) {
+        HttpEntity multipart = builder.build();
+        httpPost.setEntity( multipart );
+        try ( CloseableHttpResponse response = client.execute( httpPost, context ) ) {
+          result = response.getStatusLine().getStatusCode() == 200;
+        }
       }
+    } catch ( Exception e ) {
+      throw new IOException( e );
     }
     return result;
+  }
+
+  private static CloseableHttpClient createHttpClientAcceptingTlsIfNeeded( String endpointURL ) throws Exception {
+    if ( endpointURL != null && endpointURL.toLowerCase().startsWith( "https" ) ) {
+      // Create an SSLContext that trusts all certificates (useful for self-signed certs).
+      // Warning: this disables certificate validation and hostname verification — use only if you understand the risks.
+      javax.net.ssl.TrustManager[] trustAll = new javax.net.ssl.TrustManager[] {
+        new javax.net.ssl.X509TrustManager() {
+          public java.security.cert.X509Certificate[] getAcceptedIssuers() { return new java.security.cert.X509Certificate[0]; }
+          public void checkClientTrusted( java.security.cert.X509Certificate[] certs, String authType ) { }
+          public void checkServerTrusted( java.security.cert.X509Certificate[] certs, String authType ) { }
+        }
+      };
+      javax.net.ssl.SSLContext sslContext = javax.net.ssl.SSLContext.getInstance( "TLS" );
+      sslContext.init( null, trustAll, new java.security.SecureRandom() );
+
+      org.apache.http.conn.ssl.SSLConnectionSocketFactory sslsf =
+        new org.apache.http.conn.ssl.SSLConnectionSocketFactory( sslContext, org.apache.http.conn.ssl.NoopHostnameVerifier.INSTANCE );
+
+      org.apache.http.config.Registry<org.apache.http.conn.socket.ConnectionSocketFactory> registry =
+        org.apache.http.config.RegistryBuilder.<org.apache.http.conn.socket.ConnectionSocketFactory>create()
+          .register( "https", sslsf )
+          .register( "http", new org.apache.http.conn.socket.PlainConnectionSocketFactory() )
+          .build();
+
+      org.apache.http.impl.conn.PoolingHttpClientConnectionManager cm =
+        new org.apache.http.impl.conn.PoolingHttpClientConnectionManager( registry );
+
+      return HttpClients.custom().setConnectionManager( cm ).build();
+    } else {
+      return HttpClients.createDefault();
+    }
   }
 
   public boolean processDriverFile( String driverFile, HadoopClusterManager manager ) throws Exception {
