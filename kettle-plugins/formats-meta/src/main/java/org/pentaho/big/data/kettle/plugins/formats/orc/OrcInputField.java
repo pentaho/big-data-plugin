@@ -36,7 +36,9 @@ public class OrcInputField extends BaseFormatInputField implements IOrcInputFiel
   @Override
   public void setOrcType( String orcType ) {
     for ( OrcSpec.DataType tmpType : OrcSpec.DataType.values() ) {
-      if ( tmpType.toString().equalsIgnoreCase( orcType ) ) {
+      // Match on Name ( for dialog ) or Enum Name ( For metadata injection ), note that the former uses "Int" and
+      // the latter uses "INTEGER"
+      if ( tmpType.getName().equalsIgnoreCase( orcType ) || tmpType.toString().equalsIgnoreCase( orcType ) ) {
         setFormatType( tmpType.getId() );
         break;
       }
