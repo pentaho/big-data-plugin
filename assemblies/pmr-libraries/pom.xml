@@ -5,10 +5,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-assemblies</artifactId>
-    <version>11.1.0.0-SNAPSHOT</version>
+    <version>11.1.0.0-116</version>
   </parent>
   <artifactId>pentaho-big-data-assemblies-pmr-libraries</artifactId>
-  <version>11.1.0.0-SNAPSHOT</version>
+  <version>11.1.0.0-116</version>
   <packaging>pom</packaging>
   <properties>
     <org.eclipse.swt.gtk.linux.x86_64.version>3.108.0</org.eclipse.swt.gtk.linux.x86_64.version>
@@ -26,8 +26,8 @@
     <blueprints-core.version>2.6.0</blueprints-core.version>
     <rxjava.version>2.2.3</rxjava.version>
     <jsch.version>0.2.9</jsch.version>
-    <encryption-support.version>11.1.0.0-SNAPSHOT</encryption-support.version>
-    <pdi-osgi-bridge.version>11.1.0.0-SNAPSHOT</pdi-osgi-bridge.version>
+    <encryption-support.version>11.1.0.0-116</encryption-support.version>
+    <pdi-osgi-bridge.version>11.1.0.0-116</pdi-osgi-bridge.version>
     <osgi.core.version>8.0.0</osgi.core.version>
     <gwt.version>2.12.2</gwt.version>
   </properties>
