@@ -31,6 +31,7 @@
     <hadoop.shim.destFileName>apache</hadoop.shim.destFileName>
     <plugin.classifier>-apache</plugin.classifier>
     <active.hadoop.configuration>apache</active.hadoop.configuration>
+    <big-data-plugin.version>${project.version}</big-data-plugin.version>
   </properties>
 
   <profiles>
@@ -52,7 +53,7 @@
         <dependency>
           <groupId>org.pentaho.hadoop.shims</groupId>
           <artifactId>pentaho-hadoop-shims-apache</artifactId>
-          <version>${project.version}</version>
+          <version>${pentaho-hadoop-shims.version}</version>
           <type>zip</type>
           <scope>provided</scope>
           <exclusions>
@@ -95,7 +96,7 @@
         <dependency>
           <groupId>org.pentaho.hadoop.shims</groupId>
           <artifactId>pentaho-hadoop-shims-hdi40</artifactId>
-          <version>${project.version}</version>
+          <version>${pentaho-hadoop-shims.version}</version>
           <type>zip</type>
           <scope>provided</scope>
           <exclusions>
@@ -138,7 +139,7 @@
         <dependency>
           <groupId>org.pentaho.hadoop.shims</groupId>
           <artifactId>pentaho-hadoop-shims-emr770</artifactId>
-          <version>${project.version}</version>
+          <version>${pentaho-hadoop-shims.version}</version>
           <type>zip</type>
           <scope>provided</scope>
           <exclusions>
@@ -181,7 +182,7 @@
         <dependency>
           <groupId>org.pentaho.hadoop.shims</groupId>
           <artifactId>pentaho-hadoop-shims-dataproc1421</artifactId>
-          <version>${project.version}</version>
+          <version>${pentaho-hadoop-shims.version}</version>
           <type>zip</type>
           <scope>provided</scope>
           <exclusions>
@@ -224,7 +225,7 @@
         <dependency>
           <groupId>org.pentaho.hadoop.shims</groupId>
           <artifactId>pentaho-hadoop-shims-cdpdc71</artifactId>
-          <version>${project.version}</version>
+          <version>${pentaho-hadoop-shims.version}</version>
           <type>zip</type>
           <scope>provided</scope>
           <exclusions>
@@ -320,27 +321,27 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-kettle-plugins-browse</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-api-runtimeTest</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-impl-cluster</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-kettle-plugins-common-ui</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-kettle-plugins-common-job</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
@@ -360,7 +361,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-authentication-mapper-impl</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
     </dependency>
     <dependency>
       <groupId>org.pentaho.hadoop.shims</groupId>
@@ -370,12 +371,12 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-impl-clusterTests</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-authentication-mapper-api</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
@@ -390,32 +391,32 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>hadoop-cluster-ui</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-legacy-core</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-legacy</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pdi-legacy-amazon-core</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-impl-vfs-hdfs-core</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>services-bootstrap</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
     </dependency>
     <dependency>
       <groupId>com.amazonaws</groupId>
@@ -550,7 +551,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pdi-pig-plugin</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
       <type>zip</type>
       <scope>provided</scope>
       <exclusions>
@@ -563,7 +564,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pdi-sqoop-plugin</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
       <type>zip</type>
       <scope>provided</scope>
       <exclusions>
@@ -576,7 +577,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pdi-hbase-plugin</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
       <type>zip</type>
       <scope>provided</scope>
       <exclusions>
@@ -589,7 +590,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pdi-mapreduce-plugin</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
       <type>zip</type>
       <scope>provided</scope>
       <exclusions>
@@ -602,7 +603,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pdi-hive-plugin</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
       <type>zip</type>
       <scope>provided</scope>
       <exclusions>
@@ -615,7 +616,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pdi-formats-plugin</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
       <type>zip</type>
       <scope>provided</scope>
       <exclusions>
@@ -628,7 +629,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pdi-hdfs-plugin</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
       <type>zip</type>
       <scope>provided</scope>
       <exclusions>
@@ -641,7 +642,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pdi-sqoop-plugin</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
       <type>zip</type>
       <scope>provided</scope>
       <exclusions>
@@ -654,7 +655,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pdi-oozie-plugin</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
       <type>zip</type>
       <scope>provided</scope>
       <exclusions>
@@ -667,7 +668,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pdi-spark-plugin</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
       <type>zip</type>
       <scope>provided</scope>
       <exclusions>
@@ -680,7 +681,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pdi-legacy-amazon-plugin</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
       <type>zip</type>
       <scope>provided</scope>
       <exclusions>
@@ -693,14 +694,14 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-assemblies-pmr-libraries</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
       <type>zip</type>
       <classifier>plugin</classifier>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-plugin-samples</artifactId>
-      <version>${project.version}</version>
+      <version>${big-data-plugin.version}</version>
       <type>zip</type>
       <exclusions>
         <exclusion>
