@@ -150,7 +150,7 @@ public class SqoopConfigTest {
   @Test
   public void getAdvancedArgumentsList() {
     AbstractModelList<ArgumentWrapper> args = config.getAdvancedArgumentsList();
-    assertEquals( 61, args.size() );
+    assertEquals( 62, args.size() );
 
     PropertyChangeListener l = mock( PropertyChangeListener.class );
     config.addPropertyChangeListener( l );
@@ -163,7 +163,7 @@ public class SqoopConfigTest {
     }
 
     // We should have received one event for every property changed
-    verify( l, times( 61 ) ).propertyChange( (PropertyChangeEvent) any() );
+    verify( l, times( 62 ) ).propertyChange( (PropertyChangeEvent) any() );
   }
 
   @Test

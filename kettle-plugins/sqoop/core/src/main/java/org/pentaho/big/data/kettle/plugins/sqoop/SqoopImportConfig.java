@@ -83,6 +83,17 @@ public class SqoopImportConfig extends SqoopConfig {
   public static final String ACCUMULO_USER = "accumuloUser";
   public static final String ACCUMULO_VISIBILITY = "accumuloVisibility";
   public static final String ACCUMULO_ZOOKEPERS = "accumuloZookeepers";
+
+  // Sqoop 1.4.7 Import / HiveServer2 and external table arguments
+  public static final String HS2_URL = "hs2Url";
+  public static final String HS2_USER = "hs2User";
+  public static final String HS2_PASSWORD = "hs2Password";
+  public static final String HS2_KEYTAB = "hs2Keytab";
+  public static final String EXTERNAL_TABLE_DIR = "externalTableDir";
+  public static final String HBASE_NULL_INCREMENTAL_MODE = "hbaseNullIncrementalMode";
+  public static final String HCATALOG_EXTERNAL_TABLE = "hcatalogExternalTable";
+  public static final String TEMPORARY_ROOTDIR = "temporaryRootdir";
+
   private final SqoopImportJobEntry jobEntry;
 
   // Import control arguments
@@ -194,6 +205,24 @@ public class SqoopImportConfig extends SqoopConfig {
   private String accumuloVisibility;
   @CommandLineArgument( name = "accumulo-zookeepers" )
   private String accumuloZookeepers;
+
+  // Sqoop 1.4.7 Import / HiveServer2 and external table arguments
+  @CommandLineArgument( name = "hs2-url" )
+  private String hs2Url;
+  @CommandLineArgument( name = "hs2-user" )
+  private String hs2User;
+  @CommandLineArgument( name = "hs2-password" )
+  private String hs2Password;
+  @CommandLineArgument( name = "hs2-keytab" )
+  private String hs2Keytab;
+  @CommandLineArgument( name = "external-table-dir" )
+  private String externalTableDir;
+  @CommandLineArgument( name = "hbase-null-incremental-mode" )
+  private String hbaseNullIncrementalMode;
+  @CommandLineArgument( name = "hcatalog-external-table", flag = true )
+  private String hcatalogExternalTable;
+  @CommandLineArgument( name = "temporary-rootdir" )
+  private String temporaryRootdir;
 
   @CommandLineArgument( name = "input-null-non-string" )
   private String inputNullNonString;
@@ -646,6 +675,72 @@ public class SqoopImportConfig extends SqoopConfig {
 
   public void setAccumuloZookeepers( String accumuloZookeepers ) {
     this.accumuloZookeepers = propertyChange( ACCUMULO_ZOOKEPERS, this.accumuloZookeepers, accumuloZookeepers );
+  }
+
+  public String getHs2Url() {
+    return hs2Url;
+  }
+
+  public void setHs2Url( String hs2Url ) {
+    this.hs2Url = propertyChange( HS2_URL, this.hs2Url, hs2Url );
+  }
+
+  public String getHs2User() {
+    return hs2User;
+  }
+
+  public void setHs2User( String hs2User ) {
+    this.hs2User = propertyChange( HS2_USER, this.hs2User, hs2User );
+  }
+
+  public String getHs2Password() {
+    return hs2Password;
+  }
+
+  public void setHs2Password( String hs2Password ) {
+    this.hs2Password = propertyChange( HS2_PASSWORD, this.hs2Password, hs2Password );
+  }
+
+  public String getHs2Keytab() {
+    return hs2Keytab;
+  }
+
+  public void setHs2Keytab( String hs2Keytab ) {
+    this.hs2Keytab = propertyChange( HS2_KEYTAB, this.hs2Keytab, hs2Keytab );
+  }
+
+  public String getExternalTableDir() {
+    return externalTableDir;
+  }
+
+  public void setExternalTableDir( String externalTableDir ) {
+    this.externalTableDir = propertyChange( EXTERNAL_TABLE_DIR, this.externalTableDir, externalTableDir );
+  }
+
+  public String getHbaseNullIncrementalMode() {
+    return hbaseNullIncrementalMode;
+  }
+
+  public void setHbaseNullIncrementalMode( String hbaseNullIncrementalMode ) {
+    this.hbaseNullIncrementalMode =
+      propertyChange( HBASE_NULL_INCREMENTAL_MODE, this.hbaseNullIncrementalMode, hbaseNullIncrementalMode );
+  }
+
+  public String getHcatalogExternalTable() {
+    return hcatalogExternalTable;
+  }
+
+  public void setHcatalogExternalTable( String hcatalogExternalTable ) {
+    this.hcatalogExternalTable =
+      propertyChange( HCATALOG_EXTERNAL_TABLE, this.hcatalogExternalTable, hcatalogExternalTable );
+  }
+
+  public String getTemporaryRootdir() {
+    return temporaryRootdir;
+  }
+
+  public void setTemporaryRootdir( String temporaryRootdir ) {
+    this.temporaryRootdir = propertyChange( TEMPORARY_ROOTDIR, this.temporaryRootdir, temporaryRootdir );
   }
 
 }

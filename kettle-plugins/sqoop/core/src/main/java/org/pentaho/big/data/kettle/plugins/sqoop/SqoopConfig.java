@@ -86,6 +86,9 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   public static final String COMMAND_LINE = "commandLine";
   public static final String MODE = "mode";
 
+  // Sqoop 1.4.7 common arguments
+  public static final String DELETE_COMPILE_DIR = "deleteCompileDir";
+
   public static final String HADOOP_MAPRED_HOME = "hadoopMapredHome";
   public static final String PASSWORD_ALIAS = "passwordAlias";
   public static final String PASSWORD_FILE = "passwordFile";
@@ -249,6 +252,9 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   private String packageName;
   @CommandLineArgument( name = "map-column-java" )
   private String mapColumnJava;
+
+  @CommandLineArgument( name = "delete-compile-dir", flag = true )
+  private String deleteCompileDir;
 
   // Shared Input/Export options
   @CommandLineArgument( name = TABLE )
@@ -614,6 +620,14 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
 
   public void setMapColumnJava( String mapColumnJava ) {
     this.mapColumnJava = propertyChange( MAP_COLUMN_JAVA, this.mapColumnJava, mapColumnJava );
+  }
+
+  public String getDeleteCompileDir() {
+    return deleteCompileDir;
+  }
+
+  public void setDeleteCompileDir( String deleteCompileDir ) {
+    this.deleteCompileDir = propertyChange( DELETE_COMPILE_DIR, this.deleteCompileDir, deleteCompileDir );
   }
 
   public String getTable() {
