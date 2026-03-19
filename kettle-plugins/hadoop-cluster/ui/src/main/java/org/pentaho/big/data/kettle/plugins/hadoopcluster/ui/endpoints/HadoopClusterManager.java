@@ -418,11 +418,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           model.setZooKeeperPort( nc.getZooKeeperPort() );
           model.setZooKeeperHost( nc.getZooKeeperHost() );
           model.setGatewayPassword( nc.getGatewayPassword() );
-          String gatewayURL = nc.getGatewayUrl();
-          if( gatewayURL != null && !gatewayURL.startsWith( "Encrypted" )) {
-            gatewayURL = encodePassword( gatewayURL );
-          }
-          model.setGatewayUrl( gatewayURL );
+          model.setGatewayUrl( encodePassword( nc.getGatewayUrl() ) );
           model.setGatewayUsername( nc.getGatewayUsername() );
           model.setSecurityType( SECURITY_TYPE.NONE.getValue() );
           if ( nc.isUseGateway() ) {

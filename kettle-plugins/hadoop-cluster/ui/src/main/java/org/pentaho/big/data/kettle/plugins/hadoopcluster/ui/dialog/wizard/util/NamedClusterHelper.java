@@ -250,7 +250,10 @@ public abstract class NamedClusterHelper {
   }
 
   public static String encodePassword( String password ) {
-    return Encr.encryptPasswordIfNotUsingVariables( password );
+    if ( password != null && !password.startsWith( "Encrypted" ) ) {
+      password = Encr.encryptPasswordIfNotUsingVariables( password );
+    }
+    return password;
   }
 
   public static String decodePassword( String password ) {
