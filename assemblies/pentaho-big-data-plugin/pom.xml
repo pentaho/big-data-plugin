@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-  xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>pentaho</groupId>
@@ -27,61 +27,15 @@
 
   <!-- Default properties (used when no specific variant profile is active) -->
   <properties>
-    <hadoop.shim.artifactId>pentaho-hadoop-shims-apache</hadoop.shim.artifactId>
-    <hadoop.shim.destFileName>apache</hadoop.shim.destFileName>
-    <plugin.classifier>-apache</plugin.classifier>
-    <active.hadoop.configuration>apache</active.hadoop.configuration>
+    <hadoop.shim.artifactId>pentaho-hadoop-shims-cdpdc71</hadoop.shim.artifactId>
+    <hadoop.shim.destFileName>cdpdc71</hadoop.shim.destFileName>
+    <plugin.classifier>-cdp</plugin.classifier>
+    <active.hadoop.configuration>cdpdc71</active.hadoop.configuration>
+    <assembly.id>cdp</assembly.id>
     <big-data-plugin.version>${project.version}</big-data-plugin.version>
   </properties>
 
   <profiles>
-
-    <!-- Profile for Apache variant -->
-    <profile>
-      <id>apache</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <properties>
-        <hadoop.shim.artifactId>pentaho-hadoop-shims-apache</hadoop.shim.artifactId>
-        <hadoop.shim.destFileName>apache</hadoop.shim.destFileName>
-        <plugin.classifier>-apache</plugin.classifier>
-        <active.hadoop.configuration>apache</active.hadoop.configuration>
-        <assembly.id>apache</assembly.id>
-      </properties>
-      <dependencies>
-        <dependency>
-          <groupId>org.pentaho.hadoop.shims</groupId>
-          <artifactId>pentaho-hadoop-shims-apache</artifactId>
-          <version>${pentaho-hadoop-shims.version}</version>
-          <type>zip</type>
-          <scope>provided</scope>
-          <exclusions>
-            <exclusion>
-              <groupId>*</groupId>
-              <artifactId>*</artifactId>
-            </exclusion>
-          </exclusions>
-        </dependency>
-      </dependencies>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>pkg-apache</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>single</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
     <!-- Profile for HDI variant -->
     <profile>
       <id>hdi</id>
@@ -214,6 +168,9 @@
     <!-- Profile for CDP variant -->
     <profile>
       <id>cdp</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
       <properties>
         <hadoop.shim.artifactId>pentaho-hadoop-shims-cdpdc71</hadoop.shim.artifactId>
         <hadoop.shim.destFileName>cdpdc71</hadoop.shim.destFileName>
