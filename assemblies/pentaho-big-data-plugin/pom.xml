@@ -126,16 +126,16 @@
     <profile>
       <id>dataproc</id>
       <properties>
-        <hadoop.shim.artifactId>pentaho-hadoop-shims-dataproc1421</hadoop.shim.artifactId>
-        <hadoop.shim.destFileName>dataproc1421</hadoop.shim.destFileName>
+        <hadoop.shim.artifactId>pentaho-hadoop-shims-dataproc23</hadoop.shim.artifactId>
+        <hadoop.shim.destFileName>dataproc23</hadoop.shim.destFileName>
         <plugin.classifier>-dataproc</plugin.classifier>
-        <active.hadoop.configuration>dataproc1421</active.hadoop.configuration>
+        <active.hadoop.configuration>dataproc23</active.hadoop.configuration>
         <assembly.id>dataproc</assembly.id>
       </properties>
       <dependencies>
         <dependency>
           <groupId>org.pentaho.hadoop.shims</groupId>
-          <artifactId>pentaho-hadoop-shims-dataproc1421</artifactId>
+          <artifactId>pentaho-hadoop-shims-dataproc23</artifactId>
           <version>${pentaho-hadoop-shims.version}</version>
           <type>zip</type>
           <scope>provided</scope>

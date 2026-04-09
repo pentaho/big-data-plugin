@@ -87,6 +87,7 @@ public abstract class NamedClusterHelper {
     DRIVER_INFO_MAP.put( "apachevanilla", new DriverInfo( "apachevanilla", "ApacheVanilla", "3.4.0" ) );
     DRIVER_INFO_MAP.put( "cdpdc71", new DriverInfo( "cdpdc71", "Cloudera", "7.1" ) );
     DRIVER_INFO_MAP.put( "dataproc1421", new DriverInfo( "dataproc1421", "Google Dataproc", "1.4" ) );
+    DRIVER_INFO_MAP.put( "dataproc23", new DriverInfo( "dataproc23", "Google Dataproc", "2.3" ) );
     DRIVER_INFO_MAP.put( "emr770", new DriverInfo( "emr770", "EMR", "7.7" ) );
     DRIVER_INFO_MAP.put( "hdi40", new DriverInfo( "hdi40", "HDInsight", "4.0" ) );
     DRIVER_INFO_MAP.put( "apache", new DriverInfo( "apache", "Apache", "3.4" ) );
