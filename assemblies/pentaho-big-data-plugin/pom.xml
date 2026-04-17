@@ -6,10 +6,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-assemblies</artifactId>
-    <version>11.1.0.0-SNAPSHOT</version>
+    <version>11.1.0.0-209</version>
   </parent>
   <artifactId>pentaho-big-data-plugin</artifactId>
-  <version>11.1.0.0-SNAPSHOT</version>
+  <version>11.1.0.0-209</version>
   <packaging>pom</packaging>
   <licenses>
     <license>
@@ -32,7 +32,7 @@
     <plugin.classifier>-cdp</plugin.classifier>
     <active.hadoop.configuration>cdpdc71</active.hadoop.configuration>
     <assembly.id>cdp</assembly.id>
-    <big-data-plugin.version>${project.version}</big-data-plugin.version>
+    <big-data-plugin.version>11.1.0.0-209</big-data-plugin.version>
   </properties>
 
   <profiles>
