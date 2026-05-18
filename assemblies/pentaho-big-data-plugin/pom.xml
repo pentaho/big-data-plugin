@@ -93,7 +93,7 @@
         <dependency>
           <groupId>org.pentaho.hadoop.shims</groupId>
           <artifactId>pentaho-hadoop-shims-emr770</artifactId>
-          <version>${pentaho-hadoop-shims.version}</version>
+          <version>${pentaho-hadoop-shims-emr770.version}</version>
           <type>zip</type>
           <scope>provided</scope>
           <exclusions>
@@ -182,7 +182,7 @@
         <dependency>
           <groupId>org.pentaho.hadoop.shims</groupId>
           <artifactId>pentaho-hadoop-shims-cdpdc71</artifactId>
-          <version>${pentaho-hadoop-shims.version}</version>
+          <version>${pentaho-hadoop-shims-cdpdc71.version}</version>
           <type>zip</type>
           <scope>provided</scope>
           <exclusions>
