@@ -13,13 +13,14 @@
 package org.pentaho.big.data.kettle.plugins.mapreduce.entry.pmr;
 
 
+import org.apache.commons.vfs2.FileObject;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.variables.VariableSpace;
-import org.pentaho.di.core.variables.Variables;
+import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.job.Job;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
@@ -50,9 +51,10 @@ public class JobEntryHadoopTransJobExecutorTest {
   @Test
   public void testLoadTransMetaLocal() throws Exception {
     String testPath = "src/test/resources/testTrans.ktr";
+    FileObject fileObject = KettleVFS.getFileObject( testPath, (VariableSpace) null );
     when( space.environmentSubstitute( testPath ) ).thenReturn( testPath );
     TransMeta transMeta = JobEntryHadoopTransJobExecutor.loadTransMeta( space, null, testPath, objectId, null, null );
-    Assert.assertEquals( testPath, transMeta.getFilename() );
+    Assert.assertEquals( fileObject.getURI().toString(), transMeta.getFilename() );
   }
 
   @Test
