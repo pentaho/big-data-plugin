@@ -35,8 +35,22 @@ import org.pentaho.hadoop.shim.api.format.FormatService;
 import org.pentaho.hadoop.shim.api.format.IPentahoOrcOutputFormat;
 
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class OrcOutput extends BaseStep implements StepInterface {
+
+  private static final String REDACTED = "***";
+
+  /**
+   * Matches either:
+   * - scheme://authority
+   * - authority
+   *
+   * up to a delimiter like slash, whitespace, ?, or #.
+   */
+  private static final Pattern AUTHORITY_CANDIDATE_PATTERN =
+    Pattern.compile( "(?:[a-zA-Z][a-zA-Z0-9+.-]*://)?[^\\s/?#]+" );
 
   private OrcOutputMeta meta;
 
@@ -92,7 +106,8 @@ public class OrcOutput extends BaseStep implements StepInterface {
         return false;
       }
     } catch ( IllegalStateException e ) {
-      getLogChannel().logError( e.getMessage() );
+      String sanitizedMessage = sanitizeForLog( e.getMessage() );
+      getLogChannel().logError( sanitizedMessage != null ? sanitizedMessage : e.getClass().getSimpleName() );
       setErrors( 1 );
       pvfsFileAliaser.deleteTempFileAndFolder();
       setOutputDone();
@@ -158,5 +173,50 @@ public class OrcOutput extends BaseStep implements StepInterface {
     meta = (OrcOutputMeta) smi;
     data = (OrcOutputData) sdi;
     return super.init( smi, sdi );
+  }
+
+  static String sanitizeForLog( String value ) {
+    if ( value == null ) {
+      return null;
+    }
+
+    Matcher matcher = AUTHORITY_CANDIDATE_PATTERN.matcher( value );
+    StringBuffer result = new StringBuffer();
+
+    while ( matcher.find() ) {
+      String candidate = matcher.group();
+      String sanitized = sanitizeCandidate( candidate );
+      matcher.appendReplacement( result, Matcher.quoteReplacement( sanitized ) );
+    }
+    matcher.appendTail( result );
+
+    return result.toString();
+  }
+
+  private static String sanitizeCandidate( String candidate ) {
+    int schemeIdx = candidate.indexOf( "://" );
+    int authorityStart = schemeIdx >= 0 ? schemeIdx + 3 : 0;
+
+    if ( authorityStart >= candidate.length() ) {
+      return candidate;
+    }
+
+    String prefix = candidate.substring( 0, authorityStart );
+    String authority = candidate.substring( authorityStart );
+
+    int atIndex = authority.lastIndexOf( '@' );
+    if ( atIndex < 0 ) {
+      return candidate;
+    }
+
+    int colonIndex = authority.lastIndexOf( ':', atIndex );
+    if ( colonIndex < 0 || colonIndex + 1 >= atIndex ) {
+      return candidate;
+    }
+
+    String sanitizedAuthority =
+      authority.substring( 0, colonIndex + 1 ) + REDACTED + authority.substring( atIndex );
+
+    return prefix + sanitizedAuthority;
   }
 }
