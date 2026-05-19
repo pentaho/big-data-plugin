@@ -42,7 +42,6 @@ import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.hadoop.shim.api.format.FormatService;
 import org.pentaho.hadoop.shim.api.format.IPentahoOrcOutputFormat;
-import org.pentaho.hadoop.shim.api.format.OrcSpec;
 import org.pentaho.metastore.locator.api.MetastoreLocator;
 
 import java.io.File;
@@ -120,7 +119,6 @@ public class OrcOutputTest {
       pluginServiceLoaderMockedStatic.when( () -> PluginServiceLoader.loadServices( MetastoreLocator.class ) )
         .thenReturn( metastoreLocatorCollection );
 
-      // Mock the NamedClusterResolver instead of using the singleton
       namedClusterResolver = Mockito.mock( NamedClusterResolver.class );
       when( namedClusterResolver.getNamedClusterServiceLocator() ).thenReturn( mockNamedClusterServiceLocator );
       when( namedClusterResolver.resolveNamedCluster( any( String.class ) ) ).thenReturn( null );
@@ -171,7 +169,6 @@ public class OrcOutputTest {
       }
     } while ( result );
 
-    // 3 rows to be outputted to an Orc file
     assertEquals( 3, rowsProcessed );
     verify( mockRowHandler, times( 3 ) ).putRow( rowMetaCaptor.capture(), dataCaptor.capture() );
     List<RowMeta> rowMetaCaptured = rowMetaCaptor.getAllValues();
@@ -184,12 +181,41 @@ public class OrcOutputTest {
 
   @Test
   public void testProcessRowIllegalState() throws Exception {
-    doThrow( new IllegalStateException( "IllegalStateExceptionMessage" ) ).when( mockPentahoOrcOutputFormat )
-      .setOutputFile( anyString(), anyBoolean() );
+    doThrow(
+      new IllegalStateException(
+        "Does not contain a valid host:port authority: user.name@example.com:fakePassword123@cluster-host" ) )
+      .when( mockPentahoOrcOutputFormat ).setOutputFile( anyString(), anyBoolean() );
     when( orcOutput.getLogChannel() ).thenReturn( mockLogChannelInterface );
+
     assertFalse( orcOutput.processRow( orcOutputMeta, orcOutputData ) );
 
-    verify( mockLogChannelInterface, times( 1 ) ).logError( "IllegalStateExceptionMessage" );
+    verify( mockLogChannelInterface, times( 1 ) ).logError(
+      "Does not contain a valid host:port authority: user.name@example.com:***@cluster-host" );
+  }
+
+  @Test
+  public void testSanitizeForLogWithAuthorityCredentials() {
+    assertEquals(
+      "Does not contain a valid host:port authority: user.name@example.com:***@cluster-host",
+      OrcOutput.sanitizeForLog(
+        "Does not contain a valid host:port authority: user.name@example.com:fakePassword123@cluster-host" ) );
+  }
+
+  @Test
+  public void testSanitizeForLogWithUriCredentials() {
+    assertEquals(
+      "gs://user.name@example.com:***@cluster-host/path",
+      OrcOutput.sanitizeForLog( "gs://user.name@example.com:fakePassword123@cluster-host/path" ) );
+  }
+
+  @Test
+  public void testSanitizeForLogWithoutCredentials() {
+    assertEquals( "s3a://cluster-host/path", OrcOutput.sanitizeForLog( "s3a://cluster-host/path" ) );
+  }
+
+  @Test
+  public void testSanitizeForLogNullInput() {
+    assertEquals( null, OrcOutput.sanitizeForLog( null ) );
   }
 
   @Test
@@ -254,7 +280,7 @@ public class OrcOutputTest {
   @Test
   public void testAliasFile() throws Exception {
     String aliasPath = Files.createTempDirectory( "testAliasFile" ) + File.separator + "dummyFile";
-    new File( aliasPath ).createNewFile();  //create the alias file so it and it's parent can be successfully deleted
+    new File( aliasPath ).createNewFile();
     when( mockPentahoOrcOutputFormat.generateAlias( anyString() ) ).thenReturn( aliasPath );
     boolean result;
     int rowsProcessed = 0;
@@ -268,7 +294,6 @@ public class OrcOutputTest {
       }
     } while ( result );
 
-    // 3 rows to be outputted to an Orc file
     assertEquals( 3, rowsProcessed );
     verify( mockRowHandler, times( 3 ) ).putRow( rowMetaCaptor.capture(), dataCaptor.capture() );
     List<RowMeta> rowMetaCaptured = rowMetaCaptor.getAllValues();
