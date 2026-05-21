@@ -6,10 +6,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-assemblies</artifactId>
-    <version>11.0.0.0-SNAPSHOT</version>
+    <version>11.0.0.2-279</version>
   </parent>
   <artifactId>pentaho-big-data-plugin</artifactId>
-  <version>11.0.0.0-SNAPSHOT</version>
+  <version>11.0.0.2-279</version>
   <packaging>pom</packaging>
   <licenses>
     <license>
@@ -27,7 +27,7 @@
 
   <!-- Default properties (used when no specific variant profile is active) -->
   <properties>
-    <big-data-plugin.version>11.0.0.0-SNAPSHOT</big-data-plugin.version>
+    <big-data-plugin.version>11.0.0.2-279</big-data-plugin.version>
     <hadoop.shim.artifactId>pentaho-hadoop-shims-apache</hadoop.shim.artifactId>
     <hadoop.shim.destFileName>apache</hadoop.shim.destFileName>
     <plugin.classifier>-apache</plugin.classifier>
