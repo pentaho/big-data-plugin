@@ -19,3 +19,4 @@ override.properties
 target/
 rebel.xml
 .DS_Store
+.java-version
