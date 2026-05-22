@@ -95,7 +95,6 @@
                 <include>jline:jline</include>
                 <include>com.googlecode.json-simple:json-simple</include>
                 <include>org.apache.commons:commons-vfs2-hdfs</include>
-                <include>org.apache.thrift:libthrift</include>
                 <include>pentaho:pentaho-big-data-kettle-plugins-common-ui</include>
                 <include>xmlpull:xmlpull</include>
                 <include>xpp3:xpp3_min</include>
