@@ -35,7 +35,7 @@ public class JobEntrySparkSubmitTest {
   public void testGetCmds() throws IOException {
     JobEntrySparkSubmit ss = new JobEntrySparkSubmit();
     ss.setScriptPath( "scriptPath" );
-    ss.setMaster( "master_url" );
+    ss.setMaster( "yarn-cluster" );
     ss.setJobType( JOB_TYPE_JAVA_SCALA );
     ss.setJar( "jar_path" );
     ss.setArgs( "arg1 arg2" );
@@ -54,16 +54,16 @@ public class JobEntrySparkSubmitTest {
     libs.put("/path/to/lib2", "<Static>");
     ss.setLibs( libs );
 
-    String[] expected = new String[] { "scriptPath", "--master", "master_url", "--conf", "name1=value1", "--conf",
-        "name2=value 2", "--driver-memory", "driverMemory", "--executor-memory",
-        "executorMemory", "--class", "class_name", "--jars", "file:///path/to/lib1,/path/to/lib2",  "jar_path", "arg1", "arg2" };
+    String[] expected = new String[] { "scriptPath", "--master", "yarn", "--deploy-mode", "cluster", "--conf", "name1=value1", "--conf",
+      "name2=value 2", "--driver-memory", "driverMemory", "--executor-memory",
+      "executorMemory", "--class", "class_name", "--jars", "file:///path/to/lib1,/path/to/lib2",  "jar_path", "arg1", "arg2" };
     Assert.assertArrayEquals( expected, ss.getCmds().toArray() );
 
     ss.setJobType( JOB_TYPE_PYTHON );
     ss.setPyFile( "pyFile-path" );
-    expected = new String[] { "scriptPath", "--master", "master_url", "--conf", "name1=value1", "--conf",
-        "name2=value 2", "--driver-memory", "driverMemory", "--executor-memory",
-        "executorMemory", "--py-files", "file:///path/to/lib1,/path/to/lib2",  "pyFile-path", "arg1", "arg2" };
+    expected = new String[] { "scriptPath", "--master", "yarn", "--deploy-mode", "cluster", "--conf", "name1=value1", "--conf",
+      "name2=value 2", "--driver-memory", "driverMemory", "--executor-memory",
+      "executorMemory", "--py-files", "file:///path/to/lib1,/path/to/lib2",  "pyFile-path", "arg1", "arg2" };
     Assert.assertArrayEquals( expected, ss.getCmds().toArray() );
   }
 

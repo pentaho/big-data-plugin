@@ -33,6 +33,7 @@
     <active.hadoop.configuration>cdpdc71</active.hadoop.configuration>
     <assembly.id>cdp</assembly.id>
     <big-data-plugin.version>${project.version}</big-data-plugin.version>
+    <net.java.dev.jna.version>5.12.0</net.java.dev.jna.version>
   </properties>
 
   <profiles>
@@ -660,6 +661,28 @@
       <artifactId>pentaho-big-data-plugin-samples</artifactId>
       <version>${big-data-plugin.version}</version>
       <type>zip</type>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>net.java.dev.jna</groupId>
+      <artifactId>jna</artifactId>
+      <version>${net.java.dev.jna.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>net.java.dev.jna</groupId>
+      <artifactId>jna-platform</artifactId>
+      <version>${net.java.dev.jna.version}</version>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>
