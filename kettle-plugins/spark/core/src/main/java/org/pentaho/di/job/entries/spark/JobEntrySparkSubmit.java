@@ -465,7 +465,9 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
 
     cmds.add( environmentSubstitute( scriptPath ) );
     cmds.add( "--master" );
-    cmds.add( environmentSubstitute( master ) );
+    cmds.add( environmentSubstitute( "yarn" ) );
+    cmds.add( "--deploy-mode" );
+    cmds.add( environmentSubstitute( master.replace("yarn-", "") ) );
 
     for ( String confParam : configParams ) {
       cmds.add( "--conf" );
