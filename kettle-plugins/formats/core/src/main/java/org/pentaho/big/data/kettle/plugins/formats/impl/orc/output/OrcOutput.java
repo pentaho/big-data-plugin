@@ -115,7 +115,11 @@ public class OrcOutput extends BaseStep implements StepInterface {
     } catch ( KettleException ex ) {
       throw ex;
     } catch ( Exception ex ) {
-      throw new KettleException( ex );
+      String sanitizedMessage = sanitizeForLog( ex.getMessage() );
+      if ( sanitizedMessage == null || sanitizedMessage.equals( ex.getMessage() ) ) {
+        throw new KettleException( ex );
+      }
+      throw new KettleException( sanitizedMessage );
     }
   }
 
