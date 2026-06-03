@@ -9,7 +9,7 @@
   </parent>
   <groupId>pentaho</groupId>
   <artifactId>pentaho-big-data-bundles</artifactId>
-  <version>10.2.0.4-354</version>
+  <version>10.2.0.4-354-CUST-311</version>
   <packaging>pom</packaging>
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <description>Parent project for Pentaho OSGI Bundles</description>
@@ -128,7 +128,7 @@
         </property>
       </activation>
       <modules>
-        <module>legacy-amazon</module>
+<!--        <module>legacy-amazon</module>-->
         <module>kettle-plugins</module>
       </modules>
     </profile>

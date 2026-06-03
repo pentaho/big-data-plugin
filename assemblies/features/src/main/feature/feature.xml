@@ -25,7 +25,7 @@
   </feature>
 
   <feature name="pentaho-big-data-plugin-tests" version="1.0">
-    <bundle>mvn:pentaho/pentaho-big-data-impl-clusterTests/${project.version}</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-impl-clusterTests/10.2.0.4-354</bundle>
   </feature>
 
   <feature name="pentaho-big-data-plugin-base" version="1.0">
@@ -33,7 +33,7 @@
     <bundle>mvn:pentaho/pentaho-osgi-utils-impl/${pentaho-osgi-bundles.version}</bundle>
     <bundle>mvn:pentaho/pdi-osgi-bridge-activator/${pdi-osgi-bridge.version}</bundle>
     <bundle>mvn:pentaho/pentaho-blueprint-collection-utils/${pentaho-osgi-bundles.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-impl-cluster/${project.version}</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-impl-cluster/10.2.0.4-354</bundle>
     <configfile finalname="/etc/pentaho.big.data.impl.cluster.cfg">
       mvn:pentaho/pentaho-osgi-config/${pentaho-karaf.version}/cfg/pentaho-big-data-impl-cluster
     </configfile>
@@ -44,42 +44,42 @@
     <feature>pentaho-big-data-plugin-base</feature>
     <feature>pentaho-big-data-common</feature>
     <bundle>mvn:org.pentaho/shim-api/${pentaho-hadoop-shims.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-api-runtimeTest/${project.version}</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-api-runtimeTest/10.2.0.4-354</bundle>
     <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-services-api/${pentaho-hadoop-shims.version}</bundle>
   </feature>
 
   <feature name="pentaho-big-data-impl-connections" version="1.0">
-    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-browse/${project.version}</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-browse/10.2.0.4-354</bundle>
   </feature>
 
   <feature name="pentaho-big-data-plugin-shim-impl" version="1.0">
     <feature>pentaho-big-data-plugin-api</feature>
-    <bundle>mvn:pentaho/pentaho-big-data-impl-vfs-hdfs/${project.version}</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-impl-vfs-hdfs/10.2.0.4-354</bundle>
   </feature>
 
   <feature name="pentaho-big-data-kettle-plugins" version="1.0">
     <feature>pentaho-big-data-plugin-api</feature>
     <feature>cxf-jaxrs</feature>
     <feature>pentaho-jackson</feature>
-    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-common-ui/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-common-job/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-guiTestActionHandlers/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-hdfs/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-hbase/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-hbase-meta/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-mapreduce/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-pig/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-oozie/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-sqoop/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-hive/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-spark/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-formats-meta/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-formats/${project.version}</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-common-ui/10.2.0.4-354</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-common-job/10.2.0.4-354</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-guiTestActionHandlers/10.2.0.4-354</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-hdfs/10.2.0.4-354</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-hbase/10.2.0.4-354</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-hbase-meta/10.2.0.4-354</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-mapreduce/10.2.0.4-354</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-pig/10.2.0.4-354</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-oozie/10.2.0.4-354</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-sqoop/10.2.0.4-354</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-hive/10.2.0.4-354</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-spark/10.2.0.4-354</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-formats-meta/10.2.0.4-354</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-formats/10.2.0.4-354</bundle>
   </feature>
 
   <feature name="pentaho-hadoop-cluster-ui" version="1.0">
-    <bundle>mvn:org.pentaho.di.plugins/core-ui/${project.version}</bundle>
-    <bundle>mvn:pentaho/hadoop-cluster-ui/${project.version}</bundle>
+    <bundle>mvn:org.pentaho.di.plugins/core-ui/10.2.0.4-354</bundle>
+    <bundle>mvn:pentaho/hadoop-cluster-ui/10.2.0.4-354-CUST-311</bundle>
     <bundle>mvn:commons-fileupload/commons-fileupload/${commons-fileupload.version}</bundle>
   </feature>
 

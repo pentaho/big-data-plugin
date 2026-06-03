@@ -6,11 +6,11 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-kettle-plugins</artifactId>
-    <version>10.2.0.4-354</version>
+    <version>10.2.0.4-354-CUST-311</version>
   </parent>
 
   <artifactId>pentaho-big-data-kettle-plugins-hadoop-cluster</artifactId>
-  <version>10.2.0.4-354</version>
+  <version>10.2.0.4-354-CUST-311</version>
   <packaging>pom</packaging>
   <name>Hadoop Cluster Plugin</name>
 
@@ -32,6 +32,11 @@
   </properties>
   <dependencyManagement>
     <dependencies>
+<!--      <dependency>-->
+<!--        <groupId>org.eclipse.platform</groupId>-->
+<!--        <artifactId>org.eclipse.swt.cocoa.macosx.aarch64</artifactId>-->
+<!--        <version>3.122.0</version>-->
+<!--      </dependency>-->
       <dependency>
         <groupId>pentaho-kettle</groupId>
         <artifactId>kettle-core</artifactId>
@@ -53,7 +58,7 @@
       <dependency>
         <groupId>pentaho</groupId>
         <artifactId>pentaho-big-data-impl-clusterTests</artifactId>
-        <version>${project.version}</version>
+        <version>10.2.0.4-354</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
