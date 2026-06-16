@@ -30,7 +30,7 @@
 
   <feature name="pentaho-big-data-plugin-base" version="1.0">
     <feature>pentaho-client-minimal</feature>
-    <bundle>mvn:pentaho/pentaho-osgi-utils-impl/${pentaho-osgi-bundles.version}</bundle>
+    <bundle>mvn:pentaho/pentaho-osgi-utils-impl/10.2.0.4-354-CUST-311</bundle>
     <bundle>mvn:pentaho/pdi-osgi-bridge-activator/${pdi-osgi-bridge.version}</bundle>
     <bundle>mvn:pentaho/pentaho-blueprint-collection-utils/${pentaho-osgi-bundles.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-cluster/10.2.0.4-354</bundle>
@@ -43,7 +43,7 @@
   <feature name="pentaho-big-data-plugin-api" version="1.0">
     <feature>pentaho-big-data-plugin-base</feature>
     <feature>pentaho-big-data-common</feature>
-    <bundle>mvn:org.pentaho/shim-api/${pentaho-hadoop-shims.version}</bundle>
+<!--    <bundle>mvn:org.pentaho/shim-api/${pentaho-hadoop-shims.version}</bundle>-->
     <bundle>mvn:pentaho/pentaho-big-data-api-runtimeTest/10.2.0.4-354</bundle>
     <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-services-api/${pentaho-hadoop-shims.version}</bundle>
   </feature>

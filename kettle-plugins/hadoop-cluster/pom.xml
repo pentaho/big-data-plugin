@@ -32,11 +32,11 @@
   </properties>
   <dependencyManagement>
     <dependencies>
-<!--      <dependency>-->
-<!--        <groupId>org.eclipse.platform</groupId>-->
-<!--        <artifactId>org.eclipse.swt.cocoa.macosx.aarch64</artifactId>-->
-<!--        <version>3.122.0</version>-->
-<!--      </dependency>-->
+      <dependency>
+        <groupId>org.eclipse.platform</groupId>
+        <artifactId>org.eclipse.swt.cocoa.macosx.aarch64</artifactId>
+        <version>3.122.0</version>
+      </dependency>
       <dependency>
         <groupId>org.eclipse.platform</groupId>
         <artifactId>org.eclipse.swt.gtk.linux.x86_64</artifactId>

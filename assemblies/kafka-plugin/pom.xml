@@ -20,7 +20,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-kettle-plugins-kafka</artifactId>
-      <version>${project.version}</version>
+      <version>10.2.0.4-354</version>
     </dependency>
   </dependencies>
 </project>

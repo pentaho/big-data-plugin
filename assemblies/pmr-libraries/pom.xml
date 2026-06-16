@@ -1044,6 +1044,12 @@
       <artifactId>pmr</artifactId>
       <version>${pentaho-karaf.version}</version>
       <type>zip</type>
+      <exclusions>
+        <exclusion>
+          <groupId>org.glassfish.jaxb</groupId>
+          <artifactId>jaxb-runtime</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.kafka</groupId>
