@@ -33,6 +33,10 @@
   </properties>
   <dependencies>
     <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+    </dependency>
+    <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-legacy-core</artifactId>
       <version>${project.version}</version>

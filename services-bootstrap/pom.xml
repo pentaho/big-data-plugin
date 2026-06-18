@@ -20,6 +20,10 @@
     </properties>
     <dependencies>
         <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+        </dependency>
+        <dependency>
             <groupId>pentaho-kettle</groupId>
             <artifactId>kettle-core</artifactId>
             <version>${pdi.version}</version>
