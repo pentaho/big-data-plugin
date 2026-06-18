@@ -41,6 +41,10 @@
 
   <dependencies>
     <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+    </dependency>
+    <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-kettle-plugins-formats-meta</artifactId>
       <version>${project.version}</version>
