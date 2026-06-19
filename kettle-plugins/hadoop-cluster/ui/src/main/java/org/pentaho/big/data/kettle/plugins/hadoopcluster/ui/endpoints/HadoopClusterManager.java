@@ -15,8 +15,10 @@ package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
+import org.apache.commons.configuration2.builder.fluent.Parameters;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.fileupload2.core.FileItemInput;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpEntity;
@@ -372,7 +374,10 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       if ( !kerberosSubType.equals( KERBEROS_SUBTYPE.PASSWORD.getValue() ) ) {
         String configFile =
           getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() + fileSeparator + CONFIG_PROPERTIES;
-        PropertiesConfiguration config = new PropertiesConfiguration( new File( configFile ) );
+        FileBasedConfigurationBuilder<PropertiesConfiguration> configBuilder =
+          new FileBasedConfigurationBuilder<>( PropertiesConfiguration.class )
+            .configure( new Parameters().fileBased().setFile( new File( configFile ) ) );
+        PropertiesConfiguration config = configBuilder.getConfiguration();
         keytabAuthenticationLocation = (String) config.getProperty( KEYTAB_AUTHENTICATION_LOCATION );
         keytabImpersonationLocation = (String) config.getProperty( KEYTAB_IMPERSONATION_LOCATION );
       }
@@ -717,7 +722,11 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
   private void resetKerberosSecurity( Path configPropertiesPath ) {
     try {
-      PropertiesConfiguration config = new PropertiesConfiguration( configPropertiesPath.toFile() );
+      FileBasedConfigurationBuilder<PropertiesConfiguration> builder =
+        new FileBasedConfigurationBuilder<>( PropertiesConfiguration.class )
+          .configure( new Parameters().fileBased().setFile( configPropertiesPath.toFile() ) );
+      builder.setAutoSave( true );
+      PropertiesConfiguration config = builder.getConfiguration();
       config.setProperty( KEYTAB_AUTHENTICATION_LOCATION, "" );
       config.setProperty( KEYTAB_IMPERSONATION_LOCATION, "" );
       config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.DISABLED.getValue() );
@@ -725,7 +734,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       config.setProperty( KERBEROS_AUTHENTICATION_PASS, "" );
       config.setProperty( KERBEROS_IMPERSONATION_USERNAME, "" );
       config.setProperty( KERBEROS_IMPERSONATION_PASS, "" );
-      config.save();
+      builder.save();
     } catch ( ConfigurationException e ) {
       log.logMinimal( e.getMessage() );
     }
@@ -766,7 +775,10 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       try {
         String configFile =
           getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() + fileSeparator + CONFIG_PROPERTIES;
-        PropertiesConfiguration config = new PropertiesConfiguration( new File( configFile ) );
+        FileBasedConfigurationBuilder<PropertiesConfiguration> configBuilder =
+          new FileBasedConfigurationBuilder<>( PropertiesConfiguration.class )
+            .configure( new Parameters().fileBased().setFile( new File( configFile ) ) );
+        PropertiesConfiguration config = configBuilder.getConfiguration();
         model.setKerberosAuthenticationUsername( (String) config.getProperty( KERBEROS_AUTHENTICATION_USERNAME ) );
         model.setKerberosAuthenticationPassword( (String) config.getProperty( KERBEROS_AUTHENTICATION_PASS ) );
         model.setKerberosImpersonationUsername( (String) config.getProperty( KERBEROS_IMPERSONATION_USERNAME ) );
@@ -809,7 +821,11 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
   private void setupKerberosPasswordSecurity( Path configPropertiesPath, ThinNameClusterModel model ) {
     try {
-      PropertiesConfiguration config = new PropertiesConfiguration( configPropertiesPath.toFile() );
+      FileBasedConfigurationBuilder<PropertiesConfiguration> builder =
+        new FileBasedConfigurationBuilder<>( PropertiesConfiguration.class )
+          .configure( new Parameters().fileBased().setFile( configPropertiesPath.toFile() ) );
+      builder.setAutoSave( true );
+      PropertiesConfiguration config = builder.getConfiguration();
       config.setProperty( KERBEROS_AUTHENTICATION_USERNAME, model.getKerberosAuthenticationUsername() );
       if ( !StringUtil.isEmpty( model.getKerberosAuthenticationPassword() ) ) {
         config.setProperty( KERBEROS_AUTHENTICATION_PASS,
@@ -832,7 +848,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       } else {
         config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.DISABLED.getValue() );
       }
-      config.save();
+      builder.save();
     } catch ( ConfigurationException e ) {
       log.logMinimal( e.getMessage() );
     }
@@ -888,7 +904,11 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
 
     try {
-      PropertiesConfiguration config = new PropertiesConfiguration( configPropertiesPath.toFile() );
+      FileBasedConfigurationBuilder<PropertiesConfiguration> builder =
+        new FileBasedConfigurationBuilder<>( PropertiesConfiguration.class )
+          .configure( new Parameters().fileBased().setFile( configPropertiesPath.toFile() ) );
+      builder.setAutoSave( true );
+      PropertiesConfiguration config = builder.getConfiguration();
       // Authentication
       config.setProperty( KERBEROS_AUTHENTICATION_USERNAME, model.getKerberosAuthenticationUsername() );
       if ( !StringUtil.isEmpty( authenticationLocation ) ) {
@@ -934,7 +954,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.DISABLED.getValue() );
       }
 
-      config.save();
+      builder.save();
     } catch ( ConfigurationException e ) {
       log.logMinimal( e.getMessage() );
     }

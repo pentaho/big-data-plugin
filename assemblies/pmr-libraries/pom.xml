@@ -204,11 +204,6 @@
       <artifactId>commons-configuration2</artifactId>
     </dependency>
     <dependency>
-      <groupId>commons-configuration</groupId>
-      <artifactId>commons-configuration</artifactId>
-      <version>1.6</version>
-    </dependency>
-    <dependency>
       <groupId>commons-digester</groupId>
       <artifactId>commons-digester</artifactId>
       <version>1.8</version>

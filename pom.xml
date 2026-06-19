@@ -43,7 +43,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <dependency.common.revision>3.3.0-v20070426</dependency.common.revision>
     <metastore.version>11.1.0.0-SNAPSHOT</metastore.version>
-    <dependency.commons-configuration.revision>1.9</dependency.commons-configuration.revision>
+    <dependency.commons-configuration2.revision>2.10.1</dependency.commons-configuration2.revision>
     <dependency.high-scale-lib.revision>1.1.2</dependency.high-scale-lib.revision>
     <mondrian.version>11.1.0.0-SNAPSHOT</mondrian.version>
     <pdi.version>11.1.0.0-SNAPSHOT</pdi.version>
@@ -87,6 +87,11 @@
         <groupId>commons-lang</groupId>
         <artifactId>commons-lang</artifactId>
         <version>2.6</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-configuration2</artifactId>
+        <version>${dependency.commons-configuration2.revision}</version>
       </dependency>
       <dependency>
         <groupId>org.mockito</groupId>

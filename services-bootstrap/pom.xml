@@ -24,6 +24,11 @@
             <artifactId>commons-lang</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-configuration2</artifactId>
+            <version>${dependency.commons-configuration2.revision}</version>
+        </dependency>
+        <dependency>
             <groupId>pentaho-kettle</groupId>
             <artifactId>kettle-core</artifactId>
             <version>${pdi.version}</version>
