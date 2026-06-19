@@ -23,6 +23,7 @@ import org.pentaho.di.core.vfs.KettleVFS;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Properties;
 
 /**
@@ -73,12 +74,31 @@ public class PluginPropertiesUtil {
     if ( !propFile.exists() ) {
       throw new FileNotFoundException( propFile.toString() );
     }
-    try {
-      return new PropertiesConfigurationProperties( propFile );
-    } catch ( Exception e ) {
-      // Do not catch ConfigurationException. Different shims will use different
-      // packages for this exception.
-      throw new IOException( e );
+    Properties properties = new Properties();
+    try ( InputStream is = propFile.getContent().getInputStream() ) {
+      properties.load( is );
+    }
+    return properties;
+  }
+
+  /**
+   * Saves a properties object to a file in the plugin directory for the plugin interface provided
+   *
+   * @param plugin
+   * @param relativeName
+   * @param properties
+   * @throws KettleFileException
+   * @throws IOException
+   */
+  protected void saveProperties( PluginInterface plugin, String relativeName, Properties properties )
+    throws KettleFileException, IOException {
+    if ( plugin == null ) {
+      throw new NullPointerException();
+    }
+    FileObject propFile = KettleVFS.getInstance( DefaultBowl.getInstance() )
+      .getFileObject( plugin.getPluginDirectory().getPath() + Const.FILE_SEPARATOR + relativeName );
+    try ( OutputStream os = propFile.getContent().getOutputStream() ) {
+      properties.store( os, null );
     }
   }
 
@@ -92,6 +112,19 @@ public class PluginPropertiesUtil {
    */
   public Properties loadPluginProperties( PluginInterface plugin ) throws KettleFileException, IOException {
     return loadProperties( plugin, PLUGIN_PROPERTIES_FILE );
+  }
+
+  /**
+   * Saves the plugin properties file for the plugin interface provided
+   *
+   * @param plugin
+   * @param properties the properties to persist
+   * @throws KettleFileException
+   * @throws IOException
+   */
+  public void savePluginProperties( PluginInterface plugin, Properties properties )
+    throws KettleFileException, IOException {
+    saveProperties( plugin, PLUGIN_PROPERTIES_FILE, properties );
   }
 
   /**
