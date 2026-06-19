@@ -13,9 +13,11 @@
 
 package org.pentaho.hadoop;
 
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
+import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.builder.ReloadingFileBasedConfigurationBuilder;
+import org.apache.commons.configuration2.builder.fluent.Parameters;
+import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.configuration2.reloading.PeriodicReloadingTrigger;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 
@@ -37,29 +39,28 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by bryan on 8/6/15.
  */
 public class PropertiesConfigurationProperties extends Properties {
   private final PropertiesConfiguration propertiesConfiguration;
+  private final PeriodicReloadingTrigger reloadingTrigger;
 
   public PropertiesConfigurationProperties( FileObject fileObject ) throws ConfigurationException, FileSystemException {
-    this( initPropertiesConfiguration( fileObject ) );
+    ReloadingFileBasedConfigurationBuilder<PropertiesConfiguration> builder =
+      new ReloadingFileBasedConfigurationBuilder<>( PropertiesConfiguration.class )
+        .configure( new Parameters().fileBased().setURL( fileObject.getURL() ) );
+    builder.setAutoSave( true );
+    reloadingTrigger = new PeriodicReloadingTrigger( builder.getReloadingController(), null, 1, TimeUnit.SECONDS );
+    reloadingTrigger.start();
+    this.propertiesConfiguration = builder.getConfiguration();
   }
 
   public PropertiesConfigurationProperties( PropertiesConfiguration propertiesConfiguration ) {
     this.propertiesConfiguration = propertiesConfiguration;
-  }
-
-  private static PropertiesConfiguration initPropertiesConfiguration( FileObject fileObject )
-    throws FileSystemException, ConfigurationException {
-    PropertiesConfiguration propertiesConfiguration = new PropertiesConfiguration( fileObject.getURL() );
-    propertiesConfiguration.setAutoSave( true );
-    FileChangedReloadingStrategy fileChangedReloadingStrategy = new FileChangedReloadingStrategy();
-    fileChangedReloadingStrategy.setRefreshDelay( 1000L );
-    propertiesConfiguration.setReloadingStrategy( fileChangedReloadingStrategy );
-    return propertiesConfiguration;
+    this.reloadingTrigger = null;
   }
 
   @Override public synchronized String getProperty( String key ) {
