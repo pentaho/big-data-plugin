@@ -34,6 +34,7 @@
     <assembly.id>cdp</assembly.id>
     <big-data-plugin.version>${project.version}</big-data-plugin.version>
     <net.java.dev.jna.version>5.12.0</net.java.dev.jna.version>
+    <commons-configuration.version>1.6</commons-configuration.version>
   </properties>
 
   <profiles>
@@ -689,6 +690,11 @@
           <artifactId>*</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>commons-configuration</groupId>
+      <artifactId>commons-configuration</artifactId>
+      <version>${commons-configuration.version}</version>
     </dependency>
   </dependencies>
   <build>
