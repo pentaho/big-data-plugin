@@ -241,9 +241,9 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-configuration2</artifactId>
-      <version>${dependency.commons-configuration2.revision}</version>
+      <groupId>commons-configuration</groupId>
+      <artifactId>commons-configuration</artifactId>
+      <version>${dependency.commons-configuration.revision}</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
