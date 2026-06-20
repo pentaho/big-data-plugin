@@ -14,10 +14,8 @@
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.commons.configuration2.PropertiesConfiguration;
-import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
-import org.apache.commons.configuration2.builder.fluent.Parameters;
-import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.fileupload2.core.FileItemInput;
 import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONObject;
@@ -485,8 +483,7 @@ public class HadoopClusterManagerTest {
       + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs" + File.separator
       + "ncTest" + File.separator + "config.properties";
 
-    PropertiesConfiguration config = new FileBasedConfigurationBuilder<>( PropertiesConfiguration.class )
-      .configure( new Parameters().fileBased().setFile( new File( configFile ) ) ).getConfiguration();
+    PropertiesConfiguration config = new PropertiesConfiguration( new File( configFile ) );
     assertEquals( "username", config.getProperty( "pentaho.authentication.default.kerberos.principal" ) );
     assertEquals( Encr.encryptPasswordIfNotUsingVariables( "password" ),
       config.getProperty( "pentaho.authentication.default.kerberos.password" ) );
@@ -520,8 +517,7 @@ public class HadoopClusterManagerTest {
       + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs" + File.separator
       + "ncTest" + File.separator + "config.properties";
 
-    PropertiesConfiguration config = new FileBasedConfigurationBuilder<>( PropertiesConfiguration.class )
-      .configure( new Parameters().fileBased().setFile( new File( configFile ) ) ).getConfiguration();
+    PropertiesConfiguration config = new PropertiesConfiguration( new File( configFile ) );
     assertEquals( System.getProperty( "user.home" ) + File.separator + ".pentaho" + File.separator + "metastore"
         + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs" + File.separator
         + "ncTest" + File.separator + "test.keytab",
@@ -574,8 +570,7 @@ public class HadoopClusterManagerTest {
       + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs" + File.separator
       + "ncTest" + File.separator + "config.properties";
 
-    PropertiesConfiguration config = new FileBasedConfigurationBuilder<>( PropertiesConfiguration.class )
-      .configure( new Parameters().fileBased().setFile( new File( configFile ) ) ).getConfiguration();
+    PropertiesConfiguration config = new PropertiesConfiguration( new File( configFile ) );
     assertEquals( "", config.getProperty( "pentaho.authentication.default.kerberos.principal" ) );
     assertEquals( "", config.getProperty( "pentaho.authentication.default.kerberos.password" ) );
     assertEquals( "",
@@ -605,8 +600,7 @@ public class HadoopClusterManagerTest {
       + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs" + File.separator
       + "ncTest" + File.separator + "config.properties";
 
-    PropertiesConfiguration config = new FileBasedConfigurationBuilder<>( PropertiesConfiguration.class )
-      .configure( new Parameters().fileBased().setFile( new File( configFile ) ) ).getConfiguration();
+    PropertiesConfiguration config = new PropertiesConfiguration( new File( configFile ) );
     assertEquals( "username", config.getProperty( "pentaho.authentication.default.kerberos.principal" ) );
     assertEquals( Encr.encryptPasswordIfNotUsingVariables( "password" ),
       config.getProperty( "pentaho.authentication.default.kerberos.password" ) );
