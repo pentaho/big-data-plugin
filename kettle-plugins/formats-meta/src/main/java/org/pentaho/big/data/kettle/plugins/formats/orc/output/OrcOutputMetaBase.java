@@ -13,28 +13,21 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.orc.output;
 
-import org.apache.commons.vfs2.FileObject;
 import org.apache.orc.CompressionKind;
 import org.pentaho.di.core.Const;
-import org.pentaho.di.core.bowl.Bowl;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionDeep;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
-import org.pentaho.di.core.vfs.AliasedFileObject;
-import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.core.xml.XMLHandler;
-import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
-import org.pentaho.di.workarounds.ResolvableResource;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
@@ -49,7 +42,7 @@ import java.util.function.Function;
  *
  * @author Alexander Buloichik@epam.com>
  */
-public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMetaInterface, ResolvableResource {
+public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMetaInterface {
 
   private static final Class<?> PKG = OrcOutputMetaBase.class;
   public static final int DEFAULT_ROWS_BETWEEN_ENTRIES = 10000;
@@ -309,21 +302,6 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
 
     } catch ( Exception e ) {
       throw new KettleException( "Unable to save step information to the repository for id_step=" + id_step, e );
-    }
-  }
-
-  @Override
-  public void resolve( Bowl bowl ) {
-    if ( filename != null && !filename.isEmpty() ) {
-      try {
-        String realFileName = getParentStepMeta().getParentTransMeta().environmentSubstitute( filename );
-        FileObject fileObject = KettleVFS.getInstance( bowl ).getFileObject( realFileName );
-        if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
-          filename = ( (AliasedFileObject) fileObject ).getAELSafeURIString();
-        }
-      } catch ( KettleFileException e ) {
-        throw new RuntimeException( e );
-      }
     }
   }
 
