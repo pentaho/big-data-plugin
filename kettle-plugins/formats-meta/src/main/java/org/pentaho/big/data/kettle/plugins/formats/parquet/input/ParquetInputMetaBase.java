@@ -12,14 +12,12 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.parquet.input;
 
-import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputFile;
 import org.pentaho.big.data.kettle.plugins.formats.parquet.ParquetTypeConverter;
-import org.pentaho.di.core.bowl.Bowl;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.bowl.Bowl;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.exception.KettleXMLException;
@@ -29,15 +27,12 @@ import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.di.core.variables.VariableSpace;
-import org.pentaho.di.core.vfs.AliasedFileObject;
-import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.steps.file.BaseFileInputAdditionalField;
 import org.pentaho.di.trans.steps.file.BaseFileInputMeta;
-import org.pentaho.di.workarounds.ResolvableResource;
 import org.pentaho.hadoop.shim.api.format.IParquetInputField;
 import org.pentaho.hadoop.shim.api.format.ParquetSpec;
 import org.pentaho.metastore.api.IMetaStore;
@@ -52,7 +47,7 @@ import java.util.List;
  */
 @SuppressWarnings( "deprecation" )
 public abstract class ParquetInputMetaBase extends
-  BaseFileInputMeta<BaseFileInputAdditionalField, FormatInputFile, ParquetInputField> implements ResolvableResource {
+  BaseFileInputMeta<BaseFileInputAdditionalField, FormatInputFile, ParquetInputField> {
 
   /** If receiving input rows, should we pass through existing fields? */
   @Injection( name = "IGNORE_EMPTY_FOLDER" )
@@ -316,24 +311,6 @@ public abstract class ParquetInputMetaBase extends
   public void setDefault() {
     allocateFiles( 0 );
     inputFields = new ParquetInputField[ 0 ];
-  }
-
-  @Override
-  public void resolve( Bowl bowl ) {
-    if ( inputFiles != null && inputFiles.fileName != null ) {
-      for ( int i = 0; i < inputFiles.fileName.length; i++ ) {
-        try {
-          String realFileName =
-            getParentStepMeta().getParentTransMeta().environmentSubstitute( inputFiles.fileName[ i ] );
-          FileObject fileObject = KettleVFS.getInstance( bowl ).getFileObject( realFileName );
-          if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
-            inputFiles.fileName[ i ] = ( (AliasedFileObject) fileObject ).getAELSafeURIString();
-          }
-        } catch ( KettleFileException e ) {
-          throw new RuntimeException( e );
-        }
-      }
-    }
   }
 
   @Override
