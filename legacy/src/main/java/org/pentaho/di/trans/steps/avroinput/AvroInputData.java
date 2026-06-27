@@ -1726,8 +1726,10 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
           // the next record read is a different one from the union
           // than the last one). For unions, must use null to force
           // allocation of the correct record type.
-          // Avro 1.12.1: Capture return value; use null for unions
-          m_topLevelRecord = (Record) m_datumReader.read( null, m_decoder );
+          // Avro 1.12.1: For top-level unions, use null to force allocation of the correct record type;
+          // otherwise reuse the existing record.
+          Object reuse = ( m_schemaToUse != null && m_schemaToUse.getType() == Schema.Type.UNION ) ? null : m_topLevelRecord;
+          m_topLevelRecord = (Record) m_datumReader.read( reuse, m_decoder );
         } else if ( m_topLevelArray != null ) {
           // Avro 1.12.1: Reuse instance and capture return value
           m_topLevelArray = (GenericData.Array) m_datumReader.read( m_topLevelArray, m_decoder );

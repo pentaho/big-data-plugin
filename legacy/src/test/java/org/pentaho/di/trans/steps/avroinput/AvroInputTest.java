@@ -263,7 +263,7 @@ public class AvroInputTest {
     Decoder decoder;
     DecoderFactory factory = new DecoderFactory();
 
-    GenericDatumReader reader = new GenericDatumReader( schema );
+    GenericDatumReader<GenericData.Record> reader = new GenericDatumReader<GenericData.Record>( schema );
     GenericData.Record topLevel;
 
     AvroInputMeta.AvroField field = new AvroInputMeta.AvroField();
@@ -275,7 +275,7 @@ public class AvroInputTest {
     for ( String row : s_jsonDataTopLevelUnion ) {
       decoder = factory.jsonDecoder( schema, row );
       // Avro 1.12.1: Use null and capture return value
-      topLevel = (GenericData.Record) reader.read( null, decoder );
+      topLevel = reader.read( null, decoder );
 
       field.init( 0 ); // output index isn't needed for the test
       field.reset( new Variables() );
@@ -958,7 +958,7 @@ public class AvroInputTest {
 
     decoder = factory.jsonDecoder( schema, s_jsonDataTopLevelMap );
     // Avro 1.12.1: Use null and capture return value
-    topLevel = (Map<Utf8, Object>) reader.read( null, decoder );
+    topLevel = reader.read( null, decoder );
 
     field.init( 0 ); // output index isn't needed for the test
     field.reset( new Variables() );
