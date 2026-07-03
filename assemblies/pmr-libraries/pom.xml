@@ -25,7 +25,9 @@
     <publish-sonar-phase>site</publish-sonar-phase>
     <blueprints-core.version>2.6.0</blueprints-core.version>
     <rxjava.version>2.2.3</rxjava.version>
-    <!-- jsch.version is inherited from pentaho-parent-pom (centralized for CVE-2023-48795) -->
+    <!-- jsch.version is inherited via the parent POM chain (pentaho-big-data-assemblies
+         -> ... -> org.pentaho:pentaho-ce-jar-parent-pom -> org.pentaho:pentaho-parent-pom,
+         which defines it); centralized for CVE-2023-48795. Requires maven-parent-poms PR #902. -->
     <encryption-support.version>11.1.0.0-SNAPSHOT</encryption-support.version>
     <pdi-osgi-bridge.version>11.1.0.0-SNAPSHOT</pdi-osgi-bridge.version>
     <osgi.core.version>8.0.0</osgi.core.version>
