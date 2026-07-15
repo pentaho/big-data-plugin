@@ -94,9 +94,10 @@
       <version>1.3.9</version>
     </dependency>
     <dependency>
-      <groupId>com.googlecode.jsendnsca</groupId>
+      <groupId>com.github.jsendnsca</groupId>
       <artifactId>jsendnsca</artifactId>
-      <version>2.0.1</version>
+      <version>${jsendnsca.version}</version>
+
     </dependency>
     <dependency>
       <groupId>com.googlecode.json-simple</groupId>
