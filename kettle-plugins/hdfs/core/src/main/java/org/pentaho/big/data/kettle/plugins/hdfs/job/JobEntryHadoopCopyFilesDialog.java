@@ -13,7 +13,7 @@
 
 package org.pentaho.big.data.kettle.plugins.hdfs.job;
 
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.eclipse.swt.SWT;

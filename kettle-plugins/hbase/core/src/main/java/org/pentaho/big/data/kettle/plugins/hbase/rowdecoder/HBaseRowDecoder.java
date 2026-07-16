@@ -16,7 +16,7 @@ package org.pentaho.big.data.kettle.plugins.hbase.rowdecoder;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.HBaseRowToKettleTuple;
 import org.pentaho.hadoop.shim.api.hbase.ByteConversionUtil;

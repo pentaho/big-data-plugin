@@ -13,7 +13,7 @@
 
 package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.apache.commons.vfs2.FileName;
 import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.di.core.Const;

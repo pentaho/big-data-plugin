@@ -83,10 +83,30 @@
 
   <dependencyManagement>
     <dependencies>
+      <!-- CVE-2025-48924 remediation: Using commons-lang3 3.18.0 instead of commons-lang 2.6 -->
+      <!-- commons-lang 2.6 is provided at compile-time only (for commons-configuration 1.x binary compatibility) -->
+      <!-- It is EXCLUDED from final assembly packaging to prevent security vulnerability (uncontrolled recursion) -->
       <dependency>
         <groupId>commons-lang</groupId>
         <artifactId>commons-lang</artifactId>
         <version>2.6</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>3.18.0</version>
+      </dependency>
+      <!-- commons-configuration 1.6 transitively depends on commons-lang 2.6 (excluded at assembly level) -->
+      <dependency>
+        <groupId>commons-configuration</groupId>
+        <artifactId>commons-configuration</artifactId>
+        <version>${dependency.commons-configuration.revision}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-text</artifactId>
+        <version>1.11.0</version>
       </dependency>
       <dependency>
         <groupId>org.mockito</groupId>
@@ -106,6 +126,19 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
+
+  <!-- CVE-2025-48924 remediation: Ensure commons-lang 2.6 is available for compile-time compatibility -->
+  <!-- All source code uses commons-lang3; commons-lang 2.6 is only for commons-configuration 1.x compatibility -->
+  <!-- Provided scope ensures it's NOT packaged in final assemblies -->
+  <dependencies>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.6</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
   <profiles>
     <profile>
       <id>lowdeps</id>

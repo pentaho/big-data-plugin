@@ -14,7 +14,7 @@
 package org.pentaho.big.data.kettle.plugins.hbase.rowdecoder;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Shell;
 import org.pentaho.big.data.api.services.BigDataServicesHelper;
 import org.pentaho.big.data.impl.cluster.NamedClusterManager;

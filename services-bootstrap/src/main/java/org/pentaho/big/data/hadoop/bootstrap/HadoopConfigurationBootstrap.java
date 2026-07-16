@@ -20,7 +20,7 @@
 
 package org.pentaho.big.data.hadoop.bootstrap;
 
-import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
