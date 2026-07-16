@@ -19,6 +19,7 @@ import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.kettle.plugins.mapreduce.DialogClassUtil;
 import org.pentaho.big.data.kettle.plugins.mapreduce.entry.NamedClusterLoadSaveUtil;
 import org.pentaho.big.data.kettle.plugins.mapreduce.entry.UserDefinedItem;
+import org.pentaho.big.data.kettle.plugins.logging.HadoopExecutionLogging;
 import org.pentaho.big.data.kettle.plugins.mapreduce.step.exit.HadoopExitMeta;
 import org.pentaho.di.cluster.SlaveServer;
 import org.pentaho.di.core.Const;
@@ -553,7 +554,7 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
 
     result.setNrErrors( 0 );
 
-    try {
+    try ( HadoopExecutionLogging ignored = HadoopExecutionLogging.start( log ) ) {
 
       MapReduceService mapReduceService = namedClusterServiceLocator.getService( namedCluster, MapReduceService.class );
       PentahoMapReduceJobBuilder jobBuilder = mapReduceService.createPentahoMapReduceJobBuilder( log, variables );

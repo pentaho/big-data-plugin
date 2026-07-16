@@ -21,6 +21,7 @@ import org.pentaho.big.data.kettle.plugins.mapreduce.DialogClassUtil;
 import org.pentaho.big.data.kettle.plugins.mapreduce.entry.NamedClusterLoadSaveUtil;
 import org.pentaho.big.data.kettle.plugins.mapreduce.entry.UserDefinedItem;
 import org.pentaho.big.data.kettle.plugins.mapreduce.entry.pmr.JobEntryHadoopTransJobExecutor;
+import org.pentaho.big.data.kettle.plugins.logging.HadoopExecutionLogging;
 import org.pentaho.di.cluster.SlaveServer;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Result;
@@ -302,7 +303,7 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
 
     log.setLogLevel( parentJob.getLogLevel() );
 
-    try {
+    try ( HadoopExecutionLogging ignored = HadoopExecutionLogging.start( log ) ) {
       URL resolvedJarUrl = resolveJarUrl( jarUrl );
       if ( log.isDetailed() ) {
         logDetailed( BaseMessages.getString( PKG, "JobEntryHadoopJobExecutor.ResolvedJar", resolvedJarUrl

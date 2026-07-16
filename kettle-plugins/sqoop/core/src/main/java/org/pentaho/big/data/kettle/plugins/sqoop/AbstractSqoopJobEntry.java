@@ -17,17 +17,14 @@ package org.pentaho.big.data.kettle.plugins.sqoop;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
-import com.google.common.collect.Maps;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.ThreadContext;
-import org.apache.logging.log4j.core.Appender;
-import org.apache.logging.log4j.core.Filter;
 import org.pentaho.big.data.kettle.plugins.job.AbstractJobEntry;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryUtils;
 import org.pentaho.big.data.kettle.plugins.job.PropertyEntry;
+import org.pentaho.big.data.kettle.plugins.logging.HadoopExecutionLogging;
 import org.pentaho.di.cluster.SlaveServer;
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.database.DatabaseInterface;
@@ -36,8 +33,6 @@ import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.logging.LogChannelInterface;
-import org.pentaho.di.core.logging.log4j.KettleLogChannelAppender;
-import org.pentaho.di.core.logging.log4j.Log4jKettleLayout;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.entry.JobEntryInterface;
@@ -49,16 +44,14 @@ import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.hadoop.shim.api.core.ShimIdentifierInterface;
 import org.pentaho.metastore.api.IMetaStore;
-import org.pentaho.platform.api.util.LogUtil;
 import org.pentaho.platform.engine.core.system.PentahoSystem;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Node;
 
-import java.nio.charset.StandardCharsets;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -68,6 +61,11 @@ import java.util.stream.Collectors;
 public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends AbstractJobEntry<S> implements Cloneable,
     JobEntryInterface {
 
+  private static final Object SYSTEM_ERROR_LOCK = new Object();
+  private static int systemErrorRedirectorCount;
+  private static PrintStream originalSystemError;
+  private static LoggingProxy systemErrorProxy;
+
   private final String NamedClusterNameProperty = "pentahoNamedCluster";
   private final NamedClusterService namedClusterService;
   private final NamedClusterServiceLocator namedClusterServiceLocator;
@@ -76,25 +74,14 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
 
   private DatabaseMeta usedDbConnection;
 
-  /**
-   * Log4j appender that redirects all Log4j logging to a Kettle {@link org.pentaho.di.core.logging.LogChannel}
-   */
-  private Appender sqoopToKettleAppender;
+  private HadoopExecutionLogging hadoopExecutionLogging;
 
-  /**
-   * Logging proxy that redirects all {@link java.io.PrintStream} output to a Log4j logger.
-   */
-  private LoggingProxy stdErrProxy;
+  private boolean redirectsSystemError;
 
   /**
    * Logging categories to monitor and log within Kettle
    */
   private String[] LOGS_TO_MONITOR = new String[] { "org.apache.sqoop", "org.apache.hadoop", "com.pentaho.big.data.bundles.impl.shim.sqoop.knox" };
-
-  /**
-   * Cache for the levels of loggers we changed so we can revert them when we remove our appender
-   */
-  private final Map<String, Level> logLevelCache;
 
   /**
    * Declare the Sqoop tool used in this job entry.
@@ -110,7 +97,6 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
     this.namedClusterServiceLocator = namedClusterServiceLocator;
     this.runtimeTestActionService = runtimeTestActionService;
     this.runtimeTester = runtimeTester;
-    logLevelCache = Maps.newHashMap();
   }
 
   @Override
@@ -193,17 +179,20 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   /**
    * Attach a log appender to all Loggers used by Sqoop so we can redirect the output to Kettle's logging facilities.
    */
-  public void attachLoggingAppenders() {
-    sqoopToKettleAppender = new KettleLogChannelAppender( log, new Log4jKettleLayout( StandardCharsets.UTF_8, true ) );
-    Filter filter = new SqoopLog4jFilter( log.getLogChannelId() );
-    ThreadContext.put( "logChannelId", log.getLogChannelId() );
-    // Redirect all stderr logging to the first log to monitor so it shows up in the Kettle LogChannel
-    Logger sqoopLogger = LogManager.getLogger( LOGS_TO_MONITOR[ 0 ] );
-    if ( sqoopLogger != null ) {
-      stdErrProxy = new LoggingProxy( System.err, sqoopLogger, Level.INFO );
-      System.setErr( stdErrProxy );
+  public synchronized void attachLoggingAppenders() {
+    if ( hadoopExecutionLogging != null ) {
+      return;
     }
-    LogUtil.addAppender( sqoopToKettleAppender, sqoopLogger, Level.INFO, filter );
+
+    HadoopExecutionLogging newHadoopExecutionLogging = HadoopExecutionLogging.start( log, LOGS_TO_MONITOR );
+    try {
+      Logger sqoopLogger = LogManager.getLogger( LOGS_TO_MONITOR[ 0 ] );
+      redirectSystemError( sqoopLogger );
+      hadoopExecutionLogging = newHadoopExecutionLogging;
+    } catch ( RuntimeException e ) {
+      newHadoopExecutionLogging.close();
+      throw e;
+    }
   }
 
   /**
@@ -211,18 +200,44 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
    */
   public void removeLoggingAppenders() {
     try {
-      if ( sqoopToKettleAppender != null ) {
-        Logger sqoopLogger = LogManager.getLogger( LOGS_TO_MONITOR[0] );
-        LogUtil.removeAppender( sqoopToKettleAppender, sqoopLogger );
-        sqoopToKettleAppender = null;
+      if ( hadoopExecutionLogging != null ) {
+        hadoopExecutionLogging.close();
+        hadoopExecutionLogging = null;
       }
-      if ( stdErrProxy != null ) {
-        System.setErr( stdErrProxy.getWrappedStream() );
-        stdErrProxy = null;
-      }
+      restoreSystemError();
     } catch ( Exception ex ) {
       logError( getString( "ErrorDetachingLogging" ) );
       logDebug( Throwables.getStackTraceAsString( ex ) );
+    }
+  }
+
+  private void redirectSystemError( Logger sqoopLogger ) {
+    synchronized ( SYSTEM_ERROR_LOCK ) {
+      if ( redirectsSystemError ) {
+        return;
+      }
+      if ( systemErrorRedirectorCount == 0 ) {
+        originalSystemError = System.err;
+        systemErrorProxy = new LoggingProxy( originalSystemError, sqoopLogger, Level.INFO );
+        System.setErr( systemErrorProxy );
+      }
+      systemErrorRedirectorCount++;
+      redirectsSystemError = true;
+    }
+  }
+
+  private void restoreSystemError() {
+    synchronized ( SYSTEM_ERROR_LOCK ) {
+      if ( !redirectsSystemError ) {
+        return;
+      }
+      redirectsSystemError = false;
+      systemErrorRedirectorCount--;
+      if ( systemErrorRedirectorCount == 0 ) {
+        System.setErr( originalSystemError );
+        originalSystemError = null;
+        systemErrorProxy = null;
+      }
     }
   }
 
