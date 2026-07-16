@@ -13,8 +13,8 @@
 
 package org.pentaho.di.job.entries.spark;
 
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.dictionary.MetaverseAnalyzers;
 import org.pentaho.metaverse.api.IMetaverseNode;

@@ -13,7 +13,7 @@
 
 package org.pentaho.big.data.kettle.plugins.mapreduce.ui.entry.pmr;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;

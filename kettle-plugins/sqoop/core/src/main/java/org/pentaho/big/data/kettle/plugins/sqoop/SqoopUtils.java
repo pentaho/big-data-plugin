@@ -13,7 +13,7 @@
 
 package org.pentaho.big.data.kettle.plugins.sqoop;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
 import org.pentaho.big.data.kettle.plugins.job.PropertyEntry;
 import org.pentaho.di.core.encryption.Encr;

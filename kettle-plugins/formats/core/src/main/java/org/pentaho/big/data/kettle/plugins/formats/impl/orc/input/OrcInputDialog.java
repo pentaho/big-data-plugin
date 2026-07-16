@@ -12,7 +12,7 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.orc.input;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;

@@ -17,6 +17,10 @@
         <fileSet>
             <directory>target/plugins/pentaho-big-data-plugin/plugins</directory>
             <outputDirectory>/</outputDirectory>
+            <excludes>
+                <!-- commons-lang3 is already provided by data-integration/lib; exclude the copy bundled inside sub-plugin libs -->
+                <exclude>**/commons-lang3-*.jar</exclude>
+            </excludes>
         </fileSet>
     </fileSets>
     <dependencySets>
@@ -89,6 +93,8 @@
                 <include>org.eclipse.core:commands</include>
                 <include>org.eclipse.equinox:common</include>
                 <include>commons-cli:commons-cli</include>
+                <!-- commons-lang3 is NOT included - already provided by data-integration/lib -->
+                <include>org.apache.commons:commons-text</include>
                 <include>com.github.stephenc.high-scale-lib:high-scale-lib</include>
                 <include>org.codehaus.jackson:jackson-core-asl</include>
                 <include>net.java.dev.jets3t:jets3t</include>
@@ -104,6 +110,14 @@
                 <include>net.java.dev.jna:jna</include>
                 <include>net.java.dev.jna:jna-platform</include>
                 <include>commons-configuration:commons-configuration</include>
+                <!-- commons-lang 2.6 required at runtime by commons-configuration 1.x (ConfigurationException
+                     extends org.apache.commons.lang.exception.NestableException). commons-configuration upgrade
+                     tracked in a separate ticket. -->
+                <include>commons-lang:commons-lang</include>
+                <!-- commons-lang3 is NOT included - already provided by data-integration/lib -->
+                <!-- Google API client libraries required for proper classloader resolution in BigQuery shims -->
+                <include>com.google.http-client:google-http-client</include>
+                <include>com.google.api-client:google-api-client-java6</include>
             </includes>
         </dependencySet>
         <dependencySet>
