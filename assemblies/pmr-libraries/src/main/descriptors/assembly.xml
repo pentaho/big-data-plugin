@@ -143,7 +143,6 @@
         <include>org.drools:drools-compiler</include>
         <include>org.drools:drools-core</include>
         <include>org.eclipse.platform:org.eclipse.swt.gtk.linux.x86_64</include>
-        <include>org.eclipse.jetty:jetty-continuation</include>
         <include>org.eclipse.jetty:jetty-http</include>
         <include>org.eclipse.jetty:jetty-io</include>
         <include>org.eclipse.jetty:jetty-plus</include>
