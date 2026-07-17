@@ -3,9 +3,6 @@ name: Plugin PR
 
 on:
   pull_request:
-    branches:
-      - main
-      - release/*
     paths:
       # 1. Include all files
       - "**"

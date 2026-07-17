@@ -5,7 +5,7 @@ name: Plugin Merge
 on:
   push:
     branches:
-      - main
+      - master
       - release/*
     paths:
       # 1. Include all files
