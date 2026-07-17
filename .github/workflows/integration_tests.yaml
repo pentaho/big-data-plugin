@@ -109,6 +109,18 @@ jobs:
           java-package: "jdk"
           cache: "maven"
 
+      - name: Setup Maven
+        run: |
+          # The k8s runner image does not ship Maven on PATH (and this repo has no mvnw wrapper).
+          # Install it if missing so the build/verify steps below can run.
+          if ! command -v mvn >/dev/null 2>&1; then
+            if command -v apt-get >/dev/null 2>&1; then
+              (sudo apt-get update && sudo apt-get install -y maven) \
+                || (apt-get update && apt-get install -y maven)
+            fi
+          fi
+          mvn -version
+
       - name: Setup Maven Settings
         uses: ./.github/actions/setup-maven-settings
         with:
