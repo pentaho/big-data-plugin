@@ -1,0 +1,149 @@
+# Reusable workflow: builds the pentaho-big-data-plugin (apachevanilla variant) and runs the
+# integration tests against docker containers (hadoop + hbase + pdi-client) on a GitHub-hosted runner.
+#
+# Called by plugin_pr.yaml (pull_request) and plugin_merge.yaml (push to main/release).
+# Can also be triggered manually via workflow_dispatch.
+#
+# NOTE (secrets/vars): this workflow expects the same repository/organization configuration as the
+# OLP plugin. Confirm these exist for this repo (or at org level) before the first run:
+#   vars:    ARTIFACTORY_HOST, ARTIFACTORY_BASE_URL
+#   secrets: PENTAHO_CICD_ONE_USER, PENTAHO_CICD_ONE_KEY
+name: Integration Tests
+
+on:
+  workflow_call:
+    inputs:
+      runs_on:
+        description: "Runner label to use for the integration tests job."
+        required: false
+        default: k8s
+        type: string
+      plugin_variant:
+        description: "Big data plugin assembly variant to build and test."
+        required: false
+        default: apachevanilla
+        type: string
+      branch:
+        description: "Branch/ref to checkout. Defaults to the triggering ref."
+        required: false
+        type: string
+  workflow_dispatch:
+    inputs:
+      runs_on:
+        description: "Runner label to use for the integration tests job."
+        required: false
+        default: k8s
+        type: string
+      plugin_variant:
+        description: "Big data plugin assembly variant to build and test."
+        required: false
+        default: apachevanilla
+        type: string
+      branch:
+        description: "Branch/ref to checkout. Defaults to the triggering ref."
+        required: false
+        type: string
+
+env:
+  ARTIFACTORY_HOST: ${{ vars.ARTIFACTORY_HOST }}
+  ARTIFACTORY_BASE_URL: ${{ vars.ARTIFACTORY_BASE_URL }}
+  ARTIFACTORY_USER: ${{ secrets.PENTAHO_CICD_ONE_USER }}
+  ARTIFACTORY_API_KEY: ${{ secrets.PENTAHO_CICD_ONE_KEY }}
+
+jobs:
+  integration-tests:
+    runs-on: "${{ inputs.runs_on || 'k8s' }}"
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch || github.ref }}
+
+      - name: Free disk space
+        if: ${{ (inputs.runs_on || 'k8s') == 'ubuntu-latest' }}
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          docker-images: false
+          swap-storage: false
+
+      - name: Resolve versions
+        id: versions
+        run: |
+          plugin_variant="${{ inputs.plugin_variant || 'apachevanilla' }}"
+          # project version from the root pom (not the parent version)
+          plugin_version=$(xmllint --xpath "string(/*[local-name()='project']/*[local-name()='version'])" pom.xml)
+          plugin_version="${plugin_version%-SNAPSHOT}"
+          # pdi-client image tag used by the integration-test module
+          pdi_version=$(xmllint --xpath "string(//*[local-name()='bigdata.it.pdi-version'])" integration-test/pentaho-platform/pom.xml)
+          echo "plugin_variant=$plugin_variant" >> $GITHUB_OUTPUT
+          echo "plugin_version=$plugin_version" >> $GITHUB_OUTPUT
+          echo "pdi_version=$pdi_version" >> $GITHUB_OUTPUT
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "11"
+          java-package: "jdk"
+          cache: "maven"
+
+      - name: Setup Maven Settings
+        uses: ./.github/actions/setup-maven-settings
+        with:
+          m2-directory: $HOME/.m2
+          artifactory-base-url: ${{ env.ARTIFACTORY_BASE_URL }}
+          artifactory-host: ${{ env.ARTIFACTORY_HOST }}
+          artifactory-user: ${{ secrets.PENTAHO_CICD_ONE_USER }}
+          artifactory-api-key: ${{ secrets.PENTAHO_CICD_ONE_KEY }}
+
+      - name: Login to Artifactory Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.ARTIFACTORY_HOST }}
+          username: ${{ env.ARTIFACTORY_USER }}
+          password: ${{ env.ARTIFACTORY_API_KEY }}
+
+      - name: Pre-Build Docker Cleanup
+        uses: ./.github/actions/clean-docker
+        continue-on-error: true
+
+      - name: Build project and plugin
+        env:
+          PLUGIN_VARIANT: ${{ steps.versions.outputs.plugin_variant }}
+        run: |
+          cmd="mvn clean install -B -P${PLUGIN_VARIANT} -Dmaven.test.skip=true"
+          $cmd || $cmd
+
+      - name: Run integration tests
+        id: run-tests
+        env:
+          PLUGIN_VARIANT: ${{ steps.versions.outputs.plugin_variant }}
+        working-directory: integration-test/pentaho-platform
+        run: |
+          mvn verify -B \
+            -DrunIntegrationTests \
+            -P${PLUGIN_VARIANT} \
+            -Dbigdata.it.plugin-variant=${PLUGIN_VARIANT} \
+            -Dpentaho.docker.pull.host=${{ env.ARTIFACTORY_HOST }}/pnt-docker/
+
+      - name: Generate Test Summary
+        id: test-summary
+        if: always() && steps.run-tests.outcome != 'skipped'
+        uses: ./.github/actions/integration-test-summary
+        with:
+          reports-directory: integration-test/pentaho-platform/target/failsafe-reports
+          platform-version: ${{ steps.versions.outputs.pdi_version }}
+          plugin-version: ${{ steps.versions.outputs.plugin_version }}
+
+      - name: Post-Build Docker Cleanup
+        if: always()
+        uses: ./.github/actions/clean-docker
+        continue-on-error: true

@@ -1,0 +1,38 @@
+name: Setup Maven Settings
+description: "Retrieves and sets up Maven settings.xml and configures repository environment variables"
+
+inputs:
+  m2-directory:
+    description: "Path to the .m2 directory"
+    required: false
+    default: "/root/.m2"
+  artifactory-base-url:
+    description: "Artifactory base URL"
+    required: true
+  artifactory-host:
+    description: "Artifactory host"
+    required: true
+  artifactory-user:
+    description: "Artifactory username"
+    required: true
+  artifactory-api-key:
+    description: "Artifactory API key"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Copy settings.xml to Maven directory
+      shell: bash
+      run: |
+        mkdir -p "${{ inputs.m2-directory }}"
+        cp "${{ github.action_path }}/../../settings.xml" "${{ inputs.m2-directory }}/settings.xml"
+
+    - name: Configure Maven repository environment variables
+      shell: bash
+      run: |
+        # Set Maven settings environment variables required by settings.xml
+        echo "MAVEN_REPO_MIRROR=${{ format('{0}/{1}', inputs.artifactory-base-url, 'maven') }}" >> $GITHUB_ENV
+        echo "MAVEN_USER=${{ inputs.artifactory-user }}" >> $GITHUB_ENV
+        echo "MAVEN_PASSWORD=${{ inputs.artifactory-api-key }}" >> $GITHUB_ENV
+        echo "DOCKER_PULL_REGISTRY=${{ inputs.artifactory-host }}/pnt-docker/" >> $GITHUB_ENV

@@ -1,0 +1,310 @@
+name: "Integration Test Summary"
+description: "Generates test summary and results from failsafe reports for GitHub Actions"
+
+inputs:
+  reports-directory:
+    description: "Path to the failsafe reports directory"
+    required: true
+  platform-version:
+    description: "Platform version tested"
+    required: true
+  platform-type:
+    description: "Platform type tested"
+    required: false
+  plugin-version:
+    description: "Plugin version tested"
+    required: true
+
+outputs:
+  completed:
+    description: "Number of completed tests"
+    value: ${{ steps.parse-summary-report.outputs.completed }}
+  errors:
+    description: "Number of errors"
+    value: ${{ steps.parse-summary-report.outputs.errors }}
+  failures:
+    description: "Number of failures"
+    value: ${{ steps.parse-summary-report.outputs.failures }}
+  skipped:
+    description: "Number of skipped tests"
+    value: ${{ steps.parse-summary-report.outputs.skipped }}
+  flakes:
+    description: "Number of flaky tests"
+    value: ${{ steps.parse-summary-report.outputs.flakes }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Parse Summary Report
+      id: parse-summary-report
+      shell: bash
+      run: |
+        REPORTS_DIR="${{ inputs.reports-directory }}"
+
+        # Initialize test counters
+        completed=0
+        errors=0
+        failures=0
+        skipped=0
+        flakes=0
+
+        # Check if failsafe-summary.xml exists and parse it
+        if [ -f "$REPORTS_DIR/failsafe-summary.xml" ]; then
+          completed=$(xmllint --xpath 'string(/failsafe-summary/completed)' "$REPORTS_DIR/failsafe-summary.xml" 2>/dev/null || echo "0")
+          errors=$(xmllint --xpath 'string(/failsafe-summary/errors)' "$REPORTS_DIR/failsafe-summary.xml" 2>/dev/null || echo "0")
+          failures=$(xmllint --xpath 'string(/failsafe-summary/failures)' "$REPORTS_DIR/failsafe-summary.xml" 2>/dev/null || echo "0")
+          skipped=$(xmllint --xpath 'string(/failsafe-summary/skipped)' "$REPORTS_DIR/failsafe-summary.xml" 2>/dev/null || echo "0")
+          flakes=$(xmllint --xpath 'string(/failsafe-summary/flakes)' "$REPORTS_DIR/failsafe-summary.xml" 2>/dev/null || echo "0")
+        fi
+
+        # Output individual metrics
+        {
+          echo "completed=$completed"
+          echo "errors=$errors"
+          echo "failures=$failures"
+          echo "skipped=$skipped"
+          echo "flakes=$flakes"
+        } >> $GITHUB_OUTPUT
+
+    - name: Generate Test Summary
+      shell: bash
+      run: |
+        PLATFORM_VERSION="${{ inputs.platform-version }}"
+        PLUGIN_VERSION="${{ inputs.plugin-version }}"
+
+        completed="${{ steps.parse-summary-report.outputs.completed }}"
+        errors="${{ steps.parse-summary-report.outputs.errors }}"
+        failures="${{ steps.parse-summary-report.outputs.failures }}"
+        skipped="${{ steps.parse-summary-report.outputs.skipped }}"
+        flakes="${{ steps.parse-summary-report.outputs.flakes }}"
+
+        # Hide zeros in the summary table
+        completed_display="$completed"
+        errors_display=$([ "$errors" -eq 0 ] 2>/dev/null && echo "" || echo "$errors")
+        failures_display=$([ "$failures" -eq 0 ] 2>/dev/null && echo "" || echo "$failures")
+        skipped_display=$([ "$skipped" -eq 0 ] 2>/dev/null && echo "" || echo "$skipped")
+        flakes_display=$([ "$flakes" -eq 0 ] 2>/dev/null && echo "" || echo "$flakes")
+
+        # Determine build status indicator
+        if [ "$errors" -gt 0 ] 2>/dev/null || [ "$failures" -gt 0 ] 2>/dev/null; then
+          status_indicator="❌"
+        else
+          status_indicator="✅"
+        fi
+
+        summary_github="## $status_indicator Platform: $PLATFORM_VERSION - Plugin: $PLUGIN_VERSION"
+        summary_github+=$'\n\n| ✅ Completed | ⚠️ Failures | ❌ Errors | ⏭️ Skipped | 🔄 Flakes |'
+        summary_github+=$'\n|---|---|---|---|---|'
+        summary_github+=$'\n| '"$completed_display"' | '"$failures_display"' | '"$errors_display"' | '"$skipped_display"' | '"$flakes_display"' |'
+
+        # Add summary to step summary
+        echo "$summary_github" >> $GITHUB_STEP_SUMMARY
+
+    - name: Add Test Results to Summary
+      shell: bash
+      run: |
+        REPORTS_DIR="${{ inputs.reports-directory }}"
+
+        # Define anchor prefix once for reuse
+        platform_type="${{ inputs.platform-type }}"
+        platform_version="${{ inputs.platform-version }}"
+        plugin_version="${{ inputs.plugin-version }}"
+        ANCHOR_PREFIX="${platform_type:+$platform_type-}${platform_version}-${plugin_version}"
+
+        if [ -d "$REPORTS_DIR" ]; then
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Test Execution Details" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Suite | ✅ Tests | ⚠️ Failures | ❌ Errors | ⏭️ Skipped | 🔄 Flakes | ⏱️ Time (s) |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|---|---|---|---|---|" >> $GITHUB_STEP_SUMMARY
+
+          for file in "$REPORTS_DIR"/TEST-*.xml; do
+            if [ -f "$file" ]; then
+              # Use xmllint to extract testsuite attributes
+              suite_name=$(xmllint --xpath 'string(/testsuite/@name)' "$file" 2>/dev/null || echo "Unknown")
+              time=$(xmllint --xpath 'string(/testsuite/@time)' "$file" 2>/dev/null || echo "0")
+              tests=$(xmllint --xpath 'string(/testsuite/@tests)' "$file" 2>/dev/null || echo "0")
+              failures=$(xmllint --xpath 'string(/testsuite/@failures)' "$file" 2>/dev/null || echo "0")
+              errors=$(xmllint --xpath 'string(/testsuite/@errors)' "$file" 2>/dev/null || echo "0")
+              skipped=$(xmllint --xpath 'string(/testsuite/@skipped)' "$file" 2>/dev/null || echo "0")
+              flakes=$(xmllint --xpath 'count(/testsuite/testcase[flakyError or flakyFailure])' "$file" 2>/dev/null || echo "0")
+
+              # Create anchor from suite name with platform context to avoid collisions
+              suite_anchor=$(echo "${ANCHOR_PREFIX}-${suite_name}" | sed 's/[^a-zA-Z0-9]/-/g' | tr '[:upper:]' '[:lower:]')
+
+              # Add links if there are failures, errors, or skipped tests - link to suite heading
+              # GitHub prepends 'user-content-' to all IDs in job summaries
+              # Hide zeros in the table
+              if [ "$failures" -gt 0 ] 2>/dev/null; then
+                failures_link="[$failures](#user-content-suite-$suite_anchor)"
+              else
+                failures_link=""
+              fi
+
+              if [ "$errors" -gt 0 ] 2>/dev/null; then
+                errors_link="[$errors](#user-content-suite-$suite_anchor)"
+              else
+                errors_link=""
+              fi
+
+              if [ "$skipped" -gt 0 ] 2>/dev/null; then
+                skipped_link="[$skipped](#user-content-suite-$suite_anchor)"
+              else
+                skipped_link=""
+              fi
+
+              if [ "$flakes" -gt 0 ] 2>/dev/null; then
+                flakes_display="$flakes"
+              else
+                flakes_display=""
+              fi
+
+              echo "| $suite_name | $tests | $failures_link | $errors_link | $skipped_link | $flakes_display | $time |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+          # Check if there are any issues from the summary
+          total_errors="${{ steps.parse-summary-report.outputs.errors }}"
+          total_failures="${{ steps.parse-summary-report.outputs.failures }}"
+          total_skipped="${{ steps.parse-summary-report.outputs.skipped }}"
+
+          # Show Test Details section only if there are non-success results
+          if [ "$total_errors" -gt 0 ] || [ "$total_failures" -gt 0 ] || [ "$total_skipped" -gt 0 ]; then
+
+            for file in "$REPORTS_DIR"/TEST-*.xml; do
+              if [ -f "$file" ]; then
+                suite_name=$(xmllint --xpath 'string(/testsuite/@name)' "$file" 2>/dev/null || echo "Unknown")
+                # Create anchor with platform context matching the table links
+                suite_anchor=$(echo "${ANCHOR_PREFIX}-${suite_name}" | sed 's/[^a-zA-Z0-9]/-/g' | tr '[:upper:]' '[:lower:]')
+                suite_failures=$(xmllint --xpath 'string(/testsuite/@failures)' "$file" 2>/dev/null || echo "0")
+                suite_errors=$(xmllint --xpath 'string(/testsuite/@errors)' "$file" 2>/dev/null || echo "0")
+                suite_skipped=$(xmllint --xpath 'string(/testsuite/@skipped)' "$file" 2>/dev/null || echo "0")
+
+                # Only show suite if it has any issues
+                if [ "$suite_failures" -gt 0 ] 2>/dev/null || [ "$suite_errors" -gt 0 ] 2>/dev/null || [ "$suite_skipped" -gt 0 ] 2>/dev/null; then
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "<h3 id=\"suite-$suite_anchor\">🧪 $suite_name</h3>" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+
+                  # Show failures
+                  if [ "$suite_failures" -gt 0 ] 2>/dev/null; then
+
+                    # Get count of testcases with failures
+                    failure_count=$(xmllint --xpath 'count(/testsuite/testcase[failure])' "$file" 2>/dev/null || echo "0")
+
+                    if [ "$failure_count" -gt 0 ] 2>/dev/null; then
+                      for i in $(seq 1 ${failure_count}); do
+                        test_name=$(xmllint --xpath "string(/testsuite/testcase[failure][$i]/@name)" "$file" 2>/dev/null)
+                        failure_msg=$(xmllint --xpath "string(/testsuite/testcase[failure][$i]/failure/@message)" "$file" 2>/dev/null)
+                        failure_text=$(xmllint --xpath "string(/testsuite/testcase[failure][$i]/failure)" "$file" 2>/dev/null)
+
+                        if [ -n "$test_name" ]; then
+                          # Escape HTML characters in failure message
+                          failure_msg_escaped=$(echo "$failure_msg" | jq -Rr '@html')
+
+                          echo "- ⚠️ **$test_name**" >> $GITHUB_STEP_SUMMARY
+                          if [ -n "$failure_msg" ]; then
+                            echo "  > $failure_msg_escaped" >> $GITHUB_STEP_SUMMARY
+                          fi
+                          if [ -n "$failure_text" ]; then
+                            echo "" >> $GITHUB_STEP_SUMMARY
+                            echo "  <details>" >> $GITHUB_STEP_SUMMARY
+                            echo "  <summary><em>Stack Trace</em></summary>" >> $GITHUB_STEP_SUMMARY
+                            echo "" >> $GITHUB_STEP_SUMMARY
+                            echo '  ```' >> $GITHUB_STEP_SUMMARY
+                            echo "$failure_text" | sed 's/^/  /' >> $GITHUB_STEP_SUMMARY
+                            echo '  ```' >> $GITHUB_STEP_SUMMARY
+                            echo "" >> $GITHUB_STEP_SUMMARY
+                            echo "  </details>" >> $GITHUB_STEP_SUMMARY
+                          fi
+                        fi
+                      done
+                    fi
+                  fi
+
+                  # Show errors
+                  if [ "$suite_errors" -gt 0 ] 2>/dev/null; then
+
+                    # Get count of testcases with errors
+                    error_count=$(xmllint --xpath 'count(/testsuite/testcase[error])' "$file" 2>/dev/null || echo "0")
+
+                    if [ "$error_count" -gt 0 ] 2>/dev/null; then
+                      for i in $(seq 1 ${error_count}); do
+                        test_name=$(xmllint --xpath "string(/testsuite/testcase[error][$i]/@name)" "$file" 2>/dev/null)
+                        error_msg=$(xmllint --xpath "string(/testsuite/testcase[error][$i]/error/@message)" "$file" 2>/dev/null)
+                        error_text=$(xmllint --xpath "string(/testsuite/testcase[error][$i]/error)" "$file" 2>/dev/null)
+
+                        if [ -n "$test_name" ]; then
+                          # Escape HTML characters in error message
+                          error_msg_escaped=$(echo "$error_msg" | jq -Rr '@html')
+
+                          echo "- ❌ **$test_name**" >> $GITHUB_STEP_SUMMARY
+                          if [ -n "$error_msg" ]; then
+                            echo "  > $error_msg_escaped" >> $GITHUB_STEP_SUMMARY
+                          fi
+                          if [ -n "$error_text" ]; then
+                            echo "" >> $GITHUB_STEP_SUMMARY
+                            echo "  <details>" >> $GITHUB_STEP_SUMMARY
+                            echo "  <summary><em>Stack Trace</em></summary>" >> $GITHUB_STEP_SUMMARY
+                            echo "" >> $GITHUB_STEP_SUMMARY
+                            echo '  ```' >> $GITHUB_STEP_SUMMARY
+                            echo "$error_text" | sed 's/^/  /' >> $GITHUB_STEP_SUMMARY
+                            echo '  ```' >> $GITHUB_STEP_SUMMARY
+                            echo "" >> $GITHUB_STEP_SUMMARY
+                            echo "  </details>" >> $GITHUB_STEP_SUMMARY
+                          fi
+                        fi
+                      done
+                    fi
+                  fi
+
+                  # Show skipped tests
+                  if [ "$suite_skipped" -gt 0 ] 2>/dev/null; then
+
+                    # Get count of testcases with skipped
+                    skipped_count=$(xmllint --xpath 'count(/testsuite/testcase[skipped])' "$file" 2>/dev/null || echo "0")
+
+                    if [ "$skipped_count" -gt 0 ] 2>/dev/null; then
+                      for i in $(seq 1 ${skipped_count}); do
+                        test_name=$(xmllint --xpath "string(/testsuite/testcase[skipped][$i]/@name)" "$file" 2>/dev/null)
+                        skipped_msg=$(xmllint --xpath "string(/testsuite/testcase[skipped][$i]/skipped/@message)" "$file" 2>/dev/null)
+
+                        if [ -n "$test_name" ]; then
+                          # Escape HTML characters in skipped message
+                          skipped_msg_escaped=$(echo "$skipped_msg" | jq -Rr '@html')
+
+                          echo "- ⏭️ **$test_name**" >> $GITHUB_STEP_SUMMARY
+                          if [ -n "$skipped_msg" ]; then
+                            echo "" >> $GITHUB_STEP_SUMMARY
+                            echo "  > $skipped_msg_escaped" >> $GITHUB_STEP_SUMMARY
+                          fi
+                        fi
+                      done
+                    fi
+                  fi
+
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                fi
+              fi
+            done
+          fi
+        fi
+
+    - name: Set Artifact Name
+      id: set-artifact-name
+      shell: bash
+      run: |
+        if [ -n "${{ inputs.platform-type }}" ]; then
+          echo "artifact-name=test-reports-${{ inputs.platform-type }}-${{ inputs.platform-version }}-${{ inputs.plugin-version }}" >> $GITHUB_OUTPUT
+        else
+          echo "artifact-name=test-reports-${{ inputs.platform-version }}-${{ inputs.plugin-version }}" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Upload Test Reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: ${{ steps.set-artifact-name.outputs.artifact-name }}
+        path: ${{ inputs.reports-directory }}
+        retention-days: 30
+        if-no-files-found: warn
