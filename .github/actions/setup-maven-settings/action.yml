@@ -32,7 +32,7 @@ runs:
       shell: bash
       run: |
         # Set Maven settings environment variables required by settings.xml
-        echo "MAVEN_REPO_MIRROR=${{ format('{0}/{1}', inputs.artifactory-base-url, 'maven') }}" >> $GITHUB_ENV
+        echo "MAVEN_REPO_MIRROR=${{ format('{0}/{1}', inputs.artifactory-base-url, 'pnt-mvn') }}" >> $GITHUB_ENV
         echo "MAVEN_USER=${{ inputs.artifactory-user }}" >> $GITHUB_ENV
         echo "MAVEN_PASSWORD=${{ inputs.artifactory-api-key }}" >> $GITHUB_ENV
         echo "DOCKER_PULL_REGISTRY=${{ inputs.artifactory-host }}/pnt-docker/" >> $GITHUB_ENV
