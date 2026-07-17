@@ -74,15 +74,29 @@ jobs:
           docker-images: false
           swap-storage: false
 
+      - name: Install parsing tools
+        continue-on-error: true
+        run: |
+          # Best-effort install of xmllint (libxml2-utils) and jq, used by the
+          # integration-test-summary action. Non-fatal: the summary degrades gracefully
+          # if these are missing.
+          if ! command -v xmllint >/dev/null 2>&1 || ! command -v jq >/dev/null 2>&1; then
+            if command -v apt-get >/dev/null 2>&1; then
+              (sudo apt-get update && sudo apt-get install -y libxml2-utils jq) \
+                || (apt-get update && apt-get install -y libxml2-utils jq) \
+                || true
+            fi
+          fi
+
       - name: Resolve versions
         id: versions
         run: |
           plugin_variant="${{ inputs.plugin_variant || 'apachevanilla' }}"
-          # project version from the root pom (not the parent version)
-          plugin_version=$(xmllint --xpath "string(/*[local-name()='project']/*[local-name()='version'])" pom.xml)
+          # project version = first <version> after </parent> in the root pom (awk is always available)
+          plugin_version=$(awk '/<\/parent>/{p=1} p&&/<version>/{sub(/.*<version>/,"");sub(/<\/version>.*/,"");print;exit}' pom.xml)
           plugin_version="${plugin_version%-SNAPSHOT}"
           # pdi-client image tag used by the integration-test module
-          pdi_version=$(xmllint --xpath "string(//*[local-name()='bigdata.it.pdi-version'])" integration-test/pentaho-platform/pom.xml)
+          pdi_version=$(sed -n 's:.*<bigdata.it.pdi-version>\(.*\)</bigdata.it.pdi-version>.*:\1:p' integration-test/pentaho-platform/pom.xml | head -1)
           echo "plugin_variant=$plugin_variant" >> $GITHUB_OUTPUT
           echo "plugin_version=$plugin_version" >> $GITHUB_OUTPUT
           echo "pdi_version=$pdi_version" >> $GITHUB_OUTPUT
