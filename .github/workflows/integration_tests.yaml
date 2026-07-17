@@ -145,7 +145,7 @@ jobs:
         env:
           PLUGIN_VARIANT: ${{ steps.versions.outputs.plugin_variant }}
         run: |
-          cmd="mvn clean install -B -P${PLUGIN_VARIANT} -Dmaven.test.skip=true"
+          cmd="mvn clean install -P${PLUGIN_VARIANT} -Dmaven.test.skip=true"
           $cmd || $cmd
 
       - name: Run integration tests
@@ -154,7 +154,7 @@ jobs:
           PLUGIN_VARIANT: ${{ steps.versions.outputs.plugin_variant }}
         working-directory: integration-test/pentaho-platform
         run: |
-          mvn verify -B \
+          mvn verify \
             -DrunIntegrationTests \
             -P${PLUGIN_VARIANT} \
             -Dbigdata.it.plugin-variant=${PLUGIN_VARIANT} \
