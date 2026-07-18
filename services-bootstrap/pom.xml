@@ -152,12 +152,13 @@
             <artifactId>kettle-core</artifactId>
             <version>${pdi.version}</version>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>pentaho-kettle</groupId>
-            <artifactId>kettle-core</artifactId>
-            <version>${pdi.version}</version>
-            <scope>compile</scope>
+            <exclusions>
+                <!-- simple-jndi pulls in legacy commons-lang 2.6 (CVE-2025-48924); source uses commons-lang3 -->
+                <exclusion>
+                    <groupId>commons-lang</groupId>
+                    <artifactId>commons-lang</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
             <!-- Test dependencies -->
         <dependency>

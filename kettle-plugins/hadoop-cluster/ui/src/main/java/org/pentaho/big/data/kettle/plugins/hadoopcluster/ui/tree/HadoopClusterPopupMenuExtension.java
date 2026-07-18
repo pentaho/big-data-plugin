@@ -73,12 +73,34 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
   private HadoopClusterManager hadoopClusterManager;
 
   public HadoopClusterPopupMenuExtension() {
-
-    this.namedClusterService =  BigDataServicesHelper.getNamedClusterService();
-    this.hadoopClusterDelegate = new HadoopClusterDelegate( this.namedClusterService, runtimeTester );
+    // Defer service lookup to allow bootstrap lifecycle to complete
+    this.namedClusterService = null;
+    this.hadoopClusterDelegate = null;
     this.internalShim = "";
-    this.hadoopClusterManager =
-      new HadoopClusterManager( spoonSupplier.get(), namedClusterService, spoonSupplier.get().getMetaStore(), internalShim );
+    this.hadoopClusterManager = null;
+  }
+
+  /**
+   * Lazy initialization of services on first use
+   */
+  private void ensureServicesInitialized() {
+    if ( namedClusterService == null ) {
+      this.namedClusterService = BigDataServicesHelper.getNamedClusterService();
+    }
+    if ( namedClusterService == null ) {
+      logChannel.warn( "BigData services not yet initialized - NamedClusterService is null. This may happen if bootstrap lifecycle listener has not completed." );
+      return;
+    }
+    // Initialize the delegate/manager whenever they are null, regardless of whether the service was injected
+    // (via the DI constructor) or discovered lazily, so later usages (e.g. deleteNamedCluster) never NPE.
+    if ( hadoopClusterDelegate == null ) {
+      this.hadoopClusterDelegate = new HadoopClusterDelegate( this.namedClusterService, runtimeTester );
+    }
+    if ( hadoopClusterManager == null ) {
+      Spoon spoon = spoonSupplier.get();
+      this.hadoopClusterManager =
+        new HadoopClusterManager( spoon, namedClusterService, spoon.getMetaStore(), internalShim );
+    }
   }
 
   public HadoopClusterPopupMenuExtension( HadoopClusterDelegate hadoopClusterDelegate,
@@ -89,6 +111,11 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
   }
 
   public void callExtensionPoint( LogChannelInterface log, Object extension ) {
+    ensureServicesInitialized();
+    if ( hadoopClusterDelegate == null || namedClusterService == null ) {
+      logChannel.warn( "Cannot create Hadoop cluster popup menu - services not initialized yet" );
+      return;
+    }
     final Tree selectionTree = (Tree) extension;
     createNewPopupMenu( selectionTree );
   }

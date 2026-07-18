@@ -97,6 +97,13 @@
       <groupId>com.googlecode.jsendnsca</groupId>
       <artifactId>jsendnsca</artifactId>
       <version>2.0.1</version>
+      <exclusions>
+        <!-- Exclude legacy commons-lang 2.4 (CVE-2025-48924); source uses commons-lang3 -->
+        <exclusion>
+          <groupId>commons-lang</groupId>
+          <artifactId>commons-lang</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.googlecode.json-simple</groupId>
@@ -182,6 +189,13 @@
       <groupId>com.tinkerpop.blueprints</groupId>
       <artifactId>blueprints-core</artifactId>
       <version>${blueprints-core.version}</version>
+      <exclusions>
+        <!-- Exclude vulnerable commons-configuration 1.x (CVE); replaced by commons-configuration2 -->
+        <exclusion>
+          <groupId>commons-configuration</groupId>
+          <artifactId>commons-configuration</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>commons-beanutils</groupId>
@@ -201,11 +215,6 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-configuration2</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>commons-configuration</groupId>
-      <artifactId>commons-configuration</artifactId>
-      <version>1.6</version>
     </dependency>
     <dependency>
       <groupId>commons-digester</groupId>
