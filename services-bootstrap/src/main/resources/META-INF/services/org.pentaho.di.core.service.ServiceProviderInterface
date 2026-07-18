@@ -1,0 +1,2 @@
+org.pentaho.big.data.services.bootstrap.BigDataCEServiceInitializerImpl
+org.pentaho.big.data.api.services.impl.BigDataServicesProxyImpl
