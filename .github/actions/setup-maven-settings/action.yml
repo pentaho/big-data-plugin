@@ -22,17 +22,23 @@ inputs:
 runs:
   using: "composite"
   steps:
+
+    - name: Retrieve settings file
+      id: common-maven
+      uses: pentaho/actions-common@stable
+
     - name: Copy settings.xml to Maven directory
       shell: bash
       run: |
         mkdir -p "${{ inputs.m2-directory }}"
-        cp "${{ github.action_path }}/../../settings.xml" "${{ inputs.m2-directory }}/settings.xml"
+        cp "${{ steps.common-maven.outputs.settings-file-path }}" "${{ inputs.m2-directory }}/"
 
     - name: Configure Maven repository environment variables
       shell: bash
       run: |
         # Set Maven settings environment variables required by settings.xml
-        echo "MAVEN_REPO_MIRROR=${{ format('{0}/{1}', inputs.artifactory-base-url, 'pnt-mvn') }}" >> $GITHUB_ENV
-        echo "MAVEN_USER=${{ inputs.artifactory-user }}" >> $GITHUB_ENV
-        echo "MAVEN_PASSWORD=${{ inputs.artifactory-api-key }}" >> $GITHUB_ENV
+        echo "RESOLVE_REPO_MIRROR=${{ format('{0}/{1}', inputs.artifactory-base-url, 'pnt-mvn') }}" >> $GITHUB_ENV
+        echo "NEXUS_DEPLOY_USER=${{ inputs.artifactory-user }}" >> $GITHUB_ENV
+        echo "NEXUS_DEPLOY_PASSWORD=${{ inputs.artifactory-api-key }}" >> $GITHUB_ENV
         echo "DOCKER_PULL_REGISTRY=${{ inputs.artifactory-host }}/pnt-docker/" >> $GITHUB_ENV
+        echo "MAVEN_ARGS=-Dmaven.repo.local=/m2_local_cache/ -s ${{ inputs.m2-directory }}/settings.xml" >> $GITHUB_ENV
