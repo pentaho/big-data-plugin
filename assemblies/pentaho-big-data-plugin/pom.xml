@@ -484,11 +484,6 @@
       <version>${dependency.jets3t.revision}</version>
     </dependency>
     <dependency>
-      <groupId>jline</groupId>
-      <artifactId>jline</artifactId>
-      <version>${dependency.jline.revision}</version>
-    </dependency>
-    <dependency>
       <groupId>org.apache.thrift</groupId>
       <artifactId>libthrift</artifactId>
       <version>${org.apache.thrift.version}</version>
