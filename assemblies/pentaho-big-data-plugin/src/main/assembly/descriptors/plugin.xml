@@ -92,7 +92,6 @@
                 <include>com.github.stephenc.high-scale-lib:high-scale-lib</include>
                 <include>org.codehaus.jackson:jackson-core-asl</include>
                 <include>net.java.dev.jets3t:jets3t</include>
-                <include>jline:jline</include>
                 <include>com.googlecode.json-simple:json-simple</include>
                 <include>org.apache.commons:commons-vfs2-hdfs</include>
                 <include>org.apache.thrift:libthrift</include>
