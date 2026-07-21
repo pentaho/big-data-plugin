@@ -16,6 +16,7 @@ package org.pentaho.big.data.kettle.plugins.pig;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.vfs2.FileObject;
+import org.pentaho.big.data.kettle.plugins.logging.HadoopExecutionLogging;
 import org.pentaho.hadoop.shim.api.HadoopClientServices;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
@@ -443,16 +444,20 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
       final HadoopClientServices.PigExecutionMode execMode = ( m_localExecution ? HadoopClientServices.PigExecutionMode.LOCAL : HadoopClientServices.PigExecutionMode.MAPREDUCE );
 
       if ( m_enableBlocking ) {
-        PigResult pigResult = hadoopClientServices.runPig( scriptFileS, execMode, paramList, getName(), getLogChannel(), this, parentJob.getLogLevel() );
-        processScriptExecutionResult( pigResult, result );
+        try ( HadoopExecutionLogging ignored = HadoopExecutionLogging.start( log ) ) {
+          PigResult pigResult = hadoopClientServices.runPig( scriptFileS, execMode, paramList, getName(), getLogChannel(), this, parentJob.getLogLevel() );
+          processScriptExecutionResult( pigResult, result );
+        }
       } else {
         final String finalScriptFileS = scriptFileS;
         final Thread runThread = new Thread() {
           public void run() {
-            PigResult pigResult =
-                    hadoopClientServices.runPig( finalScriptFileS, execMode, paramList, getName(), getLogChannel(),
-                JobEntryPigScriptExecutor.this, parentJob.getLogLevel() );
-            processScriptExecutionResult( pigResult, result );
+            try ( HadoopExecutionLogging ignored = HadoopExecutionLogging.start( log ) ) {
+              PigResult pigResult =
+                      hadoopClientServices.runPig( finalScriptFileS, execMode, paramList, getName(), getLogChannel(),
+                  JobEntryPigScriptExecutor.this, parentJob.getLogLevel() );
+              processScriptExecutionResult( pigResult, result );
+            }
           }
         };
 
