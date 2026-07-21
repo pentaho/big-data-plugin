@@ -188,6 +188,22 @@
         <module>assemblies</module>
       </modules>
     </profile>
+    <!--
+      Integration tests are opt-in. The module is only added to the reactor when
+      -DrunIntegrationTests is provided, so regular builds are unaffected. Run with:
+        mvn -pl integration-test/pentaho-platform -am clean verify -DrunIntegrationTests -Papachevanilla
+    -->
+    <profile>
+      <id>integration-test</id>
+      <activation>
+        <property>
+          <name>runIntegrationTests</name>
+        </property>
+      </activation>
+      <modules>
+        <module>integration-test</module>
+      </modules>
+    </profile>
   </profiles>
 
   <repositories>
