@@ -396,11 +396,14 @@
                     </ports>
                     <!--
                       Wait on a log line instead of a mapped TCP port (see the hadoop image above).
-                      The harisekhon/hbase entrypoint tails the daemon logs to stdout, and the
-                      HMaster prints this line once it has finished becoming active.
+                      The harisekhon/hbase entrypoint streams the daemon logs to stdout with
+                      `tail -f` (which only replays the last few lines of each file before
+                      following), so the early "Master has completed initialization" line is often
+                      missed. Instead we wait for a client-connection line, which the bundled
+                      thrift/rest daemons emit once HBase is up and serving ClientService requests.
                     -->
                     <wait>
-                      <log>Master has completed initialization</log>
+                      <log>service=ClientService</log>
                       <time>180000</time>
                     </wait>
                   </run>

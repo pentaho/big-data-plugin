@@ -13,11 +13,13 @@
 package org.pentaho.big.data.it;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -132,20 +134,31 @@ public final class DockerUtils {
     ProcessBuilder pb = new ProcessBuilder( command );
     Process process = pb.start();
 
-    String stdout;
-    String stderr;
-    try ( var out = process.getInputStream(); var err = process.getErrorStream() ) {
-      // Read both streams to avoid blocking on full pipe buffers.
-      byte[] outBytes = out.readAllBytes();
-      byte[] errBytes = err.readAllBytes();
-      stdout = new String( outBytes, StandardCharsets.UTF_8 );
-      stderr = new String( errBytes, StandardCharsets.UTF_8 );
-    }
+    // Drain stdout and stderr concurrently. A single-threaded read of one stream fully before the
+    // other deadlocks when the child fills the other pipe buffer (~64 KB) - which PAN easily does
+    // through its logging - leaving both the child (blocked on write) and this thread (blocked on
+    // read) stuck forever, so the waitFor timeout below would never even be reached.
+    CompletableFuture<byte[]> outFuture = readStreamAsync( process.getInputStream() );
+    CompletableFuture<byte[]> errFuture = readStreamAsync( process.getErrorStream() );
 
     if ( !process.waitFor( 5, TimeUnit.MINUTES ) ) {
       process.destroyForcibly();
       throw new IOException( "Command timed out: " + String.join( " ", command ) );
     }
+
+    String stdout = new String( outFuture.join(), StandardCharsets.UTF_8 );
+    String stderr = new String( errFuture.join(), StandardCharsets.UTF_8 );
     return new ExecResult( process.exitValue(), stdout, stderr );
+  }
+
+  /** Reads a process stream to completion on a separate thread so both pipes can drain in parallel. */
+  private static CompletableFuture<byte[]> readStreamAsync( java.io.InputStream stream ) {
+    return CompletableFuture.supplyAsync( () -> {
+      try ( stream ) {
+        return stream.readAllBytes();
+      } catch ( IOException e ) {
+        throw new UncheckedIOException( e );
+      }
+    } );
   }
 }
