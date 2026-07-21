@@ -363,11 +363,16 @@
                     </cmd>
                     <wait>
                       <tcp>
-                        <mode>mapped</mode>
-                        <ports>
-                          <port>${bigdata.it.hdfs-namenode-port}</port>
-                        </ports>
-                      </tcp>
+                    <!--
+                      Wait on a log line instead of a mapped TCP port: on DinD / k8s runners the
+                      published ports are not reachable via localhost from the Maven process, but
+                      container logs are always available through the docker API. This line is
+                      printed by the namenode once the datanode has registered and sent its first
+                      block report, i.e. HDFS is fully operational. (The tests themselves reach the
+                      cluster by docker-exec'ing into the containers, not via localhost.)
+                    -->
+                    <wait>
+                      <log>Processing first storage report</log>
                       <time>180000</time>
                     </wait>
                   </run>
@@ -391,13 +396,13 @@
                       <port>${bigdata.it.hbase-zookeeper-port}:${bigdata.it.hbase-zookeeper-port}</port>
                       <port>${bigdata.it.hbase-master-port}:${bigdata.it.hbase-master-port}</port>
                     </ports>
+                    <!--
+                      Wait on a log line instead of a mapped TCP port (see the hadoop image above).
+                      The harisekhon/hbase entrypoint tails the daemon logs to stdout, and the
+                      HMaster prints this line once it has finished becoming active.
+                    -->
                     <wait>
-                      <tcp>
-                        <mode>mapped</mode>
-                        <ports>
-                          <port>${bigdata.it.hbase-zookeeper-port}</port>
-                        </ports>
-                      </tcp>
+                      <log>Master has completed initialization</log>
                       <time>180000</time>
                     </wait>
                   </run>
