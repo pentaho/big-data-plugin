@@ -289,8 +289,48 @@
               <images>
                 <!-- Hadoop (HDFS + YARN) single-node -->
                 <image>
-                  <name>${bigdata.it.hadoop-image}</name>
+                  <name>bigdata-it-hadoop:${bigdata.it.pdi-version}</name>
                   <alias>hadoop</alias>
+                  <!--
+                    Bake the HDFS config (and helper scripts) into a derived image instead of
+                    bind-mounting them from the workspace. Bind mounts of host paths do not work
+                    when the docker daemon does not share the job's filesystem (e.g. DinD runners),
+                    which left /opt/hadoop/it-config empty and made the namenode start with the
+                    default file:/// and crash. The assembly is sent in the build context, so the
+                    files are always present in the container regardless of the runner setup.
+                  -->
+                  <build>
+                    <from>${bigdata.it.hadoop-image}</from>
+                    <assemblies>
+                      <assembly>
+                        <name>it-config</name>
+                        <targetDir>/opt/hadoop/it-config</targetDir>
+                        <inline>
+                          <fileSets>
+                            <fileSet>
+                              <directory>${project.basedir}/docker/hadoop/config</directory>
+                              <outputDirectory>.</outputDirectory>
+                              <includes>
+                                <include>*.xml</include>
+                              </includes>
+                            </fileSet>
+                          </fileSets>
+                        </inline>
+                      </assembly>
+                      <assembly>
+                        <name>it-scripts</name>
+                        <targetDir>/opt/hadoop/it-scripts</targetDir>
+                        <inline>
+                          <fileSets>
+                            <fileSet>
+                              <directory>${project.basedir}/docker/hadoop/scripts</directory>
+                              <outputDirectory>.</outputDirectory>
+                            </fileSet>
+                          </fileSets>
+                        </inline>
+                      </assembly>
+                    </assemblies>
+                  </build>
                   <run>
                     <skip>${bigdata.it.skip-hadoop-container}</skip>
                     <containerNamePattern>bigdata-it-hadoop-%t</containerNamePattern>
@@ -305,18 +345,12 @@
                       <port>${bigdata.it.hdfs-namenode-port}:${bigdata.it.hdfs-namenode-port}</port>
                       <port>${bigdata.it.hdfs-web-port}:${bigdata.it.hdfs-web-port}</port>
                     </ports>
-                    <volumes>
-                      <bind>
-                        <volume>${project.basedir}/docker/hadoop/config:/opt/hadoop/it-config</volume>
-                        <volume>${project.basedir}/docker/hadoop/scripts:/opt/hadoop/it-scripts</volume>
-                      </bind>
-                    </volumes>
                     <env>
                       <HADOOP_ROOT_LOGGER>INFO,console</HADOOP_ROOT_LOGGER>
                     </env>
                     <!--
                       apache/hadoop is a base image and does not start HDFS on its own.
-                      Copy the mounted config, format the namenode on first run, start the
+                      Copy the baked-in config, format the namenode on first run, start the
                       datanode as a daemon and run the namenode in the foreground so the
                       container stays alive.
                     -->
