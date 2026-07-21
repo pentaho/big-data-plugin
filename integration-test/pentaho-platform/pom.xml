@@ -361,8 +361,6 @@
                         <arg>export HADOOP_HOME=$HADOOP_HOME; [ -z "$HADOOP_HOME" ] &amp;&amp; export HADOOP_HOME=/opt/hadoop; cp /opt/hadoop/it-config/*.xml "$HADOOP_HOME/etc/hadoop/"; if [ ! -d /tmp/hdfs/name/current ]; then "$HADOOP_HOME/bin/hdfs" namenode -format -force -nonInteractive; fi; "$HADOOP_HOME/bin/hdfs" --daemon start datanode; exec "$HADOOP_HOME/bin/hdfs" namenode</arg>
                       </exec>
                     </cmd>
-                    <wait>
-                      <tcp>
                     <!--
                       Wait on a log line instead of a mapped TCP port: on DinD / k8s runners the
                       published ports are not reachable via localhost from the Maven process, but
