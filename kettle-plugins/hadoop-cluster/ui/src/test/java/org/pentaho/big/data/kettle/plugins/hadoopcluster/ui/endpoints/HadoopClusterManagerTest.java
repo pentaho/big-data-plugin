@@ -15,8 +15,10 @@
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
+import org.apache.commons.configuration2.builder.fluent.Parameters;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.fileupload2.core.FileItemInput;
 import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONObject;
@@ -49,6 +51,9 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,6 +65,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -468,6 +474,12 @@ public class HadoopClusterManagerTest {
     assertEquals( "username", namedCluster.getGatewayUsername() );
   }
 
+  private static PropertiesConfiguration loadConfig( String configFile ) throws ConfigurationException {
+    return new FileBasedConfigurationBuilder<>( PropertiesConfiguration.class )
+      .configure( new Parameters().properties().setFile( new File( configFile ) ) )
+      .getConfiguration();
+  }
+
   @Test public void testNamedClusterKerberosPasswordSecurity() throws ConfigurationException {
     ThinNameClusterModel model = new ThinNameClusterModel();
     model.setName( ncTestName );
@@ -484,7 +496,7 @@ public class HadoopClusterManagerTest {
       + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs" + File.separator
       + "ncTest" + File.separator + "config.properties";
 
-    PropertiesConfiguration config = new PropertiesConfiguration( new File( configFile ) );
+    PropertiesConfiguration config = loadConfig( configFile );
     assertEquals( "username", config.getProperty( "pentaho.authentication.default.kerberos.principal" ) );
     assertEquals( Encr.encryptPasswordIfNotUsingVariables( "password" ),
       config.getProperty( "pentaho.authentication.default.kerberos.password" ) );
@@ -518,7 +530,7 @@ public class HadoopClusterManagerTest {
       + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs" + File.separator
       + "ncTest" + File.separator + "config.properties";
 
-    PropertiesConfiguration config = new PropertiesConfiguration( new File( configFile ) );
+    PropertiesConfiguration config = loadConfig( configFile );
     assertEquals( System.getProperty( "user.home" ) + File.separator + ".pentaho" + File.separator + "metastore"
         + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs" + File.separator
         + "ncTest" + File.separator + "test.keytab",
@@ -571,7 +583,7 @@ public class HadoopClusterManagerTest {
       + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs" + File.separator
       + "ncTest" + File.separator + "config.properties";
 
-    PropertiesConfiguration config = new PropertiesConfiguration( new File( configFile ) );
+    PropertiesConfiguration config = loadConfig( configFile );
     assertEquals( "", config.getProperty( "pentaho.authentication.default.kerberos.principal" ) );
     assertEquals( "", config.getProperty( "pentaho.authentication.default.kerberos.password" ) );
     assertEquals( "",
@@ -601,7 +613,7 @@ public class HadoopClusterManagerTest {
       + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs" + File.separator
       + "ncTest" + File.separator + "config.properties";
 
-    PropertiesConfiguration config = new PropertiesConfiguration( new File( configFile ) );
+    PropertiesConfiguration config = loadConfig( configFile );
     assertEquals( "username", config.getProperty( "pentaho.authentication.default.kerberos.principal" ) );
     assertEquals( Encr.encryptPasswordIfNotUsingVariables( "password" ),
       config.getProperty( "pentaho.authentication.default.kerberos.password" ) );
@@ -625,6 +637,62 @@ public class HadoopClusterManagerTest {
     FileUtils.deleteDirectory( new File( "src/test/resources/driver-destination" ) );
     FileUtils
       .deleteDirectory( new File( hadoopClusterManager.getNamedClusterConfigsRootDir() + File.separator + knoxNC ) );
+  }
+
+  /**
+   * Reproduces the "Incompatible result object" failure that occurs when an active Hadoop shim (with its own isolated
+   * commons-configuration2 copy) has set the Thread Context ClassLoader. commons-configuration2 loads the result bean
+   * class via the TCCL, so without the fix the created PropertiesConfiguration comes from a different classloader than
+   * the builder expects. HadoopClusterManager.getConfiguration() must pin the TCCL to the classloader owning
+   * PropertiesConfiguration so the config builds correctly, and must restore the original TCCL afterwards.
+   */
+  @Test
+  public void getConfigurationBuildsConfigWhenContextClassLoaderCannotSeeCommonsConfiguration2() throws Exception {
+    File configFile = File.createTempFile( "config", ".properties" );
+    Files.write( configFile.toPath(), "name=Test Cluster\nfoo=bar\n".getBytes( StandardCharsets.UTF_8 ) );
+
+    Method builderMethod =
+      HadoopClusterManager.class.getDeclaredMethod( "propertiesConfigurationBuilder", File.class );
+    builderMethod.setAccessible( true );
+    Method getConfigurationMethod =
+      HadoopClusterManager.class.getDeclaredMethod( "getConfiguration", FileBasedConfigurationBuilder.class );
+    getConfigurationMethod.setAccessible( true );
+
+    ClassLoader originalTccl = Thread.currentThread().getContextClassLoader();
+    ClassLoader hostileTccl = new Cfg2HidingClassLoader( originalTccl );
+    Thread.currentThread().setContextClassLoader( hostileTccl );
+    try {
+      Object builder = builderMethod.invoke( null, configFile );
+      PropertiesConfiguration config = (PropertiesConfiguration) getConfigurationMethod.invoke( null, builder );
+
+      // The configuration built successfully despite the hostile TCCL (the guard swapped in the correct loader).
+      assertNotNull( config );
+      assertEquals( "bar", config.getString( "foo" ) );
+      // The guard must restore the original (hostile) TCCL after building.
+      assertSame( hostileTccl, Thread.currentThread().getContextClassLoader() );
+    } finally {
+      Thread.currentThread().setContextClassLoader( originalTccl );
+      Files.deleteIfExists( configFile.toPath() );
+    }
+  }
+
+  /**
+   * A ClassLoader that hides commons-configuration2 classes to simulate an isolated Hadoop shim classloader being set
+   * as the Thread Context ClassLoader. commons-configuration2's bean creation loads the result class via the TCCL, so
+   * this loader would break configuration building unless the code under test pins the TCCL to the correct loader.
+   */
+  private static class Cfg2HidingClassLoader extends ClassLoader {
+    Cfg2HidingClassLoader( ClassLoader parent ) {
+      super( parent );
+    }
+
+    @Override
+    protected Class<?> loadClass( String name, boolean resolve ) throws ClassNotFoundException {
+      if ( name.startsWith( "org.apache.commons.configuration2" ) ) {
+        throw new ClassNotFoundException( name );
+      }
+      return super.loadClass( name, resolve );
+    }
   }
 
   private File getShimTestDir() {

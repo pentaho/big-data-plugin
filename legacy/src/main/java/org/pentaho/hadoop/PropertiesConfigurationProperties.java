@@ -14,9 +14,10 @@
 
 package org.pentaho.hadoop;
 
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
+import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.builder.ReloadingFileBasedConfigurationBuilder;
+import org.apache.commons.configuration2.builder.fluent.Parameters;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 
@@ -43,24 +44,40 @@ import java.util.Vector;
  * Created by bryan on 8/6/15.
  */
 public class PropertiesConfigurationProperties extends Properties {
+  private final ReloadingFileBasedConfigurationBuilder<PropertiesConfiguration> configurationBuilder;
   private final PropertiesConfiguration propertiesConfiguration;
 
   public PropertiesConfigurationProperties( FileObject fileObject ) throws ConfigurationException, FileSystemException {
-    this( initPropertiesConfiguration( fileObject ) );
+    this.configurationBuilder = initConfigurationBuilder( fileObject );
+    this.propertiesConfiguration = null;
   }
 
   public PropertiesConfigurationProperties( PropertiesConfiguration propertiesConfiguration ) {
     this.propertiesConfiguration = propertiesConfiguration;
+    this.configurationBuilder = null;
   }
 
-  private static PropertiesConfiguration initPropertiesConfiguration( FileObject fileObject )
-    throws FileSystemException, ConfigurationException {
-    PropertiesConfiguration propertiesConfiguration = new PropertiesConfiguration( fileObject.getURL() );
-    propertiesConfiguration.setAutoSave( true );
-    FileChangedReloadingStrategy fileChangedReloadingStrategy = new FileChangedReloadingStrategy();
-    fileChangedReloadingStrategy.setRefreshDelay( 1000L );
-    propertiesConfiguration.setReloadingStrategy( fileChangedReloadingStrategy );
-    return propertiesConfiguration;
+  private static ReloadingFileBasedConfigurationBuilder<PropertiesConfiguration> initConfigurationBuilder(
+    FileObject fileObject ) throws ConfigurationException, FileSystemException {
+    ReloadingFileBasedConfigurationBuilder<PropertiesConfiguration> builder =
+      new ReloadingFileBasedConfigurationBuilder<>( PropertiesConfiguration.class, null, true )
+        .configure( new Parameters().properties().setURL( fileObject.getURL() ) );
+    builder.setAutoSave( true );
+    // Trigger the initial load so any problem with the file surfaces here, as it did with the 1.x constructor.
+    builder.getConfiguration();
+    return builder;
+  }
+
+  private PropertiesConfiguration getPropertiesConfiguration() {
+    if ( configurationBuilder == null ) {
+      return propertiesConfiguration;
+    }
+    try {
+      configurationBuilder.getReloadingController().checkForReloading( null );
+      return configurationBuilder.getConfiguration();
+    } catch ( ConfigurationException e ) {
+      throw new IllegalStateException( e );
+    }
   }
 
   @Override public synchronized String getProperty( String key ) {
@@ -68,12 +85,12 @@ public class PropertiesConfigurationProperties extends Properties {
   }
 
   @Override public synchronized String getProperty( String key, String defaultValue ) {
-    return propertiesConfiguration.getString( key, defaultValue );
+    return getPropertiesConfiguration().getString( key, defaultValue );
   }
 
   @Override public synchronized Object get( Object key ) {
     if ( key == null || key instanceof String ) {
-      return propertiesConfiguration.getProperty( (String) key );
+      return getPropertiesConfiguration().getProperty( (String) key );
     } else {
       return null;
     }
@@ -85,8 +102,9 @@ public class PropertiesConfigurationProperties extends Properties {
 
   @Override public synchronized Object put( Object key, Object value ) {
     if ( key instanceof String ) {
-      Object previous = get( key );
-      propertiesConfiguration.setProperty( (String) key, value );
+      PropertiesConfiguration config = getPropertiesConfiguration();
+      Object previous = config.getProperty( (String) key );
+      config.setProperty( (String) key, value );
       return previous;
     }
     throw new IllegalArgumentException( "Can only store properties with String keys" );
@@ -94,7 +112,7 @@ public class PropertiesConfigurationProperties extends Properties {
 
   private Set<String> getPropertyNames() {
     Set<String> result = new HashSet<>();
-    Iterator<String> keys = propertiesConfiguration.getKeys();
+    Iterator<String> keys = getPropertiesConfiguration().getKeys();
     while ( keys.hasNext() ) {
       result.add( keys.next() );
     }
@@ -111,10 +129,11 @@ public class PropertiesConfigurationProperties extends Properties {
 
   private Map<String, Object> toMap() {
     Map<String, Object> result = new HashMap<>();
-    Iterator<String> keys = propertiesConfiguration.getKeys();
+    PropertiesConfiguration config = getPropertiesConfiguration();
+    Iterator<String> keys = config.getKeys();
     while ( keys.hasNext() ) {
       String next = keys.next();
-      result.put( next, propertiesConfiguration.getProperty( next ) );
+      result.put( next, config.getProperty( next ) );
     }
     return result;
   }
@@ -158,15 +177,16 @@ public class PropertiesConfigurationProperties extends Properties {
 
   @Override public synchronized boolean containsKey( Object key ) {
     if ( key == null || key instanceof String ) {
-      return propertiesConfiguration.containsKey( (String) key );
+      return getPropertiesConfiguration().containsKey( (String) key );
     }
     return false;
   }
 
   @Override public synchronized Object remove( Object key ) {
     if ( key == null || key instanceof String ) {
-      Object result = propertiesConfiguration.getProperty( (String) key );
-      propertiesConfiguration.clearProperty( (String) key );
+      PropertiesConfiguration config = getPropertiesConfiguration();
+      Object result = config.getProperty( (String) key );
+      config.clearProperty( (String) key );
       return result;
     }
     return null;
@@ -179,7 +199,7 @@ public class PropertiesConfigurationProperties extends Properties {
   }
 
   @Override public synchronized void clear() {
-    propertiesConfiguration.clear();
+    getPropertiesConfiguration().clear();
   }
 
   @Override public synchronized void load( Reader reader ) throws IOException {

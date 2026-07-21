@@ -76,6 +76,13 @@
             <useProjectArtifact>false</useProjectArtifact>
             <outputFileNameMapping>${artifact.artifactId}-${artifact.baseVersion}.${artifact.extension}
             </outputFileNameMapping>
+            <excludes>
+                <!-- commons-configuration2 is provided by data-integration/lib and must never be bundled here.
+                     A duplicate copy on this plugin's isolated classloader causes cross-classloader
+                     "Incompatible result object" failures with the shim. This exclude guards against it being
+                     pulled transitively (e.g. via hadoop-cluster-ui) regardless of the include list below. -->
+                <exclude>org.apache.commons:commons-configuration2</exclude>
+            </excludes>
             <includes>
                 <include>pentaho:pentaho-big-data-legacy-core</include>
                 <include>pentaho:pentaho-big-data-api-runtimeTest</include>
@@ -119,11 +126,10 @@
                 <include>org.apache.httpcomponents:httpmime</include>
                 <include>net.java.dev.jna:jna</include>
                 <include>net.java.dev.jna:jna-platform</include>
-                <include>commons-configuration:commons-configuration</include>
-                <!-- commons-lang 2.6 required at runtime by commons-configuration 1.x (ConfigurationException
-                     extends org.apache.commons.lang.exception.NestableException). commons-configuration upgrade
-                     tracked in a separate ticket. -->
-                <include>commons-lang:commons-lang</include>
+                <!-- commons-configuration 1.x removed (CVE); replaced by commons-configuration2, which is
+                     explicitly excluded above (provided by data-integration/lib) to avoid a duplicate copy on this
+                     plugin's isolated classloader. -->
+                <!-- commons-lang 2.6 is NOT included - using commons-lang3 3.18.0 instead (CVE-2025-48924 remediation) -->
                 <!-- commons-lang3 is NOT included - already provided by data-integration/lib -->
                 <!-- Google API client libraries required for proper classloader resolution in BigQuery shims -->
                 <include>com.google.http-client:google-http-client</include>

@@ -89,6 +89,13 @@
       <artifactId>blueprints-core</artifactId>
       <version>${dependency.com.tinkerpop.blueprints.version}</version>
       <scope>test</scope>
+      <exclusions>
+        <!-- Exclude vulnerable commons-configuration 1.x (CVE); replaced by commons-configuration2 -->
+        <exclusion>
+          <groupId>commons-configuration</groupId>
+          <artifactId>commons-configuration</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>

@@ -34,7 +34,6 @@
     <assembly.id>cdp</assembly.id>
     <big-data-plugin.version>${project.version}</big-data-plugin.version>
     <net.java.dev.jna.version>5.12.0</net.java.dev.jna.version>
-    <commons-configuration.version>1.6</commons-configuration.version>
   </properties>
 
   <profiles>
@@ -687,18 +686,8 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>commons-configuration</groupId>
-      <artifactId>commons-configuration</artifactId>
-      <version>${commons-configuration.version}</version>
-    </dependency>
-    <!-- commons-lang 2.6 is required at runtime by commons-configuration 1.x (ConfigurationException extends
-         org.apache.commons.lang.exception.NestableException). Packaged with compile scope so it is bundled in
-         the plugin lib. commons-configuration upgrade tracked in a separate ticket. -->
-    <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
-      <version>2.6</version>
-      <scope>compile</scope>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-configuration2</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
