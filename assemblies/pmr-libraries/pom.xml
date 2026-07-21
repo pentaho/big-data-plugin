@@ -442,9 +442,12 @@
       </exclusions>
     </dependency>
     <dependency>
+      <!-- [PPP-6549] CVE-2016-3093: was hardcoded 2.6.9; now references the
+           centralized fix in pentaho-ce-jar-parent-pom (inherited via this repo's
+           own parent chain). -->
       <groupId>ognl</groupId>
       <artifactId>ognl</artifactId>
-      <version>2.6.9</version>
+      <version>${ognl.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
