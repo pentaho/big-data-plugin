@@ -51,6 +51,8 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerField.Name.
 
 public class KafkaStreamSource extends BlockingQueueStreamSource<List<Object>> {
 
+  private static final Duration POLL_DURATION = Duration.ofMillis( 1000 );
+
   private final Logger logger = LoggerFactory.getLogger( getClass() );
 
   private final VariableSpace variables;
@@ -105,7 +107,6 @@ public class KafkaStreamSource extends BlockingQueueStreamSource<List<Object>> {
   }
 
   class KafkaConsumerCallable implements Callable<Void> {
-    private static final Duration POLL_DURATION = Duration.ofMillis( 1000 );
     private final AtomicBoolean closed = new AtomicBoolean( false );
     private final Consumer consumer;
     private Runnable onClose;
