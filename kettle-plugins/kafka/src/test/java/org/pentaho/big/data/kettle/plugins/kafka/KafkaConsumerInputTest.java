@@ -21,6 +21,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.KafkaException;
+import java.time.Duration;
 import org.apache.kafka.common.TopicPartition;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -280,7 +281,7 @@ public class KafkaConsumerInputTest {
     records = new ConsumerRecords<>( messages );
     // provide some data when we try to poll for kafka messages
     CountDownLatch latch = new CountDownLatch( 1 );
-    when( consumer.poll( ArgumentMatchers.anyLong() ) ).thenReturn( records ).then( invocationOnMock -> {
+    when( consumer.poll( ArgumentMatchers.any( Duration.class ) ) ).thenReturn( records ).then( invocationOnMock -> {
       latch.countDown();
       return Collections.emptyList();
     } );
@@ -352,7 +353,7 @@ public class KafkaConsumerInputTest {
     messages.put( topic, createRecords( topic.topic(), messageCount ) );
     records = new ConsumerRecords<>( messages );
     // provide some data when we try to poll for kafka messages
-    when( consumer.poll( 1000 ) ).thenReturn( records )
+    when( consumer.poll( Duration.ofMillis( 1000 ) ) ).thenReturn( records )
             .then( invocationOnMock -> {
               while ( trans.getSteps().get( 0 ).step.getLinesWritten() < 4 ) {
                 //noinspection UnnecessaryContinue
@@ -397,7 +398,7 @@ public class KafkaConsumerInputTest {
     messages.put( topic, createRecords( topic.topic(), messageCount ) );
     records = new ConsumerRecords<>( messages );
     // provide some data when we try to poll for kafka messages
-    when( consumer.poll( 1000 ) ).thenReturn( records )
+    when( consumer.poll( Duration.ofMillis( 1000 ) ) ).thenReturn( records )
             .thenReturn( new ConsumerRecords<>( Collections.emptyMap() ) );
     when( factory.consumer( eq( kafkaMeta ), any(), eq( String ), eq( String ) ) )
             .thenReturn( consumer );
@@ -431,7 +432,7 @@ public class KafkaConsumerInputTest {
     records = new ConsumerRecords<>( messages );
     CountDownLatch latch = new CountDownLatch( 1 );
     // provide some data when we try to poll for kafka messages
-    when( consumer.poll( 1000 ) )
+    when( consumer.poll( Duration.ofMillis( 1000 ) ) )
             .then( invocationOnMock -> {
               trans.pauseRunning();
               latch.countDown();
@@ -478,7 +479,7 @@ public class KafkaConsumerInputTest {
     messages.put( topic, createRecords( topic.topic(), messageCount ) );
     records = new ConsumerRecords<>( messages );
     // provide some data when we try to poll for kafka messages
-    when( consumer.poll( 1000 ) ).thenReturn( records );
+    when( consumer.poll( Duration.ofMillis( 1000 ) ) ).thenReturn( records );
     when( factory.consumer( eq( kafkaMeta ), any(), eq( String ), eq( String ) ) ).thenReturn( consumer );
     when( factory.checkKafkaConnectionStatus( any( KafkaConsumerInputMeta.class ), any( Variables.class )
             ,any( LogChannelInterface.class ) ) ).thenReturn( true );
@@ -518,7 +519,7 @@ public class KafkaConsumerInputTest {
     messages.put( topic, createRecords( topic.topic(), messageCount ) );
     records = new ConsumerRecords<>( messages );
     // provide some data when we try to poll for kafka messages
-    when( consumer.poll( 1000 ) )
+    when( consumer.poll( Duration.ofMillis( 1000 ) ) )
             .thenReturn( records )
             .then( invocationOnMock -> {
               for ( StepStatus stepStatus : trans.getSteps().get( 0 ).step.subStatuses() ) {
