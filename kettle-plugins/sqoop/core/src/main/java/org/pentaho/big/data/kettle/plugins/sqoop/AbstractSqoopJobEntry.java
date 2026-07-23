@@ -20,6 +20,7 @@ import com.google.common.base.Throwables;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
 import org.pentaho.big.data.kettle.plugins.job.AbstractJobEntry;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryUtils;
@@ -180,13 +181,21 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
    * Attach a log appender to all Loggers used by Sqoop so we can redirect the output to Kettle's logging facilities.
    */
   public synchronized void attachLoggingAppenders() {
+    attachLoggingAppenders( null );
+  }
+
+  synchronized void attachLoggingAppenders( ClassLoader loggerClassLoader ) {
     if ( hadoopExecutionLogging != null ) {
       return;
     }
 
-    HadoopExecutionLogging newHadoopExecutionLogging = HadoopExecutionLogging.start( log, LOGS_TO_MONITOR );
+    HadoopExecutionLogging newHadoopExecutionLogging =
+      HadoopExecutionLogging.start( log, loggerClassLoader, LOGS_TO_MONITOR );
     try {
-      Logger sqoopLogger = LogManager.getLogger( LOGS_TO_MONITOR[ 0 ] );
+      LoggerContext loggerContext = loggerClassLoader == null
+        ? ( LoggerContext ) LogManager.getContext( false )
+        : ( LoggerContext ) LogManager.getContext( loggerClassLoader, false );
+      Logger sqoopLogger = loggerContext.getLogger( LOGS_TO_MONITOR[ 0 ] );
       redirectSystemError( sqoopLogger );
       hadoopExecutionLogging = newHadoopExecutionLogging;
     } catch ( RuntimeException e ) {
@@ -303,7 +312,6 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
     S config = getJobConfig();
     Properties properties = new Properties();
 
-    attachLoggingAppenders();
     try {
       configure( config, properties );
       List<String> args = SqoopUtils.getCommandLineArgs( config, getVariables() );
@@ -348,6 +356,7 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
 
       HadoopClientServices hadoopClientServices = namedClusterServiceLocator.getService( namedCluster, HadoopClientServices.class );
 
+      attachLoggingAppenders( hadoopClientServices.getClass().getClassLoader() );
       int result = hadoopClientServices.runSqoop( args, properties );
       if ( result != 0 ) {
         setJobResultFailed( jobResult );

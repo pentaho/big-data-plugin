@@ -19,6 +19,7 @@ import org.apache.logging.log4j.ThreadContext;
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.LogEvent;
+import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.filter.AbstractFilter;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.logging.log4j.KettleLogChannelAppender;
@@ -49,10 +50,16 @@ public final class HadoopExecutionLogging implements AutoCloseable {
   }
 
   public static HadoopExecutionLogging start( LogChannelInterface logChannel, String... loggerNames ) {
-    return new HadoopExecutionLogging( logChannel, loggerNames );
+    return start( logChannel, null, loggerNames );
   }
 
-  private HadoopExecutionLogging( LogChannelInterface logChannel, String... loggerNames ) {
+  public static HadoopExecutionLogging start( LogChannelInterface logChannel, ClassLoader loggerClassLoader,
+                                               String... loggerNames ) {
+    return new HadoopExecutionLogging( logChannel, loggerClassLoader, loggerNames );
+  }
+
+  private HadoopExecutionLogging( LogChannelInterface logChannel, ClassLoader loggerClassLoader,
+                                  String... loggerNames ) {
     if ( logChannel == null ) {
       throw new IllegalArgumentException( "A Kettle log channel is required" );
     }
@@ -64,8 +71,11 @@ public final class HadoopExecutionLogging implements AutoCloseable {
     ThreadContext.put( LOG_CHANNEL_ID_CONTEXT_KEY, logChannelId );
 
     try {
+      LoggerContext loggerContext = loggerClassLoader == null
+        ? ( LoggerContext ) LogManager.getContext( false )
+        : ( LoggerContext ) LogManager.getContext( loggerClassLoader, false );
       for ( String loggerName : uniqueLoggerNames( loggerNames ) ) {
-        Logger logger = LogManager.getLogger( loggerName );
+        Logger logger = loggerContext.getLogger( loggerName );
         Appender appender = new NamedKettleLogChannelAppender( logChannel,
           loggerName + "." + logChannelId + "." + APPENDER_SEQUENCE.incrementAndGet() );
         Filter filter = new LogChannelFilter( logChannelId );
