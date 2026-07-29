@@ -144,9 +144,20 @@ then routes to the owning Kettle log.
 `System.err` is one mutable JVM-wide stream, not an execution-local resource.
 `AbstractSqoopJobEntry` therefore reference-counts its redirect: a completed
 Sqoop execution must not restore the original stream while another Sqoop run is
-still active. Do not copy this pattern to another integration unless that tool
-also runs in-process and demonstrably bypasses Log4j. An external child process
-should have its own stdout and stderr streams read directly, as Spark does.
+still active. For the same reason the single proxy cannot be bound to one
+`Logger`: concurrent executions may use different shim classloaders, and each
+one then owns a `Logger` in its own `LoggerContext`. The proxy resolves its
+target on every write from a `ThreadLocal` that the execution sets while it
+attaches and clears while it detaches, so a write always reaches the logger of
+the execution that owns the calling thread. A write from a thread that owns no
+execution falls back to the original `System.err`. Do not copy this pattern to
+another integration unless that tool also runs in-process and demonstrably
+bypasses Log4j. An external child process should have its own stdout and stderr
+streams read directly, as Spark does.
+
+[sqoop-stderr-routing.md](sqoop-stderr-routing.md) walks through why a proxy
+bound to a single `Logger` breaks once shim classloaders get their own
+`LoggerContext`, and which invariants keep the thread-local resolution correct.
 
 ## Failure diagnosis
 

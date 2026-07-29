@@ -18,14 +18,15 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 
 import java.io.PrintStream;
+import java.util.function.Supplier;
 
 /**
  * Redirect all String-based logging for a {@link PrintStream} to a Log4j logger at a specified logging level.
  */
 public class LoggingProxy extends PrintStream {
-  private PrintStream wrappedStream;
-  private Logger logger;
-  private Level level;
+  private final PrintStream wrappedStream;
+  private final Supplier<Logger> loggerSupplier;
+  private final Level level;
 
   /**
    * Create a new Logging proxy that will log all {@link String}s printed with {@link #print(String)} to the logger
@@ -39,15 +40,35 @@ public class LoggingProxy extends PrintStream {
    *          Level to log messages at
    */
   public LoggingProxy( PrintStream stream, Logger logger, Level level ) {
+    this( stream, () -> logger, level );
+  }
+
+  /**
+   * Create a new Logging proxy that resolves its target logger on every write, so that a single JVM-wide proxy can
+   * follow the execution that owns the calling thread even when those loggers live in different logger contexts.
+   *
+   * @param stream
+   *          Stream to redirect output for
+   * @param loggerSupplier
+   *          Supplies the logger to log to, may return {@code null} when the calling thread owns no logger
+   * @param level
+   *          Level to log messages at
+   */
+  public LoggingProxy( PrintStream stream, Supplier<Logger> loggerSupplier, Level level ) {
     super( stream );
-    wrappedStream = stream;
-    this.logger = logger;
+    this.wrappedStream = stream;
+    this.loggerSupplier = loggerSupplier;
     this.level = level;
   }
 
   @Override
   public void print( String s ) {
-    logger.log( level, s );
+    Logger logger = loggerSupplier.get();
+    if ( logger == null ) {
+      wrappedStream.print( s );
+    } else {
+      logger.log( level, s );
+    }
   }
 
   /**
