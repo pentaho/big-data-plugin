@@ -13,10 +13,14 @@
 
 package org.pentaho.big.data.kettle.plugins.sqoop;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.AbstractAppender;
+import org.apache.logging.log4j.core.config.Property;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,6 +54,7 @@ import java.net.URLClassLoader;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
@@ -199,6 +204,34 @@ public class AbstractSqoopJobEntryTest {
     }
   }
 
+  @Test
+  public void redirectsSystemErrorToTheLoggerOfTheOwningExecution() throws Exception {
+    AbstractSqoopJobEntry shimJobEntry = createJobEntry();
+    // a parent-less loader gets its own LoggerContext, like a shim bundle classloader does
+    try ( URLClassLoader shimClassLoader = new URLClassLoader( new URL[ 0 ], null ) ) {
+      LoggerContext shimLoggerContext = ( LoggerContext ) LogManager.getContext( shimClassLoader, false );
+      assertNotSame( LogManager.getContext( false ), shimLoggerContext );
+      org.apache.logging.log4j.core.Logger shimSqoopLogger = shimLoggerContext.getLogger( "org.apache.sqoop" );
+      CapturingAppender capturingAppender = new CapturingAppender();
+      capturingAppender.start();
+
+      // the first execution installs the JVM-wide System.err proxy, the second one runs in another logger context
+      sqoopJobEntry.attachLoggingAppenders();
+      shimJobEntry.attachLoggingAppenders( shimClassLoader );
+      shimSqoopLogger.addAppender( capturingAppender );
+      shimSqoopLogger.setLevel( Level.INFO );
+      try {
+        System.err.print( "sqoop wrote this to stderr" );
+
+        assertTrue( capturingAppender.messages.contains( "sqoop wrote this to stderr" ) );
+      } finally {
+        shimSqoopLogger.removeAppender( capturingAppender );
+        shimJobEntry.removeLoggingAppenders();
+        sqoopJobEntry.removeLoggingAppenders();
+      }
+    }
+  }
+
   private AbstractSqoopJobEntry createJobEntry() {
     return new AbstractSqoopJobEntry( mockNamedClusterService, mockNamedClusterServiceLocator,
       mockRuntimeTestActionService, mockRuntimeTester ) {
@@ -214,6 +247,18 @@ public class AbstractSqoopJobEntryTest {
         return "toolName";
       }
     };
+  }
+
+  private static final class CapturingAppender extends AbstractAppender {
+    private final List<String> messages = new CopyOnWriteArrayList<>();
+
+    private CapturingAppender() {
+      super( "capturing-appender", null, null, true, Property.EMPTY_ARRAY );
+    }
+
+    @Override public void append( LogEvent event ) {
+      messages.add( event.getMessage().getFormattedMessage() );
+    }
   }
 
 }

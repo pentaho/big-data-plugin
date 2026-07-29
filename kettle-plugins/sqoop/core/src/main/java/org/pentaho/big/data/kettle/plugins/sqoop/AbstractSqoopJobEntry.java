@@ -63,6 +63,11 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
     JobEntryInterface {
 
   private static final Object SYSTEM_ERROR_LOCK = new Object();
+  /**
+   * Sqoop logger of the execution running on the current thread. Each execution logs into the {@link LoggerContext} of
+   * its own shim classloader, so the JVM-wide {@code System.err} proxy resolves its target on every write.
+   */
+  private static final ThreadLocal<Logger> CURRENT_SQOOP_LOGGER = new ThreadLocal<>();
   private static int systemErrorRedirectorCount;
   private static PrintStream originalSystemError;
   private static LoggingProxy systemErrorProxy;
@@ -225,9 +230,10 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
       if ( redirectsSystemError ) {
         return;
       }
+      CURRENT_SQOOP_LOGGER.set( sqoopLogger );
       if ( systemErrorRedirectorCount == 0 ) {
         originalSystemError = System.err;
-        systemErrorProxy = new LoggingProxy( originalSystemError, sqoopLogger, Level.INFO );
+        systemErrorProxy = new LoggingProxy( originalSystemError, CURRENT_SQOOP_LOGGER::get, Level.INFO );
         System.setErr( systemErrorProxy );
       }
       systemErrorRedirectorCount++;
@@ -240,6 +246,7 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
       if ( !redirectsSystemError ) {
         return;
       }
+      CURRENT_SQOOP_LOGGER.remove();
       redirectsSystemError = false;
       systemErrorRedirectorCount--;
       if ( systemErrorRedirectorCount == 0 ) {
