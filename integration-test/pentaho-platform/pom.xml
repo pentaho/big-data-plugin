@@ -536,8 +536,8 @@
         </property>
       </activation>
       <properties>
-        <bigdata.it.skip-local-unpack>false</bigdata.it.skip-local-unpack>
-        <bigdata.it.skip-download>true</bigdata.it.skip-download>
+        <bigdata.it.skip-local-unpack>true</bigdata.it.skip-local-unpack>
+        <bigdata.it.skip-download>false</bigdata.it.skip-download>
       </properties>
     </profile>
   </profiles>
