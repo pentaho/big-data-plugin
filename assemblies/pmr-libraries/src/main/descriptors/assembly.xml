@@ -43,7 +43,6 @@
         <include>com.google.gdata:gdata-client-meta</include>
         <include>com.google.gdata:gdata-core</include>
         <include>com.google.guava:guava</include>
-        <include>com.healthmarketscience.jackcess:jackcess</include>
         <include>com.github.mwiede:jsch</include>
         <include>com.github.librepdf:openpdf</include>
         <include>com.github.librepdf:openrtf</include>
