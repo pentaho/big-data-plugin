@@ -40,6 +40,11 @@
     <!-- Where the unpacked plugin (folder pentaho-big-data-plugin) ends up on the host. -->
     <bigdata.it.plugin-unpack-dir>${project.build.directory}/plugin</bigdata.it.plugin-unpack-dir>
 
+    <!-- ELM license information file included with the integration-test project. -->
+    <!-- Override this property when a different valid test license is required. -->
+    <bigdata.it.license-file>${project.basedir}/../conf/.elmLicInfo.plt</bigdata.it.license-file>
+    <bigdata.it.license-staging-dir>${project.build.directory}/license</bigdata.it.license-staging-dir>
+
     <!-- Directories assembled into the PDI container. -->
     <bigdata.it.test-resources-dir>${project.basedir}/src/test/resources</bigdata.it.test-resources-dir>
     <bigdata.it.metastore-dir>${project.build.outputDirectory}/metastore</bigdata.it.metastore-dir>
@@ -160,6 +165,14 @@
                   <target>
                     <mkdir dir="${bigdata.it.metastore-dir}"/>
                     <mkdir dir="${bigdata.it.kettle-dir}"/>
+                    <delete dir="${bigdata.it.license-staging-dir}"/>
+                    <mkdir dir="${bigdata.it.license-staging-dir}"/>
+                    <available file="${bigdata.it.license-file}" property="bigdata.it.license-available"/>
+                    <fail unless="bigdata.it.license-available"
+                      message="No PDI license found at '${bigdata.it.license-file}'. Set -Dbigdata.it.license-file=&lt;path-to-.elmLicInfo.plt&gt; to run integration tests."/>
+                    <copy file="${bigdata.it.license-file}"
+                      tofile="${bigdata.it.license-staging-dir}/.elmLicInfo.plt"
+                      overwrite="true"/>
                     <!--
                       Clean the plugin unpack dir every run so a previous variant's shim
                       (e.g. apachevanilla) does not leak into a later run of a different
@@ -512,6 +525,13 @@
                             <fileSet>
                               <directory>${project.build.testOutputDirectory}/jobs</directory>
                               <outputDirectory>pentaho/design-tools/data-integration/jobs</outputDirectory>
+                            </fileSet>
+                            <fileSet>
+                              <directory>${bigdata.it.license-staging-dir}</directory>
+                              <outputDirectory>pentaho</outputDirectory>
+                              <includes>
+                                <include>.elmLicInfo.plt</include>
+                              </includes>
                             </fileSet>
                             <fileSet>
                               <directory>${bigdata.it.plugin-unpack-dir}/${bigdata.it.plugin-directory-name}</directory>

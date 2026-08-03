@@ -22,6 +22,7 @@ CE big-data repository: the Docker helper is self-contained (plain `docker` CLI,
 | [Bird's-eye view](#birds-eye-view) | understand the moving parts in two minutes |
 | [Layout](#layout) | find a file |
 | [Quick start](#quick-start) | run the tests for the first time |
+| [License setup](license-setup.md) | provide the PDI ELM license required by PAN and Kitchen |
 | [Choosing the right command](#choosing-the-right-command) | pick a fast or a safe loop after a change |
 | [How the fixture works](#how-the-fixture-works) | debug the containers, the lifecycle, or a test |
 | [Plugin variants and shims](#plugin-variants-and-shims) | test a shim other than `apachevanilla` |
@@ -87,6 +88,8 @@ fixture validation, not on new infrastructure.
 integration-test/
   pom.xml                                parent pom: docker network, plugin management, host
                                          profiles, Failsafe defaults (retry once, parallelism switch)
+  conf/
+    .elmLicInfo.plt                       ELM license information used by the PDI container
   pentaho-platform/
     pom.xml                              main IT module: plugin unpack or download, image builds,
                                          containers, metastore generation, Failsafe properties
