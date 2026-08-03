@@ -375,8 +375,10 @@ these classes are executed by Maven Failsafe during the integration-test lifecyc
 
 ### Test another plugin variant
 
-Set the variant to one whose shim artifacts are available in your Maven repositories. The
-build profile and classifier must match:
+Set the variant to one whose shim artifact is available in your Maven repositories. The final
+variant plugin ZIP is assembled by this project, while the distribution-specific shim must be
+available as a published Maven dependency for every variant, including `apachevanilla`. The build
+profile and classifier must match:
 
 ```powershell
 $variant = 'dataproc'
@@ -385,13 +387,13 @@ mvn.cmd -pl integration-test/pentaho-platform -am clean verify -B -DrunIntegrati
 ```
 
 Supported variants in the documented assembly setup include `apachevanilla`, `cdp`, `hdi`,
-`emr`, and `dataproc`. `apachevanilla` is built in this repository; the other shims require
-the appropriate external artifacts and Artifactory access.
+`emr`, and `dataproc`. All of their final plugin ZIPs are assembled in this repository, but every
+distribution-specific shim is an external published artifact and requires Artifactory access.
 
 ### Test a published variant
 
-Download mode skips the local plugin build and resolves a published ZIP from the configured
-Maven repository:
+Download mode skips local plugin assembly and downloads a complete published plugin ZIP through
+`BigDataPluginCacheManager`:
 
 ```powershell
 $variant = 'dataproc'
@@ -402,8 +404,10 @@ Pop-Location
 ```
 
 This mode uses the `download` profile in the integration-test POM, so no local plugin assembly
-profile or reactor build is required. The published classifier must exist in the configured
-Maven repository.
+profile or reactor build is required. For PDI `11.1`, the default source is the latest QAT artifact
+at `https://build.eng.pentaho.com/hosted/11.1-QAT/latest/` with the filename
+`pentaho-big-data-ee-plugin-<variant>.zip`. Use `-Dbigdata.it.plugin.url=<url>` for another
+published ZIP. The requested variant must exist at that URL.
 
 ### CI execution
 
