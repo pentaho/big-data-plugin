@@ -13,6 +13,8 @@
 package org.pentaho.big.data.it;
 
 import java.io.IOException;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -75,8 +77,19 @@ public final class DockerUtils {
     return execAsUser( containerId, null, command );
   }
 
+  /** Runs a command inside a container and mirrors its stdout/stderr to the test process. */
+  public static ExecResult execStreaming( String containerId, String... command )
+    throws IOException, InterruptedException {
+    return execAsUser( containerId, null, true, command );
+  }
+
   /** Runs a command inside a container, optionally as a specific user (e.g. {@code root}). */
   public static ExecResult execAsUser( String containerId, String user, String... command )
+    throws IOException, InterruptedException {
+    return execAsUser( containerId, user, false, command );
+  }
+
+  private static ExecResult execAsUser( String containerId, String user, boolean streamOutput, String... command )
     throws IOException, InterruptedException {
     List<String> cmd = new ArrayList<>();
     cmd.add( "docker" );
@@ -89,7 +102,7 @@ public final class DockerUtils {
     for ( String c : command ) {
       cmd.add( c );
     }
-    return run( cmd );
+    return run( cmd, streamOutput );
   }
 
   /**
@@ -131,6 +144,10 @@ public final class DockerUtils {
   }
 
   private static ExecResult run( List<String> command ) throws IOException, InterruptedException {
+    return run( command, false );
+  }
+
+  private static ExecResult run( List<String> command, boolean streamOutput ) throws IOException, InterruptedException {
     ProcessBuilder pb = new ProcessBuilder( command );
     Process process = pb.start();
 
@@ -138,8 +155,8 @@ public final class DockerUtils {
     // other deadlocks when the child fills the other pipe buffer (~64 KB) - which PAN easily does
     // through its logging - leaving both the child (blocked on write) and this thread (blocked on
     // read) stuck forever, so the waitFor timeout below would never even be reached.
-    CompletableFuture<byte[]> outFuture = readStreamAsync( process.getInputStream() );
-    CompletableFuture<byte[]> errFuture = readStreamAsync( process.getErrorStream() );
+    CompletableFuture<byte[]> outFuture = readStreamAsync( process.getInputStream(), streamOutput ? System.out : null );
+    CompletableFuture<byte[]> errFuture = readStreamAsync( process.getErrorStream(), streamOutput ? System.err : null );
 
     if ( !process.waitFor( 5, TimeUnit.MINUTES ) ) {
       process.destroyForcibly();
@@ -152,10 +169,20 @@ public final class DockerUtils {
   }
 
   /** Reads a process stream to completion on a separate thread so both pipes can drain in parallel. */
-  private static CompletableFuture<byte[]> readStreamAsync( java.io.InputStream stream ) {
+  private static CompletableFuture<byte[]> readStreamAsync( java.io.InputStream stream, PrintStream mirror ) {
     return CompletableFuture.supplyAsync( () -> {
       try ( stream ) {
-        return stream.readAllBytes();
+        ByteArrayOutputStream captured = new ByteArrayOutputStream();
+        byte[] buffer = new byte[ 8192 ];
+        int bytesRead;
+        while ( ( bytesRead = stream.read( buffer ) ) != -1 ) {
+          captured.write( buffer, 0, bytesRead );
+          if ( mirror != null ) {
+            mirror.write( buffer, 0, bytesRead );
+            mirror.flush();
+          }
+        }
+        return captured.toByteArray();
       } catch ( IOException e ) {
         throw new UncheckedIOException( e );
       }

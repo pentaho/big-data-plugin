@@ -85,6 +85,72 @@ public abstract class BigDataPluginIT {
     return runTransformation( transformationPath, expectSuccess, expectedLogLines, null );
   }
 
+  /** Executes a {@code .kjb} inside the PDI container using Kitchen and validates the outcome. */
+  protected String runJob( String jobPath, boolean expectSuccess, List<String> expectedLogLines )
+    throws IOException, InterruptedException {
+    return runJob( jobPath, expectSuccess, expectedLogLines, null );
+  }
+
+  /**
+   * Executes a job and asserts both required and forbidden substrings in the Kitchen output.
+   *
+   * @param jobPath            path of the {@code .kjb} relative to the mounted jobs dir
+   * @param expectSuccess      whether the job is expected to finish successfully
+   * @param expectedLogLines   substrings that must be present; may be {@code null}
+   * @param unexpectedLogLines substrings that must not be present; may be {@code null}
+   * @return the combined Kitchen output for additional assertions
+   */
+  protected String runJob( String jobPath, boolean expectSuccess, List<String> expectedLogLines,
+                           List<String> unexpectedLogLines ) throws IOException, InterruptedException {
+    List<String> command = new ArrayList<>();
+    command.add( ITUtils.KITCHEN_SCRIPT );
+    command.add( "-file=" + ITUtils.JOBS_DIR + "/" + jobPath );
+    command.add( "-level=" + ITUtils.logLevel() );
+
+    boolean showKitchenLogs = ITUtils.showKitchenLogs();
+    if ( showKitchenLogs ) {
+      System.out.println( "----- Kitchen output: " + jobPath + " -----" );
+    }
+    DockerUtils.ExecResult result = showKitchenLogs
+      ? DockerUtils.execStreaming( ITUtils.pdiContainerId(), command.toArray( new String[ 0 ] ) )
+      : DockerUtils.exec( ITUtils.pdiContainerId(), command.toArray( new String[ 0 ] ) );
+    String output = result.combinedOutput();
+
+    if ( showKitchenLogs ) {
+      if ( !output.endsWith( "\n" ) ) {
+        System.out.println();
+      }
+      System.out.println( "----- End Kitchen output: " + jobPath + " -----" );
+      System.out.flush();
+    }
+
+    if ( expectSuccess ) {
+      assertThat( result.exitCode() )
+        .as( "Kitchen exit code for %s%nOutput:%n%s", jobPath, output )
+        .isEqualTo( PAN_SUCCESS );
+    } else {
+      assertThat( result.exitCode() )
+        .as( "Kitchen exit code for %s (expected failure)%nOutput:%n%s", jobPath, output )
+        .isNotEqualTo( PAN_SUCCESS );
+    }
+
+    if ( expectedLogLines != null ) {
+      for ( String expected : expectedLogLines ) {
+        assertThat( output )
+          .as( "Expected log line '%s' in Kitchen output for %s", expected, jobPath )
+          .contains( expected );
+      }
+    }
+    if ( unexpectedLogLines != null ) {
+      for ( String unexpected : unexpectedLogLines ) {
+        assertThat( output )
+          .as( "Unexpected log line '%s' in Kitchen output for %s", unexpected, jobPath )
+          .doesNotContain( unexpected );
+      }
+    }
+    return output;
+  }
+
   /** Builds an ordered parameter map for a transformation run. */
   protected static Map<String, String> params( String... keyValues ) {
     if ( keyValues.length % 2 != 0 ) {

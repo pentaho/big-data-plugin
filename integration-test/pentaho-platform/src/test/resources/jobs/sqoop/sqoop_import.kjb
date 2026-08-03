@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job>
+  <name>sqoop_import</name>
+  <description>Imports the PostgreSQL hadoop table into the integration-test HDFS through YARN.</description>
+  <directory>/</directory>
+  <parameters/>
+  <slaveservers/>
+  <entries>
+    <entry>
+      <name>Start</name>
+      <description/>
+      <type>SPECIAL</type>
+      <attributes/>
+      <start>Y</start>
+      <dummy>N</dummy>
+      <repeat>N</repeat>
+      <schedulerType>0</schedulerType>
+      <intervalSeconds>0</intervalSeconds>
+      <intervalMinutes>60</intervalMinutes>
+      <hour>12</hour>
+      <minutes>0</minutes>
+      <weekDay>1</weekDay>
+      <DayOfMonth>1</DayOfMonth>
+      <parallel>N</parallel>
+      <draw>Y</draw>
+      <nr>0</nr>
+      <xloc>128</xloc>
+      <yloc>256</yloc>
+      <attributes_kjc/>
+    </entry>
+    <entry>
+      <name>Sqoop import</name>
+      <description/>
+      <type>SqoopImport</type>
+      <attributes/>
+      <targetDir>/it/sqoop/hadoop</targetDir>
+      <database>postgres docker</database>
+      <schema>public</schema>
+      <connect>jdbc:postgresql://postgres-hostname:5432/postgres</connect>
+      <username>myuser</username>
+      <password>Encrypted 2d3e1dcad09d59790bb18bd63c99dbdde</password>
+      <table>hadoop</table>
+      <numMappers>1</numMappers>
+      <clusterName/>
+      <customArguments class="org.pentaho.big.data.kettle.plugins.job.PropertyEntry">
+        <PropertyEntry>
+          <key>pentahoNamedCluster</key>
+          <value>it-cluster</value>
+        </PropertyEntry>
+        <PropertyEntry>
+          <key>mapreduce.framework.name</key>
+          <value>yarn</value>
+        </PropertyEntry>
+        <PropertyEntry>
+          <key>mapreduce.app-submission.cross-platform</key>
+          <value>true</value>
+        </PropertyEntry>
+      </customArguments>
+      <deleteTargetDir>true</deleteTargetDir>
+      <jobEntryName>Sqoop import</jobEntryName>
+      <blockingPollingInterval>300</blockingPollingInterval>
+      <blockingExecution>true</blockingExecution>
+      <namenodeHost>hadoop-hostname</namenodeHost>
+      <namenodePort>9000</namenodePort>
+      <shimIdentifier/>
+      <jobtrackerHost/>
+      <jobtrackerPort/>
+      <parallel>N</parallel>
+      <draw>Y</draw>
+      <nr>0</nr>
+      <xloc>496</xloc>
+      <yloc>256</yloc>
+      <attributes_kjc/>
+    </entry>
+  </entries>
+  <hops>
+    <hop>
+      <from>Start</from>
+      <to>Sqoop import</to>
+      <from_nr>0</from_nr>
+      <to_nr>0</to_nr>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>Y</unconditional>
+    </hop>
+  </hops>
+  <notepads/>
+  <attributes/>
+</job>

@@ -3,10 +3,7 @@
 # Helper to (re)initialise a single-node HDFS inside the integration-test Hadoop container and
 # create the base directories used by the tests.
 #
-# This script is mounted at /opt/hadoop/it-scripts. It is intentionally not run automatically by
-# docker-maven-plugin (which uses the image default entrypoint); adapt the Hadoop image / entrypoint
-# in the POM if the chosen image does not start HDFS on its own, then invoke this script to prepare
-# the test directories.
+# This script is staged at /opt/hadoop/it-scripts and run after HDFS and YARN start.
 #
 set -euo pipefail
 

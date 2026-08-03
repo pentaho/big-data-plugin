@@ -52,6 +52,14 @@
     <bigdata.it.hdfs-namenode-port>9000</bigdata.it.hdfs-namenode-port>
     <bigdata.it.hdfs-web-port>9870</bigdata.it.hdfs-web-port>
 
+    <bigdata.it.skip-postgres-container>false</bigdata.it.skip-postgres-container>
+    <bigdata.it.postgres-image>postgres:18</bigdata.it.postgres-image>
+    <bigdata.it.postgres-host>postgres-hostname</bigdata.it.postgres-host>
+    <bigdata.it.postgres-port>5432</bigdata.it.postgres-port>
+    <bigdata.it.postgres-database>postgres</bigdata.it.postgres-database>
+    <bigdata.it.postgres-user>myuser</bigdata.it.postgres-user>
+    <bigdata.it.postgres-password>mysecretpassword</bigdata.it.postgres-password>
+
     <!-- HBase single-node container -->
     <bigdata.it.skip-hbase-container>false</bigdata.it.skip-hbase-container>
     <bigdata.it.hbase-image>harisekhon/hbase:2.1</bigdata.it.hbase-image>
@@ -330,6 +338,10 @@
                         </inline>
                       </assembly>
                     </assemblies>
+                    <runCmds>
+                      <run>curl -fsSL --retry 3 -o /tmp/jdk21.tar.gz https://api.adoptium.net/v3/binary/latest/21/ga/linux/x64/jdk/hotspot/normal/eclipse</run>
+                      <run>mkdir -p /opt/jdk21; tar -xzf /tmp/jdk21.tar.gz -C /opt/jdk21 --strip-components=1; rm -f /tmp/jdk21.tar.gz</run>
+                    </runCmds>
                   </build>
                   <run>
                     <skip>${bigdata.it.skip-hadoop-container}</skip>
@@ -347,18 +359,19 @@
                     </ports>
                     <env>
                       <HADOOP_ROOT_LOGGER>INFO,console</HADOOP_ROOT_LOGGER>
+                      <JAVA_HOME>/opt/jdk21</JAVA_HOME>
+                      <HADOOP_OPTS>--add-opens java.base/java.lang=ALL-UNNAMED</HADOOP_OPTS>
                     </env>
                     <!--
-                      apache/hadoop is a base image and does not start HDFS on its own.
-                      Copy the baked-in config, format the namenode on first run, start the
-                      datanode as a daemon and run the namenode in the foreground so the
-                      container stays alive.
+                      apache/hadoop is a base image and does not start Hadoop daemons on its own.
+                      Run NameNode, DataNode, ResourceManager, and NodeManager in this container
+                      so Sqoop submitted by the PDI container executes through YARN.
                     -->
                     <cmd>
                       <exec>
                         <arg>/bin/bash</arg>
                         <arg>-c</arg>
-                        <arg>export HADOOP_HOME=$HADOOP_HOME; [ -z "$HADOOP_HOME" ] &amp;&amp; export HADOOP_HOME=/opt/hadoop; cp /opt/hadoop/it-config/*.xml "$HADOOP_HOME/etc/hadoop/"; if [ ! -d /tmp/hdfs/name/current ]; then "$HADOOP_HOME/bin/hdfs" namenode -format -force -nonInteractive; fi; "$HADOOP_HOME/bin/hdfs" --daemon start datanode; exec "$HADOOP_HOME/bin/hdfs" namenode</arg>
+                        <arg>export HADOOP_HOME="${HADOOP_HOME:-/opt/hadoop}"; export HADOOP_CONF_DIR="$HADOOP_HOME/etc/hadoop"; cp /opt/hadoop/it-config/*.xml "$HADOOP_CONF_DIR/"; if [ ! -d /tmp/hdfs/name/current ]; then "$HADOOP_HOME/bin/hdfs" namenode -format -force -nonInteractive; fi; "$HADOOP_HOME/bin/hdfs" --daemon start namenode; for i in $(seq 1 60); do if "$HADOOP_HOME/bin/hdfs" dfs -ls / &gt;/dev/null 2&gt;&amp;1; then break; fi; sleep 1; done; "$HADOOP_HOME/bin/hdfs" --daemon start datanode; "$HADOOP_HOME/bin/yarn" --daemon start resourcemanager; "$HADOOP_HOME/bin/yarn" --daemon start nodemanager; for i in $(seq 1 60); do if "$HADOOP_HOME/bin/yarn" node -list 2&gt;/dev/null | grep -q "Total Nodes:1"; then break; fi; sleep 2; done; echo "YARN ready"; tr -d '\r' &lt; /opt/hadoop/it-scripts/init-hdfs.sh | bash; exec tail -f /dev/null</arg>
                       </exec>
                     </cmd>
                     <!--
@@ -370,8 +383,53 @@
                       cluster by docker-exec'ing into the containers, not via localhost.)
                     -->
                     <wait>
-                      <log>Processing first storage report</log>
+                      <log>YARN ready</log>
                       <time>180000</time>
+                    </wait>
+                  </run>
+                </image>
+
+                <image>
+                  <name>bigdata-it-postgres:${bigdata.it.pdi-version}</name>
+                  <alias>postgres</alias>
+                  <build>
+                    <from>${bigdata.it.postgres-image}</from>
+                    <assemblies>
+                      <assembly>
+                        <name>postgres-init</name>
+                        <targetDir>/docker-entrypoint-initdb.d</targetDir>
+                        <inline>
+                          <fileSets>
+                            <fileSet>
+                              <directory>${project.basedir}/docker/postgres/init</directory>
+                              <outputDirectory>.</outputDirectory>
+                            </fileSet>
+                          </fileSets>
+                        </inline>
+                      </assembly>
+                    </assemblies>
+                  </build>
+                  <run>
+                    <skip>${bigdata.it.skip-postgres-container}</skip>
+                    <containerNamePattern>bigdata-it-postgres-%t</containerNamePattern>
+                    <platform>linux/amd64</platform>
+                    <hostname>${bigdata.it.postgres-host}</hostname>
+                    <network>
+                      <mode>custom</mode>
+                      <name>${test-network-name}</name>
+                      <alias>${bigdata.it.postgres-host}</alias>
+                    </network>
+                    <ports>
+                      <port>${bigdata.it.postgres-port}:${bigdata.it.postgres-port}</port>
+                    </ports>
+                    <env>
+                      <POSTGRES_DB>${bigdata.it.postgres-database}</POSTGRES_DB>
+                      <POSTGRES_USER>${bigdata.it.postgres-user}</POSTGRES_USER>
+                      <POSTGRES_PASSWORD>${bigdata.it.postgres-password}</POSTGRES_PASSWORD>
+                    </env>
+                    <wait>
+                      <log>database system is ready to accept connections</log>
+                      <time>120000</time>
                     </wait>
                   </run>
                 </image>
@@ -452,6 +510,10 @@
                               <outputDirectory>pentaho/design-tools/data-integration/transformations</outputDirectory>
                             </fileSet>
                             <fileSet>
+                              <directory>${project.build.testOutputDirectory}/jobs</directory>
+                              <outputDirectory>pentaho/design-tools/data-integration/jobs</outputDirectory>
+                            </fileSet>
+                            <fileSet>
                               <directory>${bigdata.it.plugin-unpack-dir}/${bigdata.it.plugin-directory-name}</directory>
                               <outputDirectory>
                                 pentaho/design-tools/data-integration/plugins/${bigdata.it.plugin-directory-name}
@@ -484,6 +546,7 @@
                     <dependsOn>
                       <container>hadoop</container>
                       <container>hbase</container>
+                      <container>postgres</container>
                     </dependsOn>
                     <ports>
                       <port>5005:5005</port> <!-- Debug port -->

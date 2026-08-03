@@ -25,7 +25,9 @@ public final class ITUtils {
   /** Root of the PDI installation inside the {@code automation/pdi-client} image. */
   public static final String DATA_INTEGRATION_DIR = "/home/devuser/pentaho/design-tools/data-integration";
   public static final String PAN_SCRIPT = DATA_INTEGRATION_DIR + "/pan.sh";
+  public static final String KITCHEN_SCRIPT = DATA_INTEGRATION_DIR + "/kitchen.sh";
   public static final String TRANSFORMATIONS_DIR = DATA_INTEGRATION_DIR + "/transformations";
+  public static final String JOBS_DIR = DATA_INTEGRATION_DIR + "/jobs";
 
   // System properties injected by the build.
   public static final String PROP_PDI_CONTAINER = "bigdata.it.pdi-container-id";
@@ -35,6 +37,7 @@ public final class ITUtils {
   public static final String PROP_HADOOP_HOST = "bigdata.it.hadoop-host";
   public static final String PROP_HBASE_HOST = "bigdata.it.hbase-host";
   public static final String PROP_LOG_LEVEL = "bigdata.it.transformation-log-level";
+  public static final String PROP_SHOW_KITCHEN_LOGS = "bigdata.it.show-kitchen-logs";
 
   private ITUtils() {
   }
@@ -57,6 +60,10 @@ public final class ITUtils {
 
   public static String logLevel() {
     return System.getProperty( PROP_LOG_LEVEL, "Basic" );
+  }
+
+  public static boolean showKitchenLogs() {
+    return Boolean.parseBoolean( System.getProperty( PROP_SHOW_KITCHEN_LOGS, "false" ) );
   }
 
   /** Reads a file from HDFS by exec'ing {@code hdfs dfs -cat} inside the Hadoop container. */

@@ -65,13 +65,18 @@ public final class NamedClusterMetastoreBuilder {
 
     NamedClusterImpl namedCluster = new NamedClusterImpl();
     namedCluster.setName( clusterName );
+    namedCluster.setShimIdentifier( "apachevanilla" );
     namedCluster.setStorageScheme( "hdfs" );
     namedCluster.setHdfsHost( hadoopHost );
     namedCluster.setHdfsPort( hdfsPort );
+    namedCluster.setJobTrackerHost( hadoopHost );
+    namedCluster.setJobTrackerPort( "8032" );
     namedCluster.setZooKeeperHost( hbaseHost );
     namedCluster.setZooKeeperPort( zkPort );
     namedCluster.addSiteFile( "core-site.xml", coreSite( hadoopHost, hdfsPort ) );
     namedCluster.addSiteFile( "hdfs-site.xml", hdfsSite() );
+    namedCluster.addSiteFile( "yarn-site.xml", yarnSite( hadoopHost ) );
+    namedCluster.addSiteFile( "mapred-site.xml", mapredSite() );
     namedCluster.addSiteFile( "hbase-site.xml", hbaseSite( hbaseHost, zkPort ) );
 
     NamedClusterService namedClusterService = new NamedClusterManager();
@@ -83,6 +88,7 @@ public final class NamedClusterMetastoreBuilder {
     }
     Files.createDirectories( outputDir );
     copyDirectory( generated, outputDir );
+    writeShimConfig( outputDir, clusterName );
     deleteRecursively( tempRoot );
 
     System.out.println( "[INFO] Named cluster '" + clusterName + "' written to " + outputDir );
@@ -96,6 +102,44 @@ public final class NamedClusterMetastoreBuilder {
 
   private static String hdfsSite() {
     return property( "dfs.replication", "1" );
+  }
+
+  private static String yarnSite( String host ) {
+    return configuration(
+      propertyElement( "yarn.resourcemanager.hostname", host )
+        + propertyElement( "yarn.resourcemanager.address", host + ":8032" )
+        + propertyElement( "yarn.resourcemanager.scheduler.address", host + ":8030" )
+        + propertyElement( "yarn.resourcemanager.resource-tracker.address", host + ":8031" )
+        + propertyElement( "yarn.resourcemanager.admin.address", host + ":8033" )
+        + propertyElement( "yarn.resourcemanager.webapp.address", host + ":8088" )
+        + propertyElement( "yarn.nodemanager.hostname", host )
+        + propertyElement( "yarn.nodemanager.aux-services", "mapreduce_shuffle" )
+        + propertyElement( "yarn.nodemanager.aux-services.mapreduce_shuffle.class",
+        "org.apache.hadoop.mapred.ShuffleHandler" )
+        + propertyElement( "yarn.nodemanager.resource.memory-mb", "2048" )
+        + propertyElement( "yarn.scheduler.minimum-allocation-mb", "256" )
+        + propertyElement( "yarn.scheduler.maximum-allocation-mb", "2048" )
+        + propertyElement( "yarn.nodemanager.vmem-check-enabled", "false" )
+        + propertyElement( "yarn.nodemanager.pmem-check-enabled", "false" ) );
+  }
+
+  private static String mapredSite() {
+    return configuration(
+      propertyElement( "mapreduce.framework.name", "yarn" )
+        + propertyElement( "mapreduce.jvm.add-opens-as-default", "false" )
+        + propertyElement( "mapreduce.application.classpath",
+        "/opt/hadoop/share/hadoop/mapreduce/*,/opt/hadoop/share/hadoop/mapreduce/lib/*" )
+        + propertyElement( "mapreduce.map.memory.mb", "512" )
+        + propertyElement( "mapreduce.reduce.memory.mb", "512" )
+          + propertyElement( "yarn.app.mapreduce.am.env", "HADOOP_MAPRED_HOME=/opt/hadoop" )
+          + propertyElement( "mapreduce.map.env", "HADOOP_MAPRED_HOME=/opt/hadoop" )
+          + propertyElement( "mapreduce.reduce.env", "HADOOP_MAPRED_HOME=/opt/hadoop" )
+          + propertyElement( "yarn.app.mapreduce.am.command-opts",
+          "-Xmx1024m --add-opens java.base/java.lang=ALL-UNNAMED" )
+          + propertyElement( "mapreduce.map.java.opts",
+          "-Xmx384m --add-opens java.base/java.lang=ALL-UNNAMED" )
+          + propertyElement( "mapreduce.reduce.java.opts",
+          "-Xmx384m --add-opens java.base/java.lang=ALL-UNNAMED" ) );
   }
 
   private static String hbaseSite( String host, String port ) {
@@ -145,6 +189,18 @@ public final class NamedClusterMetastoreBuilder {
         }
       } );
     }
+  }
+
+  private static void writeShimConfig( Path outputDir, String clusterName ) throws IOException {
+    Path configDirectory = outputDir.resolve( "pentaho" ).resolve( "NamedCluster" ).resolve( "Configs" )
+      .resolve( clusterName );
+    Files.createDirectories( configDirectory );
+    Files.writeString( configDirectory.resolve( "config.properties" ),
+      "name=Apache Vanilla 3.3.0\n"
+        + "classpath=\n"
+        + "library.path=\n"
+        + "ignore.classes=org.apache.derby.iapi.services\n"
+        + "mr1.java.system.hadoop.cluster.path.separator=:\n" );
   }
 
   private static String required( String key ) {
