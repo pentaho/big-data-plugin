@@ -262,9 +262,8 @@ public class AvroInputTest {
     Decoder decoder;
     DecoderFactory factory = new DecoderFactory();
 
-    GenericDatumReader reader = new GenericDatumReader( schema );
-    Schema firstRec = schema.getTypes().get( 1 );
-    GenericData.Record topLevel = new GenericData.Record( firstRec );
+    GenericDatumReader<GenericData.Record> reader = new GenericDatumReader<GenericData.Record>( schema );
+    GenericData.Record topLevel;
 
     AvroInputMeta.AvroField field = new AvroInputMeta.AvroField();
     field.m_fieldName = "test";
@@ -274,7 +273,8 @@ public class AvroInputTest {
     int i = 0;
     for ( String row : s_jsonDataTopLevelUnion ) {
       decoder = factory.jsonDecoder( schema, row );
-      reader.read( topLevel, decoder );
+      // Avro 1.12.1: Use null and capture return value
+      topLevel = reader.read( null, decoder );
 
       field.init( 0 ); // output index isn't needed for the test
       field.reset( new Variables() );
@@ -947,8 +947,8 @@ public class AvroInputTest {
     Decoder decoder;
     DecoderFactory factory = new DecoderFactory();
 
-    Map<Utf8, Object> topLevel = new HashMap<Utf8, Object>();
-    GenericDatumReader reader = new GenericDatumReader( schema );
+    Map<Utf8, Object> topLevel;
+    GenericDatumReader<Map<Utf8, Object>> reader = new GenericDatumReader<Map<Utf8, Object>>( schema );
 
     AvroInputMeta.AvroField field = new AvroInputMeta.AvroField();
     field.m_fieldName = "test";
@@ -956,7 +956,8 @@ public class AvroInputTest {
     field.m_kettleType = ValueMeta.getTypeDesc( ValueMetaInterface.TYPE_INTEGER );
 
     decoder = factory.jsonDecoder( schema, s_jsonDataTopLevelMap );
-    reader.read( topLevel, decoder );
+    // Avro 1.12.1: Use null and capture return value
+    topLevel = reader.read( null, decoder );
 
     field.init( 0 ); // output index isn't needed for the test
     field.reset( new Variables() );
@@ -979,8 +980,8 @@ public class AvroInputTest {
     Decoder decoder;
     DecoderFactory factory = new DecoderFactory();
 
-    Map<Utf8, Object> topLevel = new HashMap<Utf8, Object>();
-    GenericDatumReader reader = new GenericDatumReader( schema );
+    Map<Utf8, Object> topLevel;
+    GenericDatumReader<Map<Utf8, Object>> reader = new GenericDatumReader<Map<Utf8, Object>>( schema );
 
     AvroInputMeta.AvroField field = new AvroInputMeta.AvroField();
     field.m_fieldName = "test";
@@ -988,7 +989,8 @@ public class AvroInputTest {
     field.m_kettleType = ValueMeta.getTypeDesc( ValueMetaInterface.TYPE_STRING );
 
     decoder = factory.jsonDecoder( schema, s_jsonDataTopLevelMap );
-    reader.read( topLevel, decoder );
+    // Avro 1.12.1: Use null and capture return value
+    topLevel = reader.read( null, decoder );
 
     field.init( 0 ); // output index isn't needed for the test
     field.reset( new Variables() );
@@ -1109,8 +1111,8 @@ public class AvroInputTest {
     Decoder decoder;
     DecoderFactory factory = new DecoderFactory();
 
-    Map<Utf8, Object> topLevel = new HashMap<Utf8, Object>();
-    GenericDatumReader reader = new GenericDatumReader( schema );
+    Map<Utf8, Object> topLevel;
+    GenericDatumReader<Map<Utf8, Object>> reader = new GenericDatumReader<Map<Utf8, Object>>( schema );
 
     AvroInputMeta.AvroField field = new AvroInputMeta.AvroField();
     field.m_fieldName = "test";
@@ -1127,7 +1129,8 @@ public class AvroInputTest {
     expansion.reset( new Variables() );
 
     decoder = factory.jsonDecoder( schema, s_jsonDataTopLevelMap );
-    reader.read( topLevel, decoder );
+    // Avro 1.12.1: Use null and capture return value
+    topLevel = reader.read( null, decoder );
 
     Object[][] result = expansion.convertToKettleValues( topLevel, schema, mock( Schema.class ), new Variables(), false );
 
