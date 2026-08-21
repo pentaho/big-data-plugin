@@ -164,12 +164,6 @@
             <version>${pdi.version}</version>
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>pentaho-kettle</groupId>
-            <artifactId>kettle-core</artifactId>
-            <version>${pdi.version}</version>
-            <scope>compile</scope>
-        </dependency>
             <!-- Test dependencies -->
         <dependency>
           <groupId>junit</groupId>

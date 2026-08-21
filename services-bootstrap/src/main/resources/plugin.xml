@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin id="pentaho-big-data-services-bootstrap" description="Pentaho Big Data Services Bootstrap">
+
+  <lifecycle>
+    <lifecycle-listener class="org.pentaho.big.data.services.bootstrap.BigDataPluginLifecycleListener"/>
+  </lifecycle>
+
+  <lifecycle>
+    <lifecycle-listener class="org.pentaho.big.data.hadoop.bootstrap.HadoopConfigurationBootstrap"/>
+  </lifecycle>
+
+</plugin>
