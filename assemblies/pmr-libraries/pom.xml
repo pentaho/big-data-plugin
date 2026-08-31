@@ -609,17 +609,6 @@
       <version>${pentaho-json.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.mnode.mstor</groupId>
-      <artifactId>mstor</artifactId>
-      <version>0.9.13</version>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
       <groupId>org.mvel</groupId>
       <artifactId>mvel2</artifactId>
       <version>2.0.10</version>
