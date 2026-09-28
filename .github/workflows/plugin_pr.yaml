@@ -1,0 +1,38 @@
+# PR trigger: runs the integration tests (build apachevanilla plugin + docker ITs) on pull requests.
+name: Plugin PR
+
+on:
+  pull_request:
+    paths:
+      # 1. Include all files
+      - "**"
+
+      # 2. Exclude docs / non-code changes
+      - "!**/*.md"
+      - "!**/*.markdown"
+      - "!**/*.txt"
+      - "!dev-doc/**"
+      - "!LICENSE.txt"
+      - "!README.markdown"
+
+      # 3. Exclude other workflows/actions changes...
+      - "!.github/**"
+
+      # 4. ...but re-include the IT pipeline files so changes to them are validated
+      - ".github/workflows/plugin_pr.yaml"
+      - ".github/workflows/integration_tests.yaml"
+      - ".github/actions/**"
+      - ".github/settings.xml"
+
+# Cancel superseded runs for the same PR
+concurrency:
+  group: plugin-pr-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  integration-tests:
+    uses: ./.github/workflows/integration_tests.yaml
+    with:
+      runs_on: k8s
+      plugin_variant: apachevanilla
+    secrets: inherit
