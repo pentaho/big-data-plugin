@@ -1,0 +1,92 @@
+name: "Docker Cleanup"
+description: "Cleans Docker containers, networks, and volumes. Filters self if running in a container."
+
+runs:
+  using: "composite"
+  steps:
+    - name: Clean Docker Resources
+      shell: bash
+      continue-on-error: true # Keep this from the original step
+      run: |
+        set -e
+        echo "Starting Docker cleanup..."
+
+        # Default: get all containers
+        CONTAINER_IDS=$(docker ps -aq)
+
+        # If running in a container, filter out this container's ID
+        if [ -f /.dockerenv ]; then
+          echo "Detected running in container. Attempting to identify self..."
+
+          # Debug: show cgroup contents
+          echo "=== Debug: cgroup contents ==="
+          cat /proc/self/cgroup 2>/dev/null || echo "Could not read /proc/self/cgroup"
+          echo "=== End cgroup contents ==="
+
+          # Try multiple methods to get container ID
+          # Method 1: Try cgroup v2 format (single line with docker/)
+          SELF_CONTAINER_ID=$(cat /proc/self/cgroup 2>/dev/null | grep -oP 'docker[/-]\K[0-9a-f]{64}' | head -n1 || echo "")
+
+          # Method 2: Try cgroup v1 format (multiple lines)
+          if [ -z "$SELF_CONTAINER_ID" ]; then
+            SELF_CONTAINER_ID=$(cat /proc/self/cgroup 2>/dev/null | grep -oP '/docker/\K[0-9a-f]{64}' | head -n1 || echo "")
+          fi
+
+          # Method 3: Try extracting any 64-char hex string from cgroup
+          if [ -z "$SELF_CONTAINER_ID" ]; then
+            SELF_CONTAINER_ID=$(cat /proc/self/cgroup 2>/dev/null | grep -oE '[0-9a-f]{64}' | head -n1 || echo "")
+          fi
+
+          # Method 4: Check hostname - in Docker it's usually the short container ID
+          if [ -z "$SELF_CONTAINER_ID" ]; then
+            # Hostname is typically the first 12 chars of container ID
+            # Try to find a container that starts with this hostname
+            if [ ! -z "$HOSTNAME" ]; then
+              echo "Trying to match hostname: $HOSTNAME"
+              MATCHING_CONTAINER=$(docker ps -aq --filter "id=$HOSTNAME" 2>/dev/null | head -n1 || echo "")
+              if [ ! -z "$MATCHING_CONTAINER" ]; then
+                echo "Found matching container by hostname: $MATCHING_CONTAINER"
+                SELF_CONTAINER_ID="$HOSTNAME"
+              fi
+            fi
+          fi
+
+          # Fallback to hostname if all methods fail
+          if [ -z "$SELF_CONTAINER_ID" ]; then
+            SELF_CONTAINER_ID="$HOSTNAME"
+            echo "Could not extract container ID. Using hostname: $HOSTNAME"
+            echo "All container IDs before filtering:"
+            echo "$CONTAINER_IDS"
+            # Use partial match for hostname since it's only first 12 characters
+            CONTAINER_IDS=$(echo "$CONTAINER_IDS" | grep -v "^${HOSTNAME}" || true)
+          else
+            echo "Found full container ID: $SELF_CONTAINER_ID"
+            # Extract first 12 characters to match docker ps short ID format
+            SELF_CONTAINER_SHORT_ID="${SELF_CONTAINER_ID:0:12}"
+            echo "Short container ID (first 12 chars): $SELF_CONTAINER_SHORT_ID"
+            echo "All container IDs before filtering:"
+            echo "$CONTAINER_IDS"
+            # Use prefix match since docker ps returns short IDs
+            CONTAINER_IDS=$(echo "$CONTAINER_IDS" | grep -v "^${SELF_CONTAINER_SHORT_ID}" || true)
+          fi
+
+          echo "Container IDs after filtering:"
+          echo "$CONTAINER_IDS"
+        else
+          echo "Running on host. Targeting all containers for removal."
+        fi
+
+        # Remove the filtered list of containers
+        if [ ! -z "$CONTAINER_IDS" ]; then
+          echo "Removing containers..."
+          docker rm -f $CONTAINER_IDS 2>/dev/null || true
+        else
+          echo "No containers to remove."
+        fi
+
+        # Prune networks and volumes
+        echo "Pruning unused networks and volumes..."
+        docker network prune -f 2>/dev/null || true
+        docker volume prune -f 2>/dev/null || true
+
+        echo "Docker cleanup complete."
