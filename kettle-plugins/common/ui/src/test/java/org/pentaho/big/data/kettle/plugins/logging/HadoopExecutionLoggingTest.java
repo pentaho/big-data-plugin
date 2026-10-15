@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -101,6 +102,20 @@ public class HadoopExecutionLoggingTest {
     ArgumentCaptor<String> messages = ArgumentCaptor.forClass( String.class );
     verify( logChannel, times( 2 ) ).logBasic( messages.capture() );
     assertMessagesContain( messages.getAllValues(), "application_6", "application_7" );
+  }
+
+  @Test
+  public void rendersParameterizedMessagesWithTheirArguments() {
+    LogChannelInterface logChannel = logChannel( "parameterized" );
+
+    try ( HadoopExecutionLogging ignored = HadoopExecutionLogging.start( logChannel ) ) {
+      HADOOP_LOGGER.info( "Submitted application {}", "application_8" );
+    }
+
+    ArgumentCaptor<String> messages = ArgumentCaptor.forClass( String.class );
+    verify( logChannel ).logBasic( messages.capture() );
+    assertMessagesContain( messages.getAllValues(), "Submitted application application_8" );
+    assertFalse( messages.getValue().contains( "ParameterizedMessage" ) );
   }
 
   private LogChannelInterface logChannel( String id ) {

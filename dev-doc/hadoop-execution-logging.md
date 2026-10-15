@@ -187,6 +187,7 @@ preserving the same channel filtering and final-close restoration rules.
 | Platform `LogUtilTest` | Scoped `INFO` admission, parent/root non-propagation, and final-close restoration. |
 | `HadoopExecutionLoggingTest` | Concurrent synthetic YARN application IDs reach only their owner channels; duplicate categories are ignored; cleanup detaches appenders. |
 | `AbstractSqoopJobEntryTest` | The `System.err` redirect remains installed until overlapping Sqoop executions finish. |
+| `ThreadContextPropagatingExecutorServiceTest` | A pool task sees the `ThreadContext` of its submitter, the worker thread's own context is restored afterwards, and overlapping tasks keep the context captured at submit time. |
 | Focused job-entry suites | Existing MapReduce, PMR, Pig, Oozie, and Sqoop behavior remains valid after lifecycle wiring. |
 
 The fast tests do not prove the assembled PMR runtime or a real YARN
@@ -201,6 +202,209 @@ against a supported Hadoop cluster:
 
 A Pentaho Server action or schedule should run the same scenario as release
 acceptance because it exercises the embedded-engine path in Tomcat.
+
+## Manual reproduction with a local Docker cluster
+
+This procedure reproduces PDI-20391 on a developer machine (macOS, Docker
+Desktop) with the Hadoop Job Executor sample jobs. It compares a build without
+`HadoopExecutionLogging` against one with it. It was exercised with 11.0.0.3-312
+(before the fix) and 11.1.0.0-436 (with the fix).
+
+### What to compare
+
+| Build | Shim | Expected Spoon log pane for the entry |
+| --- | --- | --- |
+| 11.0.0.3-312 (no `HadoopExecutionLogging`) | `cdpdc71` | Only Kettle's own lines: progress (`Setup Complete: … Mapper Completion: …`) and task events (`[SUCCEEDED] -- Task: attempt_…`). |
+| 11.1.0.0-436 (fixed) | `apachevanilla` | The same lines plus the `org.apache.hadoop` client lines that the unfixed build prints only on the console, for example `Connecting to ResourceManager at …`, `Submitted application application_…` and `The url to track the job: …`. |
+
+On the unfixed build the Hadoop client lines are not lost. They go to the
+console (the terminal that launched `spoon.sh`) through Log4j's console
+appender, in the console pattern (`17:39:10,551 INFO [RMProxy] …`) instead of
+the Kettle pattern. That is the symptom: the lines exist but do not reach the
+owning Kettle log channel.
+
+Check that a build has the fix with
+`unzip -l lib/pentaho-big-data-kettle-plugins-common-ui-*.jar | grep HadoopExecutionLogging`
+in the big-data plugin directory.
+
+### Builds and shims
+
+Use one PDI folder per version, because all installs of one user share
+`~/.kettle` and `~/.pentaho/metastore`.
+
+- Extract the `pdi-ee-client` zip, then replace
+  `data-integration/plugins/pentaho-big-data-plugin` with the contents of the
+  matching big-data plugin zip.
+- Set `active.hadoop.configuration` in the plugin's `plugin.properties`
+  (`apachevanilla` for 11.1, `cdpdc71` for 11.0).
+- Do not use the 11.0 `apache` or `emr` plugins as the baseline. The 11.0
+  `apache` shim declares no MapReduce service in `shim_services.yaml`, so
+  `JobEntryHadoopJobExecutor` ends with a null `MapReduceService`. The `cdp`
+  plugin of the same build does declare it.
+- For `cdpdc71`, copy the cluster's `core-site.xml`, `hdfs-site.xml`,
+  `yarn-site.xml`, `mapred-site.xml` and `capacity-scheduler.xml` into
+  `hadoop-configurations/cdpdc71/`.
+
+### Cluster
+
+Run Apache Hadoop 3.4.1 (`apache/hadoop:3.4.1`) as five containers:
+`namenode`, `datanode`, `resourcemanager`, `nodemanager` and `historyserver`.
+All of them mount the same `config/` directory at `/opt/hadoop/etc/hadoop`.
+Settings that are easy to miss:
+
+| Setting | Why |
+| --- | --- |
+| Publish `9000`, `9866`, `8032`, `8088`, `10020` and `40000-40010`. | HDFS RPC, DataNode data transfer, the ResourceManager, the job history and the MapReduce AppMaster port range. |
+| `/etc/hosts` on the host: `127.0.0.1 namenode datanode resourcemanager nodemanager historyserver`. | The cluster hands out host names, not container IPs. |
+| `dfs.client.use.datanode.hostname` and `dfs.datanode.use.datanode.hostname` set to `true`. | PDI must reach the DataNode through the host name. |
+| `HADOOP_MAPRED_HOME=/opt/hadoop` on the `nodemanager`, and it listed in `yarn.nodemanager.env-whitelist`. | Without it the AppMaster fails with `Could not find or load main class ...MRAppMaster`. |
+| `yarn.app.mapreduce.am.job.client.port-range=40000-40010` and `mapreduce.jobhistory.address=historyserver:10020` in the client-side `mapred-site.xml` (or as user-defined properties on the job entry). | PDI polls the AppMaster while the job runs and falls back to the history server afterwards. |
+| For the Cloudera `cdpdc71` client only: in the cluster `core-site.xml`, set `rpc.engine.org.apache.hadoop.hdfs.protocolPB.ClientNamenodeProtocolPB` to `org.apache.hadoop.ipc.ProtobufRpcEngine2` with `<final>true</final>`. | The 3.1.x client writes the legacy `ProtobufRpcEngine` into `job.xml`. Hadoop 3.4.1 uses shaded protobuf, so the AppMaster dies with `NoClassDefFoundError: com/google/protobuf/ServiceException`, or with `ClassCastException` if `protobuf-java-2.5.0.jar` is added. The `apachevanilla` shim does not need it. |
+
+Start Spoon, and Carte if you test on it, from a terminal with
+`HADOOP_USER_NAME=hadoop`, otherwise HDFS rejects the local macOS user name.
+Each process reads the variable when it starts, so a Carte started without it
+runs as the macOS user even if Spoon, which sends it the job, has it.
+
+Upload the sample input once and make it writable:
+
+```text
+docker cp <pdi>/data-integration/plugins/pentaho-big-data-plugin/samples/jobs/hadoop/excite-small.log namenode:/tmp/
+docker exec namenode hdfs dfs -mkdir -p /wordcount/input
+docker exec namenode hdfs dfs -put -f /tmp/excite-small.log /wordcount/input/
+docker exec namenode hdfs dfs -chmod -R 777 /wordcount
+```
+
+### Named cluster
+
+Create it in the Spoon UI: HDFS `namenode:9000`, user `hadoop`, job tracker
+`resourcemanager:8032`, security None, then run **Test**. The shim is
+`apachevanilla` on 11.1 and Cloudera Data Platform (CDP) 7.1 on 11.0.
+
+Keep only one named cluster for this host in
+`~/.pentaho/metastore/pentaho/NamedCluster/` at a time. The *Delete folders*
+entry in the samples names only `hdfs://namenode:9000`, so a second named
+cluster on the same host makes it fail. If you create a cluster by copying its
+XML file, change the file name, the `<id>`, the `name` field and the trailing
+`<name>` element; otherwise the copy is hidden behind the original. Restart
+Spoon after editing the metastore by hand.
+
+### Sample jobs
+
+The samples are the `.kjb` files `Hadoop Job Executor adv.kjb` (Advanced mode)
+and `Hadoop Job Executor simple.kjb` (Simple mode) in
+`plugins/pentaho-big-data-plugin/samples/jobs/hadoop/`. The `.ktr` files in
+that folder are the Pentaho MapReduce mapper and reducer and are not used here.
+Change these values in the job entry, then save:
+
+| Setting | Sample default | Change to |
+| --- | --- | --- |
+| Cluster | none | the named cluster |
+| HDFS host and port | `hadoop-server:8020` | `namenode:9000` |
+| Job tracker | `hadoop-server:8021` | `resourcemanager:8032` |
+| Jar path | `./samples/jobs/hadoop/pentaho-mapreduce-sample.jar` (not resolved) | the absolute path of that jar in the install |
+| Advanced mode, user-defined properties | placeholders | add the AppMaster port range and `mapreduce.jobhistory.address` shown above |
+| Simple mode, arguments | `--hdfsHost=hadoop-server:8020 --jobTrackerHost=hadoop-server:8021` | `--hdfsHost=namenode:9000` |
+| *Clean Output* entry | `hdfs://hadoop-server:8020/wordcount/output` | `hdfs://namenode:9000/wordcount/output` |
+
+Spoon rewrites the whole file when saving, so a plain diff against the original
+is noisy. Only these values matter.
+
+### Confirm the run really succeeded
+
+The Hadoop Job Executor entry can finish green while the YARN application is
+`FAILED`. Confirm with the ResourceManager UI (`http://localhost:8088`) or:
+
+```text
+docker exec namenode hdfs dfs -ls /wordcount/output      # expects _SUCCESS and part-r-00000
+docker exec nodemanager sh -c 'ls /var/log/hadoop/userlogs/<application_id>/*'
+```
+
+The `syslog` of the `..._000001` container is the AppMaster log. The job fails
+if `/wordcount/output` exists before the run; the *Clean Output* entry removes
+it.
+
+### Known gaps
+
+- **Simple mode (fixed, single-run verified).** `FutureMapReduceJobSimpleImpl`
+  runs the driver `main()` on a pool thread created by
+  `Executors.newCachedThreadPool()` in the initializer. That thread had no
+  `logChannelId`, so its events were rejected by the filtered appender
+  (invariant 6). Observed on 11.1.0.0-436 before the fix: in one Spoon session,
+  against one cluster and one named cluster, `Hadoop Job Executor adv.kjb` showed
+  the client lines in the entry log and `Hadoop Job Executor simple.kjb` showed
+  only Kettle's own `Waiting for execution of … to finish...` line once per
+  second, although the YARN application (`WordCount`) finished `SUCCEEDED` and
+  wrote `/wordcount/output`. The thread explanation came from inspecting the
+  shipped classes, not from a runtime trace.
+  The pool is now wrapped by `ThreadContextPropagatingExecutorService`
+  (services-bootstrap), which runs each task with the `ThreadContext` map of the
+  submitting thread. It has to be applied in two places:
+  `BigDataCEServiceInitializerImpl` (CE distribution) and
+  `BigDataEEServicesInitializerImpl` (separate repository, packaged in
+  `services-bootstrap-ee-*.jar`). The EE class extends the CE one but overrides
+  `initializeMapReduceServices` and creates its own `newCachedThreadPool()`
+  instances, one for the plain MapReduce factory and one for the impersonation
+  factory, so both are wrapped there. The EE jar shades the CE
+  `services-bootstrap` classes, so build order is: install `services-bootstrap`
+  here, then build `services-bootstrap-ee`. Do not replace the EE jar with the
+  CE jar to test: the EE initializer disappears and the named cluster's HDFS
+  tests fail.
+  After the rebuild, one run of `Hadoop Job Executor simple.kjb` on 11.1.0.0-436
+  (EE client, `apachevanilla`) showed the `WordCount - Simple` entry log with
+  `Connecting to ResourceManager…`, `Submitting tokens for job: job_…`,
+  `The url to track the job: …/application_…/`, `Running job: job_…`, the
+  `map/reduce` progress lines, `completed successfully` and the counters. The
+  once-per-second `Waiting for execution of … to finish...` lines remain
+  interleaved. Not covered: the Knox MapReduce factory (no pool is created for
+  it in the initializer) and `simple_blocking=N` (the scope closes before the
+  driver finishes).
+- **Message formatting (fixed in the appender, root cause still in Kettle).**
+  Before the fix, messages with `{}` placeholders appeared in the Kettle log as
+  raw `ParameterizedMessage[messagePattern=…]` text, for example
+  `Connecting to ResourceManager at {}`, `Executing with tokens: {}`,
+  `Unable to find '{}'.` and `Submitted application {}`. `Log4jKettleLayout`
+  (kettle-core, used by the appender in `HadoopExecutionLogging`) reads the
+  message with `LogEvent.getMessage()`, handles only Kettle's `LogMessage` and
+  otherwise falls back to `Object.toString()`; it never calls
+  `getFormattedMessage()`, and `ParameterizedMessage.toString()` does not
+  include the arguments. The effect was that the `Submitted application` line
+  did not show the application ID in the entry log (it was still visible in
+  `The url to track the job: …/application_…/` and in
+  `Submitting tokens for job: job_…`). The appender now uses
+  `FormattedMessageKettleLayout`, a private subclass that passes the layout a
+  copy of the event whose message is the already formatted text, except for
+  Kettle `LogMessage` and `SimpleMessage`, which are left untouched.
+  `HadoopExecutionLoggingTest#rendersParameterizedMessagesWithTheirArguments`
+  fails with the previous layout and passes now. The same `Log4jKettleLayout`
+  limitation still affects any other caller in Kettle; this change only fixes
+  the Hadoop appender. Verified on 11.1.0.0-436 with `Hadoop Job Executor
+  simple.kjb`: the entry log now shows
+  `Connecting to ResourceManager at resourcemanager/127.0.0.1:8032`,
+  `Executing with tokens: []`, `Unable to find 'resource-types.xml'.` and
+  `Submitted application application_…`.
+- **Isolation (checked in Spoon and on Carte, Simple mode).** Two copies of
+  `Hadoop Job Executor simple.kjb` (`simple_a`, `simple_b`, with `--output` and
+  the Clean Output folder set to `/wordcount/output_a` and `/wordcount/output_b`)
+  were started about six seconds apart in the same Spoon session on
+  11.1.0.0-436 (EE client, `apachevanilla`). The `WordCount - Simple` entry log
+  of A contained only `job_1791897433339_0013` / `application_1791897433339_0013`
+  and the log of B only `…_0014`; no line of one run appeared in the other.
+  YARN reported both applications `FINISHED` / `SUCCEEDED` and both output
+  folders contain `_SUCCESS` and `part-00000`. Limitation of this run: both
+  drivers were alive and tracking at the same time (B submitted while A was
+  running), but B's job only started executing after A had finished, so the
+  map/reduce progress lines of the two runs did not interleave in time.
+  The same two jobs were then sent to a Carte started from the same install with
+  `HADOOP_USER_NAME=hadoop` (A and B ten seconds apart, YARN applications
+  `…_0015` and `…_0016`). Each log contained only its own `job_…` /
+  `application_…` IDs, both applications ended `SUCCEEDED` and both output
+  folders have `_SUCCESS`. The limitation repeated: A's application ran from
+  19:27:59 to 19:29:07, B's was submitted at 19:28:08 but its first progress
+  line (`running in uber mode`, `map 0% reduce 0%`) appeared at 19:30:42, after A
+  had finished. Not yet checked: more than two runs, and runs whose map/reduce
+  phases really overlap (needs a cluster that schedules both applications at
+  once), and Advanced mode concurrency.
 
 ## Guidance for maintainers and agents
 

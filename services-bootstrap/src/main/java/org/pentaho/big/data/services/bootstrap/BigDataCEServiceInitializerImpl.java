@@ -415,9 +415,10 @@ public class BigDataCEServiceInitializerImpl implements BigDataServicesInitializ
 
       if ( availableMapreduceOptions.contains( "mapreduce" ) ) {
         logger.debug( "Adding 'mapreduce' factory." );
+        // Simple-mode drivers run on this pool; the Log4j ThreadContext (Kettle log channel id) must follow them.
         MapReduceServiceFactoryImpl mapReduceServiceFactory = new MapReduceServiceFactoryImpl(
           hadoopShim,
-          Executors.newCachedThreadPool(),
+          new ThreadContextPropagatingExecutorService( Executors.newCachedThreadPool() ),
           visitorServices
         );
         namedClusterServiceLocator.factoryAdded( mapReduceServiceFactory, mapReducefactoryMap );
