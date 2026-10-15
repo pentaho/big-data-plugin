@@ -21,7 +21,11 @@ import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.filter.AbstractFilter;
+import org.apache.logging.log4j.core.impl.Log4jLogEvent;
+import org.apache.logging.log4j.message.Message;
+import org.apache.logging.log4j.message.SimpleMessage;
 import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.core.logging.LogMessage;
 import org.pentaho.di.core.logging.log4j.KettleLogChannelAppender;
 import org.pentaho.di.core.logging.log4j.Log4jKettleLayout;
 import org.pentaho.platform.api.util.LogUtil;
@@ -124,13 +128,36 @@ public final class HadoopExecutionLogging implements AutoCloseable {
     private final String name;
 
     private NamedKettleLogChannelAppender( LogChannelInterface logChannel, String name ) {
-      super( logChannel, new Log4jKettleLayout( StandardCharsets.UTF_8, true ) );
+      super( logChannel, new FormattedMessageKettleLayout() );
       this.name = name;
     }
 
     @Override
     public String getName() {
       return name;
+    }
+  }
+
+  /**
+   * {@link Log4jKettleLayout} renders any message that is not a Kettle {@link LogMessage} with
+   * {@code Object.toString()}. For a parameterized Hadoop message such as {@code "Submitted application {}"} that is
+   * {@code ParameterizedMessage[messagePattern=...]} without the arguments, so the application id is lost. Hand the
+   * layout the formatted text instead.
+   */
+  private static final class FormattedMessageKettleLayout extends Log4jKettleLayout {
+    private FormattedMessageKettleLayout() {
+      super( StandardCharsets.UTF_8, true );
+    }
+
+    @Override
+    public String format( LogEvent event ) {
+      Message message = event.getMessage();
+      if ( message == null || message instanceof LogMessage || message instanceof SimpleMessage ) {
+        return super.format( event );
+      }
+      return super.format( new Log4jLogEvent.Builder( event )
+        .setMessage( new SimpleMessage( message.getFormattedMessage() ) )
+        .build() );
     }
   }
 
