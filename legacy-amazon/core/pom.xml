@@ -25,7 +25,6 @@
     <commands.version>3.3.0-I20070605-0010</commands.version>
     <publish-sonar-phase>site</publish-sonar-phase>
     <high-scale-lib.version>1.1.2</high-scale-lib.version>
-    <jline.version>0.9.94</jline.version>
     <easymock.version>3.0</easymock.version>
     <aws-java-sdk.version>1.12.791</aws-java-sdk.version>
   </properties>
@@ -202,11 +201,6 @@
       <groupId>net.java.dev.jets3t</groupId>
       <artifactId>jets3t</artifactId>
       <version>${jets3t.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>jline</groupId>
-      <artifactId>jline</artifactId>
-      <version>${jline.version}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
