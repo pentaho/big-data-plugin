@@ -33,6 +33,7 @@ import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.job.AbstractJobEntry;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
 import org.pentaho.big.data.kettle.plugins.job.PropertyEntry;
+import org.pentaho.big.data.kettle.plugins.logging.HadoopExecutionLogging;
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.di.core.exception.KettleFileException;
@@ -283,6 +284,8 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
     return new Runnable() {
       @Override
       public void run() {
+        HadoopExecutionLogging hadoopExecutionLogging = HadoopExecutionLogging.start( log );
+        try {
 
         HadoopClientServices hadoopClientServices = getHadoopClientServices();
 
@@ -347,6 +350,9 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
         } catch ( InterruptedException e ) {
           setJobResultFailed( jobResult );
           logError( BaseMessages.getString( OozieJobExecutorJobEntry.class, "Oozie.JobExecutor.ERROR.Threading" ), e );
+        }
+        } finally {
+          hadoopExecutionLogging.close();
         }
       }
     };
