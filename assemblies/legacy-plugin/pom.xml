@@ -167,11 +167,6 @@
       <artifactId>httpcore</artifactId>
     </dependency>
     <dependency>
-      <groupId>net.java.dev.jets3t</groupId>
-      <artifactId>jets3t</artifactId>
-      <version>${dependency.jets3t.revision}</version>
-    </dependency>
-    <dependency>
       <groupId>jline</groupId>
       <artifactId>jline</artifactId>
       <version>${dependency.jline.revision}</version>
