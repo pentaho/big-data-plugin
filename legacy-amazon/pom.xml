@@ -21,7 +21,6 @@
   <properties>
     <common.version>3.3.0-v20070426</common.version>
     <pig.version>0.8.1</pig.version>
-    <jets3t.version>0.9.4</jets3t.version>
     <hadoop.version>0.20.2</hadoop.version>
     <hbase.version>0.90.3</hbase.version>
     <xml-apis.version>2.0.2</xml-apis.version>
@@ -155,11 +154,6 @@
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpcore</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>net.java.dev.jets3t</groupId>
-      <artifactId>jets3t</artifactId>
-      <version>${jets3t.version}</version>
     </dependency>
     <dependency>
       <groupId>jline</groupId>
