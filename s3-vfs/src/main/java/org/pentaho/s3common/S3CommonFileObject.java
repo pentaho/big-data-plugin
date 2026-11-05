@@ -31,6 +31,7 @@ import org.pentaho.di.connections.vfs.provider.ConnectionFileObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
@@ -112,9 +113,7 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
     if ( getType() == FileType.FOLDER || isRootBucket() ) {
       childrenList = getS3ObjectsFromVirtualFolder( key, bucketName );
     }
-    String[] childrenArr = new String[ childrenList.size() ];
-
-    return childrenList.toArray( childrenArr );
+    return childrenList.toArray( new String[ childrenList.size() ] );
   }
 
   protected String getS3BucketName() {
@@ -133,10 +132,7 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
     List<String> childrenList = new ArrayList<>();
 
     // fix cases where the path doesn't include the final delimiter
-    String realKey = key;
-    if ( !realKey.endsWith( DELIMITER ) ) {
-      realKey += DELIMITER;
-    }
+    String realKey = withTrailingDelimiter( key );
 
     if ( "".equals( key ) && "".equals( bucketName ) ) {
       //Getting buckets in root folder
@@ -152,31 +148,43 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
 
   private void getObjectsFromNonRootFolder( String key, String bucketName, List<String> childrenList, String realKey ) {
     //Getting files/folders in a folder/bucket
-    String prefix = key.isEmpty() || key.endsWith( DELIMITER ) ? key : key + DELIMITER;
+    String prefix = withTrailingDelimiterIfNotEmpty( key );
     ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
       .withBucketName( bucketName )
       .withPrefix( prefix )
       .withDelimiter( DELIMITER );
 
-    ObjectListing ol = fileSystem.getS3Client().listObjects( listObjectsRequest );
+    // The generation must be read before the client is acquired and the same client used for the whole listing:
+    // if the client is replaced (and the caches cleared) at any point, the generation no longer matches and the
+    // results of this listing are not cached.
+    long cacheGeneration = fileSystem.getCacheGeneration();
+    AmazonS3 s3Client = fileSystem.getS3Client();
+    ObjectListing ol = s3Client.listObjects( listObjectsRequest );
 
     ArrayList<S3ObjectSummary> allSummaries = new ArrayList<>( ol.getObjectSummaries() );
     ArrayList<String> allCommonPrefixes = new ArrayList<>( ol.getCommonPrefixes() );
 
     // get full list
     while ( ol.isTruncated() ) {
-      ol = fileSystem.getS3Client().listNextBatchOfObjects( ol );
+      ol = s3Client.listNextBatchOfObjects( ol );
       allSummaries.addAll( ol.getObjectSummaries() );
       allCommonPrefixes.addAll( ol.getCommonPrefixes() );
     }
 
     for ( S3ObjectSummary s3os : allSummaries ) {
       if ( !s3os.getKey().equals( realKey ) ) {
+        // Cache the metadata this listing already returned for each file, so that resolving/attaching it right
+        // afterward (as Commons-VFS traversal does) can reuse it instead of issuing a redundant per-file
+        // getObjectMetadata request. The self-referencing summary (matching realKey, representing this folder
+        // itself) is intentionally not cached here, since it must remain a FOLDER, not a FILE.
+        fileSystem.cacheListedFile( bucketName, s3os, cacheGeneration );
         childrenList.add( s3os.getKey().substring( prefix.length() ) );
       }
     }
 
     for ( String commonPrefix : allCommonPrefixes ) {
+      fileSystem.cacheListedFolder( bucketName, commonPrefix, cacheGeneration );
+
       if ( !commonPrefix.equals( realKey ) ) {
         childrenList.add( commonPrefix.substring( prefix.length() ) );
       }
@@ -213,7 +221,10 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
   @Override
   @SuppressWarnings( "java:S2139" ) // Logging for traceability while allowing the exception to propagate normally
   public void doAttach() throws Exception {
-    logger.debug( "Attach called on {}", getQualifiedName() );
+    if ( logger.isDebugEnabled() ) {
+      logger.debug( "Attach called on {}", getQualifiedName() );
+    }
+
     injectType( FileType.IMAGINARY );
 
     if ( isRootBucket() ) {
@@ -240,6 +251,10 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
       return;
     }
 
+    if ( attachFromCachedListing() ) {
+      return;
+    }
+
     try {
       // 1. Is it an existing file?
       s3ObjectMetadata = fileSystem.getS3Client().getObjectMetadata( bucketName, key );
@@ -252,8 +267,51 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
     }
   }
 
+  /**
+   * If this file/folder was already returned by a recent listing of its parent (e.g. Commons-VFS
+   * resolving/attaching each child right after doListChildren(), as "Get File Names" does), reuse that metadata
+   * instead of issuing a redundant per-file getObjectMetadata/listObjects call.
+   *
+   * @return true if the type was resolved from the cache, false if a remote lookup is still needed
+   */
+  private boolean attachFromCachedListing() {
+    ObjectMetadata cachedFileMetadata = fileSystem.getCachedFileMetadata( bucketName, key );
+
+    if ( cachedFileMetadata != null ) {
+      if ( logger.isTraceEnabled() ) {
+        logger.trace( "Using cached listing metadata for {}", getQualifiedName() );
+      }
+
+      s3ObjectMetadata = cachedFileMetadata;
+      injectType( FileType.FILE );
+      return true;
+    }
+
+    String keyWithDelimiter = withTrailingDelimiter( key );
+
+    if ( fileSystem.isCachedFolder( bucketName, keyWithDelimiter ) ) {
+      if ( logger.isTraceEnabled() ) {
+        logger.trace( "Using cached listing metadata (folder) for {}", getQualifiedName() );
+      }
+
+      injectType( FileType.FOLDER );
+      this.key = keyWithDelimiter;
+      return true;
+    }
+
+    return false;
+  }
+
+  private static String withTrailingDelimiter( String key ) {
+    return key.endsWith( DELIMITER ) ? key : key + DELIMITER;
+  }
+
+  private static String withTrailingDelimiterIfNotEmpty( String key ) {
+    return key.isEmpty() ? key : withTrailingDelimiter( key );
+  }
+
   protected void handleAttachException( String key, String bucket ) throws IOException {
-    String keyWithDelimiter = key + DELIMITER;
+    String keyWithDelimiter = withTrailingDelimiter( key );
     try {
       s3ObjectMetadata = fileSystem.getS3Client().getObjectMetadata( bucketName, key );
       injectType( FileType.FOLDER );
@@ -338,10 +396,12 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
 
       for ( S3ObjectSummary s3os : allSummaries ) {
         fileSystem.getS3Client().deleteObject( bucketName, s3os.getKey() );
+        fileSystem.invalidateCachedListing( bucketName, s3os.getKey() );
       }
     }
 
     fileSystem.getS3Client().deleteObject( bucketName, key );
+    fileSystem.invalidateCachedListing( bucketName, key );
   }
 
   @Override
@@ -428,11 +488,7 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
       }
 
       // Build the destination key: current key + relative path
-      String dstKey = this.key;
-      if ( !dstKey.isEmpty() && !dstKey.endsWith( DELIMITER ) ) {
-        dstKey += DELIMITER;
-      }
-      dstKey += relativePath;
+      String dstKey = withTrailingDelimiterIfNotEmpty( this.key ) + relativePath;
 
       // Create a new S3CommonFileObject with the calculated key
       return (S3CommonFileObject) fileSystem.resolveFile( getName().getRoot() + DELIMITER + bucketName + DELIMITER + dstKey );
@@ -460,6 +516,7 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
         logger.info( "Attempting S3->S3 copy from {} to {}",
           s3Src.getQualifiedName(), this.getQualifiedName() );
         fileSystem.copy( s3Src, dst );
+        fileSystem.invalidateCachedListing( dst.bucketName, dst.key );
         return;
       } catch ( FileSystemException e ) {
         copyException = e; // This way we can preserve the original exception if upload also fails
@@ -471,6 +528,7 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
     try {
       logger.info( "Uploading to S3 from {} to {}", src.getName(), this.getName() );
       fileSystem.upload( src, dst );
+      fileSystem.invalidateCachedListing( dst.bucketName, dst.key );
     } catch ( FileSystemException e ) {
       if ( copyException != null ) {
         // Both copy and upload failed - add copy exception as suppressed to preserve both stack traces
@@ -503,11 +561,13 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
       InputStream emptyContent = new ByteArrayInputStream( new byte[ 0 ] );
 
       // create a PutObjectRequest passing the folder name suffixed by /
-      PutObjectRequest putObjectRequest = createPutObjectRequest( bucketName, key + DELIMITER, emptyContent, metadata );
+      PutObjectRequest putObjectRequest = createPutObjectRequest( bucketName, withTrailingDelimiter( key ), emptyContent, metadata );
 
       // send request to S3 to create folder
       try {
         fileSystem.getS3Client().putObject( putObjectRequest );
+        // The request may carry a rewritten (legacy path) bucket/key, so invalidate what was actually written.
+        fileSystem.invalidateCachedListing( putObjectRequest.getBucketName(), putObjectRequest.getKey() );
       } catch ( AmazonS3Exception e ) {
         throw new FileSystemException( "vfs.provider.local/create-folder.error", this, e );
       }
@@ -539,6 +599,8 @@ public abstract class S3CommonFileObject extends AbstractFileObject<S3CommonFile
     // 1. copy the file
     CopyObjectRequest copyObjRequest = createCopyObjectRequest( bucketName, key, dest.bucketName, dest.key );
     fileSystem.getS3Client().copyObject( copyObjRequest );
+    fileSystem.invalidateCachedListing( copyObjRequest.getDestinationBucketName(),
+      copyObjRequest.getDestinationKey() );
 
     // 2. delete self
     delete();
