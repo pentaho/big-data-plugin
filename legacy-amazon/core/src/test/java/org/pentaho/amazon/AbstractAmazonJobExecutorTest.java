@@ -14,7 +14,6 @@
 
 package org.pentaho.amazon;
 
-import com.amazonaws.auth.AWSCredentials;
 import org.apache.commons.vfs2.FileObject;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -24,6 +23,7 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.amazon.hive.job.AmazonHiveJobExecutor;
+import org.pentaho.amazon.s3.S3FileSystemBootstrap;
 import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.job.JobMeta;
@@ -33,7 +33,6 @@ import java.io.File;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -55,6 +54,8 @@ public class AbstractAmazonJobExecutorTest {
 
   @Before
   public void setUp() throws Exception {
+    // register s3://
+    new S3FileSystemBootstrap().onEnvironmentInit();
     jobExecutor = spy( new AmazonHiveJobExecutor() );
     JobMeta parentJobMeta = mock( JobMeta.class );
     when( parentJobMeta.getBowl() ).thenReturn( DefaultBowl.getInstance() );
@@ -69,7 +70,6 @@ public class AbstractAmazonJobExecutorTest {
     String stagingDirWithScheme = "s3://s3/emr/hive";
     String expectedStagingDirPath = "/s3/emr/hive";
 
-    AWSCredentials credentials = mock( AWSCredentials.class );
     jobExecutor.stagingDir = stagingDirWithScheme;
     when( jobExecutor.getS3FileObjectPath() ).thenCallRealMethod();
 
