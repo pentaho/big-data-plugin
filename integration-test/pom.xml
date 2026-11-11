@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>pentaho</groupId>
+    <artifactId>pentaho-big-data-parent</artifactId>
+    <version>11.1.0.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>pentaho-big-data-integration-test</artifactId>
+  <name>Pentaho Big Data Plugin Integration Tests</name>
+  <packaging>pom</packaging>
+
+  <modules>
+    <module>pentaho-platform</module>
+  </modules>
+
+  <properties>
+    <maven.compiler.release>11</maven.compiler.release>
+    <maven.deploy.skip>true</maven.deploy.skip>
+
+    <!-- Plugin/tooling versions -->
+    <docker-maven-plugin.version>0.48.1</docker-maven-plugin.version>
+    <exec-maven-plugin.version>3.1.0</exec-maven-plugin.version>
+    <maven-dependency-plugin.version>3.6.1</maven-dependency-plugin.version>
+    <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
+    <maven-failsafe-plugin.version>3.2.5</maven-failsafe-plugin.version>
+    <junit-jupiter.version>5.10.2</junit-jupiter.version>
+    <assertj.version>3.25.3</assertj.version>
+    <commons-io.version>2.16.1</commons-io.version>
+
+    <docker.platforms/> <!-- Empty to skip buildx -->
+
+    <!--
+      Docker registry that hosts the automation/pdi-client image.
+      Override with -Dpentaho.docker.pull.host= if you use a different mirror.
+    -->
+    <pentaho.docker.pull.host>pntprv-docker-dev-orl.repo.eng.pentaho.com/</pentaho.docker.pull.host>
+
+    <!-- Parallel test execution is disabled by default for functional Hadoop tests. -->
+    <bigdata.it.parallel>false</bigdata.it.parallel>
+    <bigdata.it.thread-number>4</bigdata.it.thread-number>
+    <bigdata.it.rerun-failing-tests-count>1</bigdata.it.rerun-failing-tests-count>
+  </properties>
+
+  <profiles>
+    <profile>
+      <id>bigdata-it-profile</id>
+      <activation>
+        <property>
+          <name>runIntegrationTests</name>
+        </property>
+      </activation>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>exec-maven-plugin</artifactId>
+              <version>${exec-maven-plugin.version}</version>
+            </plugin>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-dependency-plugin</artifactId>
+              <version>${maven-dependency-plugin.version}</version>
+            </plugin>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-antrun-plugin</artifactId>
+              <version>${maven-antrun-plugin.version}</version>
+            </plugin>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-failsafe-plugin</artifactId>
+              <version>${maven-failsafe-plugin.version}</version>
+              <configuration>
+                <rerunFailingTestsCount>${bigdata.it.rerun-failing-tests-count}</rerunFailingTestsCount>
+                <properties>
+                  <configurationParameters>
+                    junit.jupiter.execution.parallel.enabled = ${bigdata.it.parallel}
+                    junit.jupiter.execution.parallel.mode.default = concurrent
+                    junit.jupiter.execution.parallel.mode.classes.default = concurrent
+                    junit.jupiter.execution.parallel.config.strategy = fixed
+                    junit.jupiter.execution.parallel.config.fixed.parallelism = ${bigdata.it.thread-number}
+                  </configurationParameters>
+                </properties>
+              </configuration>
+              <executions>
+                <execution>
+                  <goals>
+                    <goal>integration-test</goal>
+                    <goal>verify</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
+            <plugin>
+              <groupId>io.fabric8</groupId>
+              <artifactId>docker-maven-plugin</artifactId>
+              <version>${docker-maven-plugin.version}</version>
+              <configuration>
+                <dockerHost>${bigdata.it.dockerHost}</dockerHost>
+                <startParallel>false</startParallel>
+              </configuration>
+              <executions>
+                <execution>
+                  <id>setup-containers</id>
+                  <phase>pre-integration-test</phase>
+                  <goals>
+                    <goal>build</goal>
+                    <goal>start</goal>
+                  </goals>
+                </execution>
+                <execution>
+                  <id>teardown-containers</id>
+                  <phase>post-integration-test</phase>
+                  <goals>
+                    <goal>stop</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+
+    <!-- Docker network: reuse an existing one, or create a dedicated test network. -->
+    <profile>
+      <id>use-existing-docker-network</id>
+      <activation>
+        <property>
+          <name>use-existing-docker-network</name>
+        </property>
+      </activation>
+      <properties>
+        <test-network-name>${use-existing-docker-network}</test-network-name>
+      </properties>
+    </profile>
+    <profile>
+      <id>create-new-docker-network</id>
+      <activation>
+        <property>
+          <name>!use-existing-docker-network</name>
+        </property>
+      </activation>
+      <properties>
+        <test-network-name>bigdata-it-network</test-network-name>
+      </properties>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>io.fabric8</groupId>
+              <artifactId>docker-maven-plugin</artifactId>
+              <version>${docker-maven-plugin.version}</version>
+              <configuration>
+                <autoCreateCustomNetworks>true</autoCreateCustomNetworks>
+              </configuration>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+
+    <!-- Host-specific Docker daemon endpoint. -->
+    <profile>
+      <id>linux-host</id>
+      <activation>
+        <os>
+          <family>unix</family>
+        </os>
+      </activation>
+      <properties>
+        <bigdata.it.dockerHost>unix:///var/run/docker.sock</bigdata.it.dockerHost>
+      </properties>
+    </profile>
+    <profile>
+      <id>mac-host</id>
+      <activation>
+        <os>
+          <family>mac</family>
+        </os>
+      </activation>
+      <properties>
+        <bigdata.it.dockerHost>${env.DOCKER_HOST}</bigdata.it.dockerHost>
+      </properties>
+    </profile>
+    <profile>
+      <id>windows-host</id>
+      <activation>
+        <os>
+          <family>windows</family>
+        </os>
+      </activation>
+      <properties>
+        <bigdata.it.dockerHost>tcp://localhost:2375</bigdata.it.dockerHost>
+      </properties>
+    </profile>
+  </profiles>
+</project>
