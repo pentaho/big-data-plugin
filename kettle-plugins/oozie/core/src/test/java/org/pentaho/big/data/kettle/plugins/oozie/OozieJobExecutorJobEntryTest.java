@@ -17,6 +17,7 @@ package org.pentaho.big.data.kettle.plugins.oozie;
 import static junit.framework.Assert.assertEquals;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -50,6 +51,7 @@ import org.pentaho.di.core.KettleEnvironment;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
+import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.entry.JobEntryCopy;
 import org.pentaho.di.job.JobMeta;
 import org.pentaho.metastore.api.IMetaStore;
@@ -166,6 +168,43 @@ public class OozieJobExecutorJobEntryTest {
     List<String> warnings = je.getValidationWarnings( config );
 
     assertEquals( 2, warnings.size() );
+  }
+
+  @Test
+  public void testGetValidationWarnings_nullShimIdentifierUsesDefaultShim() {
+    OozieJobExecutorConfig config = new OozieJobExecutorConfig();
+    config.setNamedCluster( namedCluster );
+    when( namedCluster.getName() ).thenReturn( CLUSTER_NAME );
+    when( namedCluster.getShimIdentifier() ).thenReturn( null );
+
+    List<String> warnings = createJobEntryWithParentMeta().getValidationWarnings( config, false );
+
+    assertFalse( warnings.contains( missingNamedClusterMessage( config ) ) );
+  }
+
+  @Test
+  public void testGetValidationWarnings_emptyShimIdentifierIsMissingCluster() {
+    OozieJobExecutorConfig config = new OozieJobExecutorConfig();
+    config.setNamedCluster( namedCluster );
+    when( namedCluster.getName() ).thenReturn( CLUSTER_NAME );
+    when( namedCluster.getShimIdentifier() ).thenReturn( "" );
+
+    List<String> warnings = createJobEntryWithParentMeta().getValidationWarnings( config, false );
+
+    assertTrue( warnings.contains( missingNamedClusterMessage( config ) ) );
+  }
+
+  private OozieJobExecutorJobEntry createJobEntryWithParentMeta() {
+    OozieJobExecutorJobEntry je = new OozieJobExecutorJobEntry();
+    JobMeta jobMeta = new JobMeta();
+    jobMeta.setBowl( DefaultBowl.getInstance() );
+    je.setParentJobMeta( jobMeta );
+    return je;
+  }
+
+  private String missingNamedClusterMessage( OozieJobExecutorConfig config ) {
+    return BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.NamedCluster",
+      config.getClusterName() );
   }
 
   @Test

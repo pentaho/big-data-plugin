@@ -37,6 +37,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Objects;
 
 public class HadoopClusterDelegateImpl extends SpoonDelegate {
   public static final String SPOON_DIALOG_ERROR_DELETING_NAMED_CLUSTER_TITLE =
@@ -113,7 +114,7 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
         File newClusterConfigDir = new File( getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" + newClusterName );
         saveNamedCluster( metaStore, newNamedCluster );
         FileUtils.copyDirectory( sourceClusterConfigDir, newClusterConfigDir );
-        if ( !nc.getShimIdentifier().equals( newNamedCluster.getShimIdentifier() ) ) {
+        if ( !Objects.equals( nc.getShimIdentifier(), newNamedCluster.getShimIdentifier() ) ) {
           addConfigProperties( newNamedCluster );
         }
       }
@@ -214,7 +215,7 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
     String selectedShimIdentifier = selectedNamedCluster.getShimIdentifier();
 
     // if the previous shim identifier differs from the selected shim identifier then backup the old config and add the new one
-    if ( !previousShimIdentifier.equals( selectedShimIdentifier ) ) {
+    if ( !Objects.equals( previousShimIdentifier, selectedShimIdentifier ) ) {
       backupAndAddShimConfiguration( metaStore, namedCluster, selectedNamedCluster );
     }
 
@@ -245,7 +246,7 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
 
     // If the user changed the shim, create a new config.properties file that corresponds to that shim.
     String shimIdentifier = namedClusterDialogImpl.getNamedCluster().getShimIdentifier();
-    if ( !namedCluster.getShimIdentifier().equals( shimIdentifier ) ) {
+    if ( !Objects.equals( namedCluster.getShimIdentifier(), shimIdentifier ) ) {
       try {
         addConfigProperties( namedClusterDialogImpl.getNamedCluster() );
       } catch ( Exception e ) {
@@ -328,6 +329,11 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
     Path configPropertiesPath =
       Paths.get( getNamedClusterConfigsRootDir( null ) + "/" + namedCluster.getName() + "/" + "config.properties" );
     Files.createDirectories( clusterConfigDirPath );
+
+    if ( namedCluster.getShimIdentifier() == null ) {
+      return;
+    }
+
     String sampleConfigProperties = namedCluster.getShimIdentifier() + "sampleconfig.properties";
     InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream( sampleConfigProperties );
     if ( inputStream != null ) {
