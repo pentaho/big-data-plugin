@@ -34,6 +34,7 @@ import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.encryption.TwoWayPasswordEncoderPluginType;
 import org.pentaho.di.core.logging.KettleLogStore;
+import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.plugins.DatabasePluginType;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -51,12 +52,20 @@ import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import java.io.PrintStream;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -232,9 +241,80 @@ public class AbstractSqoopJobEntryTest {
     }
   }
 
+  /** Concurrent Sqoop executions keep Hadoop, Sqoop, and stderr messages separate, including after one exits. */
+  @Test
+  public void keepsConcurrentSqoopExecutionLogsSeparate() throws Exception {
+    AbstractSqoopJobEntry firstEntry = createJobEntry( "sqoop-first" );
+    AbstractSqoopJobEntry secondEntry = createJobEntry( "sqoop-second" );
+    assertNotEquals( firstEntry.getLogChannelId(), secondEntry.getLogChannelId() );
+    CountDownLatch attached = new CountDownLatch( 2 );
+    CountDownLatch logged = new CountDownLatch( 2 );
+    CountDownLatch firstFinished = new CountDownLatch( 1 );
+    ExecutorService executor = Executors.newFixedThreadPool( 2 );
+
+    try {
+      List<Future<?>> executions = new ArrayList<>();
+      for ( AbstractSqoopJobEntry entry : List.of( firstEntry, secondEntry ) ) {
+        String marker = entry == firstEntry ? "first-execution" : "second-execution";
+        executions.add( executor.submit( () -> {
+          entry.attachLoggingAppenders();
+          try {
+            attached.countDown();
+            assertTrue( "Both executions must attach before logging", attached.await( 10, TimeUnit.SECONDS ) );
+            LogManager.getLogger( "org.apache.sqoop" ).info( marker + " sqoop" );
+            LogManager.getLogger( "org.apache.hadoop" ).info( marker + " File System Counters Job Counters" );
+            System.err.println( marker + " stderr" );
+            logged.countDown();
+            assertTrue( "Both executions must log before detaching", logged.await( 10, TimeUnit.SECONDS ) );
+            if ( entry == secondEntry ) {
+              assertTrue( "First execution must finish", firstFinished.await( 10, TimeUnit.SECONDS ) );
+              LogManager.getLogger( "org.apache.hadoop" ).info( marker + " after-first-finished" );
+              System.err.println( marker + " stderr-after-first-finished" );
+            }
+          } finally {
+            entry.removeLoggingAppenders();
+            if ( entry == firstEntry ) {
+              firstFinished.countDown();
+            }
+          }
+          return null;
+        } ) );
+      }
+      for ( Future<?> execution : executions ) {
+        execution.get( 30, TimeUnit.SECONDS );
+      }
+    } finally {
+      executor.shutdownNow();
+      assertTrue( "Execution threads must terminate", executor.awaitTermination( 10, TimeUnit.SECONDS ) );
+    }
+
+    String firstLog = KettleLogStore.getAppender().getBuffer( firstEntry.getLogChannelId(), false ).toString();
+    String secondLog = KettleLogStore.getAppender().getBuffer( secondEntry.getLogChannelId(), false ).toString();
+    for ( String kind : List.of( "sqoop", "File System Counters Job Counters", "stderr" ) ) {
+      assertTrue( firstLog, firstLog.contains( "first-execution " + kind ) );
+      assertTrue( secondLog, secondLog.contains( "second-execution " + kind ) );
+    }
+    assertFalse( firstLog, firstLog.contains( "second-execution" ) );
+    assertFalse( secondLog, secondLog.contains( "first-execution" ) );
+    assertTrue( secondLog, secondLog.contains( "second-execution after-first-finished" ) );
+    assertTrue( secondLog, secondLog.contains( "second-execution stderr-after-first-finished" ) );
+  }
+
+  /** Creates an entry using its default log channel. */
   private AbstractSqoopJobEntry createJobEntry() {
+    return createJobEntry( null );
+  }
+
+  /** Creates an entry with an optional distinct Kettle log channel for concurrent logging tests. */
+  private AbstractSqoopJobEntry createJobEntry( String channelName ) {
     return new AbstractSqoopJobEntry( mockNamedClusterService, mockNamedClusterServiceLocator,
       mockRuntimeTestActionService, mockRuntimeTester ) {
+      {
+        if ( channelName != null ) {
+          log = new LogChannel( channelName );
+        }
+      }
+
       @Override protected BlockableJobConfig createJobConfig() {
         return null;
       }
