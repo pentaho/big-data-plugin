@@ -219,6 +219,18 @@ public class HadoopClusterManagerTest {
     verify( namedCluster, never() ).setStorageScheme( any( String.class ) );
   }
 
+  @Test public void testCreateNamedClusterNullShimIdentifier() {
+    when( namedCluster.getShimIdentifier() ).thenReturn( null );
+    ThinNameClusterModel model = new ThinNameClusterModel();
+    model.setName( ncTestName );
+
+    JSONObject result = hadoopClusterManager.createNamedCluster( model, getFiles( "/" ) );
+
+    assertEquals( ncTestName, result.get( "namedCluster" ) );
+    assertTrue( getShimTestDir().exists() );
+    assertFalse( new File( getShimTestDir(), "config.properties" ).exists() );
+  }
+
   @Test public void testOverwriteNamedClusterCaseInsensitive() {
     ThinNameClusterModel model = new ThinNameClusterModel();
     model.setName( "NCTESTName" );

@@ -686,6 +686,11 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       Paths.get(
         getNamedClusterConfigsRootDir() + fileSeparator + namedCluster.getName() + fileSeparator + CONFIG_PROPERTIES );
     Files.createDirectories( clusterConfigDirPath );
+
+    if ( namedCluster.getShimIdentifier() == null ) {
+      return;
+    }
+
     String sampleConfigProperties = namedCluster.getShimIdentifier() + "sampleconfig.properties";
     InputStream
       inputStream =

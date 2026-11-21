@@ -112,7 +112,7 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
         .add( BaseMessages.getString( OozieJobExecutorJobEntry.class, VALIDATION_MESSAGES_MISSING_CONFIGURATION ) );
     }
 
-    if ( null == nc || nc.getName().equals( "" ) || nc.getShimIdentifier().equals( "" ) ) {
+    if ( null == nc || nc.getName().equals( "" ) || "".equals( nc.getShimIdentifier() ) ) {
       messages.add(
         BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.NamedCluster", config.getClusterName() ) );
       return messages;

@@ -168,7 +168,7 @@ public class SecuritySettingsPage extends WizardPage {
       shimIdentifier = namedClusterDialog.getShimIdentifier();
     }
     knoxButton.setVisible(
-      shimIdentifier.equals( "cdpdc71" ) || shimIdentifier.equals( "hdp31" ) );
+      "cdpdc71".equals( shimIdentifier ) || "hdp31".equals( shimIdentifier ) );
   }
 
 
