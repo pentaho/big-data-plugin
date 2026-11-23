@@ -84,7 +84,11 @@ class SqoopIT extends BigDataPluginIT {
   /** Checks an import's own records and counters, and returns its Hadoop job ID. */
   private static String assertImportLog( String log, int records, int otherRecords ) {
     assertThat( log ).contains( "Retrieved " + records + " records.", "File System Counters", "Job Counters" )
-      .doesNotContain( "Retrieved " + otherRecords + " records." );
+      .doesNotContain( "Retrieved " + otherRecords + " records." )
+      .containsPattern( "(?m)Map input records=" + records + "\\h*$" )
+      .containsPattern( "(?m)Map output records=" + records + "\\h*$" )
+      .doesNotContainPattern( "(?m)Map input records=" + otherRecords + "\\h*$" )
+      .doesNotContainPattern( "(?m)Map output records=" + otherRecords + "\\h*$" );
     Matcher matcher = Pattern.compile( "Running job: (job_\\d+_\\d+)" ).matcher( log );
     assertThat( matcher.find() ).as( "Hadoop job ID in entry log" ).isTrue();
     String jobId = matcher.group( 1 );
