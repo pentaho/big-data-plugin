@@ -1,0 +1,360 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>pentaho</groupId>
+    <artifactId>pentaho-big-data-integration-test</artifactId>
+    <version>11.1.0.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>pentaho-big-data-integration-test-pentaho-platform</artifactId>
+  <name>Pentaho Big Data Plugin Integration Tests for the Pentaho Platform</name>
+  <packaging>jar</packaging>
+
+  <properties>
+    <!-- PDI line used for plugin cache lookup; PDI build coordinates live in penv/penv.json. -->
+    <bigdata.it.pdi-version>11.1</bigdata.it.pdi-version>
+    <bigdata.it.transformation-log-level>Detailed</bigdata.it.transformation-log-level>
+    <bigdata.it.platform>linux/amd64</bigdata.it.platform>
+
+    <!-- Big Data plugin under test -->
+    <bigdata.it.plugin-group-id>pentaho</bigdata.it.plugin-group-id>
+    <bigdata.it.plugin-artifact-id>pentaho-big-data-plugin</bigdata.it.plugin-artifact-id>
+    <bigdata.it.plugin-variant>apachevanilla</bigdata.it.plugin-variant>
+    <bigdata.it.plugin-directory-name>pentaho-big-data-plugin</bigdata.it.plugin-directory-name>
+
+    <!--
+      Plugin source:
+        local    (default) - unpack the locally-built ${bigdata.it.plugin-variant} zip from the reactor.
+        download           - download a published variant via BigDataPluginCacheManager (nightly).
+    -->
+    <bigdata.it.source>local</bigdata.it.source>
+    <bigdata.it.skip-local-unpack>false</bigdata.it.skip-local-unpack>
+    <bigdata.it.skip-download>true</bigdata.it.skip-download>
+    <bigdata.it.cache-dir>${user.home}/.pentaho-big-data/it-cache</bigdata.it.cache-dir>
+    <!-- Optional explicit download URL override; otherwise BigDataPluginCacheManager resolves by version+variant. -->
+    <bigdata.it.plugin.url/>
+
+    <!-- Where the unpacked plugin (folder pentaho-big-data-plugin) ends up on the host. -->
+    <bigdata.it.plugin-unpack-dir>${project.build.directory}/plugin/${maven.build.timestamp}</bigdata.it.plugin-unpack-dir>
+
+    <!-- Optional ELM license file; PDI CE ('edition: ce' in penv/penv.json) needs none. -->
+    <bigdata.it.license-file/>
+
+    <!-- Directories staged into the PDI container. -->
+    <bigdata.it.test-resources-dir>${project.basedir}/src/test/resources</bigdata.it.test-resources-dir>
+    <bigdata.it.metastore-dir>${project.build.outputDirectory}/metastore</bigdata.it.metastore-dir>
+    <bigdata.it.kettle-dir>${project.build.outputDirectory}/kettle</bigdata.it.kettle-dir>
+
+    <!-- penv lifecycle settings -->
+    <bigdata.it.skip-penv>false</bigdata.it.skip-penv>
+    <bigdata.it.penv-bin/>
+    <bigdata.it.penv-workspace-root>${project.build.directory}/penv</bigdata.it.penv-workspace-root>
+    <bigdata.it.penv-workspace>${bigdata.it.penv-workspace-root}/${maven.build.timestamp}</bigdata.it.penv-workspace>
+    <bigdata.it.penv-state-file>${project.build.directory}/penv-active-workspace.txt</bigdata.it.penv-state-file>
+    <bigdata.it.container-properties-file>${project.build.directory}/penv-containers.properties</bigdata.it.container-properties-file>
+    <bigdata.it.penv-start-timeout>600</bigdata.it.penv-start-timeout>
+
+    <!-- Service endpoints on penv's Compose network (defined in penv/compose.yaml) -->
+    <bigdata.it.hadoop-host>hadoop-hostname</bigdata.it.hadoop-host>
+    <bigdata.it.hdfs-namenode-port>9000</bigdata.it.hdfs-namenode-port>
+    <bigdata.it.hbase-host>hbase-hostname</bigdata.it.hbase-host>
+    <bigdata.it.hbase-zookeeper-port>2181</bigdata.it.hbase-zookeeper-port>
+
+    <!-- Named cluster used by the transformations. -->
+    <bigdata.it.named-cluster>it-cluster</bigdata.it.named-cluster>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${junit-jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>${assertj.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>${commons-io.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <testResources>
+      <testResource>
+        <directory>${project.basedir}/src/test/resources</directory>
+      </testResource>
+    </testResources>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>bigdata-it-profile</id>
+      <activation>
+        <property>
+          <name>runIntegrationTests</name>
+        </property>
+      </activation>
+      <dependencies>
+        <!--
+          Reactor dependency so that `-am` builds the plugin zip before the tests run.
+          The apachevanilla zip is only produced when the assembly is built with -Papachevanilla.
+        -->
+        <dependency>
+          <groupId>${bigdata.it.plugin-group-id}</groupId>
+          <artifactId>${bigdata.it.plugin-artifact-id}</artifactId>
+          <version>${project.version}</version>
+          <type>zip</type>
+          <classifier>${bigdata.it.plugin-variant}</classifier>
+          <scope>test</scope>
+        </dependency>
+        <!-- Used by NamedClusterMetastoreBuilder to generate the test named cluster. -->
+        <dependency>
+          <groupId>pentaho</groupId>
+          <artifactId>pentaho-big-data-impl-cluster</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>pentaho</groupId>
+          <artifactId>metastore</artifactId>
+          <version>${metastore.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>pentaho-kettle</groupId>
+          <artifactId>kettle-core</artifactId>
+          <version>${platform.version}</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <!-- 1. Create host dirs assembled into the containers. -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>create-it-dirs</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <target>
+                    <mkdir dir="${bigdata.it.metastore-dir}"/>
+                    <mkdir dir="${bigdata.it.kettle-dir}"/>
+                    <available file="${bigdata.it.plugin-unpack-dir}" property="bigdata.it.plugin-dir-exists"/>
+                    <fail if="bigdata.it.plugin-dir-exists"
+                      message="Plugin unpack directory already exists: ${bigdata.it.plugin-unpack-dir}. Use a fresh directory."/>
+                    <mkdir dir="${bigdata.it.plugin-unpack-dir}"/>
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <!-- 2a. LOCAL source: unpack the reactor-built plugin zip. -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>unpack-local-plugin-zip</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>unpack</goal>
+                </goals>
+                <configuration>
+                  <skip>${bigdata.it.skip-local-unpack}</skip>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>${bigdata.it.plugin-group-id}</groupId>
+                      <artifactId>${bigdata.it.plugin-artifact-id}</artifactId>
+                      <version>${project.version}</version>
+                      <type>zip</type>
+                      <classifier>${bigdata.it.plugin-variant}</classifier>
+                      <overWrite>true</overWrite>
+                      <outputDirectory>${bigdata.it.plugin-unpack-dir}</outputDirectory>
+                    </artifactItem>
+                  </artifactItems>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <!-- 2b. DOWNLOAD source: fetch a published variant (nightly). -->
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>download-plugin-variant</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>java</goal>
+                </goals>
+                <configuration>
+                  <skip>${bigdata.it.skip-download}</skip>
+                  <mainClass>org.pentaho.big.data.it.BigDataPluginCacheManager</mainClass>
+                  <classpathScope>test</classpathScope>
+                  <systemProperties>
+                    <systemProperty>
+                      <key>bigdata.it.pdi-version</key>
+                      <value>${bigdata.it.pdi-version}</value>
+                    </systemProperty>
+                    <systemProperty>
+                      <key>bigdata.it.plugin-variant</key>
+                      <value>${bigdata.it.plugin-variant}</value>
+                    </systemProperty>
+                    <systemProperty>
+                      <key>bigdata.it.plugin-unpack-dir</key>
+                      <value>${bigdata.it.plugin-unpack-dir}</value>
+                    </systemProperty>
+                    <systemProperty>
+                      <key>bigdata.it.cache-dir</key>
+                      <value>${bigdata.it.cache-dir}</value>
+                    </systemProperty>
+                    <systemProperty>
+                      <key>bigdata.it.plugin.url</key>
+                      <value>${bigdata.it.plugin.url}</value>
+                    </systemProperty>
+                  </systemProperties>
+                </configuration>
+              </execution>
+              <!-- Generate the named-cluster metastore that points at the containers. -->
+              <execution>
+                <id>build-named-cluster-metastore</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>${java.home}/bin/java</executable>
+                  <classpathScope>test</classpathScope>
+                  <!-- Keep the test classpath below the Windows CreateProcess command-line limit. -->
+                  <longClasspath>true</longClasspath>
+                  <arguments>
+                    <argument>-Dbigdata.it.metastore-dir=${bigdata.it.metastore-dir}</argument>
+                    <argument>-Dbigdata.it.named-cluster=${bigdata.it.named-cluster}</argument>
+                    <argument>-Dbigdata.it.hadoop-host=${bigdata.it.hadoop-host}</argument>
+                    <argument>-Dbigdata.it.hdfs-namenode-port=${bigdata.it.hdfs-namenode-port}</argument>
+                    <argument>-Dbigdata.it.hbase-host=${bigdata.it.hbase-host}</argument>
+                    <argument>-Dbigdata.it.hbase-zookeeper-port=${bigdata.it.hbase-zookeeper-port}</argument>
+                    <argument>-classpath</argument>
+                    <classpath/>
+                    <argument>org.pentaho.big.data.it.NamedClusterMetastoreBuilder</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+              <!-- Provision PDI and the Hadoop/PostgreSQL/HBase fixtures via penv. -->
+              <execution>
+                <id>start-penv-environment</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>${java.home}/bin/java</executable>
+                  <classpathScope>test</classpathScope>
+                  <longClasspath>true</longClasspath>
+                  <arguments>
+                    <argument>-Dbigdata.it.skip-penv=${bigdata.it.skip-penv}</argument>
+                    <argument>-Dbigdata.it.penv-bin=${bigdata.it.penv-bin}</argument>
+                    <argument>-Dbigdata.it.penv-workspace=${bigdata.it.penv-workspace}</argument>
+                    <argument>-Dbigdata.it.penv-state-file=${bigdata.it.penv-state-file}</argument>
+                    <argument>-Dbigdata.it.container-properties-file=${bigdata.it.container-properties-file}</argument>
+                    <argument>-Dbigdata.it.penv-template-dir=${project.basedir}/penv</argument>
+                    <argument>-Dbigdata.it.docker-dir=${project.basedir}/docker</argument>
+                    <argument>-Dbigdata.it.plugin-unpack-dir=${bigdata.it.plugin-unpack-dir}</argument>
+                    <argument>-Dbigdata.it.plugin-directory-name=${bigdata.it.plugin-directory-name}</argument>
+                    <argument>-Dbigdata.it.test-output-dir=${project.build.testOutputDirectory}</argument>
+                    <argument>-Dbigdata.it.test-resources-dir=${bigdata.it.test-resources-dir}</argument>
+                    <argument>-Dbigdata.it.metastore-dir=${bigdata.it.metastore-dir}</argument>
+                    <argument>-Dbigdata.it.kettle-dir=${bigdata.it.kettle-dir}</argument>
+                    <argument>-Dbigdata.it.platform=${bigdata.it.platform}</argument>
+                    <argument>-Dbigdata.it.penv-start-timeout=${bigdata.it.penv-start-timeout}</argument>
+                    <argument>-classpath</argument>
+                    <classpath/>
+                    <argument>org.pentaho.big.data.it.PenvEnvironmentManager</argument>
+                    <argument>up</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+              <!-- Tear down penv containers, volumes, networks, and built images after tests finish. -->
+              <execution>
+                <id>stop-penv-environment</id>
+                <phase>post-integration-test</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>${java.home}/bin/java</executable>
+                  <classpathScope>test</classpathScope>
+                  <longClasspath>true</longClasspath>
+                  <arguments>
+                    <argument>-Dbigdata.it.skip-penv=${bigdata.it.skip-penv}</argument>
+                    <argument>-Dbigdata.it.penv-bin=${bigdata.it.penv-bin}</argument>
+                    <argument>-Dbigdata.it.penv-workspace=${bigdata.it.penv-workspace}</argument>
+                    <argument>-Dbigdata.it.penv-state-file=${bigdata.it.penv-state-file}</argument>
+                    <argument>-classpath</argument>
+                    <classpath/>
+                    <argument>org.pentaho.big.data.it.PenvEnvironmentManager</argument>
+                    <argument>down</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <!-- 3. Run the failsafe integration tests against the penv-managed containers. -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <systemPropertyVariables>
+                <bigdata.it.container-properties-file>${bigdata.it.container-properties-file}</bigdata.it.container-properties-file>
+                <bigdata.it.license-file>${bigdata.it.license-file}</bigdata.it.license-file>
+                <bigdata.it.named-cluster>${bigdata.it.named-cluster}</bigdata.it.named-cluster>
+                <bigdata.it.hadoop-host>${bigdata.it.hadoop-host}</bigdata.it.hadoop-host>
+                <bigdata.it.hbase-host>${bigdata.it.hbase-host}</bigdata.it.hbase-host>
+                <bigdata.it.transformation-log-level>${bigdata.it.transformation-log-level}</bigdata.it.transformation-log-level>
+              </systemPropertyVariables>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!--
+      Convenience: -Dbigdata.it.source=download fetches a published variant instead of
+      building it locally. Both sources use the maven-dependency-plugin unpack: for `local`
+      the zip comes from the reactor build, for `download` the classifier zip is resolved
+      from the remote Maven repository (Artifactory). No separate download step is needed.
+    -->
+    <profile>
+      <id>download</id>
+      <activation>
+        <property>
+          <name>bigdata.it.source</name>
+          <value>download</value>
+        </property>
+      </activation>
+      <properties>
+        <bigdata.it.skip-local-unpack>true</bigdata.it.skip-local-unpack>
+        <bigdata.it.skip-download>false</bigdata.it.skip-download>
+      </properties>
+    </profile>
+  </profiles>
+</project>

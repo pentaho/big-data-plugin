@@ -1,0 +1,250 @@
+# Reusable workflow: builds the pentaho-big-data-plugin (apachevanilla variant) and runs the
+# integration tests via Maven + penv against disposable Docker containers (PDI CE client,
+# Hadoop + YARN, PostgreSQL, and HBase).
+#
+# Called by plugin_pr.yaml (pull_request) and plugin_merge.yaml (push to main/release).
+# Can also be triggered manually via workflow_dispatch.
+#
+# NOTE (secrets/vars): confirm these exist for this repo (or at org level):
+#   vars:    ARTIFACTORY_HOST, ARTIFACTORY_BASE_URL
+#            (optional: BIGDATA_IT_WORKSPACE_ROOT, BIGDATA_IT_PENV_HOME)
+#   secrets: PENTAHO_CICD_ONE_USER, PENTAHO_CICD_ONE_KEY,
+#            HV_ACTIONS_GIT_TOKEN (or BIGDATA_IT_PENV_REPO_TOKEN),
+#            (optional, EE only: BIGDATA_IT_LICENSE_INFORMATION)
+name: Integration Tests
+
+on:
+  workflow_call:
+    inputs:
+      runs_on:
+        description: "Runner label to use for the integration tests job."
+        required: false
+        default: k8s
+        type: string
+      plugin_variant:
+        description: "Big data plugin assembly variant to build and test."
+        required: false
+        default: apachevanilla
+        type: string
+      branch:
+        description: "Branch/ref to checkout. Defaults to the triggering ref."
+        required: false
+        type: string
+  workflow_dispatch:
+    inputs:
+      runs_on:
+        description: "Runner label to use for the integration tests job."
+        required: false
+        default: k8s
+        type: string
+      plugin_variant:
+        description: "Big data plugin assembly variant to build and test."
+        required: false
+        default: apachevanilla
+        type: string
+      branch:
+        description: "Branch/ref to checkout. Defaults to the triggering ref."
+        required: false
+        type: string
+
+env:
+  ARTIFACTORY_HOST: ${{ vars.ARTIFACTORY_HOST }}
+  ARTIFACTORY_BASE_URL: ${{ vars.ARTIFACTORY_BASE_URL }}
+  ARTIFACTORY_USER: ${{ secrets.PENTAHO_CICD_ONE_USER }}
+  ARTIFACTORY_API_KEY: ${{ secrets.PENTAHO_CICD_ONE_KEY }}
+
+jobs:
+  integration-tests:
+    runs-on: "${{ inputs.runs_on || 'k8s' }}"
+
+    container:
+      image: ${{ vars.PDIA_AC_CONTAINER_IMAGE }}
+      credentials:
+        username: ${{ secrets.PENTAHO_CICD_ONE_USER }}
+        password: ${{ secrets.PENTAHO_CICD_ONE_KEY }}
+      volumes:
+        - /home/runner/caches/pentaho/.m2/repository:/m2_local_cache/
+        - ${{ vars.BIGDATA_IT_WORKSPACE_ROOT || '/home/runner/caches/pentaho/bigdata-it-workspaces' }}:${{ vars.BIGDATA_IT_WORKSPACE_ROOT || '/home/runner/caches/pentaho/bigdata-it-workspaces' }}
+
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.branch || github.ref }}
+
+      - name: Free disk space
+        if: ${{ (inputs.runs_on || 'k8s') == 'ubuntu-latest' }}
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          docker-images: false
+          swap-storage: false
+
+      - name: Install runtime and summary tools
+        continue-on-error: true
+        run: |
+          # Ensure python3 + venv (required by penv), Docker Compose/Buildx plugins,
+          # and xmllint + jq (used by integration-test-summary) are available.
+          missing=()
+          command -v python3 >/dev/null 2>&1 || missing+=(python3)
+          python3 -m ensurepip --version >/dev/null 2>&1 || missing+=(python3-venv)
+          docker compose version >/dev/null 2>&1 || missing+=(docker-compose-plugin)
+          docker buildx version >/dev/null 2>&1 || missing+=(docker-buildx-plugin)
+          command -v xmllint >/dev/null 2>&1 || missing+=(libxml2-utils)
+          command -v jq >/dev/null 2>&1 || missing+=(jq)
+          if [ "${#missing[@]}" -gt 0 ] && command -v apt-get >/dev/null 2>&1; then
+            (sudo apt-get update && sudo apt-get install -y "${missing[@]}") \
+              || (apt-get update && apt-get install -y "${missing[@]}") \
+              || true
+          fi
+
+      - name: Resolve versions
+        id: versions
+        run: |
+          plugin_variant="${{ inputs.plugin_variant || 'apachevanilla' }}"
+          # project version = first <version> after </parent> in the root pom (awk is always available)
+          plugin_version=$(awk '/<\/parent>/{p=1} p&&/<version>/{sub(/.*<version>/,"");sub(/<\/version>.*/,"");print;exit}' pom.xml)
+          plugin_version="${plugin_version%-SNAPSHOT}"
+          # PDI line/version from penv/penv.json
+          pdi_version=$(sed -n 's/.*"line":[[:space:]]*"\([^"]*\)".*/\1/p' integration-test/pentaho-platform/penv/penv.json | head -1)
+          if [ -z "$pdi_version" ]; then
+            pdi_version=$(sed -n 's/.*"version":[[:space:]]*"\([^"]*\)".*/\1/p' integration-test/pentaho-platform/penv/penv.json | head -1)
+          fi
+          echo "plugin_variant=$plugin_variant" >> "$GITHUB_OUTPUT"
+          echo "plugin_version=$plugin_version" >> "$GITHUB_OUTPUT"
+          echo "pdi_version=$pdi_version" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Maven Settings
+        uses: ./.github/actions/setup-maven-settings
+        with:
+          m2-directory: $HOME/.m2
+          artifactory-base-url: ${{ env.ARTIFACTORY_BASE_URL }}
+          artifactory-host: ${{ env.ARTIFACTORY_HOST }}
+          artifactory-user: ${{ secrets.PENTAHO_CICD_ONE_USER }}
+          artifactory-api-key: ${{ secrets.PENTAHO_CICD_ONE_KEY }}
+
+      - name: Login to Artifactory Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.ARTIFACTORY_HOST }}
+          username: ${{ env.ARTIFACTORY_USER }}
+          password: ${{ env.ARTIFACTORY_API_KEY }}
+
+      - name: Build project and plugin
+        env:
+          PLUGIN_VARIANT: ${{ steps.versions.outputs.plugin_variant }}
+        run: |
+          cmd="mvn clean install -B -P${PLUGIN_VARIANT} -Dmaven.test.skip=true"
+          $cmd || $cmd
+
+      - name: Prepare optional EE test license
+        env:
+          LICENSE_INFORMATION: ${{ secrets.BIGDATA_IT_LICENSE_INFORMATION }}
+        run: |
+          if [ -z "$LICENSE_INFORMATION" ]; then
+            echo "No BIGDATA_IT_LICENSE_INFORMATION configured; continuing (PDI CE requires no license)."
+            exit 0
+          fi
+          umask 077
+          license_dir="$RUNNER_TEMP/bigdata-it-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          mkdir -p "$license_dir"
+          printf '%s' "$LICENSE_INFORMATION" > "$license_dir/.elmLicInfo.plt"
+          echo "BIGDATA_IT_LICENSE_FILE=$license_dir/.elmLicInfo.plt" >> "$GITHUB_ENV"
+
+      - name: Require penv checkout credentials
+        env:
+          PENV_REPO_TOKEN: ${{ secrets.BIGDATA_IT_PENV_REPO_TOKEN || secrets.HV_ACTIONS_GIT_TOKEN }}
+        run: |
+          if [ -z "$PENV_REPO_TOKEN" ]; then
+            echo "Configure HV_ACTIONS_GIT_TOKEN (org) or BIGDATA_IT_PENV_REPO_TOKEN with read access to pentaho/eng-sandbox." >&2
+            exit 1
+          fi
+
+      - name: Checkout penv
+        uses: actions/checkout@v7
+        with:
+          repository: pentaho/eng-sandbox
+          ref: 7326f7253759a6eafa98b4fff4fa46ad7a397c12
+          token: ${{ secrets.BIGDATA_IT_PENV_REPO_TOKEN || secrets.HV_ACTIONS_GIT_TOKEN }}
+          persist-credentials: false
+          path: .penv-source
+          sparse-checkout: penv
+
+      - name: Install penv
+        env:
+          CONFIGURED_PENV_HOME: ${{ vars.BIGDATA_IT_PENV_HOME }}
+        run: |
+          install_root="$RUNNER_TEMP/bigdata-it-penv-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          penv_home="${CONFIGURED_PENV_HOME:-$install_root/home}"
+          HOME="$install_root/installer" PENV_HOME="$penv_home" \
+            bash .penv-source/penv/install.sh --local --ci
+          rm -rf .penv-source
+          echo "PENV_HOME=$penv_home" >> "$GITHUB_ENV"
+          echo "BIGDATA_IT_PENV_BIN=$install_root/installer/.local/bin/penv" >> "$GITHUB_ENV"
+          echo "$install_root/installer/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Run integration tests
+        id: run-tests
+        env:
+          PLUGIN_VARIANT: ${{ steps.versions.outputs.plugin_variant }}
+          CONFIGURED_WORKSPACE_ROOT: ${{ vars.BIGDATA_IT_WORKSPACE_ROOT }}
+        working-directory: integration-test/pentaho-platform
+        run: |
+          workspace_base="${CONFIGURED_WORKSPACE_ROOT:-/home/runner/caches/pentaho/bigdata-it-workspaces}"
+          if [ ! -w "$workspace_base" ]; then
+            sudo chmod 1777 "$workspace_base" 2>/dev/null \
+              || docker run --rm --network none -v "$workspace_base:/penv-ws-perms" eclipse-temurin:21-jdk-jammy chmod 1777 /penv-ws-perms
+          fi
+          workspace_run_root="$workspace_base/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          mkdir -p "$workspace_run_root"
+          extra_args=()
+          if [ -n "${BIGDATA_IT_LICENSE_FILE:-}" ]; then
+            extra_args+=("-Dbigdata.it.license-file=$BIGDATA_IT_LICENSE_FILE")
+          fi
+          mvn verify -B \
+            -DrunIntegrationTests \
+            "${extra_args[@]}" \
+            "-Dbigdata.it.penv-bin=$BIGDATA_IT_PENV_BIN" \
+            "-Dbigdata.it.penv-workspace-root=$workspace_run_root" \
+            -Dbigdata.it.plugin-variant=${PLUGIN_VARIANT}
+
+      - name: Generate Test Summary
+        id: test-summary
+        if: always() && steps.run-tests.outcome != 'skipped'
+        uses: ./.github/actions/integration-test-summary
+        with:
+          reports-directory: integration-test/pentaho-platform/target/failsafe-reports
+          platform-version: ${{ steps.versions.outputs.pdi_version }}
+          plugin-version: ${{ steps.versions.outputs.plugin_version }}
+
+      - name: Clean temporary test files
+        if: always()
+        env:
+          CONFIGURED_PENV_HOME: ${{ vars.BIGDATA_IT_PENV_HOME }}
+          CONFIGURED_WORKSPACE_ROOT: ${{ vars.BIGDATA_IT_WORKSPACE_ROOT }}
+        run: |
+          rm -rf .penv-source
+          license_dir="$RUNNER_TEMP/bigdata-it-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -f "$license_dir/.elmLicInfo.plt"
+          if [ -d "$license_dir" ]; then
+            rmdir "$license_dir"
+          fi
+          install_root="$RUNNER_TEMP/bigdata-it-penv-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$install_root/installer"
+          if [ -z "$CONFIGURED_PENV_HOME" ]; then
+            rm -rf "$install_root"
+          fi
+          workspace_base="${CONFIGURED_WORKSPACE_ROOT:-/home/runner/caches/pentaho/bigdata-it-workspaces}"
+          workspace_run_root="$workspace_base/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          if [ -d "$workspace_run_root" ]; then
+            rm -rf "$workspace_run_root" 2>/dev/null \
+              || docker run --rm --network none -v "$workspace_base:/penv-ws-perms" eclipse-temurin:21-jdk-jammy rm -rf "/penv-ws-perms/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" \
+              || true
+          fi

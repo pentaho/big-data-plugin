@@ -1,0 +1,19 @@
+{
+  "line": "11.1",
+  "stream": "qat",
+  "build": 479,
+  "edition": "ce",
+  "pentaho": {
+    "pdi": {
+      "java": 21,
+      "plugins": ["./plugin/pentaho-big-data-plugin"]
+    }
+  },
+  "runtime": {
+    "platform": "linux/amd64",
+    "containerEngine": "docker"
+  },
+  "compose": {
+    "overrides": ["./compose.yaml"]
+  }
+}

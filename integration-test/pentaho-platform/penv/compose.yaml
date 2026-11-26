@@ -1,0 +1,75 @@
+services:
+  pdi:
+    ports: !reset []
+    depends_on: !override
+      hadoop:
+        condition: service_healthy
+      sqoop-postgres:
+        condition: service_healthy
+      hbase:
+        condition: service_healthy
+
+  hadoop:
+    image: ${REPRO_PROJECT_NAME:?Set by penv}/hadoop:it
+    build:
+      context: ./docker/hadoop
+      dockerfile: Dockerfile
+    platform: linux/amd64
+    hostname: hadoop-hostname
+    networks:
+      default:
+        aliases: [hadoop-hostname]
+    environment:
+      HADOOP_ROOT_LOGGER: INFO,console
+      JAVA_HOME: /opt/jdk21
+      HADOOP_OPTS: --add-opens java.base/java.lang=ALL-UNNAMED
+    command:
+      - /bin/bash
+      - -o
+      - pipefail
+      - -c
+      - tr -d '\r' < /opt/hadoop/it-scripts/start-hadoop.sh | bash | tee /tmp/bigdata-it-hadoop-start.log
+    healthcheck:
+      test: ["CMD", "grep", "-qx", "YARN ready", "/tmp/bigdata-it-hadoop-start.log"]
+      interval: 5s
+      timeout: 5s
+      retries: 36
+
+  # SqoopIT uses PostgreSQL 18 and its own seed; penv's repository database is not started.
+  sqoop-postgres:
+    image: ${REPRO_PROJECT_NAME:?Set by penv}/sqoop-postgres:it
+    build:
+      context: ./docker/postgres
+      dockerfile: Dockerfile
+    platform: linux/amd64
+    hostname: postgres-hostname
+    networks:
+      default:
+        aliases: [postgres-hostname]
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mysecretpassword
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          PGPASSWORD="$$POSTGRES_PASSWORD" psql -h 127.0.0.1 -U "$$POSTGRES_USER"
+          -d "$$POSTGRES_DB" -tAc 'SELECT count(*) = 2 FROM public.hadoop' | grep -qx t
+      interval: 5s
+      timeout: 5s
+      retries: 24
+
+  hbase:
+    image: harisekhon/hbase:2.1
+    platform: linux/amd64
+    hostname: hbase-hostname
+    networks:
+      default:
+        aliases: [hbase-hostname]
+    healthcheck:
+      # Read the master log directly; the entrypoint can miss early lines when tailing it.
+      test: ["CMD-SHELL", "grep -qs 'Master has completed initialization' /hbase/logs/hbase-*-master-*.log"]
+      interval: 5s
+      timeout: 5s
+      retries: 36

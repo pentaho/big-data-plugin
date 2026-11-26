@@ -159,6 +159,17 @@
         <module>assemblies</module>
       </modules>
     </profile>
+    <profile>
+      <id>integration-test</id>
+      <activation>
+        <property>
+          <name>runIntegrationTests</name>
+        </property>
+      </activation>
+      <modules>
+        <module>integration-test</module>
+      </modules>
+    </profile>
   </profiles>
 
   <repositories>
