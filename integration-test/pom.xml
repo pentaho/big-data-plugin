@@ -23,7 +23,6 @@
     <maven.deploy.skip>true</maven.deploy.skip>
 
     <!-- Plugin/tooling versions -->
-    <docker-maven-plugin.version>0.48.1</docker-maven-plugin.version>
     <exec-maven-plugin.version>3.1.0</exec-maven-plugin.version>
     <maven-dependency-plugin.version>3.6.1</maven-dependency-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
@@ -32,14 +31,6 @@
     <assertj.version>3.25.3</assertj.version>
     <commons-io.version>2.16.1</commons-io.version>
     <maven.build.timestamp.format>yyyyMMddHHmmssSSS</maven.build.timestamp.format>
-
-    <docker.platforms/> <!-- Empty to skip buildx -->
-
-    <!--
-      Docker registry that hosts the automation/pdi-client image.
-      Override with -Dpentaho.docker.pull.host= if you use a different mirror.
-    -->
-    <pentaho.docker.pull.host>pntprv-docker-dev-orl.repo.eng.pentaho.com/</pentaho.docker.pull.host>
 
     <!-- Parallel test execution is disabled by default for functional Hadoop tests. -->
     <bigdata.it.parallel>false</bigdata.it.parallel>
@@ -98,109 +89,9 @@
                 </execution>
               </executions>
             </plugin>
-            <plugin>
-              <groupId>io.fabric8</groupId>
-              <artifactId>docker-maven-plugin</artifactId>
-              <version>${docker-maven-plugin.version}</version>
-              <configuration>
-                <dockerHost>${bigdata.it.dockerHost}</dockerHost>
-                <startParallel>false</startParallel>
-                <outputDirectory>${project.build.directory}/docker/${maven.build.timestamp}</outputDirectory>
-              </configuration>
-              <executions>
-                <execution>
-                  <id>setup-containers</id>
-                  <phase>pre-integration-test</phase>
-                  <goals>
-                    <goal>build</goal>
-                    <goal>start</goal>
-                  </goals>
-                </execution>
-                <execution>
-                  <id>teardown-containers</id>
-                  <phase>post-integration-test</phase>
-                  <goals>
-                    <goal>stop</goal>
-                  </goals>
-                </execution>
-              </executions>
-            </plugin>
           </plugins>
         </pluginManagement>
       </build>
-    </profile>
-
-    <!-- Docker network: reuse an existing one, or create a dedicated test network. -->
-    <profile>
-      <id>use-existing-docker-network</id>
-      <activation>
-        <property>
-          <name>use-existing-docker-network</name>
-        </property>
-      </activation>
-      <properties>
-        <test-network-name>${use-existing-docker-network}</test-network-name>
-      </properties>
-    </profile>
-    <profile>
-      <id>create-new-docker-network</id>
-      <activation>
-        <property>
-          <name>!use-existing-docker-network</name>
-        </property>
-      </activation>
-      <properties>
-        <test-network-name>bigdata-it-${maven.build.timestamp}</test-network-name>
-      </properties>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <groupId>io.fabric8</groupId>
-              <artifactId>docker-maven-plugin</artifactId>
-              <version>${docker-maven-plugin.version}</version>
-              <configuration>
-                <autoCreateCustomNetworks>true</autoCreateCustomNetworks>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
-      </build>
-    </profile>
-
-    <!-- Host-specific Docker daemon endpoint. -->
-    <profile>
-      <id>linux-host</id>
-      <activation>
-        <os>
-          <family>unix</family>
-        </os>
-      </activation>
-      <properties>
-        <bigdata.it.dockerHost>unix:///var/run/docker.sock</bigdata.it.dockerHost>
-      </properties>
-    </profile>
-    <profile>
-      <id>mac-host</id>
-      <activation>
-        <os>
-          <family>mac</family>
-        </os>
-      </activation>
-      <properties>
-        <bigdata.it.dockerHost>${env.DOCKER_HOST}</bigdata.it.dockerHost>
-      </properties>
-    </profile>
-    <profile>
-      <id>windows-host</id>
-      <activation>
-        <os>
-          <family>windows</family>
-        </os>
-      </activation>
-      <properties>
-        <bigdata.it.dockerHost>tcp://localhost:2375</bigdata.it.dockerHost>
-      </properties>
     </profile>
   </profiles>
 </project>

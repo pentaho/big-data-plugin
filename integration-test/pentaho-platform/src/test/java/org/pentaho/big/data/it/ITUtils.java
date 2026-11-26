@@ -13,16 +13,21 @@
 package org.pentaho.big.data.it;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Properties;
 
 /**
  * Shared constants and small helpers for the Big Data plugin integration tests.
  * <p>
- * Container ids and topology values are injected by the docker-maven-plugin / failsafe through the
- * {@code bigdata.it.*} system properties (see integration-test/pentaho-platform/pom.xml).
+ * Container ids and topology values are provided through {@code bigdata.it.*} system properties
+ * or the container properties file written during {@code pre-integration-test} by
+ * {@link PenvEnvironmentManager}.
  */
 public final class ITUtils {
 
-  /** Root of the PDI installation inside the {@code automation/pdi-client} image. */
+  /** Root of the PDI installation inside the PDI container image. */
   public static final String DATA_INTEGRATION_DIR = "/home/devuser/pentaho/design-tools/data-integration";
   public static final String PAN_SCRIPT = DATA_INTEGRATION_DIR + "/pan.sh";
   public static final String KITCHEN_SCRIPT = DATA_INTEGRATION_DIR + "/kitchen.sh";
@@ -30,9 +35,11 @@ public final class ITUtils {
   public static final String JOBS_DIR = DATA_INTEGRATION_DIR + "/jobs";
 
   // System properties injected by the build.
+  public static final String PROP_CONTAINER_PROPERTIES_FILE = "bigdata.it.container-properties-file";
   public static final String PROP_PDI_CONTAINER = "bigdata.it.pdi-container-id";
   public static final String PROP_HADOOP_CONTAINER = "bigdata.it.hadoop-container-id";
   public static final String PROP_HBASE_CONTAINER = "bigdata.it.hbase-container-id";
+  public static final String PROP_POSTGRES_CONTAINER = "bigdata.it.postgres-container-id";
   public static final String PROP_NAMED_CLUSTER = "bigdata.it.named-cluster";
   public static final String PROP_HADOOP_HOST = "bigdata.it.hadoop-host";
   public static final String PROP_HBASE_HOST = "bigdata.it.hbase-host";
@@ -93,9 +100,30 @@ public final class ITUtils {
   private static String required( String key ) {
     String value = System.getProperty( key );
     if ( value == null || value.isBlank() ) {
-      throw new IllegalStateException( "Missing required system property: " + key
+      value = fromContainerPropertiesFile( key );
+    }
+    if ( value == null || value.isBlank() ) {
+      throw new IllegalStateException( "Missing required property: " + key
         + ". Are the integration test containers running?" );
     }
     return value;
+  }
+
+  private static String fromContainerPropertiesFile( String key ) {
+    String pathValue = System.getProperty( PROP_CONTAINER_PROPERTIES_FILE );
+    if ( pathValue == null || pathValue.isBlank() ) {
+      return null;
+    }
+    Path file = Path.of( pathValue );
+    if ( !Files.isRegularFile( file ) ) {
+      return null;
+    }
+    Properties props = new Properties();
+    try ( InputStream in = Files.newInputStream( file ) ) {
+      props.load( in );
+      return props.getProperty( key );
+    } catch ( IOException e ) {
+      throw new IllegalStateException( "Unable to read container properties from " + file, e );
+    }
   }
 }

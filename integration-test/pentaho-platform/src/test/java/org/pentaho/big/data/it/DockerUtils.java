@@ -14,6 +14,7 @@ package org.pentaho.big.data.it;
 
 import java.io.IOException;
 import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
@@ -27,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Thin wrapper around the local {@code docker} CLI so integration tests can run commands inside the
  * PDI / Hadoop / HBase containers and copy files in and out, without depending on any EE-only helper
- * library. The container ids are provided by the docker-maven-plugin through failsafe system properties.
+ * library. Container IDs are supplied via system properties or the {@code penv} container properties file.
  */
 public final class DockerUtils {
 
@@ -106,12 +107,15 @@ public final class DockerUtils {
   }
 
   /**
-   * Runs a shell pipeline inside a container. Useful for interactive tools that read from stdin
-   * (for example {@code echo "scan 'table'" | hbase shell}).
+   * Runs a shell pipeline inside a container, feeding the script over stdin so embedded quotes
+   * and multi-word expressions work identically on Windows and Unix hosts.
    */
   public static ExecResult execShell( String containerId, String shellScript )
     throws IOException, InterruptedException {
-    return exec( containerId, "/bin/bash", "-lc", shellScript );
+    return run(
+      List.of( "docker", "exec", "-i", containerId, "/bin/bash", "-ls" ),
+      false,
+      shellScript.getBytes( StandardCharsets.UTF_8 ) );
   }
 
   /** Copies a file or directory from a container to the host. */
@@ -144,12 +148,22 @@ public final class DockerUtils {
   }
 
   private static ExecResult run( List<String> command ) throws IOException, InterruptedException {
-    return run( command, false );
+    return run( command, false, null );
   }
 
   private static ExecResult run( List<String> command, boolean streamOutput ) throws IOException, InterruptedException {
+    return run( command, streamOutput, null );
+  }
+
+  private static ExecResult run( List<String> command, boolean streamOutput, byte[] stdinBytes )
+    throws IOException, InterruptedException {
     ProcessBuilder pb = new ProcessBuilder( command );
     Process process = pb.start();
+    if ( stdinBytes != null ) {
+      try ( OutputStream stdin = process.getOutputStream() ) {
+        stdin.write( stdinBytes );
+      }
+    }
 
     // Drain stdout and stderr concurrently. A single-threaded read of one stream fully before the
     // other deadlocks when the child fills the other pipe buffer (~64 KB) - which PAN easily does
