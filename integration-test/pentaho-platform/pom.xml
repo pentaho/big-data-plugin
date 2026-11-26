@@ -41,8 +41,8 @@
     <!-- Where the unpacked plugin (folder pentaho-big-data-plugin) ends up on the host. -->
     <bigdata.it.plugin-unpack-dir>${project.build.directory}/plugin/${maven.build.timestamp}</bigdata.it.plugin-unpack-dir>
 
-    <!-- A valid ELM license must be supplied locally; it is never included in the Docker image. -->
-    <bigdata.it.license-file>${project.basedir}/../conf/.elmLicInfo.plt</bigdata.it.license-file>
+    <!-- Optional ELM license file; PDI CE ('edition: ce' in penv/penv.json) needs none. -->
+    <bigdata.it.license-file/>
 
     <!-- Directories staged into the PDI container. -->
     <bigdata.it.test-resources-dir>${project.basedir}/src/test/resources</bigdata.it.test-resources-dir>
@@ -155,9 +155,6 @@
                   <target>
                     <mkdir dir="${bigdata.it.metastore-dir}"/>
                     <mkdir dir="${bigdata.it.kettle-dir}"/>
-                    <available file="${bigdata.it.license-file}" property="bigdata.it.license-available"/>
-                    <fail unless="bigdata.it.license-available"
-                      message="No PDI license found at '${bigdata.it.license-file}'. Set -Dbigdata.it.license-file=&lt;path-to-.elmLicInfo.plt&gt; to run integration tests."/>
                     <available file="${bigdata.it.plugin-unpack-dir}" property="bigdata.it.plugin-dir-exists"/>
                     <fail if="bigdata.it.plugin-dir-exists"
                       message="Plugin unpack directory already exists: ${bigdata.it.plugin-unpack-dir}. Use a fresh directory."/>

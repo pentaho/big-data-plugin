@@ -1,24 +1,31 @@
 # Big Data plugin integration tests
 
-The opt-in integration suite builds and installs the Big Data plugin into a disposable EE PDI
-client container managed by `penv`, alongside disposable Hadoop/YARN, seeded PostgreSQL, and
-HBase containers defined in `integration-test/pentaho-platform/penv/compose.yaml`.
+The opt-in integration suite builds and installs the Big Data plugin into a disposable PDI CE
+client container (`edition: "ce"`) managed by `penv`, alongside disposable Hadoop/YARN, seeded
+PostgreSQL, and HBase containers defined in `integration-test/pentaho-platform/penv/compose.yaml`.
 
 `SqoopIT` imports rows from PostgreSQL into HDFS through Kitchen and asserts both the Sqoop
 MapReduce counters in the Kitchen log and the landed HDFS files. `BasicIT` and `HdfsIT` also run
 as part of the enabled suite; unfinished `FormatsIT` and `HBaseIT` cases remain `@Disabled`.
 
+- **Architecture & code walkthrough (with Mermaid diagrams):**
+  [penv-integration-architecture.md](penv-integration-architecture.md)
+- **Sqoop, Hadoop, PDI & Java 21 bytecode compatibility notes:**
+  [sqoop-hadoop-java-versions.md](sqoop-hadoop-java-versions.md)
+
 ## Prerequisites
 
-- JDK 21 and Maven 3.8+.
+- JDK 17 or later on the host (`penv` runs PDI and Hadoop on Java 21 inside Docker) and Maven 3.8+.
 - Python 3.8+ (`python3` on Linux/macOS, `python` or `py -3` on Windows).
 - Docker with Compose v2 (`docker compose`, 2.24.4+) and BuildKit, running Linux `amd64`
   containers (use Docker Desktop in **Linux containers** mode on Windows; WSL is not required).
 - Network access to Pentaho's Maven repository and internal artifact cache
-  (`repo-cache.eng.pentaho.com`, used by `penv` to cache the EE PDI client distribution).
+  (`repo-cache.eng.pentaho.com`, used by `penv` to cache the PDI CE client distribution).
 - `penv` installed from `pentaho/eng-sandbox` (pinned in `.github/workflows/integration_tests.yaml`
   at commit `7326f7253759a6eafa98b4fff4fa46ad7a397c12`).
-- A valid PDI ELM license file (`.elmLicInfo.plt`). Never commit the license file.
+- No PDI license file is required for the default PDI CE setup (`edition: "ce"`). If you switch
+  `penv/penv.json` to `"edition": "ee"`, supply `-Dbigdata.it.license-file=/path/to/.elmLicInfo.plt`
+  (never commit the license file).
 
 ## Install `penv`
 
@@ -60,24 +67,21 @@ scripts:
 ```sh
 mvn clean install -B -Papachevanilla -Dmaven.test.skip=true &&
   mvn -f integration-test/pentaho-platform/pom.xml verify -B -DrunIntegrationTests \
-    -Papachevanilla -Dit.test=SqoopIT \
-    "-Dbigdata.it.license-file=$HOME/.pentaho/.elmLicInfo.plt"
+    -Papachevanilla -Dit.test=SqoopIT
 ```
 
 **Windows (PowerShell)**
 
 ```powershell
-$license = Join-Path $HOME '.pentaho\.elmLicInfo.plt'
 mvn clean install -B -Papachevanilla '-Dmaven.test.skip=true'
 if ($LASTEXITCODE -eq 0) {
   mvn -f integration-test\pentaho-platform\pom.xml verify -B -DrunIntegrationTests `
-    -Papachevanilla '-Dit.test=SqoopIT' "-Dbigdata.it.license-file=$license"
+    -Papachevanilla '-Dit.test=SqoopIT'
 }
 ```
 
 > **PowerShell quoting note:** Always quote `-D` properties containing dots (such as
-> `'-Dit.test=SqoopIT'` and `"-Dbigdata.it.license-file=$license"`), because PowerShell splits
-> unquoted `-Dfoo.bar=baz` arguments at `.`.
+> `'-Dit.test=SqoopIT'`), because PowerShell splits unquoted `-Dfoo.bar=baz` arguments at `.`.
 
 Omit `-Dit.test=SqoopIT` to run all enabled integration tests (`BasicIT`, `HdfsIT`, `SqoopIT`).
 Do not pass `-DskipTests` on `verify`, as Failsafe also honors it; inspect
@@ -85,15 +89,18 @@ Do not pass `-DskipTests` on `verify`, as Failsafe also honors it; inspect
 
 ## Workspace visibility & CI configuration
 
-- **License handling:** The PDI license is copied into the running PDI container before each test
-  class and deleted in `@AfterAll`; it is never baked into an image or `penv` workspace.
+- **License handling:** PDI CE (`edition: "ce"`) requires no license. When testing against PDI EE
+  (`edition: "ee"`), pass `-Dbigdata.it.license-file=/path/to/.elmLicInfo.plt`; the license is
+  copied into the running PDI container before each test class and deleted in `@AfterAll`, and is
+  never baked into an image or `penv` workspace.
 - **Bind-mount path visibility:** `penv` bind-mounts `<workspace>/data` into the PDI container,
   so the Docker daemon must see the workspace directory at the same path as the Maven process.
   `PenvEnvironmentManager` verifies this before building images. On containerized or remote-daemon
   runners where only a specific directory is shared with Docker, set `-Dbigdata.it.penv-workspace-root=<path>`
   or the `BIGDATA_IT_WORKSPACE_ROOT` environment/Actions variable.
-- **GitHub Actions secrets & variables:** `.github/workflows/integration_tests.yaml` requires
-  `BIGDATA_IT_LICENSE_INFORMATION` (ELM license contents) and `BIGDATA_IT_PENV_REPO_TOKEN`
-  (read-only access to `pentaho/eng-sandbox`), plus standard Artifactory credentials. Optional
-  repository variables `BIGDATA_IT_WORKSPACE_ROOT` and `BIGDATA_IT_PENV_HOME` customize the
-  shared workspace root and persistent `penv` download cache directory on self-hosted runners.
+- **GitHub Actions secrets & variables:** `.github/workflows/integration_tests.yaml` uses the
+  organization `HV_ACTIONS_GIT_TOKEN` secret (or an optional `BIGDATA_IT_PENV_REPO_TOKEN`
+  override) for read-only checkout of `pentaho/eng-sandbox`, plus standard Artifactory credentials.
+  `BIGDATA_IT_LICENSE_INFORMATION` is only needed if testing PDI EE. Optional repository variables
+  `BIGDATA_IT_WORKSPACE_ROOT` and `BIGDATA_IT_PENV_HOME` customize the shared workspace root and
+  persistent `penv` download cache directory on self-hosted runners.

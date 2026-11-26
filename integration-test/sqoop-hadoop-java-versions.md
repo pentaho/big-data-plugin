@@ -60,11 +60,11 @@ Measured by running `java -version` inside each image:
 
 | Where | Image | Java it ships | `JAVA_HOME` |
 | --- | --- | --- | --- |
-| PDI client | `automation/pdi-client:11.1` | **OpenJDK 21.0.11** | not set as an env var |
+| PDI client (`penv`) | Built from `pdi-ee-client-11.1.0.0-479.zip` (`penv/penv.json`) | **Eclipse Temurin 21** | `/opt/java/openjdk` |
 | Hadoop base (current) | `apache/hadoop:3.3.6` | OpenJDK **1.8.0_212** | `/usr/lib/jvm/jre/` |
 | Hadoop base (newer 3.4 line) | `apache/hadoop:3.4.1` | OpenJDK **1.8.0_212** - identical | `/usr/lib/jvm/jre/` |
 | Hadoop base (newest published) | `apache/hadoop:3.5.0` | Temurin **17.0.18+8** | `/opt/java/openjdk` |
-| Hadoop container as we run it | `bigdata-it-hadoop:11.1` | **Temurin 21** installed at `/opt/jdk21` | `/opt/jdk21` (set in the pom) |
+| Hadoop container as we run it | `${REPRO_PROJECT_NAME}/hadoop:it` (`docker/hadoop/Dockerfile`) | **Temurin 21** installed at `/opt/jdk21` | `/opt/jdk21` (set in `penv/compose.yaml`) |
 
 The last row is the workaround. Rows 2 to 4 are what you get out of the box.
 
@@ -146,24 +146,24 @@ run, read straight out of the PDI container:
 `JAVA_HOME` it inherits, so without intervention the mapper is a Java 8 JVM, and it cannot load
 class file version 65.
 
-The fix in [pentaho-platform/pom.xml](pentaho-platform/pom.xml) has two halves. First, the image
-build downloads a JDK 21 and unpacks it to `/opt/jdk21`:
+The fix in [pentaho-platform/docker/hadoop/Dockerfile](pentaho-platform/docker/hadoop/Dockerfile)
+and [pentaho-platform/penv/compose.yaml](pentaho-platform/penv/compose.yaml) has two halves. First,
+the derived image downloads a JDK 21 and unpacks it to `/opt/jdk21`:
 
-```xml
-<runCmds>
-  <run>curl -fsSL --retry 3 -o /tmp/jdk21.tar.gz https://api.adoptium.net/v3/binary/latest/21/ga/linux/x64/jdk/hotspot/normal/eclipse</run>
-  <run>mkdir -p /opt/jdk21; tar -xzf /tmp/jdk21.tar.gz -C /opt/jdk21 --strip-components=1; rm -f /tmp/jdk21.tar.gz</run>
-</runCmds>
+```dockerfile
+RUN curl -fsSL --retry 3 -o /tmp/jdk21.tar.gz https://api.adoptium.net/v3/binary/latest/21/ga/linux/x64/jdk/hotspot/normal/eclipse \
+  && mkdir -p /opt/jdk21 \
+  && tar -xzf /tmp/jdk21.tar.gz -C /opt/jdk21 --strip-components=1 \
+  && rm -f /tmp/jdk21.tar.gz
 ```
 
-Second, the container environment points Hadoop at it:
+Second, the service environment in `penv/compose.yaml` points Hadoop at it:
 
-```xml
-<env>
-  <HADOOP_ROOT_LOGGER>INFO,console</HADOOP_ROOT_LOGGER>
-  <JAVA_HOME>/opt/jdk21</JAVA_HOME>
-  <HADOOP_OPTS>--add-opens java.base/java.lang=ALL-UNNAMED</HADOOP_OPTS>
-</env>
+```yaml
+    environment:
+      HADOOP_ROOT_LOGGER: INFO,console
+      JAVA_HOME: /opt/jdk21
+      HADOOP_OPTS: --add-opens java.base/java.lang=ALL-UNNAMED
 ```
 
 `JAVA_HOME` here does double duty: the Hadoop daemons themselves start on Java 21, and the YARN
@@ -359,8 +359,9 @@ docker exec $pdi find / -name 'sqoop*.jar' -not -path '/proc/*'
 
 | Concern | File | What to look for |
 | --- | --- | --- |
-| JDK 21 download and `JAVA_HOME` | [pentaho-platform/pom.xml](pentaho-platform/pom.xml) | the `<runCmds>` block and the Hadoop container `<env>` |
+| JDK 21 download and `JAVA_HOME` | [pentaho-platform/docker/hadoop/Dockerfile](pentaho-platform/docker/hadoop/Dockerfile), [pentaho-platform/penv/compose.yaml](pentaho-platform/penv/compose.yaml) | the `RUN curl ... /opt/jdk21` layer and `hadoop.environment` |
 | Server-side MapReduce settings | [pentaho-platform/docker/hadoop/config/mapred-site.xml](pentaho-platform/docker/hadoop/config/mapred-site.xml) | `mapreduce.jvm.add-opens-as-default`, `*.java.opts` |
 | Client-side MapReduce settings | [pentaho-platform/src/test/java/org/pentaho/big/data/it/NamedClusterMetastoreBuilder.java](pentaho-platform/src/test/java/org/pentaho/big/data/it/NamedClusterMetastoreBuilder.java) | the `mapredSite()` method |
 | The test that exercises the whole path | [pentaho-platform/src/test/java/org/pentaho/big/data/it/SqoopIT.java](pentaho-platform/src/test/java/org/pentaho/big/data/it/SqoopIT.java) | expects `Retrieved 2 records.` and two rows in HDFS |
+| Architecture and lifecycle diagrams | [penv-integration-architecture.md](penv-integration-architecture.md) | Maven + `penv` sequence, topology, and CI blockers |
 | Fixture overview and commands | [plugin-integration-test-readme.md](plugin-integration-test-readme.md) | Prerequisites and run instructions |

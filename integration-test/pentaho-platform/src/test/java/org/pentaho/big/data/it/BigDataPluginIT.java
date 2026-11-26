@@ -17,6 +17,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.parallel.ResourceLock;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -43,18 +44,22 @@ public abstract class BigDataPluginIT {
 
   @BeforeAll
   static void installLicense() throws IOException, InterruptedException {
-    String container = ITUtils.pdiContainerId();
     String license = System.getProperty( "bigdata.it.license-file" );
     if ( license == null || license.isBlank() ) {
-      throw new IllegalStateException( "Missing required system property: bigdata.it.license-file" );
+      return;
     }
+    Path licenseFile = Path.of( license ).toAbsolutePath();
+    if ( !Files.isRegularFile( licenseFile ) ) {
+      throw new IllegalStateException( "Configured PDI license file does not exist: " + licenseFile );
+    }
+    String container = ITUtils.pdiContainerId();
     DockerUtils.ExecResult uid = DockerUtils.exec( container, "id", "-u" );
     DockerUtils.ExecResult gid = DockerUtils.exec( container, "id", "-g" );
     if ( !uid.isSuccess() || !gid.isSuccess() ) {
       throw new IOException( "Unable to determine the PDI container user: "
         + uid.combinedOutput() + gid.combinedOutput() );
     }
-    DockerUtils.copyToContainer( container, Path.of( license ).toAbsolutePath(), LICENSE_PATH );
+    DockerUtils.copyToContainer( container, licenseFile, LICENSE_PATH );
     licenseCopied = true;
     DockerUtils.ExecResult permissions = DockerUtils.execAsUser( container, "root", "chown",
       uid.stdout().trim() + ":" + gid.stdout().trim(), LICENSE_PATH );
