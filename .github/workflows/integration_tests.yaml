@@ -64,7 +64,7 @@ jobs:
         password: ${{ secrets.PENTAHO_CICD_ONE_KEY }}
       volumes:
         - /home/runner/caches/pentaho/.m2/repository:/m2_local_cache/
-        - /runner/_work/_temp/bigdata-it-workspaces:/runner/_work/_temp/bigdata-it-workspaces
+        - ${{ vars.BIGDATA_IT_WORKSPACE_ROOT || '/home/runner/caches/pentaho/bigdata-it-workspaces' }}:${{ vars.BIGDATA_IT_WORKSPACE_ROOT || '/home/runner/caches/pentaho/bigdata-it-workspaces' }}
 
     defaults:
       run:
@@ -194,18 +194,25 @@ jobs:
         id: run-tests
         env:
           PLUGIN_VARIANT: ${{ steps.versions.outputs.plugin_variant }}
-          BIGDATA_IT_WORKSPACE_ROOT: ${{ vars.BIGDATA_IT_WORKSPACE_ROOT || format('/runner/_work/_temp/bigdata-it-workspaces/{0}-{1}', github.run_id, github.run_attempt) }}
+          CONFIGURED_WORKSPACE_ROOT: ${{ vars.BIGDATA_IT_WORKSPACE_ROOT }}
         working-directory: integration-test/pentaho-platform
         run: |
+          workspace_base="${CONFIGURED_WORKSPACE_ROOT:-/home/runner/caches/pentaho/bigdata-it-workspaces}"
+          if [ ! -w "$workspace_base" ]; then
+            sudo chmod 1777 "$workspace_base" 2>/dev/null \
+              || docker run --rm --network none -v "$workspace_base:/penv-ws-perms" eclipse-temurin:21-jdk-jammy chmod 1777 /penv-ws-perms
+          fi
+          workspace_run_root="$workspace_base/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          mkdir -p "$workspace_run_root"
           extra_args=()
           if [ -n "${BIGDATA_IT_LICENSE_FILE:-}" ]; then
             extra_args+=("-Dbigdata.it.license-file=$BIGDATA_IT_LICENSE_FILE")
           fi
           mvn verify -B \
             -DrunIntegrationTests \
-            -P${PLUGIN_VARIANT} \
             "${extra_args[@]}" \
             "-Dbigdata.it.penv-bin=$BIGDATA_IT_PENV_BIN" \
+            "-Dbigdata.it.penv-workspace-root=$workspace_run_root" \
             -Dbigdata.it.plugin-variant=${PLUGIN_VARIANT}
 
       - name: Generate Test Summary
@@ -221,6 +228,7 @@ jobs:
         if: always()
         env:
           CONFIGURED_PENV_HOME: ${{ vars.BIGDATA_IT_PENV_HOME }}
+          CONFIGURED_WORKSPACE_ROOT: ${{ vars.BIGDATA_IT_WORKSPACE_ROOT }}
         run: |
           rm -rf .penv-source
           license_dir="$RUNNER_TEMP/bigdata-it-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
@@ -233,4 +241,10 @@ jobs:
           if [ -z "$CONFIGURED_PENV_HOME" ]; then
             rm -rf "$install_root"
           fi
-          rm -rf "/runner/_work/_temp/bigdata-it-workspaces/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          workspace_base="${CONFIGURED_WORKSPACE_ROOT:-/home/runner/caches/pentaho/bigdata-it-workspaces}"
+          workspace_run_root="$workspace_base/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          if [ -d "$workspace_run_root" ]; then
+            rm -rf "$workspace_run_root" 2>/dev/null \
+              || docker run --rm --network none -v "$workspace_base:/penv-ws-perms" eclipse-temurin:21-jdk-jammy rm -rf "/penv-ws-perms/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" \
+              || true
+          fi
